@@ -72,7 +72,8 @@ static void Render(uint8_t RssiLevel, uint8_t VFO)
 }
 
 
-#if define ENABLE_RSSI 
+#if defined(ENABLE_RSSI)
+
 void UI_UpdateRSSI(uint16_t RSSI)
 {
     if (gCurrentFunction == FUNCTION_TRANSMIT || gScreenToDisplay != DISPLAY_MAIN) {
