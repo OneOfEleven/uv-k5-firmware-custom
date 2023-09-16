@@ -72,31 +72,9 @@ static void Render(uint8_t RssiLevel, uint8_t VFO)
 }
 
 
-#if define(ENABLE_RSSI)
+#if define ENABLE_RSSI 
 void UI_UpdateRSSI(uint16_t RSSI)
 {
-    /*
-	uint8_t Level;
-
-
-	if (RSSI >= gEEPROM_RSSI_CALIB[gRxVfo->Band][3]) {
-		Level = 6;
-	} else if (RSSI >= gEEPROM_RSSI_CALIB[gRxVfo->Band][2]) {
-		Level = 4;
-	} else if (RSSI >= gEEPROM_RSSI_CALIB[gRxVfo->Band][1]) {
-		Level = 2;
-	} else if (RSSI >= gEEPROM_RSSI_CALIB[gRxVfo->Band][0]) {
-		Level = 1;
-	} else {
-		Level = 0;
-	}
-
-	if (gVFO_RSSI_Level[gEeprom.RX_CHANNEL] != Level) {
-		gVFO_RSSI_Level[gEeprom.RX_CHANNEL] = Level;
-		Render(Level, gEeprom.RX_CHANNEL);
-	}
-*/
-
     if (gCurrentFunction == FUNCTION_TRANSMIT || gScreenToDisplay != DISPLAY_MAIN) {
         return;
     }
