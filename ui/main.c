@@ -261,7 +261,7 @@ void UI_DisplayMain(void)
 					if (Attributes & MR_CH_SCANLIST1)
 						memmove(pLine0 + 113, BITMAP_ScanList1, sizeof(BITMAP_ScanList1));
 					if (Attributes & MR_CH_SCANLIST2)
-						memmove(pLine0 + 120, BITMAP_ScanList2, sizeof(BITMAP_ScanList1));
+						memmove(pLine0 + 120, BITMAP_ScanList2, sizeof(BITMAP_ScanList2));
 				}
 
 				switch (gEeprom.CHANNEL_DISPLAY_MODE)
