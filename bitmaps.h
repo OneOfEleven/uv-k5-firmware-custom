@@ -56,7 +56,8 @@ extern const uint8_t BITMAP_CurrentIndicator[8];
 extern const uint8_t BITMAP_VFO_Default[8];
 extern const uint8_t BITMAP_VFO_NotDefault[8];
 
-extern const uint8_t BITMAP_ScanList[6];
+extern const uint8_t BITMAP_ScanList1[6];
+extern const uint8_t BITMAP_ScanList2[6];
 
 #endif
 
