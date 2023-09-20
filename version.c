@@ -5,5 +5,5 @@
 	#define VER     "230920"
 #endif
 
-const char Version[]      = "OEFW-"VER;
-const char UART_Version[] = "UV-K5 Firmware, Open Edition, OEFW-"VER"\r\n";
+const char Version[]      = "CRFW-"VER;
+const char UART_Version[] = "UV-K5 Firmware, Open Edition, CRFW-"VER"\r\n";

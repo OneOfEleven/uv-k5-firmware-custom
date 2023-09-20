@@ -1343,8 +1343,8 @@ void BK4819_PlayRoger(void)
 		const uint32_t tone2_Hz = 700;
 	#else
 		// motorola type
-		const uint32_t tone1_Hz = 1540;
-		const uint32_t tone2_Hz = 1310;
+		const uint32_t tone1_Hz = 2525; //1540
+		const uint32_t tone2_Hz = 2475; //1310
 	#endif
 
 	BK4819_EnterTxMute();
