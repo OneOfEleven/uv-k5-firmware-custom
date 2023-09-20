@@ -1,15 +1,15 @@
 
 # compile options (see Readme.md)
 # '0' = disable, 1 = enable
-ENABLE_SWD                    := 0
+ENABLE_SWD                    := 1
 ENABLE_OVERLAY                := 1
 ENABLE_UART                   := 1
 ENABLE_AIRCOPY                := 0
-ENABLE_FMRADIO                := 0
-ENABLE_NOAA                   := 0
+ENABLE_FMRADIO                := 1
+ENABLE_NOAA                   := 1
 ENABLE_VOICE                  := 0
 ENABLE_ALARM                  := 0
-ENABLE_BIG_FREQ               := 0
+ENABLE_BIG_FREQ               := 1
 ENABLE_KEEP_MEM_NAME          := 1
 ENABLE_WIDE_RX                := 1
 ENABLE_TX_WHEN_AM             := 0
@@ -17,7 +17,7 @@ ENABLE_CTCSS_TAIL_PHASE_SHIFT := 1
 ENABLE_MAIN_KEY_HOLD          := 1
 ENABLE_BOOT_BEEPS             := 0
 ENABLE_COMPANDER              := 1
-ENABLE_SHOW_CHARGE_LEVEL      := 0
+ENABLE_SHOW_CHARGE_LEVEL      := 1
 ENABLE_REVERSE_BAT_SYMBOL     := 1
 #ENABLE_SINGLE_VFO_CHAN       := 1
 #ENABLE_BAND_SCOPE            := 1
