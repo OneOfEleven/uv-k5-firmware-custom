@@ -561,7 +561,7 @@ void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth)
 		BK4819_WriteRegister(BK4819_REG_43,
 			(0u << 15) |     // 0
 			(3u << 12) |     // 3 RF filter bandwidth
-			(3u <<  9) |     // 0 RF filter bandwidth when signal is weak
+			(0u <<  9) |     // 0 RF filter bandwidth when signal is weak
 			(0u <<  6) |     // 0 AFTxLPF2 filter Band Width
 			(2u <<  4) |     // 2 BW Mode Selection
 			(1u <<  3) |     // 1
@@ -574,7 +574,7 @@ void BK4819_SetFilterBandwidth(BK4819_FilterBandwidth_t Bandwidth)
 		BK4819_WriteRegister(BK4819_REG_43, // 0x4048);        // 0 100 000 001 00 1 0 00
 			(0u << 15) |     // 0
 			(3u << 12) |     // 4 RF filter bandwidth
-			(3u <<  9) |     // 0 RF filter bandwidth when signal is weak
+			(0u <<  9) |     // 0 RF filter bandwidth when signal is weak
 			(1u <<  6) |     // 1 AFTxLPF2 filter Band Width
 			(0u <<  4) |     // 0 BW Mode Selection
 			(1u <<  3) |     // 1
@@ -764,8 +764,6 @@ bool BK4819_CompanderEnabled(void)
 
 void BK4819_SetCompander(const unsigned int mode)
 {
-	uint16_t val;
-
 	// mode 0 .. OFF
 	// mode 1 .. TX
 	// mode 2 .. RX
@@ -773,14 +771,12 @@ void BK4819_SetCompander(const unsigned int mode)
 
 	if (mode == 0)
 	{	// disable
-		const uint16_t Value = BK4819_ReadRegister(BK4819_REG_31);
-		BK4819_WriteRegister(BK4819_REG_31, Value & ~(1u < 3));
+		BK4819_WriteRegister(BK4819_REG_31, BK4819_ReadRegister(BK4819_REG_31) & ~(1u < 3));
 		return;
 	}
 
 	// enable
-	val	= BK4819_ReadRegister(BK4819_REG_31);
-	BK4819_WriteRegister(BK4819_REG_31, val | (1u < 3));
+	BK4819_WriteRegister(BK4819_REG_31, BK4819_ReadRegister(BK4819_REG_31) | (1u < 3));
 
 	// set the compressor ratio
 	//
@@ -791,8 +787,7 @@ void BK4819_SetCompander(const unsigned int mode)
 	//                11 = 4:1
 	//
 	const uint16_t compress_ratio = (mode == 1 || mode >= 3) ? 3 : 0;  // 4:1
-	val	= BK4819_ReadRegister(BK4819_REG_29);
-	BK4819_WriteRegister(BK4819_REG_29, (val & ~(3u < 14)) | (compress_ratio < 14));
+	BK4819_WriteRegister(BK4819_REG_29, (BK4819_ReadRegister(BK4819_REG_29) & ~(3u < 14)) | (compress_ratio < 14));
 
 	// set the expander ratio
 	//
@@ -803,8 +798,7 @@ void BK4819_SetCompander(const unsigned int mode)
 	//                11 = 1:4
 	//
 	const uint16_t expand_ratio = (mode >= 2) ? 3 : 0;   // 1:4
-	val	= BK4819_ReadRegister(BK4819_REG_28);
-	BK4819_WriteRegister(BK4819_REG_28, (val & ~(3u < 14)) | (expand_ratio < 14));
+	BK4819_WriteRegister(BK4819_REG_28, (BK4819_ReadRegister(BK4819_REG_28) & ~(3u < 14)) | (expand_ratio < 14));
 }
 
 void BK4819_DisableVox(void)
@@ -821,23 +815,27 @@ void BK4819_DisableDTMF(void)
 void BK4819_EnableDTMF(void)
 {
 	// no idea what this register does
-	BK4819_WriteRegister(BK4819_REG_21, 0x06D8);
+	BK4819_WriteRegister(BK4819_REG_21, 0x06D8);        // 0000 0110 1101 1000
 
-	// REG_24 <5>   0 DTMF/SelCall Enable
-	//              1 = Enable
-	//              0 = Disable
-	// REG_24 <4>   1 DTMF or SelCall Detection Mode
-	//              1 = for DTMF
-	//              0 = for SelCall
-	// REG_24 <3:0> 14 Max Symbol Number for SelCall Detection
+	// REG_24 <15>   1  ???
+	// REG_24 <14:7> 24 Threshold
+	// REG_24 <6>    1  ???
+	// REG_24 <5>    0  DTMF/SelCall enable
+	//               1 = Enable
+	//               0 = Disable
+	// REG_24 <4>    1  DTMF or SelCall detection mode
+	//               1 = for DTMF
+	//               0 = for SelCall
+	// REG_24 <3:0>  14 Max symbol number for SelCall detection
 	//
-	BK4819_WriteRegister(BK4819_REG_24,
-		  (1u  << BK4819_REG_24_SHIFT_UNKNOWN_15)
-		| (24u << BK4819_REG_24_SHIFT_THRESHOLD)
-		| (1u  << BK4819_REG_24_SHIFT_UNKNOWN_6)
-		|         BK4819_REG_24_ENABLE
-		|         BK4819_REG_24_SELECT_DTMF
-		| (14u << BK4819_REG_24_SHIFT_MAX_SYMBOLS));
+	const uint16_t threshold = 24;
+	BK4819_WriteRegister(BK4819_REG_24,                // 1 00011000 1 1 1 1110
+		  (1u        << BK4819_REG_24_SHIFT_UNKNOWN_15)
+		| (threshold << BK4819_REG_24_SHIFT_THRESHOLD)
+		| (1u        << BK4819_REG_24_SHIFT_UNKNOWN_6)
+		|               BK4819_REG_24_ENABLE
+		|               BK4819_REG_24_SELECT_DTMF
+		| (14u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));
 }
 
 void BK4819_PlayTone(uint16_t Frequency, bool bTuningGainSwitch)
@@ -1183,6 +1181,26 @@ void BK4819_EnableCTCSS(void)
 uint16_t BK4819_GetRSSI(void)
 {
 	return BK4819_ReadRegister(BK4819_REG_67) & 0x01FF;
+}
+
+uint8_t  BK4819_GetGlitchIndicator(void)
+{
+	return BK4819_ReadRegister(BK4819_REG_63) & 0x00FF;
+}
+
+uint8_t  BK4819_GetExNoiceIndicator(void)
+{
+	return BK4819_ReadRegister(BK4819_REG_65) & 0x007F;
+}
+
+uint16_t BK4819_GetVoiceAmplitudeOut(void)
+{
+	return BK4819_ReadRegister(BK4819_REG_64);
+}
+
+uint8_t BK4819_GetAfTxRx(void)
+{
+	return BK4819_ReadRegister(BK4819_REG_6F) & 0x003F;
 }
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency)

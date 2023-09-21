@@ -15,6 +15,7 @@
  */
 
 #include <string.h>
+#include <stdio.h>     // NULL
 
 #include "app/app.h"
 #include "app/dtmf.h"
@@ -95,15 +96,27 @@ void Main(void)
 
 	BATTERY_GetReadings(false);
 
-	gMenuListCount = 0;
-
+	{	// count the number of menu list items
+		unsigned int hidden = 0;
+		gMenuListCount = 0;
+//		while (MenuList[gMenuListCount].name != NULL)
+		while (MenuList[gMenuListCount].name[0] != '\0')
+		{
+			if (MenuList[++gMenuListCount].hidden != 0)
+				hidden++;
+		}
+		// disable the items marked hidden
+		//gMenuListCount -= 8;
+		gMenuListCount -= hidden;
+	}
+	
 	boot_counter_10ms = 250;   // 2.5 sec
 	
 	if (!gChargingWithTypeC && !gBatteryDisplayLevel)
 	{
 		FUNCTION_Select(FUNCTION_POWER_SAVE);
 
-		if (gEeprom.BACKLIGHT < 5)
+		if (gEeprom.BACKLIGHT < (ARRAY_SIZE(gSubMenu_BACKLIGHT) - 1))
 			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
 		else
 			GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  	// turn the backlight ON
@@ -113,13 +126,6 @@ void Main(void)
 	else
 	{
 		BOOT_Mode_t  BootMode;
-
-		// count the number of menu list items
-		while (MenuList[gMenuListCount][0] != 0)
-			gMenuListCount++;
-		// disable the N menu items
-		//gMenuListCount -= 6;
-		gMenuListCount -= 8;
 
 		UI_DisplayWelcome();
 		BACKLIGHT_TurnOn();

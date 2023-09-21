@@ -56,6 +56,7 @@
 #endif
 #include "ui/battery.h"
 #include "ui/inputbox.h"
+#include "ui/main.h"
 #include "ui/menu.h"
 #include "ui/rssi.h"
 #include "ui/status.h"
@@ -388,6 +389,9 @@ static void APP_HandleFunction(void)
 		case FUNCTION_POWER_SAVE:
 			if (!gRxIdleMode)
 				APP_CheckForIncoming();
+			break;
+
+		case FUNCTION_BAND_SCOPE:
 			break;
 	}
 }
@@ -1515,15 +1519,32 @@ void APP_TimeSlice10ms(void)
 		APP_CheckRadioInterrupts();
 
 	if (gCurrentFunction != FUNCTION_TRANSMIT)
-	{
+	{	// receiving
 		if (gUpdateStatus)
 			UI_DisplayStatus(false);
 
 		if (gUpdateDisplay)
 		{
-			GUI_DisplayScreen();
 			gUpdateDisplay = false;
+			GUI_DisplayScreen();
 		}
+	}
+	else
+	{	// transmitting
+		#ifdef ENABLE_AUDIO_BAR
+			if (gSetting_mic_bar && (gFlashLightBlinkCounter % (100 / 10)) == 0) // once every 100ms
+				UI_DisplayAudioBar();
+				//gUpdateDisplay = true;
+		#endif
+
+		if (gUpdateDisplay)
+		{
+			gUpdateDisplay = false;
+			GUI_DisplayScreen();
+		}
+
+		if (gUpdateStatus)
+			UI_DisplayStatus(false);
 	}
 
 	// Skipping authentic device checks
@@ -1827,7 +1848,7 @@ void APP_TimeSlice500ms(void)
 			if (gBacklightCountdown > 0)
 				if (gScreenToDisplay != DISPLAY_MENU || gMenuCursor != MENU_ABR) // don't turn off backlight if user is in backlight menu option
 					if (--gBacklightCountdown == 0)
-						if (gEeprom.BACKLIGHT < 5)
+						if (gEeprom.BACKLIGHT < (ARRAY_SIZE(gSubMenu_BACKLIGHT) - 1))
 							GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);   // turn backlight off
 
 			#ifdef ENABLE_AIRCOPY
@@ -1940,7 +1961,7 @@ void APP_TimeSlice500ms(void)
 
 						ST7565_Configure_GPIO_B11();
 
-						//if (gEeprom.BACKLIGHT < 5)
+						//if (gEeprom.BACKLIGHT < (ARRAY_SIZE(gSubMenu_BACKLIGHT) - 1))
 							GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // turn the backlight off
 					}
 					#ifdef ENABLE_VOICE
@@ -2071,7 +2092,6 @@ static void APP_ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
 	bool bFlag = false;
 
-//	const bool backlight_was_on = (gBacklightCountdown > 0 || gEeprom.BACKLIGHT >= 5);
 	const bool backlight_was_on = GPIO_CheckBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
 	if (Key == KEY_EXIT && !backlight_was_on && gEeprom.BACKLIGHT > 0)
