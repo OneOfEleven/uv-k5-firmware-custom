@@ -191,6 +191,11 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 				BK4819_EnableScramble(gCurrentVfo->SCRAMBLING_TYPE - 1);
 			else
 				BK4819_DisableScramble();
+			
+			#if defined(ENABLE_QUINDAR)
+				// UART_Send("QUINDAR START\n", strlen("QUINDAR START\n"));
+				BK4819_PlaySingleTone(2525, 250);
+			#endif
 
 			break;
 	}

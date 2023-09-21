@@ -1357,13 +1357,33 @@ void BK4819_PlayRoger(void)
 	BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone1_Hz));
 
 	BK4819_ExitTxMute();
-	SYSTEM_DelayMs(80);
+	SYSTEM_DelayMs(250); //80
 	BK4819_EnterTxMute();
 
 	BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone2_Hz));
 
 	BK4819_ExitTxMute();
-	SYSTEM_DelayMs(80);
+	SYSTEM_DelayMs(250); //80
+	BK4819_EnterTxMute();
+
+	BK4819_WriteRegister(BK4819_REG_70, 0x0000);
+	BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);   // 1 1 0000 0 1 1111 1 1 1 0
+}
+
+void BK4819_PlaySingleTone(uint32_t tone_Hz, uint32_t delay)
+{
+
+	BK4819_EnterTxMute();
+	BK4819_SetAF(BK4819_AF_MUTE);
+	BK4819_WriteRegister(BK4819_REG_70, 0xE000);  // 1110 0000 0000 0000
+
+	BK4819_EnableTXLink();
+	SYSTEM_DelayMs(50);
+
+	BK4819_WriteRegister(BK4819_REG_71, scale_freq(tone_Hz));
+
+	BK4819_ExitTxMute();
+	SYSTEM_DelayMs(delay); //80
 	BK4819_EnterTxMute();
 
 	BK4819_WriteRegister(BK4819_REG_70, 0x0000);

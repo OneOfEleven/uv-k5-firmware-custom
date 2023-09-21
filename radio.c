@@ -1010,11 +1010,18 @@ void RADIO_PrepareCssTX(void)
 
 void RADIO_SendEndOfTransmission(void)
 {
-	if (gEeprom.ROGER == ROGER_MODE_ROGER)
-		BK4819_PlayRoger();
-	else
-	if (gEeprom.ROGER == ROGER_MODE_MDC)
-		BK4819_PlayRogerMDC();
+	if (gEeprom.ROGER == ROGER_MODE_ROGER) {
+		#if defined(ENABLE_QUINDAR)
+			// UART_Send("QUINDAR END\n", strlen("QUINDAR END\n"));
+			BK4819_PlaySingleTone(2475, 250);
+		#else
+			BK4819_PlayRoger();
+		#endif
+	}
+	else {
+		if (gEeprom.ROGER == ROGER_MODE_MDC)
+			BK4819_PlayRogerMDC();
+	}
 
 	if (gDTMF_CallState == DTMF_CALL_STATE_NONE && (gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_EOT || gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_BOTH))
 	{
