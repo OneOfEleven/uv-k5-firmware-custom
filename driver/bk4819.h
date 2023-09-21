@@ -153,7 +153,7 @@ void     BK4819_SendFSKData(uint16_t *pData);
 void     BK4819_PrepareFSKReceive(void);
 	    
 void     BK4819_PlayRoger(void);
-void     BK4819_PlaySingleTone(uint32_t tone_Hz, uint32_t delay);
+void     BK4819_PlaySingleTone(uint32_t tone_Hz, uint32_t delay, bool end);
 void     BK4819_PlayRogerMDC(void);
 	    
 void     BK4819_Enable_AfDac_DiscMode_TxDsp(void);

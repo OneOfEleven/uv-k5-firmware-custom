@@ -1013,7 +1013,7 @@ void RADIO_SendEndOfTransmission(void)
 	if (gEeprom.ROGER == ROGER_MODE_ROGER) {
 		#if defined(ENABLE_QUINDAR)
 			// UART_Send("QUINDAR END\n", strlen("QUINDAR END\n"));
-			BK4819_PlaySingleTone(2475, 250);
+			BK4819_PlaySingleTone(2475, 250, true);
 		#else
 			BK4819_PlayRoger();
 		#endif
