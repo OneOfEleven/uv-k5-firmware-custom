@@ -245,9 +245,10 @@ const char gSubMenu_F_LOCK[6][4] =
 	"438"
 };
 
-const char gSubMenu_BACK_LIGHT[6][7] =
+const char gSubMenu_BACK_LIGHT[7][7] =
 {
 	"OFF",
+	"5  sec",
 	"10 sec",
 	"20 sec",
 	"40 sec",
