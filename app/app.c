@@ -1848,7 +1848,7 @@ void APP_TimeSlice500ms(void)
 			if (gBacklightCountdown > 0)
 				if (gScreenToDisplay != DISPLAY_MENU || gMenuCursor != MENU_ABR) // don't turn off backlight if user is in backlight menu option
 					if (--gBacklightCountdown == 0)
-						if (gEeprom.BACKLIGHT < 5)
+						if (gEeprom.BACKLIGHT < 4)
 							GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);   // turn backlight off
 
 			#ifdef ENABLE_AIRCOPY
