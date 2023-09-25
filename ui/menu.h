@@ -23,8 +23,7 @@
 #include "audio.h"     // VOICE_ID_t
 
 typedef struct {
-	const char  name[7];    // menu display only has room for 6 characters
-	uint8_t     hidden;
+	const char  name[7];    // menu display area only has room for 6 characters
 	VOICE_ID_t  voice_id;
 	uint8_t     menu_id;
 } t_menu_item;
@@ -93,6 +92,12 @@ enum
 	MENU_VOL,
 	MENU_BAT_TXT,
 	MENU_AM,
+	#ifdef ENABLE_AM_FIX
+		MENU_AM_FIX,
+	#endif
+	#ifdef ENABLE_AM_FIX_TEST1
+		MENU_AM_FIX_TEST1,
+	#endif
 	#ifdef ENABLE_NOAA
 		MENU_NOAA_S,
 	#endif
@@ -133,9 +138,12 @@ extern const char        gSubMenu_PONMSG[4][5];
 extern const char        gSubMenu_ROGER[3][6];
 extern const char        gSubMenu_RESET[2][4];
 extern const char        gSubMenu_F_LOCK[6][4];
-extern const char        gSubMenu_BACKLIGHT[7][7];
+extern const char        gSubMenu_BACKLIGHT[8][7];
 #ifdef ENABLE_COMPANDER
 	extern const char    gSubMenu_Compand[4][6];
+#endif
+#ifdef ENABLE_AM_FIX_TEST1
+	extern const char    gSubMenu_AM_fix_test1[4][8];
 #endif
 extern const char        gSubMenu_BAT_TXT[3][8];
 				         

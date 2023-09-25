@@ -67,6 +67,8 @@ void Main(void)
 	BOARD_Init();
 	UART_Init();
 
+	boot_counter_10ms = 250;   // 2.5 sec
+	
 	UART_Send(UART_Version, strlen(UART_Version));
 
 	// Not implementing authentic device checks
@@ -96,21 +98,11 @@ void Main(void)
 
 	BATTERY_GetReadings(false);
 
-	{	// count the number of menu list items
-		unsigned int hidden = 0;
-		gMenuListCount = 0;
-//		while (MenuList[gMenuListCount].name != NULL)
-		while (MenuList[gMenuListCount].name[0] != '\0')
-		{
-			if (MenuList[++gMenuListCount].hidden != 0)
-				hidden++;
-		}
-		// disable the items marked hidden
-		//gMenuListCount -= 8;
-		gMenuListCount -= hidden;
-	}
-	
-	boot_counter_10ms = 250;   // 2.5 sec
+	// count the number of menu list items
+	gMenuListCount = 0;
+	while (MenuList[gMenuListCount].name[0] != '\0')
+		gMenuListCount++;
+	gMenuListCount -= 8;       // disable the last 'n' items
 	
 	if (!gChargingWithTypeC && !gBatteryDisplayLevel)
 	{

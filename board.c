@@ -543,7 +543,7 @@ void BOARD_EEPROM_Init(void)
 	gEeprom.CROSS_BAND_RX_TX      = (Data[2] < 3) ? Data[2] : CROSS_BAND_OFF;
 	gEeprom.BATTERY_SAVE          = (Data[3] < 5) ? Data[3] : 4;
 	gEeprom.DUAL_WATCH            = (Data[4] < 3) ? Data[4] : DUAL_WATCH_CHAN_A;
-	gEeprom.BACKLIGHT             = (Data[5] < ARRAY_SIZE(gSubMenu_BACKLIGHT)) ? Data[5] : 4;
+	gEeprom.BACKLIGHT             = (Data[5] < ARRAY_SIZE(gSubMenu_BACKLIGHT)) ? Data[5] : 3;
 	gEeprom.TAIL_NOTE_ELIMINATION = (Data[6] < 2) ? Data[6] : false;
 	gEeprom.VFO_OPEN              = (Data[7] < 2) ? Data[7] : true;
 
@@ -709,6 +709,9 @@ void BOARD_EEPROM_Init(void)
 	gSetting_battery_text      = (((Data[7] >> 2) & 3u) <= 2) ? (Data[7] >> 2) & 3: 2;
 	#ifdef ENABLE_AUDIO_BAR
 		gSetting_mic_bar       = (Data[7] & (1u << 4)) ? true : false;
+	#endif
+	#ifdef ENABLE_AM_FIX
+		gSetting_AM_fix        = (Data[7] & (1u << 5)) ? true : false;
 	#endif
 
 	if (!gEeprom.VFO_OPEN)

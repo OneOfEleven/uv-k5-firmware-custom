@@ -67,9 +67,9 @@ enum AlarmState_t {
 typedef enum AlarmState_t AlarmState_t;
 
 enum ReceptionMode_t {
-	RX_MODE_NONE = 0,
-	RX_MODE_DETECTED,
-	RX_MODE_LISTENING
+	RX_MODE_NONE = 0,   // squelch close ?
+	RX_MODE_DETECTED,   // signal detected
+	RX_MODE_LISTENING   //
 };
 
 typedef enum ReceptionMode_t ReceptionMode_t;
@@ -105,6 +105,9 @@ extern const uint8_t         scan_delay_10ms;
 
 extern const uint16_t        battery_save_count_10ms;
 
+extern const uint16_t        power_save1_10ms;
+extern const uint16_t        power_save2_10ms;
+
 extern const uint16_t        dual_watch_count_after_tx_10ms;
 extern const uint16_t        dual_watch_count_after_rx_10ms;
 extern const uint16_t        dual_watch_count_after_1_10ms;
@@ -127,6 +130,12 @@ extern bool                  gSetting_TX_EN;
 extern uint8_t               gSetting_F_LOCK;
 extern bool                  gSetting_ScrambleEnable;
 
+#ifdef ENABLE_AM_FIX
+	extern bool              gSetting_AM_fix;
+#endif
+#ifdef ENABLE_AM_FIX_TEST1
+	extern uint8_t           gSetting_AM_fix_test1;
+#endif
 #ifdef ENABLE_AUDIO_BAR
 	extern bool              gSetting_mic_bar;
 #endif
@@ -152,8 +161,9 @@ extern uint16_t              gEEPROM_1F8C;
 extern uint8_t               gMR_ChannelAttributes[207];
 
 extern volatile uint16_t     gBatterySaveCountdown_10ms;
+
+extern volatile bool         gPowerSaveCountdownExpired;
 extern volatile bool         gSchedulePowerSave;
-extern volatile bool         gBatterySaveCountdownExpired;
 
 extern volatile bool         gScheduleDualWatch;
 
@@ -180,8 +190,8 @@ extern uint8_t               gFoundCTCSS;
 extern uint8_t               gFoundCDCSS;
 extern bool                  gEndOfRxDetectedMaybe;
 
-extern uint16_t              gVFO_RSSI[2];
-extern uint8_t               gVFO_RSSI_Level[2];
+extern int16_t               gVFO_RSSI[2];
+extern uint8_t               gVFO_RSSI_bar_level[2];
 
 extern uint8_t               gReducedService;
 extern uint8_t               gBatteryVoltageIndex;
@@ -268,7 +278,7 @@ extern volatile bool         gFlagTailNoteEliminationComplete;
 #ifdef ENABLE_FMRADIO
 	extern volatile bool     gScheduleFM;
 #endif
-extern uint16_t              gCurrentRSSI;
+extern int16_t               gCurrentRSSI[2];   // now one per VFO
 extern uint8_t               gIsLocked;
 extern volatile uint8_t      boot_counter_10ms;
 

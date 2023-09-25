@@ -12,6 +12,7 @@ ENABLE_NOAA                   := 1
 ENABLE_VOICE                  := 0
 ENABLE_ALARM                  := 0
 ENABLE_BIG_FREQ               := 1
+ENABLE_SMALL_BOLD             := 1
 ENABLE_KEEP_MEM_NAME          := 1
 ENABLE_WIDE_RX                := 1
 ENABLE_TX_WHEN_AM             := 0
@@ -21,6 +22,9 @@ ENABLE_BOOT_BEEPS             := 0
 ENABLE_COMPANDER              := 1
 ENABLE_SHOW_CHARGE_LEVEL      := 1
 ENABLE_REVERSE_BAT_SYMBOL     := 1
+ENABLE_AM_FIX                 := 1
+ENABLE_AM_FIX_SHOW_DATA       := 1
+ENABLE_SQUELCH1_LOWER         := 0
 ENABLE_QUINDAR                := 1
 #ENABLE_SINGLE_VFO_CHAN       := 1
 #ENABLE_BAND_SCOPE            := 1
@@ -85,6 +89,7 @@ OBJS += app/scanner.o
 ifeq ($(ENABLE_UART),1)
 	OBJS += app/uart.o
 endif
+OBJS += am_fix.o
 OBJS += audio.o
 OBJS += bitmaps.o
 OBJS += board.o
@@ -160,6 +165,9 @@ endif
 ifeq ($(ENABLE_BIG_FREQ),1)
 	CFLAGS  += -DENABLE_BIG_FREQ
 endif
+ifeq ($(ENABLE_SMALL_BOLD),1)
+	CFLAGS  += -DENABLE_SMALL_BOLD
+endif
 ifeq ($(ENABLE_NOAA),1)
 	CFLAGS  += -DENABLE_NOAA
 endif
@@ -198,6 +206,18 @@ ifeq ($(ENABLE_REVERSE_BAT_SYMBOL),1)
 endif
 ifeq ($(ENABLE_QUINDAR),1)
 	CFLAGS  += -DENABLE_QUINDAR
+endif
+ifeq ($(ENABLE_AM_FIX),1)
+	CFLAGS  += -DENABLE_AM_FIX
+endif
+ifeq ($(ENABLE_AM_FIX_SHOW_DATA),1)
+	CFLAGS  += -DENABLE_AM_FIX_SHOW_DATA
+endif
+ifeq ($(ENABLE_AM_FIX_TEST1),1)
+	CFLAGS  += -DENABLE_AM_FIX_TEST1
+endif
+ifeq ($(ENABLE_SQUELCH1_LOWER),1)
+	CFLAGS  += -DENABLE_SQUELCH1_LOWER
 endif
 ifeq ($(ENABLE_AUDIO_BAR),1)
 	CFLAGS  += -DENABLE_AUDIO_BAR
@@ -256,4 +276,4 @@ bsp/dp32g030/%.h: hardware/dp32g030/%.def
 -include $(DEPS)
 
 clean:
-	rm -f $(TARGET).bin $(TARGET) $(OBJS) $(DEPS)
+	rm -f $(TARGET).bin $(TARGET).packed.bin $(TARGET) $(OBJS) $(DEPS)

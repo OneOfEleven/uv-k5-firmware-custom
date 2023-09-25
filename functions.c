@@ -107,8 +107,8 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 
 			if (PreviousFunction == FUNCTION_TRANSMIT)
 			{
-				gVFO_RSSI_Level[0] = 0;
-				gVFO_RSSI_Level[1] = 0;
+				gVFO_RSSI_bar_level[0] = 0;
+				gVFO_RSSI_bar_level[1] = 0;
 			}
 			else
 			if (PreviousFunction != FUNCTION_RECEIVE)
@@ -130,9 +130,8 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			break;
 	
 		case FUNCTION_POWER_SAVE:
-			gBatterySave_10ms   = gEeprom.BATTERY_SAVE * 10;
-			
-			gBatterySaveCountdownExpired = false;
+			gPowerSave_10ms            = gEeprom.BATTERY_SAVE * 10;
+			gPowerSaveCountdownExpired = false;
 
 			gRxIdleMode = true;
 
@@ -205,7 +204,7 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 	}
 
 	gBatterySaveCountdown_10ms = battery_save_count_10ms;
-	gSchedulePowerSave = false;
+	gSchedulePowerSave         = false;
 
 	#if defined(ENABLE_FMRADIO)
 		gFM_RestoreCountdown   = 0;

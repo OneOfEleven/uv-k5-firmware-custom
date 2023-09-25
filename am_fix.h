@@ -1,4 +1,5 @@
-/* Copyright 2023 Dual Tachyon
+
+/* Copyright 2023 OneOfEleven
  * https://github.com/DualTachyon
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,19 +15,25 @@
  *     limitations under the License.
  */
 
-#ifndef FONT_H
-#define FONT_H
+#ifndef AM_FIXH
 
 #include <stdint.h>
+#include <stdbool.h>
 
-//extern const uint8_t gFontBig[95][16];
-extern const uint8_t gFontBig[95][15];
-extern const uint8_t gFontBigDigits[11][26];
-//extern const uint8_t gFontSmallDigits[11][7];
-extern const uint8_t gFontSmall[95][6];
-#ifdef ENABLE_SMALL_BOLD
-	extern const uint8_t gFontSmallBold[95][6];
+extern const uint8_t orig_lna_short;
+extern const uint8_t orig_lna;
+extern const uint8_t orig_mixer;
+extern const uint8_t orig_pga;
+
+#ifdef ENABLE_AM_FIX
+	extern int16_t rssi_db_gain_diff[2];
+
+	void AM_fix_reset(const int vfo);
+	void AM_fix_adjust_frontEnd_10ms(const int vfo);
+	#ifdef ENABLE_AM_FIX_SHOW_DATA
+		void AM_fix_print_data(const int vfo, char *s);
+	#endif
+		
 #endif
 
 #endif
-
