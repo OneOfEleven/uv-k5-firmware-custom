@@ -293,7 +293,7 @@ void MENU_AcceptSetting(void)
 	int32_t        Min;
 	int32_t        Max;
 	uint8_t        Code;
-	FREQ_Config_t *pConfig = &gTxVfo->ConfigRX;
+	FREQ_Config_t *pConfig = &gTxVfo->freq_config_RX;
 
 	if (!MENU_GetLimits(gMenuCursor, &Min, &Max))
 	{
@@ -328,7 +328,7 @@ void MENU_AcceptSetting(void)
 			return;
 
 		case MENU_T_DCS:
-			pConfig = &gTxVfo->ConfigTX;
+			pConfig = &gTxVfo->freq_config_TX;
 
 			// Fallthrough
 
@@ -360,7 +360,7 @@ void MENU_AcceptSetting(void)
 			return;
 
 		case MENU_T_CTCS:
-			pConfig = &gTxVfo->ConfigTX;
+			pConfig = &gTxVfo->freq_config_TX;
 
 			// Fallthrough
 
@@ -589,6 +589,10 @@ void MENU_AcceptSetting(void)
 			gDTMF_RecvTimeoutSaved = 0;
 			gDTMF_ReceivedSaved[0] = '\0';
 			gSetting_live_DTMF_decoder = gSubMenuSelection;
+			if (!gSetting_live_DTMF_decoder)
+				BK4819_DisableDTMF();
+			gFlagReconfigureVfos     = true;
+			gUpdateStatus            = true;
 			break;
 
 		case MENU_D_LIST:
@@ -778,13 +782,13 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_R_DCS:
-			switch (gTxVfo->ConfigRX.CodeType)
+			switch (gTxVfo->freq_config_RX.CodeType)
 			{
 				case CODE_TYPE_DIGITAL:
-					gSubMenuSelection = gTxVfo->ConfigRX.Code + 1;
+					gSubMenuSelection = gTxVfo->freq_config_RX.Code + 1;
 					break;
 				case CODE_TYPE_REVERSE_DIGITAL:
-					gSubMenuSelection = gTxVfo->ConfigRX.Code + 105;
+					gSubMenuSelection = gTxVfo->freq_config_RX.Code + 105;
 					break;
 				default:
 					gSubMenuSelection = 0;
@@ -797,17 +801,17 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_R_CTCS:
-			gSubMenuSelection = (gTxVfo->ConfigRX.CodeType == CODE_TYPE_CONTINUOUS_TONE) ? gTxVfo->ConfigRX.Code + 1 : 0;
+			gSubMenuSelection = (gTxVfo->freq_config_RX.CodeType == CODE_TYPE_CONTINUOUS_TONE) ? gTxVfo->freq_config_RX.Code + 1 : 0;
 			break;
 
 		case MENU_T_DCS:
-			switch (gTxVfo->ConfigTX.CodeType)
+			switch (gTxVfo->freq_config_TX.CodeType)
 			{
 				case CODE_TYPE_DIGITAL:
-					gSubMenuSelection = gTxVfo->ConfigTX.Code + 1;
+					gSubMenuSelection = gTxVfo->freq_config_TX.Code + 1;
 					break;
 				case CODE_TYPE_REVERSE_DIGITAL:
-					gSubMenuSelection = gTxVfo->ConfigTX.Code + 105;
+					gSubMenuSelection = gTxVfo->freq_config_TX.Code + 105;
 					break;
 				default:
 					gSubMenuSelection = 0;
@@ -816,7 +820,7 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_T_CTCS:
-			gSubMenuSelection = (gTxVfo->ConfigTX.CodeType == CODE_TYPE_CONTINUOUS_TONE) ? gTxVfo->ConfigTX.Code + 1 : 0;
+			gSubMenuSelection = (gTxVfo->freq_config_TX.CodeType == CODE_TYPE_CONTINUOUS_TONE) ? gTxVfo->freq_config_TX.Code + 1 : 0;
 			break;
 
 		case MENU_SFT_D:

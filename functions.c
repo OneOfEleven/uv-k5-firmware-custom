@@ -186,6 +186,9 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 				}
 			#endif
 
+			// if the DTMF decoder is enabled, it destroys the TX audio !! .. 1of11
+			BK4819_DisableDTMF();
+			
 			#if defined(ENABLE_QUINDAR)
 				// UART_Send("QUINDAR START\n", strlen("QUINDAR START\n"));
 				BK4819_PlaySingleTone(2525, 250, false);
