@@ -203,7 +203,7 @@ static void APP_HandleIncoming(void)
 		}
 	}
 
-	APP_StartListening(FUNCTION_RECEIVE, false);
+	APP_StartListening(gMonitor ? FUNCTION_MONITOR : FUNCTION_RECEIVE, false);
 }
 
 static void APP_HandleReceive(void)
@@ -861,6 +861,9 @@ void APP_EndTransmission(void)
 	}
 
 	RADIO_SetupRegisters(false);
+
+	if (gMonitor)
+		ACTION_Monitor();   // 1of11
 }
 
 static void APP_HandleVox(void)
@@ -979,14 +982,14 @@ void APP_Update(void)
 		if (IS_FREQ_CHANNEL(gNextMrChannel))
 		{
 			if (gCurrentFunction == FUNCTION_INCOMING)
-				APP_StartListening(FUNCTION_RECEIVE, true);
+				APP_StartListening(gMonitor ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
 			else
 				FREQ_NextChannel();
 		}
 		else
 		{
 			if (gCurrentCodeType == CODE_TYPE_OFF && gCurrentFunction == FUNCTION_INCOMING)
-				APP_StartListening(FUNCTION_RECEIVE, true);
+				APP_StartListening(gMonitor ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
 			else
 				MR_NextChannel();
 		}
@@ -1726,8 +1729,13 @@ void APP_TimeSlice500ms(void)
 						gAskToDelete     = false;
 
 						#ifdef ENABLE_FMRADIO
-							if (gFmRadioMode && gCurrentFunction != FUNCTION_RECEIVE && gCurrentFunction != FUNCTION_MONITOR && gCurrentFunction != FUNCTION_TRANSMIT)
+							if (gFmRadioMode &&
+							    gCurrentFunction != FUNCTION_RECEIVE &&
+								gCurrentFunction != FUNCTION_MONITOR &&
+								gCurrentFunction != FUNCTION_TRANSMIT)
+							{
 								GUI_SelectNextDisplay(DISPLAY_FM);
+							}
 							else
 						#endif
 						#ifdef ENABLE_NO_SCAN_TIMEOUT
@@ -1747,7 +1755,11 @@ void APP_TimeSlice500ms(void)
 			if (--gFM_ResumeCountdown_500ms == 0)
 			{
 				RADIO_SetVfoState(VFO_STATE_NORMAL);
-				if (gCurrentFunction != FUNCTION_RECEIVE && gCurrentFunction != FUNCTION_TRANSMIT && gCurrentFunction != FUNCTION_MONITOR && gFmRadioMode)
+
+				if (gCurrentFunction != FUNCTION_RECEIVE  &&
+				    gCurrentFunction != FUNCTION_TRANSMIT &&
+				    gCurrentFunction != FUNCTION_MONITOR  &&
+					gFmRadioMode)
 				{	// switch back to FM radio mode
 					FM_Start();
 					GUI_SelectNextDisplay(DISPLAY_FM);
@@ -1919,7 +1931,7 @@ void CHANNEL_Next(bool bFlag, int8_t Direction)
 		FREQ_NextChannel();
 	}
 
-	ScanPauseDelayIn_10ms = 50;    // 500ms
+	ScanPauseDelayIn_10ms = scan_pause_delay_in_2_10ms;
 	gScheduleScanListen   = false;
 	gRxReceptionMode      = RX_MODE_NONE;
 	gScanPauseMode        = false;
@@ -2094,7 +2106,6 @@ static void APP_ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 	}
 
 	if (gF_LOCK && (Key == KEY_PTT || Key == KEY_SIDE2 || Key == KEY_SIDE1))
-//	if (gF_LOCK && Key == KEY_PTT)
 		return;
 
 	if (!bFlag)
@@ -2340,6 +2351,9 @@ Skip:
 		gVFO_RSSI_bar_level[1]      = 0;
 
 		gFlagReconfigureVfos        = false;
+
+		if (gMonitor)
+			ACTION_Monitor();   // 1of11
 	}
 
 	if (gFlagRefreshSetting)
@@ -2350,6 +2364,8 @@ Skip:
 
 	if (gFlagStartScan)
 	{
+		gMonitor = false;
+		
 		#ifdef ENABLE_VOICE
 			AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
 			AUDIO_PlaySingleVoice(true);
