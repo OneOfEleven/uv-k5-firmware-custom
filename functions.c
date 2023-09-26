@@ -190,7 +190,6 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			BK4819_DisableDTMF();
 			
 			#if defined(ENABLE_QUINDAR)
-				// UART_Send("QUINDAR START\n", strlen("QUINDAR START\n"));
 				BK4819_PlaySingleTone(2525, 250, false);
 				RADIO_SetTxParameters();
 			#endif
