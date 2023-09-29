@@ -120,15 +120,15 @@
 		char               s[16];
 		unsigned int       i;
 
-		const unsigned int max_dB      = -33;
-		const unsigned int min_dB      = -127;
+		const int16_t      max_dB      = -33;
+		const int16_t      min_dB      = -127;
 
 		const unsigned int txt_width   = 7 * 8;         // 8 text chars
 		const unsigned int bar_x       = txt_width + 4;
 		const unsigned int bar_width   = LCD_WIDTH - 1 - bar_x;
 
 		const int16_t      dBm         = (rssi / 2) - 160;
-		const unsigned int clamped_dBm = (dBm < min_dB) ? min_dB : (dBm > max_dB) ? max_dB : dBm;
+		const int16_t      clamped_dBm = (dBm < min_dB) ? min_dB : (dBm > max_dB) ? max_dB : dBm;
 		const unsigned int width       = max_dB - min_dB;
 		const unsigned int len         = (((clamped_dBm - min_dB) * bar_width) + (width / 2)) / width;
 
