@@ -1712,7 +1712,11 @@ void APP_TimeSlice500ms(void)
 	{
 		BOARD_ADC_GetBatteryInfo(&gBatteryCurrentVoltage, &gBatteryCurrent);
 		if (gBatteryCurrent > 500 || gBatteryCalibration[3] < gBatteryCurrentVoltage)
-			overlay_FLASH_RebootToBootloader();
+			#if defined(ENABLE_OVERLAY)
+				overlay_FLASH_RebootToBootloader();
+			#else
+				NVIC_SystemReset();
+			#endif
 		return;
 	}
 
