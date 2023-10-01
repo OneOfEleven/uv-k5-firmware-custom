@@ -49,6 +49,7 @@ ENABLE_AM_FIX_SHOW_DATA       := 1       show debug data for the AM fix
 ENABLE_SQUELCH_LOWER          := 1       squelch settings more sensitive - plan to let user adjust it in the menu
 ENABLE_RSSI_BAR               := 1       enable a dBm/Sx RSSI bar graph level
 ENABLE_AUDIO_BAR              := 0       experimental, display an audo bar level when TX'ing
+ENABLE_LTO                    := 0       experimental, reduces size of compiled firmware but might break EEPROM reads
 #ENABLE_COPY_CHAN_TO_VFO      := 1       not yet implemented - copy the channel into the VFO
 #ENABLE_SINGLE_VFO_CHAN       := 1       not yet implemented - single VFO on display when possible
 #ENABLE_BAND_SCOPE            := 1       not yet implemented - spectrum/pan-adapter

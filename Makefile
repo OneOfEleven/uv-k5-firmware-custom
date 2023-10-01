@@ -28,6 +28,7 @@ ENABLE_AM_FIX_SHOW_DATA       := 1
 ENABLE_SQUELCH_LOWER          := 1
 ENABLE_RSSI_BAR               := 1
 ENABLE_AUDIO_BAR              := 1
+ENABLE_LTO                    := 0
 #ENABLE_COPY_CHAN_TO_VFO      := 1
 #ENABLE_SINGLE_VFO_CHAN       := 1
 #ENABLE_BAND_SCOPE            := 1
@@ -242,6 +243,9 @@ ifeq ($(ENABLE_SINGLE_VFO_CHAN),1)
 endif
 ifeq ($(ENABLE_BAND_SCOPE),1)
 	CFLAGS += -DENABLE_BAND_SCOPE
+endif
+ifeq ($(ENABLE_LTO),1)
+	CFLAGS += -flto
 endif
 
 LDFLAGS = -mcpu=cortex-m0 -nostartfiles -Wl,-T,firmware.ld
