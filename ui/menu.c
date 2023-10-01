@@ -127,7 +127,7 @@ const t_menu_item MenuList[] =
 
 	{"TX-EN",  VOICE_ID_INVALID,                       MENU_TX_EN      }, // enable TX
 	{"F-CALI", VOICE_ID_INVALID,                       MENU_F_CALI     }, // reference xtal calibration
-
+	{"BATCAL", VOICE_ID_INVALID,                       MENU_BATCAL     }, // battery voltage calibration
 	{"",       VOICE_ID_INVALID,                       0xff            }  // end of list - DO NOT delete or move this this
 };
 
@@ -732,15 +732,13 @@ void UI_DisplayMenu(void)
 			sprintf(String, "%u.%02uV", gBatteryVoltageAverage / 100, gBatteryVoltageAverage % 100);
 			UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
 
-			{	// 2nd text line .. percentage
-				UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
-				sprintf(String, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
-				UI_PrintString(String, menu_item_x1, menu_item_x2, 3, 8);
-				#if 0
-					sprintf(String, "Curr %u", gBatteryCurrent);  // needs scaling into mA
-					UI_PrintString(String, menu_item_x1, menu_item_x2, 5, 8);
-				#endif
-			}
+			// 2nd text line .. percentage
+			sprintf(String, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+			UI_PrintString(String, menu_item_x1, menu_item_x2, 3, 8);
+			#if 0
+				sprintf(String, "Curr %u", gBatteryCurrent);  // needs scaling into mA
+				UI_PrintString(String, menu_item_x1, menu_item_x2, 5, 8);
+			#endif
 
 			already_printed = true;
 			break;
@@ -771,6 +769,19 @@ void UI_DisplayMenu(void)
 				already_printed = true;
 			}
 			break;
+
+		case MENU_BATCAL: {
+			uint16_t vol = (uint32_t)gBatteryVoltageAverage * gBatteryCalibration[3] / gSubMenuSelection;
+			// 1st text line
+			sprintf(String, "%u.%02uV", vol / 100, vol % 100);
+			UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
+			// 2nd text line
+			sprintf(String, "%u", gSubMenuSelection);
+			UI_PrintString(String, menu_item_x1, menu_item_x2, 3, 8);
+
+			already_printed = true;
+			break;
+		}
 	}
 
 	if (!already_printed)

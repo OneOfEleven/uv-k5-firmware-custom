@@ -117,7 +117,7 @@ void Main(void)
 		gMenuListCount = 0;
 		while (MenuList[gMenuListCount].name[0] != '\0')
 			gMenuListCount++;
-		gMenuListCount -= 8;       // disable the last 'n' items
+		gMenuListCount -= HIDDEN_MENU_COUNT;       // disable the last 'n' items
 	}
 	
 	// wait for user to release all keys/butts before moving on

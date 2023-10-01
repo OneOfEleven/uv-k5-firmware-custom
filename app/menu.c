@@ -32,6 +32,7 @@
 #include "driver/gpio.h"
 #include "driver/keyboard.h"
 #include "frequencies.h"
+#include "helper/battery.h"
 #include "misc.h"
 #include "settings.h"
 #if defined(ENABLE_OVERLAY)
@@ -292,6 +293,11 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMin = -50;
 			*pMax = +50;
 			break;
+
+		case MENU_BATCAL:
+			*pMin = 0;
+			*pMax = 2300;
+			break;			
 
 		default:
 			return -1;
@@ -718,6 +724,11 @@ void MENU_AcceptSetting(void)
 				EEPROM_WriteBuffer(0x1F88, &Misc);
 			}
 			return;
+
+		case MENU_BATCAL:
+			gBatteryCalibration[3] = gSubMenuSelection;
+			EEPROM_WriteBuffer(0x1F40, gBatteryCalibration);
+			return;
 	}
 
 	gRequestSaveSettings = true;
@@ -1078,6 +1089,10 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_F_CALI:
 			gSubMenuSelection = gEeprom.BK4819_XTAL_FREQ_LOW;
 			break;
+		
+		case MENU_BATCAL:
+			gSubMenuSelection = gBatteryCalibration[3];
+			return;
 	}
 }
 
