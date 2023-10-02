@@ -733,21 +733,9 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_VOL:
-			if (gF_LOCK)
-			{
-				gBatteryCalibration[3] = gSubMenuSelection;
-				BATTERY_GetReadings(true);
-				sprintf(String, "%u.%02uV\n%u%%\n%u",
-					gBatteryVoltageAverage / 100, gBatteryVoltageAverage % 100,
-					BATTERY_VoltsToPercent(gBatteryVoltageAverage),
-					gSubMenuSelection);
-			}
-			else
-			{
 				sprintf(String, "%u.%02uV\n%u%%",
 					gBatteryVoltageAverage / 100, gBatteryVoltageAverage % 100,
 					BATTERY_VoltsToPercent(gBatteryVoltageAverage));
-			}
 			break;
 
 		case MENU_RESET:
