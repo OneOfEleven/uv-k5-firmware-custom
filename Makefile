@@ -279,6 +279,7 @@ ifeq ($(ENABLE_BAND_SCOPE),1)
 endif
 
 LDFLAGS = -mcpu=cortex-m0 -nostartfiles -Wl,-T,firmware.ld
+LDFLAGS += --specs=nano.specs
 
 ifeq ($(DEBUG),1)
 	ASFLAGS += -g
