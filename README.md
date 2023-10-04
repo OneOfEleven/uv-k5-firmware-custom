@@ -2,18 +2,21 @@
 
 This repository is a cloned and customized version of DualTachyon's open firmware found here ..
 
-https://github.com/DualTachyon/uv-k5-firmware
+https://github.com/DualTachyon/uv-k5-firmware .. a cool achievement !
 
-A cool achievement
+Use this firmware at your own risk (entirely). There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may even brick your radio(s), in which case, you'd need to buy another radio.
+Anyway, have fun.
 
 # Radio performance
 
 Please note that the Quansheng uv-k radios are not professional quality transceivers, their
 performance is strictly limited, somewhat below that of a decent transceiver. The RX front
 end has no track-tuned band pass filtering at all, and so are wide band/wide open to any
-and all signals over a wide frequency range. Using the radio in high intensity RF environments
-will nearly always destroy your reception, the receiver simply doesn't have a great dynamic
-range, though are quite sensitive (weak signal wise).
+and all signals over a wide frequency range.
+Using the radio in high intensity RF environments will nearly always destroy your reception,
+the receiver simply doesn't have a great dynamic range, which means distorted AM audio with
+strong received signals, there is nothing more anyone can do in firmware/software to stop that
+happening once the RX gain adjustment I do (AM fix) reaches the hardwares limit.
 
 Saying that, they are nice toys for the price, fun to play with.
 
@@ -24,30 +27,35 @@ You'll find the options at the top of "Makefile" ('0' = disable, '1' = enable) .
 
 ```
 ENABLE_SWD                    := 0       only needed if using CPU's SWD port (debugging/programming)
-ENABLE_OVERLAY                := 1       cpu FLASH stuff
-ENABLE_UART                   := 1       without this you can't configure radio via PC (38400 bps Baud)
-ENABLE_AIRCOPY                := 0       easier to just enter frequency
-ENABLE_FMRADIO                := 1       WBFM VHF band 2 RX
-ENABLE_NOAA                   := 0       everything NOAA
+ENABLE_OVERLAY                := 0       cpu FLASH stuff, not needed
+ENABLE_LTO                    := 0     **experimental, reduces size of compiled firmware but might break EEPROM reads (overlay will be disabled if you enable this)
+ENABLE_UART                   := 1       without this you can't configure radio via PC ! (38400 bps Baud)
+ENABLE_AIRCOPY                := 0       easier to just enter frequency with butts
+ENABLE_FMRADIO                := 0       WBFM VHF broadcast band receiver
+ENABLE_NOAA                   := 0       everything NOAA (only of any use in the USA)
 ENABLE_VOICE                  := 0       want to hear voices ?
 ENABLE_ALARM                  := 0       TX alarms
-ENABLE_BIG_FREQ               := 0       big font frequencies
+ENABLE_1750HZ                 := 0       side key 1750Hz TX tone (older style repeater access)
+ENABLE_BIG_FREQ               := 0       big font frequencies (like original QS firmware)
 ENABLE_SMALL_BOLD             := 1       bold channel name/no. (when name + freq channel display mode)
 ENABLE_KEEP_MEM_NAME          := 1       maintain channel name when (re)saving memory channel
-ENABLE_WIDE_RX                := 1       full 18MHz to 1300MHz RX (though frontend not tuned over full range)
+ENABLE_WIDE_RX                := 1       full 18MHz to 1300MHz RX (though front-end/PA not designed for full range)
 ENABLE_TX_WHEN_AM             := 0       allow TX (always FM) when RX is set to AM
+ENABLE_F_CAL_MENU             := 0       enable/disable the radios hidden frequency calibration menu
 ENABLE_CTCSS_TAIL_PHASE_SHIFT := 1       standard CTCSS tail phase shift rather than QS's own 55Hz tone method
-ENABLE_MAIN_KEY_HOLD          := 1       initial F-key press not needed, instead hold down keys 0-9 to access the functions
-ENABLE_BOOT_BEEPS             := 0       give user audio feedback on volume knob position at boot-up
-ENABLE_COMPANDER              := 1       compander option (per channel)
+ENABLE_MAIN_KEY_HOLD          := 1       initial F-key press not needed, instead just hold down keys 0-9 to access the secondary butt functions
+ENABLE_BOOT_BEEPS             := 0       gives user audio feedback on volume knob position at boot-up
+ENABLE_COMPANDER              := 0       this is broken, don't bother with it for now .. compander option (per channel)
 ENABLE_SHOW_CHARGE_LEVEL      := 0       show the charge level when the radio is on charge
 ENABLE_REVERSE_BAT_SYMBOL     := 1       mirror the battery symbol on the status bar (+ pole on the right)
-ENABLE_NO_SCAN_TIMEOUT        := 1       remove the 32 sec timeout from the CTCSS/DCS scan (press exit butt to end scan)
-ENABLE_AM_FIX                 := 1       dynamically adjust the front end gains when in AM mode to helo prevent AM demodulator saturation - ignore the on-screen RSSI (for now)
-ENABLE_AM_FIX_SHOW_DATA       := 1       show debug data for the AM fix
-ENABLE_SQUELCH1_LOWER         := 0       adjusts squelch setting '1' to be more sensitive - I plan to let user adjust it in the menu
+ENABLE_CODE_SCAN_TIMEOUT      := 0       enable/disable 32-sec CTCSS/DCS scan timeout (press exit butt instead of time-out to end scan)
+ENABLE_AM_FIX                 := 1       dynamically adjust the front end gains when in AM mode to helo prevent AM demodulator saturation, ignore the on-screen RSSI level (for now)
+ENABLE_AM_FIX_SHOW_DATA       := 1       show debug data for the AM fix (still tweaking it)
+ENABLE_SQUELCH_MORE_SENSITIVE := 0       make squelch levels a little bit more sensitive - I plan to let user adjust the values themselves
+ENABLE_FASTER_CHANNEL_SCAN    := 0       increases the channel scan speed, but the squelch is also made more twitchy
+ENABLE_RSSI_BAR               := 1       enable a dBm/Sn RSSI bar graph level inplace of the little antenna symbols
 ENABLE_AUDIO_BAR              := 0       experimental, display an audo bar level when TX'ing
-#ENABLE_COPY_CHAN_TO_VFO      := 1       not yet implemented - copy the channel into the VFO
+ENABLE_COPY_CHAN_TO_VFO       := 1       copy current channel into the other VFO. Long press Menu key ('M')
 #ENABLE_SINGLE_VFO_CHAN       := 1       not yet implemented - single VFO on display when possible
 #ENABLE_BAND_SCOPE            := 1       not yet implemented - spectrum/pan-adapter
 ```

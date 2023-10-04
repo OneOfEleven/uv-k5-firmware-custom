@@ -24,11 +24,12 @@ const uint16_t    fm_play_countdown_scan_10ms      =   100 / 10;   // 100ms
 const uint16_t    fm_play_countdown_noscan_10ms    =  1200 / 10;   // 1.2 seconds
 const uint16_t    fm_restore_countdown_10ms        =  5000 / 10;   // 5 seconds
 
-const uint8_t     menu_timeout_500ms               = 20000 / 500;  // 20 seconds
+const uint8_t     menu_timeout_500ms               =  20000 / 500;  // 20 seconds
+const uint16_t    menu_timeout_long_500ms          = 120000 / 500;  // 2 minutes
 
-const uint8_t     DTMF_RX_timeout_500ms            =  2500 / 500;  // 2.5 seconds
-const uint8_t     DTMF_RX_timeout_saved_500ms      = 20000 / 500;  // 20 seconds
-const uint8_t     DTMF_decode_ring_countdown_500ms = 15000 / 500;  // 15 seconds
+const uint8_t     DTMF_RX_live_timeout_500ms       =  6000 / 500;  // 6 seconds live decoder on screen
+const uint8_t     DTMF_RX_timeout_500ms            = 10000 / 500;  // 10 seconds till we wipe the DTMF receiver
+const uint8_t     DTMF_decode_ring_countdown_500ms = 15000 / 500;  // 15 seconds .. time we sound the ringing for
 const uint8_t     DTMF_txstop_countdown_500ms      =  3000 / 500;  // 6 seconds
 
 const uint8_t     key_input_timeout_500ms          =  8000 / 500;  // 8 seconds
@@ -51,6 +52,9 @@ const uint16_t    scan_pause_delay_in_1_10ms       =  5000 / 10;   // 5 seconds
 const uint16_t    scan_pause_delay_in_2_10ms       =   500 / 10;   // 500ms
 const uint16_t    scan_pause_delay_in_3_10ms       =   200 / 10;   // 200ms
 const uint16_t    scan_pause_delay_in_4_10ms       =   300 / 10;   // 300ms
+const uint16_t    scan_pause_delay_in_5_10ms       =  1000 / 10;   // 1 sec
+const uint16_t    scan_pause_delay_in_6_10ms       =   100 / 10;   // 100ms
+const uint16_t    scan_pause_delay_in_7_10ms       =  3600 / 10;   // 3.6 seconds
 
 const uint16_t    battery_save_count_10ms          = 10000 / 10;   // 10 seconds
 
@@ -63,8 +67,8 @@ const uint16_t    NOAA_countdown_10ms              =  5000 / 10;   // 5 seconds
 const uint16_t    NOAA_countdown_2_10ms            =   500 / 10;   // 500ms
 const uint16_t    NOAA_countdown_3_10ms            =   200 / 10;   // 200ms
 
-const uint16_t    gMax_bat_v                       = 840;          // 8.4V
-const uint16_t    gMin_bat_v                       = 660;          // 6.6V
+//const uint16_t    gMax_bat_v                       = 840;          // 8.4V
+//const uint16_t    gMin_bat_v                       = 660;          // 6.6V
 
 const uint32_t    gDefaultAesKey[4]                = {0x4AA5CC60, 0x0312CC5F, 0xFFD2DABB, 0x6BBA7F92};
 
@@ -78,6 +82,8 @@ bool              gSetting_350EN;
 bool              gSetting_TX_EN;
 uint8_t           gSetting_F_LOCK;
 bool              gSetting_ScrambleEnable;
+
+bool              gSetting_backlight_on_rx;
 
 #ifdef ENABLE_AM_FIX
 	bool          gSetting_AM_fix;
@@ -103,7 +109,7 @@ uint8_t           gEEPROM_1EC0_1[8];
 uint8_t           gEEPROM_1EC0_2[8];
 uint8_t           gEEPROM_1EC0_3[8];
 
-uint16_t          gEEPROM_RSSI_CALIB[3][4];
+uint16_t          gEEPROM_RSSI_CALIB[2][4];
 
 uint16_t          gEEPROM_1F8A;
 uint16_t          gEEPROM_1F8C;
@@ -121,9 +127,15 @@ volatile uint16_t gDualWatchCountdown_10ms;
 volatile bool     gDualWatchCountdownExpired = true;
 bool              gDualWatchActive           = false;
 
-volatile bool     gNextTimeslice500ms;
-volatile uint16_t gTxTimerCountdown;
+volatile uint8_t  gSerialConfigCountDown_500ms;
+
+volatile bool     gNextTimeslice_500ms;
+
+volatile uint16_t gTxTimerCountdown_500ms;
+volatile bool     gTxTimeoutReached;
+
 volatile uint16_t gTailNoteEliminationCountdown_10ms;
+
 #ifdef ENABLE_NOAA
 	volatile uint16_t gNOAA_Countdown_10ms;
 #endif
@@ -145,10 +157,10 @@ uint8_t           gReducedService;
 uint8_t           gBatteryVoltageIndex;
 CssScanMode_t     gCssScanMode;
 bool              gUpdateRSSI;
-#ifdef ENABLE_ALARM
+#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 	AlarmState_t  gAlarmState;
 #endif
-uint8_t           gVoltageMenuCountdown;
+uint16_t          gMenuCountdown;
 bool              gPttWasReleased;
 bool              gPttWasPressed;
 uint8_t           gKeypadLocked;
@@ -162,15 +174,16 @@ bool              gRequestSaveSettings;
 	bool          gRequestSaveFM;
 #endif
 bool              gFlagPrepareTX;
+
 bool              gFlagAcceptSetting;
 bool              gFlagRefreshSetting;
+
 bool              gFlagSaveVfo;
 bool              gFlagSaveSettings;
 bool              gFlagSaveChannel;
 #ifdef ENABLE_FMRADIO
 	bool          gFlagSaveFM;
 #endif
-uint8_t           gDTMF_RequestPending;
 bool              g_CDCSS_Lost;
 uint8_t           gCDCSSCodeType;
 bool              g_CTCSS_Lost;
@@ -186,11 +199,12 @@ bool              gFlagEndTransmission;
 uint16_t          gLowBatteryCountdown;
 uint8_t           gNextMrChannel;
 ReceptionMode_t   gRxReceptionMode;
-uint8_t           gRestoreMrChannel;
-uint8_t           gCurrentScanList;
-uint8_t           gPreviousMrChannel;
-uint32_t          gRestoreFrequency;
-uint8_t           gRxVfoIsActive;
+
+uint8_t                gRestoreMrChannel;
+enum scan_next_chan_t  gCurrentScanList;
+uint32_t               gRestoreFrequency;
+
+bool              gRxVfoIsActive;
 #ifdef ENABLE_ALARM
 	uint8_t       gAlarmToneCounter;
 	uint16_t      gAlarmRunningCounter;
@@ -205,7 +219,6 @@ uint8_t           gScanDelay_10ms;
 	uint8_t       gAircopySendCountdown;
 #endif
 uint8_t           gFSKWriteIndex;
-uint8_t           gNeverUsed;
 
 #ifdef ENABLE_NOAA
 	bool          gIsNoaaMode;
@@ -213,14 +226,15 @@ uint8_t           gNeverUsed;
 #endif
 
 bool              gUpdateDisplay;
-bool              gF_LOCK;
+
+bool              gF_LOCK = false;
+
 uint8_t           gShowChPrefix;
 
 volatile bool     gNextTimeslice;
 volatile uint8_t  gFoundCDCSSCountdown_10ms;
 volatile uint8_t  gFoundCTCSSCountdown_10ms;
 volatile uint16_t gVoxStopCountdown_10ms;
-volatile bool     gTxTimeoutReached;
 volatile bool     gNextTimeslice40ms;
 #ifdef ENABLE_NOAA
 	volatile uint16_t gNOAACountdown_10ms = 0;

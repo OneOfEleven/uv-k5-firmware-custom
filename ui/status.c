@@ -45,12 +45,26 @@ void UI_DisplayStatus(const bool test_display)
 	// **************
 
 	// POWER-SAVE indicator
+	if (gCurrentFunction == FUNCTION_TRANSMIT)
+	{
+		memmove(line + x, BITMAP_TX, sizeof(BITMAP_TX));
+		x1 = x + sizeof(BITMAP_TX);
+	}
+	else
+	if (gCurrentFunction == FUNCTION_RECEIVE ||
+	    gCurrentFunction == FUNCTION_MONITOR ||
+	    gCurrentFunction == FUNCTION_INCOMING)
+	{
+		memmove(line + x, BITMAP_RX, sizeof(BITMAP_RX));
+		x1 = x + sizeof(BITMAP_RX);
+	}
+	else
 	if (gCurrentFunction == FUNCTION_POWER_SAVE || test_display)
 	{
-		memmove(line + x, BITMAP_PowerSave, sizeof(BITMAP_PowerSave));
-		x1 = x + sizeof(BITMAP_PowerSave);
+		memmove(line + x, BITMAP_POWERSAVE, sizeof(BITMAP_POWERSAVE));
+		x1 = x + sizeof(BITMAP_POWERSAVE);
 	}
-	x += sizeof(BITMAP_PowerSave);
+	x += sizeof(BITMAP_POWERSAVE);
 
 	#ifdef ENABLE_NOAA
 		// NOASS SCAN indicator
@@ -169,10 +183,7 @@ void UI_DisplayStatus(const bool test_display)
 			
 			case 2:		// percentage
 			{
-				const uint16_t voltage = (gBatteryVoltageAverage < gMin_bat_v) ? gMin_bat_v : gBatteryVoltageAverage;
-				const uint16_t percent = (100 * (voltage - gMin_bat_v)) / (gMax_bat_v - gMin_bat_v);
-//				const uint16_t percent = gBatteryDisplayLevel;
-				sprintf(s, "%u%%", percent);
+				sprintf(s, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
 				space_needed = (7 * strlen(s));
 				if (x2 >= (x1 + space_needed))
 					UI_PrintStringSmallBuffer(s, line + x2 - space_needed);
@@ -190,54 +201,35 @@ void UI_DisplayStatus(const bool test_display)
 	x += sizeof(BITMAP_USB_C);
 
 	// BATTERY LEVEL indicator
-#if 1
 	if (gBatteryDisplayLevel >= 2 && !gLowBattery)
 	{
 		line += x;
 		memmove(line, BITMAP_BatteryLevel1, sizeof(BITMAP_BatteryLevel1));
+
 		#ifndef ENABLE_REVERSE_BAT_SYMBOL
 			line += sizeof(BITMAP_BatteryLevel1);
 			if (gBatteryDisplayLevel >= 2)
 				memmove(line -  4, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-			if (gBatteryDisplayLevel >= 5)
+			if (gBatteryDisplayLevel >= 3)
 				memmove(line -  7, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-			if (gBatteryDisplayLevel >= 7)
+			if (gBatteryDisplayLevel >= 4)
 				memmove(line - 10, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-			if (gBatteryDisplayLevel >= 9)
+			if (gBatteryDisplayLevel >= 5)
 				memmove(line - 13, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
 		#else
 			if (gBatteryDisplayLevel >= 2)
 				memmove(line +  3, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-			if (gBatteryDisplayLevel >= 5)
+			if (gBatteryDisplayLevel >= 3)
 				memmove(line +  6, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-			if (gBatteryDisplayLevel >= 7)
+			if (gBatteryDisplayLevel >= 4)
 				memmove(line +  9, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-			if (gBatteryDisplayLevel >= 9)
+			if (gBatteryDisplayLevel >= 5)
 				memmove(line + 12, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
 		#endif
 	}
 	else
 	if (gLowBatteryBlink == 1)
 		memmove(line + x, BITMAP_BatteryLevel1, sizeof(BITMAP_BatteryLevel1));
-#else
-//	UI_DisplayBattery(gBatteryDisplayLevel);
-
-	line += x;
-	if (gBatteryDisplayLevel > 0)
-	{
-		const uint8_t level = (gBatteryDisplayLevel <= 11) ? gBatteryDisplayLevel : 11;
-		memmove(line, BITMAP_BatteryLevel1, sizeof(BITMAP_BatteryLevel1));
-		#ifdef ENABLE_REVERSE_BAT_SYMBOL
-			for (uint8_t i = 0; i < level; i++)
-				line[3 + i] = (i & 1u) ? 0b01011101 : 0b01011101;
-		#else
-			for (uint8_t i = 0; i < level; i++)
-				line[sizeof(BITMAP_BatteryLevel1) - 3 - i] = (i & 1u) ? 0b01011101 : 0b01011101;
-		#endif
-	}
-	else
-		memset(line, 0, sizeof(BITMAP_BatteryLevel1));
-#endif
 
 	// **************
 

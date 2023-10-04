@@ -76,7 +76,12 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	uint16_t ToneFrequency;
 	uint16_t Duration;
 
-	if (Beep != BEEP_500HZ_60MS_DOUBLE_BEEP && Beep != BEEP_440HZ_500MS && !gEeprom.BEEP_CONTROL)
+	if (Beep != BEEP_880HZ_60MS_TRIPLE_BEEP &&
+	    Beep != BEEP_500HZ_60MS_DOUBLE_BEEP &&
+	    Beep != BEEP_440HZ_500MS &&
+	    Beep != BEEP_880HZ_200MS &&
+	    Beep != BEEP_880HZ_500MS &&
+	   !gEeprom.BEEP_CONTROL)
 		return;
 
 	#ifdef ENABLE_AIRCOPY
@@ -122,6 +127,9 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 			ToneFrequency = 440;
 			break;
 		case BEEP_880HZ_40MS_OPTIONAL:
+		case BEEP_880HZ_60MS_TRIPLE_BEEP:
+		case BEEP_880HZ_200MS:
+		case BEEP_880HZ_500MS:
 			ToneFrequency = 880;
 			break;
 	}
@@ -136,14 +144,18 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 
 	switch (Beep)
 	{
+		case BEEP_880HZ_60MS_TRIPLE_BEEP:
+			BK4819_ExitTxMute();
+			SYSTEM_DelayMs(60);
+			BK4819_EnterTxMute();
+			SYSTEM_DelayMs(20);
+			
 		case BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL:
 		case BEEP_500HZ_60MS_DOUBLE_BEEP:
 			BK4819_ExitTxMute();
 			SYSTEM_DelayMs(60);
 			BK4819_EnterTxMute();
 			SYSTEM_DelayMs(20);
-
-			// Fallthrough
 
 		case BEEP_1KHZ_60MS_OPTIONAL:
 			BK4819_ExitTxMute();
@@ -156,7 +168,13 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 			Duration = 40;
 			break;
 			
+		case BEEP_880HZ_200MS:
+			BK4819_ExitTxMute();
+			Duration = 200;
+			break;
+
 		case BEEP_440HZ_500MS:
+		case BEEP_880HZ_500MS:
 		default:
 			BK4819_ExitTxMute();
 			Duration = 500;
@@ -166,6 +184,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	SYSTEM_DelayMs(Duration);
 	BK4819_EnterTxMute();
 	SYSTEM_DelayMs(20);
+
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
 	gVoxResumeCountdown = 80;
@@ -239,7 +258,9 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 				VoiceID += VOICE_ID_ENG_BASE;
 			}
 	
-			if (gCurrentFunction == FUNCTION_RECEIVE || gCurrentFunction == FUNCTION_MONITOR)
+			if (gCurrentFunction == FUNCTION_RECEIVE ||
+			    gCurrentFunction == FUNCTION_MONITOR ||
+			    gCurrentFunction == FUNCTION_INCOMING)   // 1of11
 				BK4819_SetAF(BK4819_AF_MUTE);
 	
 			#ifdef ENABLE_FMRADIO
@@ -259,13 +280,10 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 			{
 				SYSTEM_DelayMs(Delay * 10);
 	
-				if (gCurrentFunction == FUNCTION_RECEIVE || gCurrentFunction == FUNCTION_MONITOR)
-				{
-					if (gRxVfo->IsAM)
-						BK4819_SetAF(BK4819_AF_AM);
-					else
-						BK4819_SetAF(BK4819_AF_OPEN);
-				}
+				if (gCurrentFunction == FUNCTION_RECEIVE ||
+				    gCurrentFunction == FUNCTION_MONITOR ||
+					gCurrentFunction == FUNCTION_INCOMING)	// 1of11
+					BK4819_SetAF(gRxVfo->AM_mode ? BK4819_AF_AM : BK4819_AF_OPEN);
 	
 				#ifdef ENABLE_FMRADIO
 					if (gFmRadioMode)
@@ -295,7 +313,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	
 	void AUDIO_SetVoiceID(uint8_t Index, VOICE_ID_t VoiceID)
 	{
-		if (Index >= 8)
+		if (Index >= ARRAY_SIZE(gVoiceID))
 			return;
 	
 		if (Index == 0)
@@ -396,13 +414,10 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 			}
 		}
 	
-		if (gCurrentFunction == FUNCTION_RECEIVE || gCurrentFunction == FUNCTION_MONITOR)
-		{
-			if (gRxVfo->IsAM)
-				BK4819_SetAF(BK4819_AF_AM);
-			else
-				BK4819_SetAF(BK4819_AF_OPEN);
-		}
+		if (gCurrentFunction == FUNCTION_RECEIVE ||
+		    gCurrentFunction == FUNCTION_MONITOR ||
+		    gCurrentFunction == FUNCTION_INCOMING)    // 1of11
+			BK4819_SetAF(gRxVfo->AM_mode ? BK4819_AF_AM : BK4819_AF_OPEN);
 	
 		#ifdef ENABLE_FMRADIO
 			if (gFmRadioMode)

@@ -14,6 +14,7 @@
  *     limitations under the License.
  */
 
+#include "app/dtmf.h"
 #include "app/generic.h"
 #include "app/scanner.h"
 #include "audio.h"
@@ -40,7 +41,7 @@ volatile uint16_t ScanPauseDelayIn_10ms;
 uint8_t           gScanProgressIndicator;
 uint8_t           gScanHitCount;
 bool              gScanUseCssResult;
-uint8_t           gScanState;
+int8_t            gScanState;
 bool              bScanKeepFrequency;
 
 static void SCANNER_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
@@ -91,6 +92,7 @@ static void SCANNER_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 		{
 			case 0:
 				gRequestDisplayScreen    = DISPLAY_MAIN;
+				
 				gEeprom.CROSS_BAND_RX_TX = gBackupCROSS_BAND_RX_TX;
 				gUpdateStatus            = true;
 				gFlagStopScan            = true;
@@ -223,7 +225,7 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 		case 2:
 			if (!gScanSingleFrequency)
 			{
-				RADIO_InitInfo(gTxVfo, gTxVfo->CHANNEL_SAVE, FREQUENCY_GetBand(gScanFrequency), gScanFrequency);
+				RADIO_InitInfo(gTxVfo, gTxVfo->CHANNEL_SAVE, gScanFrequency);
 
 				if (gScanUseCssResult)
 				{
@@ -236,8 +238,8 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 			}
 			else
 			{
-				RADIO_ConfigureChannel(0, 2);
-				RADIO_ConfigureChannel(1, 2);
+				RADIO_ConfigureChannel(0, VFO_CONFIGURE_RELOAD);
+				RADIO_ConfigureChannel(1, VFO_CONFIGURE_RELOAD);
 
 				gTxVfo->freq_config_RX.CodeType = gScanCssResultType;
 				gTxVfo->freq_config_RX.Code     = gScanCssResultCode;
@@ -366,7 +368,7 @@ void SCANNER_Start(void)
 	BackupStep      = gRxVfo->STEP_SETTING;
 	BackupFrequency = gRxVfo->StepFrequency;
 
-	RADIO_InitInfo(gRxVfo, gRxVfo->CHANNEL_SAVE, gRxVfo->Band, gRxVfo->pRX->Frequency);
+	RADIO_InitInfo(gRxVfo, gRxVfo->CHANNEL_SAVE, gRxVfo->pRX->Frequency);
 
 	gRxVfo->STEP_SETTING  = BackupStep;
 	gRxVfo->StepFrequency = BackupFrequency;
@@ -399,12 +401,13 @@ void SCANNER_Start(void)
 		gUpdateStatus = true;
 	}
 
+	DTMF_clear_RX();
+
 	gScanDelay_10ms        = scan_delay_10ms;
 	gScanCssResultCode     = 0xFF;
 	gScanCssResultType     = 0xFF;
 	gScanHitCount          = 0;
 	gScanUseCssResult      = false;
-	gDTMF_RequestPending   = false;
 	g_CxCSS_TAIL_Found     = false;
 	g_CDCSS_Lost           = false;
 	gCDCSSCodeType         = 0;
@@ -427,7 +430,8 @@ void SCANNER_Stop(void)
 		{
 			gEeprom.MrChannel[gEeprom.RX_CHANNEL]     = gRestoreMrChannel;
 			gEeprom.ScreenChannel[gEeprom.RX_CHANNEL] = Previous;
-			RADIO_ConfigureChannel(gEeprom.RX_CHANNEL, 2);
+
+			RADIO_ConfigureChannel(gEeprom.RX_CHANNEL, VFO_CONFIGURE_RELOAD);
 		}
 		else
 		{

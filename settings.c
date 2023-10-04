@@ -121,7 +121,7 @@ void SETTINGS_SaveSettings(void)
 		EEPROM_WriteBuffer(0x0EA0, State);
 	#endif
 
-	#ifdef ENABLE_ALARM
+	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 		State[0] = gEeprom.ALARM_MODE;
 	#else
 		State[0] = false;
@@ -174,6 +174,8 @@ void SETTINGS_SaveSettings(void)
 	#ifdef ENABLE_AM_FIX
 		if (!gSetting_AM_fix)            State[7] &= ~(1u << 5);
 	#endif
+	if (!gSetting_backlight_on_rx)   State[7] &= ~(1u << 6);
+	 
 	EEPROM_WriteBuffer(0x0F40, State);
 }
 
@@ -208,13 +210,13 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, 
 			State[0] =  pVFO->freq_config_RX.Code;
 			State[1] =  pVFO->freq_config_TX.Code;
 			State[2] = (pVFO->freq_config_TX.CodeType << 4) | pVFO->freq_config_RX.CodeType;
-			State[3] = (pVFO->AM_CHANNEL_MODE         << 4) | pVFO->TX_OFFSET_FREQUENCY_DIRECTION;
+			State[3] = ((pVFO->AM_mode & 1u)          << 4) | pVFO->TX_OFFSET_FREQUENCY_DIRECTION;
 			State[4] = 0
 				| (pVFO->BUSY_CHANNEL_LOCK << 4)
 				| (pVFO->OUTPUT_POWER      << 2)
 				| (pVFO->CHANNEL_BANDWIDTH << 1)
 				| (pVFO->FrequencyReverse  << 0);
-			State[5] = (pVFO->DTMF_PTT_ID_TX_MODE << 1) | (pVFO->DTMF_DECODING_ENABLE < 0);
+			State[5] = (pVFO->DTMF_PTT_ID_TX_MODE << 1) | (pVFO->DTMF_DECODING_ENABLE << 0);
 			State[6] =  pVFO->STEP_SETTING;
 			State[7] =  pVFO->SCRAMBLING_TYPE;
 			EEPROM_WriteBuffer(OffsetVFO + 8, State);
@@ -223,7 +225,7 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, 
 
 			if (IS_MR_CHANNEL(Channel))
 			{
-				#ifndef KEEP_MEM_NAME
+				#ifndef ENABLE_KEEP_MEM_NAME
 					// clear/reset the channel name
 					//memset(&State, 0xFF, sizeof(State));
 					memset(&State, 0x00, sizeof(State));     // follow the QS way
@@ -277,7 +279,7 @@ void SETTINGS_UpdateChannel(uint8_t Channel, const VFO_Info_t *pVFO, bool keep)
 
 		gMR_ChannelAttributes[Channel] = Attributes;
 
-//		#ifndef KEEP_MEM_NAME
+//		#ifndef ENABLE_KEEP_MEM_NAME
 			if (IS_MR_CHANNEL(Channel))
 			{
 				const uint16_t OffsetMR = Channel * 16;

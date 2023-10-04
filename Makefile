@@ -4,35 +4,47 @@
 # 1 = enable
 #
 ENABLE_SWD                    := 0
-ENABLE_OVERLAY                := 1
+ENABLE_OVERLAY                := 0
+ENABLE_LTO                    := 1
 ENABLE_UART                   := 1
 ENABLE_AIRCOPY                := 0
-ENABLE_FMRADIO                := 1
+ENABLE_FMRADIO                := 0
 ENABLE_NOAA                   := 0
 ENABLE_VOICE                  := 0
 ENABLE_ALARM                  := 0
+ENABLE_TX1750                 := 1
 ENABLE_BIG_FREQ               := 0
 ENABLE_SMALL_BOLD             := 1
 ENABLE_KEEP_MEM_NAME          := 1
 ENABLE_WIDE_RX                := 1
 ENABLE_TX_WHEN_AM             := 0
+ENABLE_F_CAL_MENU             := 0
 ENABLE_CTCSS_TAIL_PHASE_SHIFT := 1
 ENABLE_MAIN_KEY_HOLD          := 1
 ENABLE_BOOT_BEEPS             := 0
-ENABLE_COMPANDER              := 1
-ENABLE_SHOW_CHARGE_LEVEL      := 0
+ENABLE_COMPANDER              := 0
+ENABLE_SHOW_CHARGE_LEVEL      := 1
 ENABLE_REVERSE_BAT_SYMBOL     := 1
-ENABLE_NO_SCAN_TIMEOUT        := 1
+ENABLE_CODE_SCAN_TIMEOUT      := 0
 ENABLE_AM_FIX                 := 1
 ENABLE_AM_FIX_SHOW_DATA       := 1
-ENABLE_SQUELCH1_LOWER         := 0
-ENABLE_AUDIO_BAR              := 0
-#ENABLE_COPY_CHAN_TO_VFO      := 1
+ENABLE_SQUELCH_MORE_SENSITIVE := 1
+ENABLE_FASTER_CHANNEL_SCAN    := 0
+ENABLE_RSSI_BAR               := 1
+ENABLE_AUDIO_BAR              := 1
+ENABLE_COPY_CHAN_TO_VFO       := 1
 ENABLE_QUINDAR                := 1
-#ENABLE_SINGLE_VFO_CHAN       := 1
-#ENABLE_BAND_SCOPE            := 1
+#ENABLE_SINGLE_VFO_CHAN        := 1
+#ENABLE_BAND_SCOPE             := 1
+
+#############################################################
 
 TARGET = firmware
+
+ifeq ($(ENABLE_LTO), 1)
+	# can't have LTO and OVERLAY enabled at same time
+	ENABLE_OVERLAY := 0
+endif
 
 BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
 BSP_HEADERS     := $(patsubst hardware/%,bsp/%,$(BSP_DEFINITIONS))
@@ -92,7 +104,9 @@ OBJS += app/scanner.o
 ifeq ($(ENABLE_UART),1)
 	OBJS += app/uart.o
 endif
-OBJS += am_fix.o
+ifeq ($(ENABLE_AM_FIX), 1)
+	OBJS += am_fix.o
+endif
 OBJS += audio.o
 OBJS += bitmaps.o
 OBJS += board.o
@@ -118,7 +132,6 @@ OBJS += ui/inputbox.o
 OBJS += ui/lock.o
 OBJS += ui/main.o
 OBJS += ui/menu.o
-OBJS += ui/rssi.o
 OBJS += ui/scanner.o
 OBJS += ui/status.o
 OBJS += ui/ui.o
@@ -126,7 +139,7 @@ OBJS += ui/welcome.o
 OBJS += version.o
 OBJS += main.o
 
-ifeq ($(OS),Windows_NT)
+ifeq ($(OS), Windows_NT)
 	TOP := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 else
 	TOP := $(shell pwd)
@@ -139,9 +152,9 @@ OBJCOPY = arm-none-eabi-objcopy
 SIZE = arm-none-eabi-size
 
 # the user might not have/want git installed
-# can set own version string here (max 7 chars here)
+# can set own version string here (max 7 chars)
 GIT_HASH := $(shell git rev-parse --short HEAD)
-#GIT_HASH := 230925b
+#GIT_HASH := 230930b
 
 $(info GIT_HASH = $(GIT_HASH))
 
@@ -151,19 +164,28 @@ ifeq ($(ENABLE_OVERLAY),1)
 endif
 
 CFLAGS = -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
+#CFLAGS = -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c99 -MMD
+#CFLAGS = -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=gnu99 -MMD
+#CFLAGS = -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=gnu11 -MMD
+
+ifeq ($(ENABLE_LTO), 1)
+#	CFLAGS += -flto
+	CFLAGS += -flto=2
+endif
+
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
 ifeq ($(ENABLE_SWD),1)
 	CFLAGS += -DENABLE_SWD
+endif
+ifeq ($(ENABLE_OVERLAY),1)
+	CFLAGS += -DENABLE_OVERLAY
 endif
 ifeq ($(ENABLE_AIRCOPY),1)
 	CFLAGS += -DENABLE_AIRCOPY
 endif
 ifeq ($(ENABLE_FMRADIO),1)
 	CFLAGS += -DENABLE_FMRADIO
-endif
-ifeq ($(ENABLE_OVERLAY),1)
-	CFLAGS += -DENABLE_OVERLAY
 endif
 ifeq ($(ENABLE_UART),1)
 	CFLAGS += -DENABLE_UART
@@ -183,14 +205,20 @@ endif
 ifeq ($(ENABLE_ALARM),1)
 	CFLAGS  += -DENABLE_ALARM
 endif
+ifeq ($(ENABLE_TX1750),1)
+	CFLAGS  += -DENABLE_TX1750
+endif
 ifeq ($(ENABLE_KEEP_MEM_NAME),1)
-	CFLAGS  += -DKEEP_MEM_NAME
+	CFLAGS  += -DENABLE_KEEP_MEM_NAME
 endif
 ifeq ($(ENABLE_WIDE_RX),1)
 	CFLAGS  += -DENABLE_WIDE_RX
 endif
 ifeq ($(ENABLE_TX_WHEN_AM),1)
 	CFLAGS  += -DENABLE_TX_WHEN_AM
+endif
+ifeq ($(ENABLE_F_CAL_MENU),1)
+	CFLAGS  += -DENABLE_F_CAL_MENU
 endif
 ifeq ($(ENABLE_CTCSS_TAIL_PHASE_SHIFT),1)
 	CFLAGS  += -DENABLE_CTCSS_TAIL_PHASE_SHIFT
@@ -213,8 +241,8 @@ endif
 ifeq ($(ENABLE_QUINDAR),1)
 	CFLAGS  += -DENABLE_QUINDAR
 endif
-ifeq ($(ENABLE_NO_SCAN_TIMEOUT),1)
-	CFLAGS  += -DENABLE_NO_SCAN_TIMEOUT
+ifeq ($(ENABLE_CODE_SCAN_TIMEOUT),1)
+	CFLAGS  += -DENABLE_CODE_SCAN_TIMEOUT
 endif
 ifeq ($(ENABLE_AM_FIX),1)
 	CFLAGS  += -DENABLE_AM_FIX
@@ -225,8 +253,17 @@ endif
 ifeq ($(ENABLE_AM_FIX_TEST1),1)
 	CFLAGS  += -DENABLE_AM_FIX_TEST1
 endif
-ifeq ($(ENABLE_SQUELCH1_LOWER),1)
-	CFLAGS  += -DENABLE_SQUELCH1_LOWER
+ifeq ($(ENABLE_SQUELCH_MORE_SENSITIVE),1)
+	CFLAGS  += -DENABLE_SQUELCH_MORE_SENSITIVE
+endif
+ifeq ($(ENABLE_FASTER_CHANNEL_SCAN),1)
+	CFLAGS  += -DENABLE_FASTER_CHANNEL_SCAN
+endif
+ifeq ($(ENABLE_BACKLIGHT_ON_RX),1)
+	CFLAGS  += -DENABLE_BACKLIGHT_ON_RX
+endif
+ifeq ($(ENABLE_RSSI_BAR),1)
+	CFLAGS  += -DENABLE_RSSI_BAR
 endif
 ifeq ($(ENABLE_AUDIO_BAR),1)
 	CFLAGS  += -DENABLE_AUDIO_BAR

@@ -21,6 +21,7 @@
 #include <stdint.h>
 
 #include "dcs.h"
+#include "frequencies.h"
 
 enum {
 	MR_CH_BAND_MASK   = 0x0F << 0,
@@ -42,39 +43,12 @@ enum {
 };
 
 enum PTT_ID_t {
-	PTT_ID_OFF = 0,
-	PTT_ID_BOT,
-	PTT_ID_EOT,
-	PTT_ID_BOTH
+	PTT_ID_OFF = 0,    // OFF
+	PTT_ID_TX_UP,      // BEGIN OF TX
+	PTT_ID_TX_DOWN,    // END OF TX
+	PTT_ID_BOTH        // BOTH
 };
-
 typedef enum PTT_ID_t PTT_ID_t;
-
-#if 0
-	enum STEP_Setting_t
-	{
-		STEP_2_5kHz,
-		STEP_5_0kHz,
-		STEP_6_25kHz,
-		STEP_10_0kHz,
-		STEP_12_5kHz,
-		STEP_25_0kHz,
-		STEP_8_33kHz
-	};
-#else
-	enum STEP_Setting_t
-	{
-		STEP_1_25kHz,
-		STEP_2_5kHz,
-		STEP_6_25kHz,
-		STEP_10_0kHz,
-		STEP_12_5kHz,
-		STEP_25_0kHz,
-		STEP_8_33kHz
-	};
-#endif
-
-typedef enum STEP_Setting_t STEP_Setting_t;
 
 enum VfoState_t
 {
@@ -86,7 +60,6 @@ enum VfoState_t
 	VFO_STATE_ALARM,
 	VFO_STATE_VOLTAGE_HIGH
 };
-
 typedef enum VfoState_t VfoState_t;
 
 typedef struct
@@ -136,8 +109,7 @@ typedef struct VFO_Info_t
 
 	uint8_t        BUSY_CHANNEL_LOCK;
 
-	uint8_t        AM_CHANNEL_MODE;
-	bool           IsAM;
+	uint8_t        AM_mode;
 
 	#ifdef ENABLE_COMPANDER
 		uint8_t    Compander;
@@ -160,8 +132,8 @@ extern VfoState_t     VfoState[2];
 
 bool     RADIO_CheckValidChannel(uint16_t ChNum, bool bCheckScanList, uint8_t RadioNum);
 uint8_t  RADIO_FindNextChannel(uint8_t ChNum, int8_t Direction, bool bCheckScanList, uint8_t RadioNum);
-void     RADIO_InitInfo(VFO_Info_t *pInfo, uint8_t ChannelSave, uint8_t ChIndex, uint32_t Frequency);
-void     RADIO_ConfigureChannel(uint8_t RadioNum, uint32_t Arg);
+void     RADIO_InitInfo(VFO_Info_t *pInfo, const uint8_t ChannelSave, const uint32_t Frequency);
+void     RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure);
 void     RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo);
 void     RADIO_ApplyOffset(VFO_Info_t *pInfo);
 void     RADIO_SelectVfos(void);

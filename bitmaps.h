@@ -4,7 +4,9 @@
 
 #include <stdint.h>
 
-extern const uint8_t BITMAP_PowerSave[8];
+extern const uint8_t BITMAP_POWERSAVE[8];
+extern const uint8_t BITMAP_TX[8];
+extern const uint8_t BITMAP_RX[8];
 
 extern const uint8_t BITMAP_BatteryLevel[2];
 extern const uint8_t BITMAP_BatteryLevel1[17];
@@ -52,7 +54,7 @@ extern const uint8_t BITMAP_AntennaLevel4[3];
 extern const uint8_t BITMAP_AntennaLevel5[3];
 extern const uint8_t BITMAP_AntennaLevel6[3];
 
-extern const uint8_t BITMAP_CurrentIndicator[8];
+extern const uint8_t BITMAP_MARKER[8];
 
 extern const uint8_t BITMAP_VFO_Default[8];
 extern const uint8_t BITMAP_VFO_NotDefault[8];

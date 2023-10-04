@@ -32,6 +32,7 @@
 #include "driver/gpio.h"
 #include "driver/keyboard.h"
 #include "frequencies.h"
+#include "helper/battery.h"
 #include "misc.h"
 #include "settings.h"
 #if defined(ENABLE_OVERLAY)
@@ -45,6 +46,27 @@
 #ifndef ARRAY_SIZE
 	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
+
+void writeXtalFreqCal(const int32_t value)
+{
+	struct
+	{
+		int16_t  BK4819_XtalFreqLow;
+		uint16_t EEPROM_1F8A;
+		uint16_t EEPROM_1F8C;
+		uint8_t  VOLUME_GAIN;
+		uint8_t  DAC_GAIN;
+	} __attribute__((packed)) Misc;
+
+	gEeprom.BK4819_XTAL_FREQ_LOW = value;
+	BK4819_WriteRegister(BK4819_REG_3B, 22656 + gEeprom.BK4819_XTAL_FREQ_LOW);
+
+	// radio 1 .. 04 00 46 00 50 00 2C 0E
+	// radio 2 .. 05 00 46 00 50 00 2C 0E
+	EEPROM_ReadBuffer(0x1F88, &Misc, 8);
+	Misc.BK4819_XtalFreqLow = gEeprom.BK4819_XTAL_FREQ_LOW;
+	EEPROM_WriteBuffer(0x1F88, &Misc);
+}
 
 void MENU_StartCssScan(int8_t Direction)
 {
@@ -109,9 +131,13 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			break;
 
 		case MENU_TDR:
-		case MENU_XB:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(gSubMenu_CHAN) - 1;
+			break;
+
+		case MENU_XB:
+			*pMin = 0;
+			*pMax = ARRAY_SIZE(gSubMenu_XB) - 1;
 			break;
 
 		#ifdef ENABLE_VOICE
@@ -186,6 +212,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#ifdef ENABLE_AUDIO_BAR
 			case MENU_MIC_BAR:
 		#endif
+		case MENU_ABR_ON_RX:
 		case MENU_BCL:
 		case MENU_BEEP:
 		case MENU_AUTOLK:
@@ -214,8 +241,12 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(gSubMenu_SCRAMBLER) - 1;
 			break;
 
-		case MENU_VOX:
 		case MENU_TOT:
+			*pMin = 0;
+			*pMax = ARRAY_SIZE(gSubMenu_TOT) - 1;
+			break;
+
+		case MENU_VOX:
 		case MENU_RP_STE:
 			*pMin = 0;
 			*pMax = 10;
@@ -280,9 +311,16 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = 16;
 			break;
 
-		case MENU_F_CALI:
-			*pMin = -50;
-			*pMax = +50;
+		#ifdef ENABLE_F_CAL_MENU
+			case MENU_F_CALI:
+				*pMin = -50;
+				*pMax = +50;
+				break;
+		#endif
+
+		case MENU_BATCAL:
+			*pMin = 1600;  // 0
+			*pMax = 2200;  // 2300
 			break;
 
 		default:
@@ -313,17 +351,16 @@ void MENU_AcceptSetting(void)
 
 		case MENU_SQL:
 			gEeprom.SQUELCH_LEVEL = gSubMenuSelection;
-			gVfoConfigureMode     = VFO_CONFIGURE_1;
+			gVfoConfigureMode     = VFO_CONFIGURE;
 			break;
 
 		case MENU_STEP:
+			gTxVfo->STEP_SETTING = gSubMenuSelection;
 			if (IS_FREQ_CHANNEL(gTxVfo->CHANNEL_SAVE))
 			{
-				gTxVfo->STEP_SETTING = gSubMenuSelection;
-				gRequestSaveChannel  = 1;
+				gRequestSaveChannel = 1;
 				return;
 			}
-			gTxVfo->STEP_SETTING = gSubMenuSelection;
 			return;
 
 		case MENU_TXP:
@@ -365,9 +402,6 @@ void MENU_AcceptSetting(void)
 
 		case MENU_T_CTCS:
 			pConfig = &gTxVfo->freq_config_TX;
-
-			// Fallthrough
-
 		case MENU_R_CTCS:
 			if (gSubMenuSelection == 0)
 			{
@@ -377,14 +411,20 @@ void MENU_AcceptSetting(void)
 					return;
 				}
 				Code              = 0;
+				pConfig->Code     = Code;
 				pConfig->CodeType = CODE_TYPE_OFF;
+
+				BK4819_ExitSubAu();
 			}
 			else
-				{
+			{
 				pConfig->CodeType = CODE_TYPE_CONTINUOUS_TONE;
 				Code              = gSubMenuSelection - 1;
+				pConfig->Code     = Code;
+
+				BK4819_SetCTCSSFrequency(CTCSS_Options[Code]);
 			}
-			pConfig->Code       = Code;
+			
 			gRequestSaveChannel = 1;
 			return;
 
@@ -405,6 +445,12 @@ void MENU_AcceptSetting(void)
 
 		case MENU_SCR:
 			gTxVfo->SCRAMBLING_TYPE = gSubMenuSelection;
+			#if 0
+				if (gSubMenuSelection > 0 && gSetting_ScrambleEnable)
+					BK4819_EnableScramble(gSubMenuSelection - 1);
+				else
+					BK4819_DisableScramble();
+			#endif
 			gRequestSaveChannel     = 1;
 			return;
 
@@ -415,26 +461,28 @@ void MENU_AcceptSetting(void)
 
 		case MENU_MEM_CH:
 			gTxVfo->CHANNEL_SAVE = gSubMenuSelection;
-			gRequestSaveChannel  = 2;
 			#if 0
 				gEeprom.MrChannel[0] = gSubMenuSelection;
 			#else
 				gEeprom.MrChannel[gEeprom.TX_CHANNEL] = gSubMenuSelection;
 			#endif
+			gRequestSaveChannel = 2;
+			gVfoConfigureMode   = VFO_CONFIGURE_RELOAD;
+			gFlagResetVfos      = true;
 			return;
 
 		case MENU_MEM_NAME:
 			{	// trailing trim
 				for (int i = 9; i >= 0; i--)
 				{
-					if (edit[i] != ' ' && edit[i] != '_' && edit[i] != 0 && edit[i] != 0xff)
+					if (edit[i] != ' ' && edit[i] != '_' && edit[i] != 0x00 && edit[i] != 0xff)
 						break;
 					edit[i] = ' ';
 				}
 			}
 
 			// save the channel name
-			memset(gTxVfo->Name, 0xff, sizeof(gTxVfo->Name));
+			memset(gTxVfo->Name, 0, sizeof(gTxVfo->Name));
 			memmove(gTxVfo->Name, edit, 10);
 			SETTINGS_SaveChannel(gSubMenuSelection, gEeprom.TX_CHANNEL, gTxVfo, 3);
 			gFlagReconfigureVfos = true;
@@ -450,11 +498,15 @@ void MENU_AcceptSetting(void)
 				gEeprom.VOX_LEVEL = gSubMenuSelection - 1;
 			BOARD_EEPROM_LoadMoreSettings();
 			gFlagReconfigureVfos = true;
-			gUpdateStatus = true;
+			gUpdateStatus        = true;
 			break;
 
 		case MENU_ABR:
 			gEeprom.BACKLIGHT = gSubMenuSelection;
+			break;
+
+		case MENU_ABR_ON_RX:
+			gSetting_backlight_on_rx = gSubMenuSelection;
 			break;
 
 		case MENU_TDR:
@@ -507,14 +559,14 @@ void MENU_AcceptSetting(void)
 		case MENU_S_ADD1:
 			gTxVfo->SCANLIST1_PARTICIPATION = gSubMenuSelection;
 			SETTINGS_UpdateChannel(gTxVfo->CHANNEL_SAVE, gTxVfo, true);
-			gVfoConfigureMode = VFO_CONFIGURE_1;
+			gVfoConfigureMode = VFO_CONFIGURE;
 			gFlagResetVfos    = true;
 			return;
 
 		case MENU_S_ADD2:
 			gTxVfo->SCANLIST2_PARTICIPATION = gSubMenuSelection;
 			SETTINGS_UpdateChannel(gTxVfo->CHANNEL_SAVE, gTxVfo, true);
-			gVfoConfigureMode = VFO_CONFIGURE_1;
+			gVfoConfigureMode = VFO_CONFIGURE;
 			gFlagResetVfos    = true;
 			return;
 
@@ -537,11 +589,14 @@ void MENU_AcceptSetting(void)
 				gSetting_mic_bar = gSubMenuSelection;
 				break;
 		#endif
-			
+
 		#ifdef ENABLE_COMPANDER
 			case MENU_COMPAND:
 				gTxVfo->Compander = gSubMenuSelection;
-				gRequestSaveChannel = 1;
+				SETTINGS_UpdateChannel(gTxVfo->CHANNEL_SAVE, gTxVfo, true);
+				gVfoConfigureMode = VFO_CONFIGURE;
+				gFlagResetVfos    = true;
+//				gRequestSaveChannel = 1;
 				return;
 		#endif
 
@@ -586,13 +641,14 @@ void MENU_AcceptSetting(void)
 
 		case MENU_D_DCD:
 			gTxVfo->DTMF_DECODING_ENABLE = gSubMenuSelection;
-			gRequestSaveChannel          = 1;
+			DTMF_clear_RX();
+			gRequestSaveChannel = 1;
 			return;
 
 		case MENU_D_LIVE_DEC:
-			gDTMF_RecvTimeoutSaved = 0;
-			gDTMF_ReceivedSaved[0] = '\0';
 			gSetting_live_DTMF_decoder = gSubMenuSelection;
+			gDTMF_RX_live_timeout = 0;
+			memset(gDTMF_RX_live, 0, sizeof(gDTMF_RX_live));
 			if (!gSetting_live_DTMF_decoder)
 				BK4819_DisableDTMF();
 			gFlagReconfigureVfos     = true;
@@ -620,8 +676,8 @@ void MENU_AcceptSetting(void)
 			break;
 
 		case MENU_AM:
-			gTxVfo->AM_CHANNEL_MODE = gSubMenuSelection;
-			gRequestSaveChannel     = 1;
+			gTxVfo->AM_mode     = gSubMenuSelection;
+			gRequestSaveChannel = 1;
 			return;
 
 		#ifdef ENABLE_AM_FIX
@@ -688,26 +744,16 @@ void MENU_AcceptSetting(void)
 			gSetting_TX_EN = gSubMenuSelection;
 			break;
 
-		case MENU_F_CALI:
-			gEeprom.BK4819_XTAL_FREQ_LOW = gSubMenuSelection;
-			BK4819_WriteRegister(BK4819_REG_3B, 22656 + gEeprom.BK4819_XTAL_FREQ_LOW);
-			{
-				struct
-				{
-					int16_t  BK4819_XtalFreqLow;
-					uint16_t EEPROM_1F8A;
-					uint16_t EEPROM_1F8C;
-					uint8_t  VOLUME_GAIN;
-					uint8_t  DAC_GAIN;
-				} __attribute__((packed)) Misc;
+		#ifdef ENABLE_F_CAL_MENU
+			case MENU_F_CALI:
+				writeXtalFreqCal(gSubMenuSelection);
+				return;
+		#endif
 
-				// radio 1 .. 04 00 46 00 50 00 2C 0E
-				// radio 2 .. 05 00 46 00 50 00 2C 0E
-				EEPROM_ReadBuffer(0x1F88, &Misc, 8);
-				Misc.BK4819_XtalFreqLow = gEeprom.BK4819_XTAL_FREQ_LOW;
-				EEPROM_WriteBuffer(0x1F88, &Misc);
-			}
-			return;
+		case MENU_BATCAL:
+			gBatteryCalibration[3] = gSubMenuSelection;
+			EEPROM_WriteBuffer(0x1F40, gBatteryCalibration);
+			break;
 	}
 
 	gRequestSaveSettings = true;
@@ -875,6 +921,10 @@ void MENU_ShowCurrentSetting(void)
 			GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  	// turn the backlight ON while in backlight menu
 			break;
 
+		case MENU_ABR_ON_RX:
+			gSubMenuSelection = gSetting_backlight_on_rx;
+			break;
+
 		case MENU_TDR:
 			gSubMenuSelection = gEeprom.DUAL_WATCH;
 			break;
@@ -934,7 +984,7 @@ void MENU_ShowCurrentSetting(void)
 				gSubMenuSelection = gSetting_mic_bar;
 				break;
 		#endif
-		
+
 		#ifdef ENABLE_COMPANDER
 			case MENU_COMPAND:
 				gSubMenuSelection = gTxVfo->Compander;
@@ -1008,7 +1058,7 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_AM:
-			gSubMenuSelection = gTxVfo->AM_CHANNEL_MODE;
+			gSubMenuSelection = gTxVfo->AM_mode;
 			break;
 
 		#ifdef ENABLE_AM_FIX
@@ -1016,7 +1066,7 @@ void MENU_ShowCurrentSetting(void)
 				gSubMenuSelection = gSetting_AM_fix;
 				break;
 		#endif
-		
+
 		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				gSubMenuSelection = gSetting_AM_fix_test1;
@@ -1065,9 +1115,18 @@ void MENU_ShowCurrentSetting(void)
 			gSubMenuSelection = gSetting_TX_EN;
 			break;
 
-		case MENU_F_CALI:
-			gSubMenuSelection = gEeprom.BK4819_XTAL_FREQ_LOW;
+		#ifdef ENABLE_F_CAL_MENU
+			case MENU_F_CALI:
+				gSubMenuSelection = gEeprom.BK4819_XTAL_FREQ_LOW;
+				break;
+		#endif
+
+		case MENU_BATCAL:
+			gSubMenuSelection = gBatteryCalibration[3];
 			break;
+
+		default:
+			return;
 	}
 }
 
@@ -1117,7 +1176,7 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 				gInputBoxIndex = 0;
 
 				Value = (gInputBox[0] * 10) + gInputBox[1];
-				
+
 				if (Value > 0 && Value <= gMenuListCount)
 				{
 					gMenuCursor         = Value - 1;
@@ -1130,7 +1189,7 @@ static void MENU_Key_0_to_9(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 
 				gInputBox[0]   = gInputBox[1];
 				gInputBoxIndex = 1;
-					
+
 			case 1:
 				Value = gInputBox[0];
 				if (Value > 0 && Value <= gMenuListCount)
@@ -1259,6 +1318,8 @@ static void MENU_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 			else
 				gInputBox[--gInputBoxIndex] = 10;
 
+			// ***********************
+
 			gRequestDisplayScreen = DISPLAY_MENU;
 			return;
 		}
@@ -1268,7 +1329,7 @@ static void MENU_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 		#endif
 
 		gRequestDisplayScreen = DISPLAY_MAIN;
-		
+
 		if (gEeprom.BACKLIGHT == 0)
 		{
 			gBacklightCountdown = 0;
@@ -1312,8 +1373,12 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 
 		gAskForConfirmation = 0;
 		gIsInSubMenu        = true;
-		gInputBoxIndex      = 0;
-		edit_index          = -1;
+
+//		if (gMenuCursor != MENU_D_LIST)
+		{
+			gInputBoxIndex      = 0;
+			edit_index          = -1;
+		}
 
 		return;
 	}
@@ -1454,9 +1519,9 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
 	RADIO_SelectVfos();
 
 	#ifdef ENABLE_NOAA
-		if (IS_NOT_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE) && !gRxVfo->IsAM)
+		if (IS_NOT_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE) && gRxVfo->AM_mode == 0)
 	#else
-		if (!gRxVfo->IsAM)
+		if (gRxVfo->AM_mode == 0)
 	#endif
 	{
 		if (gMenuCursor == MENU_R_CTCS || gMenuCursor == MENU_R_DCS)
@@ -1540,8 +1605,10 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 
 	if (!gIsInSubMenu)
 	{
-		gMenuCursor           = NUMBER_AddWithWraparound(gMenuCursor, -Direction, 0, gMenuListCount - 1);
-		gFlagRefreshSetting   = true;
+		gMenuCursor = NUMBER_AddWithWraparound(gMenuCursor, -Direction, 0, gMenuListCount - 1);
+
+		gFlagRefreshSetting = true;
+
 		gRequestDisplayScreen = DISPLAY_MENU;
 
 		if (gMenuCursor != MENU_ABR && gEeprom.BACKLIGHT == 0)
@@ -1549,7 +1616,7 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 			gBacklightCountdown = 0;
 			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
 		}
-		
+
 		return;
 	}
 
@@ -1585,7 +1652,7 @@ static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 			bCheckScanList = true;
 			break;
 
-		default:			
+		default:
 			MENU_ClampSelection(Direction);
 			gRequestDisplayScreen = DISPLAY_MENU;
 			return;
@@ -1660,6 +1727,19 @@ void MENU_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 			break;
 	}
 
-	if (gScreenToDisplay == DISPLAY_MENU && gMenuCursor == MENU_VOL)
-		gVoltageMenuCountdown = menu_timeout_500ms;
+	if (gScreenToDisplay == DISPLAY_MENU)
+	{
+		if (gMenuCursor == MENU_VOL ||
+			#ifdef ENABLE_F_CAL_MENU
+				gMenuCursor == MENU_F_CALI ||
+		    #endif
+			gMenuCursor == MENU_BATCAL)
+		{
+			gMenuCountdown = menu_timeout_long_500ms;
+		}
+		else
+		{
+			gMenuCountdown = menu_timeout_500ms;
+		}
+	}
 }

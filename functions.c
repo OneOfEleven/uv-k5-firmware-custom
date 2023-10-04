@@ -28,6 +28,7 @@
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
 #include "driver/system.h"
+#include "frequencies.h"
 #include "functions.h"
 #include "helper/battery.h"
 #include "misc.h"
@@ -46,22 +47,15 @@ void FUNCTION_Init(void)
 	{
 		gCurrentCodeType = gSelectedCodeType;
 		if (gCssScanMode == CSS_SCAN_MODE_OFF)
-			gCurrentCodeType = gRxVfo->IsAM ? CODE_TYPE_OFF : gRxVfo->pRX->CodeType;
+			gCurrentCodeType = gRxVfo->AM_mode ? CODE_TYPE_OFF : gRxVfo->pRX->CodeType;
 	}
 	#ifdef ENABLE_NOAA
 		else
 			gCurrentCodeType = CODE_TYPE_CONTINUOUS_TONE;
 	#endif
 
-	gDTMF_RequestPending = false;
-
-	gDTMF_RecvTimeout    = 0;
-	gDTMF_WriteIndex     = 0;
-	memset(gDTMF_Received, 0, sizeof(gDTMF_Received));
-
-//	gDTMF_RecvTimeoutSaved = 0;
-//	gDTMF_ReceivedSaved[0] = '\0';
-		
+	DTMF_clear_RX();
+	
 	g_CxCSS_TAIL_Found = false;
 	g_CDCSS_Lost       = false;
 	g_CTCSS_Lost       = false;
@@ -80,6 +74,8 @@ void FUNCTION_Init(void)
 	#ifdef ENABLE_NOAA
 		gNOAACountdown_10ms = 0;
 	#endif
+
+	gUpdateStatus = true;
 }
 
 void FUNCTION_Select(FUNCTION_Type_t Function)
@@ -119,6 +115,7 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			if (gDTMF_CallState == DTMF_CALL_STATE_CALL_OUT || gDTMF_CallState == DTMF_CALL_STATE_RECEIVED)
 				gDTMF_AUTO_RESET_TIME = 1 + (gEeprom.DTMF_AUTO_RESET_TIME * 2);
 
+			gUpdateStatus = true;
 			return;
 	
 		case FUNCTION_MONITOR:
@@ -144,7 +141,9 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 
 			gUpdateStatus = true;
 
-			GUI_SelectNextDisplay(DISPLAY_MAIN);
+			if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
+				GUI_SelectNextDisplay(DISPLAY_MAIN);
+				
 			return;
 	
 		case FUNCTION_TRANSMIT:
@@ -152,7 +151,13 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			// if DTMF is enabled when TX'ing, it changes the TX audio filtering !! .. 1of11
 			BK4819_DisableDTMF();
 
-			gDTMF_ReceivedSaved[0] = 0;
+			// clear the DTMF RX buffer
+			DTMF_clear_RX();
+
+			// clear the DTMF RX live decoder buffer
+			gDTMF_RX_live_timeout = 0;
+			gDTMF_RX_live_timeout = 0;
+			memset(gDTMF_RX_live, 0, sizeof(gDTMF_RX_live));
 			
 			#if defined(ENABLE_FMRADIO)
 				if (gFmRadioMode)
@@ -184,27 +189,38 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 				}
 			#endif
 			
+			gUpdateStatus = true;
+
 			GUI_DisplayScreen();
 
 			RADIO_SetTxParameters();
 
-			// turn the LED on RED
+			// turn the RED LED on
 			BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_RED, true);
 	
 			DTMF_Reply();
 	
-			#ifdef ENABLE_ALARM
+			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 				if (gAlarmState != ALARM_STATE_OFF)
 				{
-					BK4819_TransmitTone(true, (gAlarmState == ALARM_STATE_TX1750) ? 1750 : 500);
+					#ifdef ENABLE_TX1750
+						if (gAlarmState == ALARM_STATE_TX1750)
+							BK4819_TransmitTone(true, 1750);
+					#endif
+					#ifdef ENABLE_ALARM
+						if (gAlarmState == ALARM_STATE_TXALARM)
+							BK4819_TransmitTone(true, 500);
+					#endif
 					SYSTEM_DelayMs(2);
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-					gAlarmToneCounter = 0;
-					gEnableSpeaker    = true;
+					#ifdef ENABLE_ALARM
+						gAlarmToneCounter = 0;
+					#endif
+					gEnableSpeaker = true;
 					break;
 				}
 			#endif
-			
+	
 			#if defined(ENABLE_QUINDAR)
 				BK4819_PlaySingleTone(2525, 250, false);
 				RADIO_SetTxParameters();

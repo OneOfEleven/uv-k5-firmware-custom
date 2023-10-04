@@ -225,10 +225,16 @@ static void CMD_0514(const uint8_t *pBuffer)
 	const CMD_0514_t *pCmd = (const CMD_0514_t *)pBuffer;
 
 	Timestamp = pCmd->Timestamp;
+
 	#ifdef ENABLE_FMRADIO
 		gFmRadioCountdown_500ms = fm_radio_countdown_500ms;
 	#endif
+
+	gSerialConfigCountDown_500ms = 12; // 6 sec
+	
+	// turn the LCD backlight off
 	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
+
 	SendVersion();
 }
 
@@ -241,9 +247,12 @@ static void CMD_051B(const uint8_t *pBuffer)
 	if (pCmd->Timestamp != Timestamp)
 		return;
 
+	gSerialConfigCountDown_500ms = 12; // 6 sec
+
 	#ifdef ENABLE_FMRADIO
 		gFmRadioCountdown_500ms = fm_radio_countdown_500ms;
 	#endif
+
 	memset(&Reply, 0, sizeof(Reply));
 	Reply.Header.ID = 0x051C;
 	Reply.Header.Size = pCmd->Size + 4;
@@ -269,11 +278,14 @@ static void CMD_051D(const uint8_t *pBuffer)
 	if (pCmd->Timestamp != Timestamp)
 		return;
 
+	gSerialConfigCountDown_500ms = 12; // 6 sec
+	
 	bReloadEeprom = false;
 
 	#ifdef ENABLE_FMRADIO
 		gFmRadioCountdown_500ms = fm_radio_countdown_500ms;
 	#endif
+
 	Reply.Header.ID   = 0x051E;
 	Reply.Header.Size = sizeof(Reply.Data);
 	Reply.Data.Offset = pCmd->Offset;
@@ -389,8 +401,11 @@ static void CMD_052F(const uint8_t *pBuffer)
 	if (gCurrentFunction == FUNCTION_POWER_SAVE)
 		FUNCTION_Select(FUNCTION_FOREGROUND);
 
+	gSerialConfigCountDown_500ms = 12; // 6 sec
+
 	Timestamp = pCmd->Timestamp;
 
+	// turn the LCD backlight off
 	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
 	SendVersion();
