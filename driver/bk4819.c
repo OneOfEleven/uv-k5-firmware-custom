@@ -835,7 +835,7 @@ void BK4819_SetCompander(const unsigned int mode)
 	
 	if (mode == 0)
 	{	// disable
-		BK4819_WriteRegister(BK4819_REG_31, r31 & ~(1u < 3));
+		BK4819_WriteRegister(BK4819_REG_31, r31 & ~(1u << 3));
 		return;
 	}
 
