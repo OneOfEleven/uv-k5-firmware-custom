@@ -526,7 +526,7 @@ static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 	if (bKeyHeld && bKeyPressed)
 	{	// exit key held down
 
-		if (gInputBoxIndex > 0)
+		if (gInputBoxIndex > 0 || gDTMF_InputBox_Index > 0 || gDTMF_InputMode)
 		{	// cancel key input mode (channel/frequency entry)
 			gDTMF_InputMode       = false;
 			gDTMF_InputBox_Index  = 0;

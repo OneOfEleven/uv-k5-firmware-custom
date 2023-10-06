@@ -115,6 +115,10 @@ const t_menu_item MenuList[] =
 #ifdef ENABLE_NOAA
 	{"NOAA-S", VOICE_ID_INVALID,                       MENU_NOAA_S        },
 #endif
+	{"SIDE1S", VOICE_ID_INVALID,                       MENU_SIDE1_SHORT   },
+	{"SIDE1L", VOICE_ID_INVALID,                       MENU_SIDE1_LONG    },
+	{"SIDE2S", VOICE_ID_INVALID,                       MENU_SIDE2_SHORT   },
+	{"SIDE2L", VOICE_ID_INVALID,                       MENU_SIDE2_LONG    },
 	{"RESET",  VOICE_ID_INITIALISATION,                MENU_RESET         }, // might be better to move this to the hidden menu items ?
 
 	// hidden menu items from here on
@@ -330,6 +334,19 @@ const char gSubMenu_SCRAMBLER[11][7] =
 	"3300Hz",
 	"3400Hz",
 	"3500Hz"
+};
+
+const char gSubMenu_SIDE_BUTT[9][16] =
+{
+	"NONE",
+	"FLASH\nLIGHT",
+	"TX\nPOWER",
+	"MONITOR",
+	"SCAN\non\\off",
+	"VOX\non\\off",
+	"ALARM\non\\off",
+	"FM RADIO\non\\off",
+	"TX\n1750Hz"
 };
 
 bool    gIsInSubMenu;
@@ -768,7 +785,7 @@ void UI_DisplayMenu(void)
 		case MENU_PONMSG:
 			strcpy(String, gSubMenu_PONMSG[gSubMenuSelection]);
 			break;
-
+			
 		case MENU_ROGER:
 			strcpy(String, gSubMenu_ROGER[gSubMenuSelection]);
 			break;
@@ -777,6 +794,13 @@ void UI_DisplayMenu(void)
 			sprintf(String, "%u.%02uV\n%u%%",
 				gBatteryVoltageAverage / 100, gBatteryVoltageAverage % 100,
 				BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+			break;
+
+		case MENU_SIDE1_SHORT:
+		case MENU_SIDE1_LONG:
+		case MENU_SIDE2_SHORT:
+		case MENU_SIDE2_LONG:
+			strcpy(String, gSubMenu_SIDE_BUTT[gSubMenuSelection]);
 			break;
 
 		case MENU_RESET:

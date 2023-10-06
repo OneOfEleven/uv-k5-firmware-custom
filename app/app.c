@@ -1681,11 +1681,9 @@ void cancelUserInputModes(void)
 {
 	gKeyInputCountdown = 0;
 
-	if (gDTMF_InputMode || gDTMF_InputBox_Index > 0)
-//	if (gDTMF_InputMode || gInputBoxIndex > 0)
+	if (gDTMF_InputMode || gDTMF_InputBox_Index > 0 || gInputBoxIndex > 0)
 	{
 		DTMF_clear_input_box();
-		gDTMF_PreviousIndex   = 0;
 		gInputBoxIndex        = 0;
 		gBeepToPlay           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		gRequestDisplayScreen = DISPLAY_MAIN;

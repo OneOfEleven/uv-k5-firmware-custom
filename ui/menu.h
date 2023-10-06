@@ -110,6 +110,10 @@ enum
 #ifdef ENABLE_NOAA
 	MENU_NOAA_S,
 #endif
+	MENU_SIDE1_SHORT,
+	MENU_SIDE1_LONG,
+	MENU_SIDE2_SHORT,
+	MENU_SIDE2_LONG,
 	MENU_RESET,
 
 	// items after here are normally hidden
@@ -160,13 +164,15 @@ extern const char        gSubMenu_RX_TX[4][6];
 extern const char        gSubMenu_BAT_TXT[3][8];
 
 extern const char        gSubMenu_SCRAMBLER[11][7];
-				         
+
+extern const char        gSubMenu_SIDE_BUTT[9][16];
+
 extern bool              gIsInSubMenu;
-				         
+
 extern uint8_t           gMenuCursor;
 extern int8_t            gMenuScrollDirection;
 extern int32_t           gSubMenuSelection;
-				         
+
 extern char              edit_original[17];
 extern char              edit[17];
 extern int               edit_index;

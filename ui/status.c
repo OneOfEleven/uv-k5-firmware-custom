@@ -174,7 +174,7 @@ void UI_DisplayStatus(const bool test_display)
 		char         s[8];
 		unsigned int space_needed;
 		
-		unsigned int x2 = LCD_WIDTH - sizeof(BITMAP_BatteryLevel5) - 3;
+		unsigned int x2 = LCD_WIDTH - sizeof(BITMAP_BATTERY_LEVEL) - 3;
 
 		if (gChargingWithTypeC)
 			x2 -= sizeof(BITMAP_USB_C);  // the radio is on charge
@@ -209,57 +209,39 @@ void UI_DisplayStatus(const bool test_display)
 	}
 		
 	// move to right side of the screen
-	x = LCD_WIDTH - sizeof(BITMAP_BatteryLevel1) - sizeof(BITMAP_USB_C);
+	x = LCD_WIDTH - sizeof(BITMAP_BATTERY_LEVEL) - sizeof(BITMAP_USB_C);
 	
 	// USB-C charge indicator
 	if (gChargingWithTypeC || test_display)
 		memmove(line + x, BITMAP_USB_C, sizeof(BITMAP_USB_C));
 	x += sizeof(BITMAP_USB_C);
 
-	// BATTERY LEVEL indicator
-	if (gBatteryDisplayLevel >= 2 && !gLowBattery)
-	{
-		line += x;
-		memmove(line, BITMAP_BatteryLevel1, sizeof(BITMAP_BatteryLevel1));
-
-		#ifndef ENABLE_REVERSE_BAT_SYMBOL
-			line += sizeof(BITMAP_BatteryLevel1);
-			{
-				const int8_t pos[] = {-4, -7, -10, 13};
-				for (unsigned int i = 0; i < ARRAY_SIZE(pos); i++)
-					if (gBatteryDisplayLevel >= (2 + i))
-						memmove(line + pos[i], BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
+	{	// BATTERY LEVEL indicator
+		uint8_t      bitmap[sizeof(BITMAP_BATTERY_LEVEL)];
+		unsigned int i = gBatteryDisplayLevel;
 	
-/*				switch (gBatteryDisplayLevel)
-				{
-					default:
-					case 5: memmove(line - 13, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-					case 4: memmove(line - 10, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-					case 3: memmove(line -  7, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-					case 2: memmove(line -  4, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-				}
-*/			}
-		#else
+		memmove(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
+	
+		if (i >= 1)
 		{
-			const int8_t pos[] = {3, 6, 9, 12};
-			for (unsigned int i = 0; i < ARRAY_SIZE(pos); i++)
-				if (gBatteryDisplayLevel >= (2 + i))
-					memmove(line + pos[i], BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-/*
-			switch (gBatteryDisplayLevel)
+			const uint8_t bars = (i <= 5) - 1 ? i - 1 : 5 - 1;
+			for (i = 0; i < bars; i++)
 			{
-				default:
-				case 5: memmove(line + 12, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-				case 4: memmove(line +  9, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-				case 3: memmove(line +  6, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
-				case 2: memmove(line +  3, BITMAP_BatteryLevel, sizeof(BITMAP_BatteryLevel));
+				#ifndef ENABLE_REVERSE_BAT_SYMBOL
+					bitmap[sizeof(bitmap) - 3 - (i * 3) - 0] = 0b01011101;
+					bitmap[sizeof(bitmap) - 3 - (i * 3) - 1] = 0b01011101;
+				#else
+					bitmap[3 + (i * 3) + 0] = 0b01011101;
+					bitmap[3 + (i * 3) + 1] = 0b01011101;
+				#endif
 			}
-*/		}
-		#endif
+		}
+		else
+		if (gLowBattery)
+			memset(bitmap, 0, sizeof(bitmap));
+
+		memmove(line + x, bitmap, sizeof(bitmap));
 	}
-	else
-	if (gLowBatteryBlink == 1)
-		memmove(line + x, BITMAP_BatteryLevel1, sizeof(BITMAP_BatteryLevel1));
 
 	// **************
 

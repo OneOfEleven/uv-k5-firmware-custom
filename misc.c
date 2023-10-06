@@ -101,6 +101,11 @@ uint8_t           gSetting_backlight_on_tx_rx;
 bool              gSetting_live_DTMF_decoder;
 uint8_t           gSetting_battery_text;
 
+uint8_t           gSetting_side1_short;
+uint8_t           gSetting_side1_long;
+uint8_t           gSetting_side2_short;
+uint8_t           gSetting_side2_long;
+
 bool              gMonitor = false;           // true opens the squelch
 
 uint32_t          gCustomAesKey[4];

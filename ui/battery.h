@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-void UI_DisplayBattery(const uint8_t Level, const uint8_t blink);
+void UI_DisplayBattery(const unsigned int Level, const unsigned int blink);
 
 #endif
 

@@ -74,8 +74,7 @@ void SETTINGS_SaveVfoIndices(void)
 
 void SETTINGS_SaveSettings(void)
 {
-	uint8_t  State[8];
-	uint32_t Password[2];
+	uint8_t State[8];
 
 	State[0] = gEeprom.CHAN_1_CALL;
 	State[1] = gEeprom.SQUELCH_LEVEL;
@@ -116,12 +115,20 @@ void SETTINGS_SaveSettings(void)
 	State[7] = gEeprom.POWER_ON_DISPLAY_MODE;
 	EEPROM_WriteBuffer(0x0E90, State);
 
-	memset(Password, 0xFF, sizeof(Password));
-	#ifdef ENABLE_PWRON_PASSWORD
-		Password[0] = gEeprom.POWER_ON_PASSWORD;
-	#endif
-	EEPROM_WriteBuffer(0x0E98, Password);
+	{
+		struct {
+			uint32_t password;
+			uint32_t spare;
+		} __attribute__((packed)) array;
 
+		memset(&array, 0xff, sizeof(array));
+		#ifdef ENABLE_PWRON_PASSWORD
+			array.password = gEeprom.POWER_ON_PASSWORD;
+		#endif
+		
+		EEPROM_WriteBuffer(0x0E98, &array);
+	}
+	
 	#ifdef ENABLE_VOICE
 		memset(State, 0xFF, sizeof(State));
 		State[0] = gEeprom.VOICE_PROMPT;

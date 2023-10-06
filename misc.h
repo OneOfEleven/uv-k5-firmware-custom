@@ -174,6 +174,11 @@ extern uint8_t               gSetting_backlight_on_tx_rx;
 extern bool                  gSetting_live_DTMF_decoder;
 extern uint8_t               gSetting_battery_text;
 
+extern uint8_t               gSetting_side1_short;
+extern uint8_t               gSetting_side1_long;
+extern uint8_t               gSetting_side2_short;
+extern uint8_t               gSetting_side2_long;
+
 extern bool                  gMonitor;
 
 extern const uint32_t        gDefaultAesKey[4];
