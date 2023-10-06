@@ -425,12 +425,12 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 
 void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo)
 {
-	uint8_t          Txp[3];
+	uint8_t          TX_power[3];
 	FREQUENCY_Band_t Band;
 
 	// *******************************
 	// squelch
-	
+
 	Band = FREQUENCY_GetBand(pInfo->pRX->Frequency);
 	uint16_t Base = (Band < BAND4_174MHz) ? 0x1E60 : 0x1E00;
 
@@ -494,13 +494,13 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo)
 		glitch_close = (glitch_open * 10) / 9;
 
 		// ensure the 'close' threshold is lower than the 'open' threshold
-		if (rssi_close   == rssi_open   && rssi_close   > 0)
-			rssi_close--;
-		if (noise_close  == noise_open  && noise_close  < 127)
-			noise_close++;
-		if (glitch_close == glitch_open && glitch_close < 255)
-			glitch_close++;
-		
+		if (rssi_close   == rssi_open   && rssi_close   >= 2)
+			rssi_close -= 2;
+		if (noise_close  == noise_open  && noise_close  <= 125)
+			noise_close += 2;
+		if (glitch_close == glitch_open && glitch_close <= 253)
+			glitch_close += 2;
+
 		pInfo->SquelchOpenRSSIThresh    = (rssi_open    > 255) ? 255 : rssi_open;
 		pInfo->SquelchCloseRSSIThresh   = (rssi_close   > 255) ? 255 : rssi_close;
 		pInfo->SquelchOpenNoiseThresh   = (noise_open   > 127) ? 127 : noise_open;
@@ -511,15 +511,25 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo)
 
 	// *******************************
 	// output power
-	
+
+	// my calibration data
+	//
+	// 1ED0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF ..  50 MHz 
+	// 1EE0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 108 MHz
+	// 1EF0    5F 5F 5F   69 69 69   91 91 8F   FF FF FF FF FF FF FF .. 136 MHz
+	// 1F00    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 174 MHz
+	// 1F10    5A 5A 5A   64 64 64   82 82 82   FF FF FF FF FF FF FF .. 350 MHz
+	// 1F20    5A 5A 5A   64 64 64   8F 91 8A   FF FF FF FF FF FF FF .. 400 MHz
+	// 1F30    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 470 MHz
+
 	Band = FREQUENCY_GetBand(pInfo->pTX->Frequency);
 
-	EEPROM_ReadBuffer(0x1ED0 + (Band * 16) + (pInfo->OUTPUT_POWER * 3), Txp, 3);
+	EEPROM_ReadBuffer(0x1ED0 + (Band * 16) + (pInfo->OUTPUT_POWER * 3), TX_power, 3);
 
 	pInfo->TXP_CalculatedSetting = FREQUENCY_CalculateOutputPower(
-		Txp[0],
-		Txp[1],
-		Txp[2],
+		TX_power[0],
+		TX_power[1],
+		TX_power[2],
 		 frequencyBandTable[Band].lower,
 		(frequencyBandTable[Band].lower + frequencyBandTable[Band].upper) / 2,
 		 frequencyBandTable[Band].upper,
@@ -939,7 +949,7 @@ void RADIO_PrepareTX(void)
 			gEeprom.RX_VFO = gEeprom.TX_VFO;
 			gRxVfo         = &gEeprom.VfoInfo[gEeprom.TX_VFO];
 //			gRxVfoIsActive = true;
-			gRxVfoIsActive = false;
+//			gRxVfoIsActive = false;
 		}
 
 		// let the user see that DW is not active
@@ -1092,7 +1102,7 @@ void RADIO_SendEndOfTransmission(void)
 				gEeprom.DTMF_HASH_CODE_PERSIST_TIME,
 				gEeprom.DTMF_CODE_PERSIST_TIME,
 				gEeprom.DTMF_CODE_INTERVAL_TIME);
-		
+
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 		gEnableSpeaker = false;
 	}

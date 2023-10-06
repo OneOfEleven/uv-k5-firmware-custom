@@ -83,21 +83,20 @@ FREQUENCY_Band_t FREQUENCY_GetBand(uint32_t Frequency)
 
 uint8_t FREQUENCY_CalculateOutputPower(uint8_t TxpLow, uint8_t TxpMid, uint8_t TxpHigh, int32_t LowerLimit, int32_t Middle, int32_t UpperLimit, int32_t Frequency)
 {
+	uint8_t pwr = TxpMid;
+	
 	if (Frequency <= LowerLimit)
 		return TxpLow;
 
-	if (UpperLimit <= Frequency)
+	if (Frequency >= UpperLimit)
 		return TxpHigh;
 
+	// linear interpolation
 	if (Frequency <= Middle)
-	{
-		TxpMid += ((TxpMid - TxpLow) * (Frequency - LowerLimit)) / (Middle - LowerLimit);
-		return TxpMid;
-	}
-
-	TxpMid += ((TxpHigh - TxpMid) * (Frequency - Middle)) / (UpperLimit - Middle);
-
-	return TxpMid;
+		pwr += ((TxpMid  - TxpLow) * (Frequency - LowerLimit)) / (Middle - LowerLimit);
+	else
+		pwr += ((TxpHigh - TxpMid) * (Frequency - Middle))     / (UpperLimit - Middle);
+	return pwr;
 }
 
 uint32_t FREQUENCY_FloorToStep(uint32_t Upper, uint32_t Step, uint32_t Lower)
