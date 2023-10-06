@@ -35,7 +35,7 @@ ENABLE_RSSI_BAR               := 1
 ENABLE_AUDIO_BAR              := 0
 ENABLE_COPY_CHAN_TO_VFO       := 1
 #ENABLE_SINGLE_VFO_CHAN        := 1
-#ENABLE_BAND_SCOPE             := 1
+#ENABLE_PANADAPTER             := 1
 
 #############################################################
 
@@ -305,8 +305,8 @@ endif
 ifeq ($(ENABLE_SINGLE_VFO_CHAN),1)
 	CFLAGS  += -DENABLE_SINGLE_VFO_CHAN
 endif
-ifeq ($(ENABLE_BAND_SCOPE),1)
-	CFLAGS += -DENABLE_BAND_SCOPE
+ifeq ($(ENABLE_PANADAPTER),1)
+	CFLAGS += -DENABLE_PANADAPTER
 endif
 
 LDFLAGS =

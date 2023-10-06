@@ -56,7 +56,7 @@ ENABLE_REVERSE_BAT_SYMBOL     := 1       mirror the battery symbol on the status
 ENABLE_CODE_SCAN_TIMEOUT      := 0       enable/disable 32-sec CTCSS/DCS scan timeout (press exit butt instead of time-out to end scan)
 ENABLE_AM_FIX                 := 1       dynamically adjust the front end gains when in AM mode to helo prevent AM demodulator saturation, ignore the on-screen RSSI level (for now)
 ENABLE_AM_FIX_SHOW_DATA       := 1       show debug data for the AM fix (still tweaking it)
-ENABLE_SQUELCH_MORE_SENSITIVE := 0       make squelch levels a little bit more sensitive - I plan to let user adjust the values themselves
+ENABLE_SQUELCH_MORE_SENSITIVE := 1       make squelch levels a little bit more sensitive - I plan to let user adjust the values themselves
 ENABLE_FASTER_CHANNEL_SCAN    := 0       increases the channel scan speed, but the squelch is also made more twitchy
 ENABLE_RSSI_BAR               := 1       enable a dBm/Sn RSSI bar graph level inplace of the little antenna symbols
 ENABLE_AUDIO_BAR              := 0       experimental, display an audo bar level when TX'ing
@@ -74,6 +74,25 @@ ENABLE_COPY_CHAN_TO_VFO       := 1       copy current channel into the other VFO
 * Long-press '5' .. Toggle selected channel scanlist setting .. if NOAA is disabled in Makefile
 *
 * Long-press '*' .. Start scanning, then toggles the scanning between scanlists 1, 2 or ALL channels
+
+# Edit channel/memory name
+
+1. Press Menu button
+2. Scroll to "CH NAM" (around number 17)
+3. Press the Menu button to enter
+4. Use up/down keys to choose the desired channel to edit
+5. Press the Menu button again to enter edit name mode
+6. Use the up/down keys to cycle through the letters etc
+7. Press the Menu button again to move to the next character position
+8. Repeat steps 6 and/or 7 till you reach the end
+9. When it pops up the "Sure?" text, press Menu button to save, or Exit to cancel
+
+Press the Exit button at any time to cancel the edit and return to the main menu.
+
+Sounds a lot/complicated but once you done it a couple of times you'll be fine (hopefully).
+
+When you're editing the name, you can enter digits (0 ~ 9) directly without having to use the up/down
+buttons to find them.
 
 # Some changes made from the Quansheng firmware
 

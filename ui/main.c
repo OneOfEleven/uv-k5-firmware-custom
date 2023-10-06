@@ -386,10 +386,8 @@ void UI_DisplayMain(void)
 				else
 				{
 					sprintf(String, ">%s", gDTMF_InputBox);
-
-					center_line = CENTER_LINE_IN_USE;
 				}
-				UI_PrintString(String, 2, 0, vfo_num * 3, 8);
+				UI_PrintString(String, 2, 0, 0 + (vfo_num * 3), 8);
 
 				memset(String,  0, sizeof(String));
 				if (!gDTMF_InputMode)
@@ -403,10 +401,6 @@ void UI_DisplayMain(void)
 					else
 					if (gDTMF_IsTx)
 						sprintf(String, ">%s", gDTMF_String);
-				}
-				else
-				{
-					center_line = CENTER_LINE_IN_USE;
 				}
 				UI_PrintString(String, 2, 0, 2 + (vfo_num * 3), 8);
 

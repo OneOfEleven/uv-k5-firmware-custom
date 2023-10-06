@@ -65,7 +65,7 @@ typedef enum DTMF_CallMode_t DTMF_CallMode_t;
 extern char              gDTMF_String[15];
 
 extern char              gDTMF_InputBox[15];
-extern uint8_t           gDTMF_InputIndex;
+extern uint8_t           gDTMF_InputBox_Index;
 extern bool              gDTMF_InputMode;
 extern uint8_t           gDTMF_PreviousIndex;
 
@@ -98,6 +98,7 @@ bool DTMF_FindContact(const char *pContact, char *pResult);
 char DTMF_GetCharacter(const unsigned int code);
 bool DTMF_CompareMessage(const char *pDTMF, const char *pTemplate, const unsigned int size, const bool bFlag);
 DTMF_CallMode_t DTMF_CheckGroupCall(const char *pDTMF, const unsigned int size);
+void DTMF_clear_input_box(void);
 void DTMF_Append(const char vode);
 void DTMF_HandleRequest(void);
 void DTMF_Reply(void);

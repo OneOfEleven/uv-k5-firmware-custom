@@ -58,8 +58,8 @@ const t_menu_item MenuList[] =
 	{"SCRAM",  VOICE_ID_SCRAMBLER_ON,                  MENU_SCR           }, // was "SCR"
 	{"BUSYCL", VOICE_ID_BUSY_LOCKOUT,                  MENU_BCL           }, // was "BCL"
 	{"CH SAV", VOICE_ID_MEMORY_CHANNEL,                MENU_MEM_CH        }, // was "MEM-CH"
-	{"CH DEL", VOICE_ID_DELETE_CHANNEL,                MENU_DEL_CH        }, // was "DEL-CH"
 	{"CH NAM", VOICE_ID_INVALID,                       MENU_MEM_NAME      },
+	{"CH DEL", VOICE_ID_DELETE_CHANNEL,                MENU_DEL_CH        }, // was "DEL-CH"
 	{"CH DIS", VOICE_ID_INVALID,                       MENU_MDF           }, // was "MDF"
 	{"BATSAV", VOICE_ID_SAVE_MODE,                     MENU_SAVE          }, // was "SAVE"
 #ifdef ENABLE_VOX
@@ -88,7 +88,7 @@ const t_menu_item MenuList[] =
 	{"SLIST1", VOICE_ID_INVALID,                       MENU_SLIST1        },
 	{"SLIST2", VOICE_ID_INVALID,                       MENU_SLIST2        },
 #ifdef ENABLE_ALARM
-	{"AL-MOD", VOICE_ID_INVALID,                       MENU_AL_MOD        },
+	{"ALMODE", VOICE_ID_INVALID,                       MENU_AL_MOD        },
 #endif
 	{"ANI ID", VOICE_ID_ANI_CODE,                      MENU_ANI_ID        },
 	{"UPCODE", VOICE_ID_INVALID,                       MENU_UPCODE        },

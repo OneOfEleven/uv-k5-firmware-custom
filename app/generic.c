@@ -59,13 +59,13 @@ void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld)
 			    #endif
 			    gCurrentFunction != FUNCTION_TRANSMIT)
 			{	// toggle the keyboad lock
-	
+
 				#ifdef ENABLE_VOICE
 					gAnotherVoiceID = gEeprom.KEY_LOCK ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
 				#endif
-	
+
 				gEeprom.KEY_LOCK = !gEeprom.KEY_LOCK;
-	
+
 				gRequestSaveSettings = true;
 			}
 		}
@@ -80,6 +80,9 @@ void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld)
 			#endif
 
 			gWasFKeyPressed = !gWasFKeyPressed;
+
+			if (gWasFKeyPressed)
+				gKeyInputCountdown = key_input_timeout_500ms;
 
 			#ifdef ENABLE_VOICE
 				if (!gWasFKeyPressed)
@@ -106,6 +109,7 @@ void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld)
 		#endif
 
 		gBeepToPlay     = BEEP_440HZ_500MS;
+
 		gPttWasReleased = true;
 	}
 }
@@ -192,64 +196,61 @@ void GENERIC_Key_PTT(bool bKeyPressed)
 					return;
 				}
 
-				gFlagPrepareTX = true;
-
-				if (gDTMF_InputMode)
-				{
-					if (gDTMF_InputIndex > 0 || gDTMF_PreviousIndex > 0)
-					{
-						if (gDTMF_InputIndex == 0)
-							gDTMF_InputIndex = gDTMF_PreviousIndex;
-
-						gDTMF_InputBox[gDTMF_InputIndex] = 0;
-
-						#if 0
-							// append our DTMF ID to the inputted DTMF code -
-							//  IF the user inputted code is exactly 3 digits long
-							if (gDTMF_InputIndex == 3)
-								gDTMF_CallMode = DTMF_CheckGroupCall(gDTMF_InputBox, 3);
-							else
-						#else
-							// append our DTMF ID to the inputted DTMF code -
-							//  IF the user inputted code is exactly 3 digits long and D-DCD is enabled
-							if (gDTMF_InputIndex == 3 && gTxVfo->DTMF_DECODING_ENABLE > 0)
-								gDTMF_CallMode = DTMF_CheckGroupCall(gDTMF_InputBox, 3);
-							else
-						#endif
-							gDTMF_CallMode = DTMF_CALL_MODE_DTMF;
-
-						strcpy(gDTMF_String, gDTMF_InputBox);
-
-						gDTMF_PreviousIndex = gDTMF_InputIndex;
-						gDTMF_ReplyState    = DTMF_REPLY_ANI;
-						gDTMF_State         = DTMF_STATE_0;
-					}
-
-					if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
-						gRequestDisplayScreen = DISPLAY_MAIN;
-
-					gDTMF_InputMode = false;
-					gDTMF_InputIndex = 0;
-					return;
-				}
-
 				if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
 					gRequestDisplayScreen = DISPLAY_MAIN;
 
-				gFlagPrepareTX        = true;
-				gInputBoxIndex        = 0;
+				if (!gDTMF_InputMode)
+				{
+					gFlagPrepareTX = true;
+					gInputBoxIndex = 0;
+					return;
+				}
+
+				gDTMF_InputMode = false;
+//				gUpdateDisplay  = true;
+
+				if (gDTMF_InputBox_Index > 0 || gDTMF_PreviousIndex > 0)
+				{
+					if (gDTMF_InputBox_Index == 0)
+						gDTMF_InputBox_Index = gDTMF_PreviousIndex;
+
+					if (gDTMF_InputBox_Index < sizeof(gDTMF_InputBox))
+						gDTMF_InputBox[gDTMF_InputBox_Index] = 0;
+
+					#if 0
+						// append our DTMF ID to the inputted DTMF code -
+						//  IF the user inputted code is exactly 3 digits long
+						if (gDTMF_InputBox_Index == 3)
+							gDTMF_CallMode = DTMF_CheckGroupCall(gDTMF_InputBox, 3);
+						else
+					#else
+						// append our DTMF ID to the inputted DTMF code -
+						//  IF the user inputted code is exactly 3 digits long and D-DCD is enabled
+						if (gDTMF_InputBox_Index == 3 && gTxVfo->DTMF_DECODING_ENABLE > 0)
+							gDTMF_CallMode = DTMF_CheckGroupCall(gDTMF_InputBox, 3);
+						else
+					#endif
+						gDTMF_CallMode = DTMF_CALL_MODE_DTMF;
+
+					strcpy(gDTMF_String, gDTMF_InputBox);
+					gDTMF_PreviousIndex  = gDTMF_InputBox_Index;
+					DTMF_clear_input_box();
+
+					gDTMF_ReplyState     = DTMF_REPLY_ANI;
+					gDTMF_State          = DTMF_STATE_0;
+
+					gFlagPrepareTX = true;
+				}
 
 				return;
 			}
 
-			if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
-				gRequestDisplayScreen    = DISPLAY_MAIN;
-
 			gEeprom.CROSS_BAND_RX_TX = gBackupCROSS_BAND_RX_TX;
-			gUpdateStatus            = true;
 			gFlagStopScan            = true;
 			gVfoConfigureMode        = VFO_CONFIGURE_RELOAD;
 			gFlagResetVfos           = true;
+
+			gUpdateStatus            = true;
 		}
 		else
 		{

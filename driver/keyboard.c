@@ -36,8 +36,8 @@ static const struct {
 	// We are very fortunate.
 	// The key and pin defines fit together in a single u8, making this very efficient
 	struct {
-		uint8_t key : 5; // Key 23 is highest
-		uint8_t pin : 3; // Pin 6 is highest
+		KEY_Code_t key : 5;
+		uint8_t    pin : 3; // Pin 6 is highest
 	} pins[4];
 
 } keyboard[] = {

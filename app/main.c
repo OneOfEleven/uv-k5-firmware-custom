@@ -529,7 +529,7 @@ static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 		if (gInputBoxIndex > 0)
 		{	// cancel key input mode (channel/frequency entry)
 			gDTMF_InputMode       = false;
-			gDTMF_InputIndex      = 0;
+			gDTMF_InputBox_Index  = 0;
 			memset(gDTMF_String, 0, sizeof(gDTMF_String));
 			gInputBoxIndex        = 0;
 			gRequestDisplayScreen = DISPLAY_MAIN;
@@ -549,6 +549,8 @@ static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 
 		if (bKeyPressed)
 		{	// long press MENU key
+
+			gWasFKeyPressed = false;
 
 			if (gScreenToDisplay == DISPLAY_MAIN)
 			{
@@ -634,77 +636,77 @@ static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 
 static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
 {
-	if (gInputBoxIndex)
-	{
+	if (gCurrentFunction == FUNCTION_TRANSMIT)
+		return;
+	
+	if (gInputBoxIndex > 0)
+	{	// entering a frequency or DTMF string
 		if (!bKeyHeld && bKeyPressed)
 			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
 
-	if (bKeyHeld || !bKeyPressed)
-	{	// long press
+	if (bKeyHeld && !gWasFKeyPressed)
+	{	// long press .. toggle scanning
+		if (!bKeyPressed)
+			return; // released
+		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+		ACTION_Scan(false);
+		return;
+	}
 
-		if (bKeyHeld || bKeyPressed)
-		{
-			if (!bKeyHeld)
-				return;
-
-			if (!bKeyPressed)
-				return;
-
-			ACTION_Scan(false);
-
-			return;
-		}
+	if (bKeyPressed)
+	{	// just pressed
+//		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+		gBeepToPlay = BEEP_880HZ_40MS_OPTIONAL;
+		return;
+	}
+	
+	// just released
+	
+	if (!gWasFKeyPressed)
+	{	// pressed without the F-key
 
 		#ifdef ENABLE_NOAA
 			if (gScanStateDir == SCAN_OFF && IS_NOT_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
 		#else
 			if (gScanStateDir == SCAN_OFF)
 		#endif
-		{
-			gKeyInputCountdown    = key_input_timeout_500ms;
+		{	// start entering a DTMF string
+
+			memmove(gDTMF_InputBox, gDTMF_String, MIN(sizeof(gDTMF_InputBox), sizeof(gDTMF_String) - 1));
+			gDTMF_InputBox_Index  = 0;
 			gDTMF_InputMode       = true;
-			memmove(gDTMF_InputBox, gDTMF_String, sizeof(gDTMF_InputBox));
-			gDTMF_InputIndex      = 0;
+
+			gKeyInputCountdown    = key_input_timeout_500ms;
 
 			gRequestDisplayScreen = DISPLAY_MAIN;
-			return;
 		}
 	}
 	else
-	{
-		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-		if (!gWasFKeyPressed)
-		{
-			gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-			return;
-		}
-
+	{	// with the F-key
 		gWasFKeyPressed = false;
-		gUpdateStatus   = true;
 
 		#ifdef ENABLE_NOAA
-			if (IS_NOT_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
-			{
-				gFlagStartScan           = true;
-				gScanSingleFrequency     = true;
-				gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
-				gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
-			}
-			else
+			if (IS_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
 			{
 				gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-			}
-		#else
-			gFlagStartScan           = true;
-			gScanSingleFrequency     = true;
-			gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
-			gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
+				return;
+			}				
 		#endif
-
-		gPttWasReleased = true;
+/*
+		// scan the CTCSS/DCS code
+		gFlagStartScan           = true;
+		gScanSingleFrequency     = true;
+		gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
+		gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
+*/
+		ACTION_Scan(false);
 	}
+	
+	gPttWasReleased = true;
+
+	gUpdateStatus   = true;
 }
 
 static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
@@ -712,7 +714,8 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 	uint8_t Channel = gEeprom.ScreenChannel[gEeprom.TX_VFO];
 
 	if (bKeyHeld || !bKeyPressed)
-	{
+	{	// long press
+
 		if (gInputBoxIndex > 0)
 			return;
 
@@ -822,7 +825,7 @@ void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 	{
 		if (!bKeyHeld)
 		{
-			const char Character = DTMF_GetCharacter(Key - KEY_0);
+			const char Character = DTMF_GetCharacter(Key);
 			if (Character != 0xFF)
 			{	// add key to DTMF string
 				DTMF_Append(Character);

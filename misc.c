@@ -33,8 +33,7 @@ const uint8_t     DTMF_RX_timeout_500ms            = 10000 / 500;  // 10 seconds
 const uint8_t     DTMF_decode_ring_countdown_500ms = 15000 / 500;  // 15 seconds .. time we sound the ringing for
 const uint8_t     DTMF_txstop_countdown_500ms      =  3000 / 500;  // 6 seconds
 
-const uint8_t     key_input_timeout_500ms          =  8000 / 500;  // 8 seconds
-
+const uint8_t     key_input_timeout_500ms          =  6000 / 500;  // 6 seconds
 const uint16_t    key_repeat_delay_10ms            =   400 / 10;   // 400ms
 const uint16_t    key_repeat_10ms                  =    80 / 10;   // 80ms .. MUST be less than 'key_repeat_delay'
 const uint16_t    key_debounce_10ms                =    20 / 10;   // 20ms

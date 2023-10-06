@@ -28,6 +28,14 @@ typedef struct {
 	uint8_t     menu_id;
 } t_menu_item;
 
+// currently this list MUST be in exactly the same order
+// as the other menu list "MenuList[]" in "ui/menu.c", otherwise
+// you'll have big problems
+//
+// I'm going to fix that so that you can reorder the menu items
+// anyway you like simply by editing this list only (the other list
+// you just leave as is, or any which way, it won't matter)
+//
 enum
 {
 	MENU_SQL = 0,
@@ -45,8 +53,8 @@ enum
 	MENU_SCR,
 	MENU_BCL,
 	MENU_MEM_CH,
-	MENU_DEL_CH,
 	MENU_MEM_NAME,
+	MENU_DEL_CH,
 	MENU_MDF,
 	MENU_SAVE,
 #ifdef ENABLE_VOX

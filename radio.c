@@ -939,6 +939,7 @@ void RADIO_PrepareTX(void)
 			gEeprom.RX_VFO = gEeprom.TX_VFO;
 			gRxVfo         = &gEeprom.VfoInfo[gEeprom.TX_VFO];
 //			gRxVfoIsActive = true;
+			gRxVfoIsActive = false;
 		}
 
 		// let the user see that DW is not active
@@ -948,47 +949,35 @@ void RADIO_PrepareTX(void)
 
 	RADIO_SelectCurrentVfo();
 
-	#if defined(ENABLE_ALARM) && defined(ENABLE_TX1750)
-		if (gAlarmState == ALARM_STATE_OFF    ||
-		    gAlarmState == ALARM_STATE_TX1750 ||
-		   (gAlarmState == ALARM_STATE_ALARM && gEeprom.ALARM_MODE == ALARM_MODE_TONE))
-	#elif defined(ENABLE_ALARM)
-		if (gAlarmState == ALARM_STATE_OFF    ||
-		   (gAlarmState == ALARM_STATE_ALARM && gEeprom.ALARM_MODE == ALARM_MODE_TONE))
-	#elif defined(ENABLE_TX1750)
-		if (gAlarmState == ALARM_STATE_OFF    ||
-		    gAlarmState == ALARM_STATE_TX1750)
-	#endif
-	{
-		#ifndef ENABLE_TX_WHEN_AM
-			if (gCurrentVfo->AM_mode)
-			{	// not allowed to TX if in AM mode
-				State = VFO_STATE_TX_DISABLE;
-			}
-			else
-		#endif
-		if (!gSetting_TX_EN || gSerialConfigCountDown_500ms > 0)
-		{	// TX is disabled or config upload/download in progress
+	#ifndef ENABLE_TX_WHEN_AM
+		if (gCurrentVfo->AM_mode)
+		{	// not allowed to TX if in AM mode
 			State = VFO_STATE_TX_DISABLE;
 		}
 		else
-		if (TX_freq_check(gCurrentVfo->pTX->Frequency) == 0)
-		{	// TX frequency is allowed
-			if (gCurrentVfo->BUSY_CHANNEL_LOCK && gCurrentFunction == FUNCTION_RECEIVE)
-				State = VFO_STATE_BUSY;          // busy RX'ing a station
-			else
-			if (gBatteryDisplayLevel == 0)
-				State = VFO_STATE_BAT_LOW;       // charge your battery !
-			else
-			if (gBatteryDisplayLevel >= 6)
-				State = VFO_STATE_VOLTAGE_HIGH;  // over voltage .. this is being a pain
-		}
-		else
-			State = VFO_STATE_TX_DISABLE;        // TX frequency not allowed
+	#endif
+	if (!gSetting_TX_EN || gSerialConfigCountDown_500ms > 0)
+	{	// TX is disabled or config upload/download in progress
+		State = VFO_STATE_TX_DISABLE;
 	}
+	else
+	if (TX_freq_check(gCurrentVfo->pTX->Frequency) == 0)
+	{	// TX frequency is allowed
+		if (gCurrentVfo->BUSY_CHANNEL_LOCK && gCurrentFunction == FUNCTION_RECEIVE)
+			State = VFO_STATE_BUSY;          // busy RX'ing a station
+		else
+		if (gBatteryDisplayLevel == 0)
+			State = VFO_STATE_BAT_LOW;       // charge your battery !
+		else
+		if (gBatteryDisplayLevel >= 6)
+			State = VFO_STATE_VOLTAGE_HIGH;  // over voltage (no doubt to protect the PA) .. this is being a pain
+	}
+	else
+		State = VFO_STATE_TX_DISABLE;        // TX frequency not allowed
 
 	if (State != VFO_STATE_NORMAL)
 	{	// TX not allowed
+
 		RADIO_SetVfoState(State);
 
 		#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)

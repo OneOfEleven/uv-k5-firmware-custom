@@ -31,5 +31,6 @@ void INPUTBOX_Append(const KEY_Code_t Digit)
 
 	if (Digit >= KEY_0 && Digit != KEY_INVALID)
 		gInputBox[gInputBoxIndex++] = (char)(Digit - KEY_0);
+//		gInputBox[gInputBoxIndex++] = Digit;
 }
 
