@@ -944,16 +944,24 @@ void RADIO_PrepareTX(void)
 		gDualWatchCountdown_10ms = dual_watch_count_after_tx_10ms;
 		gScheduleDualWatch       = false;
 
+#if 0
 		if (gRxVfoIsActive)
 		{	// use the TX vfo
 			gEeprom.RX_VFO = gEeprom.TX_VFO;
 			gRxVfo         = &gEeprom.VfoInfo[gEeprom.TX_VFO];
-//			gRxVfoIsActive = true;
 			gRxVfoIsActive = false;
 		}
-
-		gCurrentVfo = &gEeprom.VfoInfo[gEeprom.TX_VFO];
-		
+		gCurrentVfo = gRxVfo;
+#else
+		if (!gRxVfoIsActive)
+		{	// use the current RX vfo
+			gEeprom.RX_VFO = gEeprom.TX_VFO;
+			gRxVfo         = &gEeprom.VfoInfo[gEeprom.TX_VFO];
+			gRxVfoIsActive = true;
+		}
+		gCurrentVfo = gRxVfo;
+#endif
+	
 		// let the user see that DW is not active '><' symbol
 		gDualWatchActive = false;
 		gUpdateStatus    = true;
