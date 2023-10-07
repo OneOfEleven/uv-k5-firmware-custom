@@ -650,8 +650,10 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
 	{	// long press .. toggle scanning
 		if (!bKeyPressed)
 			return; // released
-		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+
 		ACTION_Scan(false);
+
+		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
 	}
 
@@ -694,13 +696,13 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
 				return;
 			}				
 		#endif
-/*
+
 		// scan the CTCSS/DCS code
 		gFlagStartScan           = true;
 		gScanSingleFrequency     = true;
 		gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
 		gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
-*/
+
 		ACTION_Scan(false);
 	}
 	
