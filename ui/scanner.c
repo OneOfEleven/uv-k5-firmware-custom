@@ -16,11 +16,14 @@
 
 #include <stdbool.h>
 #include <string.h>
+
 #include "app/scanner.h"
 #include "dcs.h"
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
+#include "frequencies.h"
 #include "misc.h"
+#include "radio.h"
 #include "ui/helper.h"
 #include "ui/scanner.h"
 
@@ -34,15 +37,18 @@ void UI_DisplayScanner(void)
 
 	memset(String, 0, sizeof(String));
 	if (gScanSingleFrequency || (gScanCssState != SCAN_CSS_STATE_OFF && gScanCssState != SCAN_CSS_STATE_FAILED))
-		sprintf(String, "FREQ %u.%05u", gScanFrequency / 100000, gScanFrequency % 100000);
+	{
+		const uint32_t freq = gScanFrequency;
+		sprintf(String, "FREQ %u.%05u", freq / 100000, freq % 100000);
+	}
 	else
-//		strcpy(String, "FREQ ***.*****");
+	{
 		strcpy(String, "FREQ scanning");
+	}
 	UI_PrintString(String, 2, 0, 1, 8);
 
 	memset(String, 0, sizeof(String));
 	if (gScanCssState < SCAN_CSS_STATE_FOUND || !gScanUseCssResult)
-//		strcpy(String, " CTC ******");
 		strcpy(String, " CTC scanning");
 	else
 	if (gScanCssResultType == CODE_TYPE_CONTINUOUS_TONE)
@@ -69,20 +75,21 @@ void UI_DisplayScanner(void)
 		else
 		if (gScanCssState < SCAN_CSS_STATE_FOUND)
 		{
-//			strcpy(String, "SCAN ");
-//			memset(String + 4, '.', 1 + (gScanProgressIndicator & 7u));
-
 			memset(String, 0, sizeof(String));
 			memset(String, '.', 15);
 			String[gScanProgressIndicator % 15] = '#';
 		}
 		else
 		if (gScanCssState == SCAN_CSS_STATE_FOUND)
+		{
 //			strcpy(String, "SCAN CMP");
 			strcpy(String, " '*' to save");
+		}
 		else
+		{
 			strcpy(String, "SCAN FAIL");
-
+		}
+	
 		Start     = 2;
 		bCentered = 0;
 	}

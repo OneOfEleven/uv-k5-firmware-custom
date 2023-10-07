@@ -1568,9 +1568,17 @@ void APP_TimeSlice10ms(void)
 				if (!BK4819_GetFrequencyScanResult(&Result))
 					break;
 
-				Delta          = Result - gScanFrequency;
-				gScanFrequency = Result;
+				Delta = Result - gScanFrequency;
 
+				#if 0
+					gScanFrequency = Result;
+				#else
+				{
+					const uint32_t step = StepFrequencyTable[gStepSetting];
+					gScanFrequency = ((Result + (step / 2)) / step) * step;  // round to nearest step multiple
+				}
+				#endif
+				
 				if (Delta < 0)
 					Delta = -Delta;
 				if (Delta < 100)
