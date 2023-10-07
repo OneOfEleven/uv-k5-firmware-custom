@@ -139,7 +139,8 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_TDR:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(gSubMenu_CHAN) - 1;
+//			*pMax = ARRAY_SIZE(gSubMenu_TDR) - 1;
+			*pMax = ARRAY_SIZE(gSubMenu_OFF_ON) - 1;
 			break;
 
 		case MENU_XB:
@@ -533,7 +534,9 @@ void MENU_AcceptSetting(void)
 			break;
 
 		case MENU_TDR:
-			gEeprom.DUAL_WATCH   = gSubMenuSelection;
+//			gEeprom.DUAL_WATCH   = gSubMenuSelection;
+			gEeprom.DUAL_WATCH   = (gSubMenuSelection > 0) ? 1 + gEeprom.TX_VFO : DUAL_WATCH_OFF;
+
 			gFlagReconfigureVfos = true;
 			gUpdateStatus        = true;
 			break;
@@ -980,7 +983,8 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_TDR:
-			gSubMenuSelection = gEeprom.DUAL_WATCH;
+//			gSubMenuSelection = gEeprom.DUAL_WATCH;
+			gSubMenuSelection = (gEeprom.DUAL_WATCH == DUAL_WATCH_OFF) ? 0 : 1;
 			break;
 
 		case MENU_XB:

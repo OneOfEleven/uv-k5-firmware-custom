@@ -194,11 +194,11 @@ const char gSubMenu_TOT[11][7] =
 	"15 min"
 };
 
-const char gSubMenu_CHAN[3][10] =
+const char gSubMenu_TDR[3][10] =
 {
 	"OFF",
+	"LOWER\nVFO",
 	"UPPER\nVFO",
-	"LOWER\nVFO"
 };
 
 const char gSubMenu_XB[3][10] =
@@ -751,7 +751,8 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_TDR:
-			strcpy(String, gSubMenu_CHAN[gSubMenuSelection]);
+//			strcpy(String, gSubMenu_TDR[gSubMenuSelection]);
+			strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
 			break;
 
 		case MENU_XB:

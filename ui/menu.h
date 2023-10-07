@@ -148,7 +148,7 @@ extern const char         gSubMenu_W_N[2][7];
 extern const char         gSubMenu_OFF_ON[2][4];
 extern const char         gSubMenu_SAVE[5][4];
 extern const char         gSubMenu_TOT[11][7];
-extern const char         gSubMenu_CHAN[3][10];
+extern const char         gSubMenu_TDR[3][10];
 extern const char         gSubMenu_XB[3][10];
 #ifdef ENABLE_VOICE       
 	extern const char     gSubMenu_VOICE[3][4];
