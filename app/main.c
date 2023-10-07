@@ -702,8 +702,6 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
 		gScanSingleFrequency     = true;
 		gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
 		gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
-
-		ACTION_Scan(false);
 	}
 	
 	gPttWasReleased = true;

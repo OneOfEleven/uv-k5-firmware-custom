@@ -31,7 +31,7 @@ uint8_t           gScanCssResultCode;
 bool              gFlagStartScan;
 bool              gFlagStopScan;
 bool              gScanSingleFrequency;
-uint8_t           gScannerEditState;
+SCAN_edit_state_t gScannerEditState;
 uint8_t           gScanChannel;
 uint32_t          gScanFrequency;
 bool              gScanPauseMode;
@@ -48,7 +48,7 @@ static void SCANNER_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
 	if (!bKeyHeld && bKeyPressed)
 	{
-		if (gScannerEditState == 1)
+		if (gScannerEditState == SCAN_EDIT_STATE_BUSY)
 		{
 			uint16_t Channel;
 
@@ -92,9 +92,9 @@ static void SCANNER_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 
 		switch (gScannerEditState)
 		{
-			case 0:
+			case SCAN_EDIT_STATE_NONE:
 				gRequestDisplayScreen    = DISPLAY_MAIN;
-				
+
 				gEeprom.CROSS_BAND_RX_TX = gBackupCROSS_BAND_RX_TX;
 				gUpdateStatus            = true;
 				gFlagStopScan            = true;
@@ -105,7 +105,7 @@ static void SCANNER_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 				#endif
 				break;
 
-			case 1:
+			case SCAN_EDIT_STATE_BUSY:
 				if (gInputBoxIndex > 0)
 				{
 					gInputBox[--gInputBoxIndex] = 10;
@@ -115,8 +115,8 @@ static void SCANNER_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 
 				// Fallthrough
 
-			case 2:
-				gScannerEditState     = 0;
+			case SCAN_EDIT_STATE_DONE:
+				gScannerEditState     = SCAN_EDIT_STATE_NONE;
 				#ifdef ENABLE_VOICE
 					gAnotherVoiceID   = VOICE_ID_CANCEL;
 				#endif
@@ -161,49 +161,97 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 
 	switch (gScannerEditState)
 	{
-		case 0:
+		case SCAN_EDIT_STATE_NONE:
 			if (!gScanSingleFrequency)
 			{
-				int16_t  Delta625;
-				uint32_t Freq250  = FREQUENCY_FloorToStep(gScanFrequency, 250, 0);
-				uint32_t Freq625  = FREQUENCY_FloorToStep(gScanFrequency, 625, 0);
-				int16_t  Delta250 = (int16_t)gScanFrequency - (int16_t)Freq250;
 
-				if (125 < Delta250)
-				{
-					Delta250 = 250 - Delta250;
-					Freq250 += 250;
-				}
+				#if 0
+					// can't make head nor tail of what's being done here :(
 
-				Delta625 = (int16_t)gScanFrequency - (int16_t)Freq625;
+					uint32_t Freq250 = FREQUENCY_FloorToStep(gScanFrequency, 250, 0);
+					uint32_t Freq625 = FREQUENCY_FloorToStep(gScanFrequency, 625, 0);
 
-				if (312 < Delta625)
-				{
-					Delta625 = 625 - Delta625;
-					Freq625 += 625;
-				}
+					int16_t Delta250 = (int16_t)gScanFrequency - (int16_t)Freq250;
+					int16_t Delta625;
 
-				if (Delta625 < Delta250)
-				{
-					gStepSetting   = STEP_6_25kHz;
-					gScanFrequency = Freq625;
-				}
-				else
-				{
-					gStepSetting   = STEP_2_5kHz;
-					gScanFrequency = Freq250;
-				}
+					if (125 < Delta250)
+					{
+						Delta250 = 250 - Delta250;
+						Freq250 += 250;
+					}
+
+					Delta625 = (int16_t)gScanFrequency - (int16_t)Freq625;
+
+					if (312 < Delta625)
+					{
+						Delta625 = 625 - Delta625;
+						Freq625 += 625;
+					}
+
+					if (Delta625 < Delta250)
+					{
+						gStepSetting = STEP_6_25kHz;
+						gScanFrequency = Freq625;
+					}
+					else
+					{
+						gStepSetting = STEP_2_5kHz;
+						gScanFrequency = Freq250;
+					}
+				#else
+
+					#ifdef ENABLE_1250HZ_STEP
+						const STEP_Setting_t small_step = STEP_1_25kHz;
+						const STEP_Setting_t big_step   = STEP_6_25kHz;
+					#else
+						const STEP_Setting_t small_step = STEP_2_5kHz;
+						const STEP_Setting_t big_step   = STEP_6_25kHz;
+					#endif
+					const uint32_t small_step_freq = StepFrequencyTable[small_step];
+					const uint32_t big_step_freq   = StepFrequencyTable[big_step];
+
+					uint32_t freq_small_step = FREQUENCY_FloorToStep(gScanFrequency, small_step_freq, 0);
+					uint32_t freq_big_step   = FREQUENCY_FloorToStep(gScanFrequency, big_step_freq,   0);
+
+					int32_t delta_small_step = (int32_t)gScanFrequency - freq_small_step;
+					int32_t delta_big_step   = (int32_t)gScanFrequency - freq_big_step;
+
+					if (delta_small_step > 125)
+					{
+						delta_small_step = StepFrequencyTable[small_step] - delta_small_step;
+						freq_big_step += small_step_freq;
+					}
+
+					delta_big_step = (int32_t)gScanFrequency - freq_big_step;
+
+					if (delta_big_step > 312)
+					{
+						delta_big_step = big_step_freq - delta_big_step;
+						freq_big_step += big_step_freq;
+					}
+
+					if (delta_small_step >= delta_big_step)
+					{
+						gStepSetting   = small_step;
+						gScanFrequency = freq_small_step;
+					}
+					else
+					{
+						gStepSetting   = big_step;
+						gScanFrequency = freq_big_step;
+					}
+				#endif
 			}
 
 			if (gTxVfo->CHANNEL_SAVE <= MR_CHANNEL_LAST)
 			{
-				gScannerEditState = 1;
+				gScannerEditState = SCAN_EDIT_STATE_BUSY;
 				gScanChannel      = gTxVfo->CHANNEL_SAVE;
 				gShowChPrefix     = RADIO_CheckValidChannel(gTxVfo->CHANNEL_SAVE, false, 0);
 			}
 			else
 			{
-				gScannerEditState = 2;
+				gScannerEditState = SCAN_EDIT_STATE_DONE;
 			}
 
 			gScanCssState         = SCAN_CSS_STATE_FOUND;
@@ -211,20 +259,20 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 				gAnotherVoiceID   = VOICE_ID_MEMORY_CHANNEL;
 			#endif
 			gRequestDisplayScreen = DISPLAY_SCANNER;
-			
+
 			gUpdateStatus = true;
 			break;
 
-		case 1:
+		case SCAN_EDIT_STATE_BUSY:
 			if (gInputBoxIndex == 0)
 			{
 				gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
 				gRequestDisplayScreen = DISPLAY_SCANNER;
-				gScannerEditState     = 2;
+				gScannerEditState     = SCAN_EDIT_STATE_DONE;
 			}
 			break;
 
-		case 2:
+		case SCAN_EDIT_STATE_DONE:
 			if (!gScanSingleFrequency)
 			{
 				RADIO_InitInfo(gTxVfo, gTxVfo->CHANNEL_SAVE, gScanFrequency);
@@ -235,8 +283,8 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 					gTxVfo->freq_config_RX.Code     = gScanCssResultCode;
 				}
 
-				gTxVfo->freq_config_TX     = gTxVfo->freq_config_RX;
-				gTxVfo->STEP_SETTING = gStepSetting;
+				gTxVfo->freq_config_TX = gTxVfo->freq_config_RX;
+				gTxVfo->STEP_SETTING   = gStepSetting;
 			}
 			else
 			{
@@ -251,23 +299,26 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 
 			if (gTxVfo->CHANNEL_SAVE <= MR_CHANNEL_LAST)
 			{
-				Channel                               = gScanChannel;
+				Channel = gScanChannel;
 				gEeprom.MrChannel[gEeprom.TX_VFO] = Channel;
 			}
 			else
 			{
-				Channel                                 = gTxVfo->Band + FREQ_CHANNEL_FIRST;
+				Channel = gTxVfo->Band + FREQ_CHANNEL_FIRST;
 				gEeprom.FreqChannel[gEeprom.TX_VFO] = Channel;
 			}
 
-			gTxVfo->CHANNEL_SAVE                      = Channel;
+			gTxVfo->CHANNEL_SAVE                  = Channel;
 			gEeprom.ScreenChannel[gEeprom.TX_VFO] = Channel;
+			gRequestSaveChannel                   = 2;
+
 			#ifdef ENABLE_VOICE
-				gAnotherVoiceID                       = VOICE_ID_CONFIRM;
+				gAnotherVoiceID = VOICE_ID_CONFIRM;
 			#endif
-			gRequestDisplayScreen                     = DISPLAY_SCANNER;
-			gRequestSaveChannel                       = 2;
-			gScannerEditState                         = 0;
+
+			gScannerEditState = SCAN_EDIT_STATE_NONE;
+
+			gRequestDisplayScreen = DISPLAY_SCANNER;
 			break;
 
 		default:
@@ -302,7 +353,7 @@ static void SCANNER_Key_UP_DOWN(bool bKeyPressed, bool pKeyHeld, int8_t Directio
 		gBeepToPlay    = BEEP_1KHZ_60MS_OPTIONAL;
 	}
 
-	if (gScannerEditState == 1)
+	if (gScannerEditState == SCAN_EDIT_STATE_BUSY)
 	{
 		gScanChannel          = NUMBER_AddWithWraparound(gScanChannel, Direction, 0, MR_CHANNEL_LAST);
 		gShowChPrefix         = RADIO_CheckValidChannel(gScanChannel, false, 0);
@@ -389,8 +440,6 @@ void SCANNER_Start(void)
 
 		BK4819_PickRXFilterPathBasedOnFrequency(gScanFrequency);
 		BK4819_SetScanFrequency(gScanFrequency);
-
-		gUpdateStatus = true;
 	}
 	else
 	{
@@ -399,8 +448,6 @@ void SCANNER_Start(void)
 
 		BK4819_PickRXFilterPathBasedOnFrequency(0xFFFFFFFF);
 		BK4819_EnableFrequencyScan();
-
-		gUpdateStatus = true;
 	}
 
 	DTMF_clear_RX();
@@ -418,8 +465,10 @@ void SCANNER_Start(void)
 		g_VOX_Lost         = false;
 	#endif
 	g_SquelchLost          = false;
-	gScannerEditState      = 0;
+	gScannerEditState      = SCAN_EDIT_STATE_NONE;
 	gScanProgressIndicator = 0;
+
+	gUpdateStatus = true;
 }
 
 void SCANNER_Stop(void)

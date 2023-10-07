@@ -30,8 +30,7 @@
 void UI_DisplayScanner(void)
 {
 	char    String[16];
-	bool    bCentered;
-	uint8_t Start;
+	bool    text_centered = false;
 
 	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
 
@@ -49,7 +48,7 @@ void UI_DisplayScanner(void)
 
 	memset(String, 0, sizeof(String));
 	if (gScanCssState < SCAN_CSS_STATE_FOUND || !gScanUseCssResult)
-		strcpy(String, " CTC scanning");
+		strcpy(String, "CODE scanning");
 	else
 	if (gScanCssResultType == CODE_TYPE_CONTINUOUS_TONE)
 		sprintf(String, " CTC %u.%uHz", CTCSS_Options[gScanCssResultCode] / 10, CTCSS_Options[gScanCssResultCode] % 10);
@@ -58,42 +57,40 @@ void UI_DisplayScanner(void)
 	UI_PrintString(String, 2, 0, 3, 8);
 
 	memset(String, 0, sizeof(String));
-	if (gScannerEditState == 2)
+	switch (gScannerEditState)
 	{
-		strcpy(String, "SAVE ?");
+		default:
+		case SCAN_EDIT_STATE_NONE:
+			if (gScanCssState < SCAN_CSS_STATE_FOUND)
+			{	// rolling indicator
+				memset(String, 0, sizeof(String));
+				memset(String, '.', 15);
+				String[gScanProgressIndicator % 15] = '#';
+			}
+			else
+			if (gScanCssState == SCAN_CSS_STATE_FOUND)
+			{
+//				strcpy(String, "SCAN COMPLETE");
+				strcpy(String, "* repeat  M save");
+				text_centered = true;
+			}
+			else
+			{
+				strcpy(String, "SCAN FAIL");
+			}
+			break;
 
-		Start     = 0;
-		bCentered = 1;
-	}
-	else
-	{
-		if (gScannerEditState == 1)
-		{
+		case SCAN_EDIT_STATE_BUSY:
 			strcpy(String, "SAVE ");
 			UI_GenerateChannelStringEx(String + 5, gShowChPrefix, gScanChannel);
-		}
-		else
-		if (gScanCssState < SCAN_CSS_STATE_FOUND)
-		{
-			memset(String, 0, sizeof(String));
-			memset(String, '.', 15);
-			String[gScanProgressIndicator % 15] = '#';
-		}
-		else
-		if (gScanCssState == SCAN_CSS_STATE_FOUND)
-		{
-//			strcpy(String, "SCAN CMP");
-			strcpy(String, " '*' to save");
-		}
-		else
-		{
-			strcpy(String, "SCAN FAIL");
-		}
-	
-		Start     = 2;
-		bCentered = 0;
+			break;
+
+		case SCAN_EDIT_STATE_DONE:
+			text_centered = true;
+			strcpy(String, "SAVE ?");
+			break;
 	}
-	UI_PrintString(String, Start, bCentered ? 127 : 0, 5, 8);
+	UI_PrintString(String, text_centered ? 0 : 2, text_centered ? 127 : 0, 5, 8);
 	
 	ST7565_BlitFullScreen();
 }

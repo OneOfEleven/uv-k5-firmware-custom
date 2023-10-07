@@ -341,6 +341,7 @@ const char gSubMenu_SCRAMBLER[11][7] =
 };
 
 const char gSubMenu_SIDE_BUTT[9][16] =
+//const char gSubMenu_SIDE_BUTT[10][16] =
 {
 	"NONE",
 	"FLASH\nLIGHT",
@@ -350,7 +351,8 @@ const char gSubMenu_SIDE_BUTT[9][16] =
 	"VOX\non\\off",
 	"ALARM\non\\off",
 	"FM RADIO\non\\off",
-	"TX\n1750Hz"
+	"TX\n1750Hz",
+//	"2nd PTT",
 };
 
 // ***************************************************************************************

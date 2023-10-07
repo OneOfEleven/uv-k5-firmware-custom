@@ -61,12 +61,12 @@ const freq_band_table_t frequencyBandTable[7] =
 	};
 #endif
 
-#ifndef ENABLE_12_5KHZ_STEP
-	// QS steps (*10 Hz)
-	const uint16_t StepFrequencyTable[7] = {250, 500, 625, 1000, 1250, 2500, 833};
-#else
+#ifdef ENABLE_1250HZ_STEP
 	// includes 1.25kHz step
 	const uint16_t StepFrequencyTable[7] = {125, 250, 625, 1000, 1250, 2500, 833};
+#else
+	// QS steps (*10 Hz)
+	const uint16_t StepFrequencyTable[7] = {250, 500, 625, 1000, 1250, 2500, 833};
 #endif
 
 FREQUENCY_Band_t FREQUENCY_GetBand(uint32_t Frequency)

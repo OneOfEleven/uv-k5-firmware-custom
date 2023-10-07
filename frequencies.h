@@ -19,8 +19,6 @@
 
 #include <stdint.h>
 
-#define ENABLE_12_5KHZ_STEP
-
 typedef struct {
 	const uint32_t lower;
 	const uint32_t upper;
@@ -43,22 +41,22 @@ enum FREQUENCY_Band_t {
 };
 typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
 
-#ifndef ENABLE_12_5KHZ_STEP
-	// QS steps
+#ifdef ENABLE_1250HZ_STEP
+	// includes 1.25kHz step
 	enum STEP_Setting_t {
-		STEP_2_5kHz = 0,
-		STEP_5_0kHz,
+		STEP_1_25kHz = 0,
+		STEP_2_5kHz,
 		STEP_6_25kHz,
 		STEP_10_0kHz,
 		STEP_12_5kHz,
 		STEP_25_0kHz,
 		STEP_8_33kHz
-	};
+};
 #else
-	// includes 1.25kHz step
+	// QS steps
 	enum STEP_Setting_t {
-		STEP_1_25kHz = 0,
-		STEP_2_5kHz,
+		STEP_2_5kHz = 0,
+		STEP_5_0kHz,
 		STEP_6_25kHz,
 		STEP_10_0kHz,
 		STEP_12_5kHz,

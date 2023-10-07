@@ -20,6 +20,7 @@ ENABLE_BIG_FREQ               := 0
 ENABLE_SMALL_BOLD             := 1
 ENABLE_KEEP_MEM_NAME          := 1
 ENABLE_WIDE_RX                := 1
+ENABLE_1250HZ_STEP            := 1
 ENABLE_TX_WHEN_AM             := 0
 ENABLE_F_CAL_MENU             := 0
 ENABLE_CTCSS_TAIL_PHASE_SHIFT := 1
@@ -253,6 +254,9 @@ ifeq ($(ENABLE_KEEP_MEM_NAME),1)
 endif
 ifeq ($(ENABLE_WIDE_RX),1)
 	CFLAGS  += -DENABLE_WIDE_RX
+endif
+ifeq ($(ENABLE_1250HZ_STEP),1)
+	CFLAGS  += -DENABLE_1250HZ_STEP
 endif
 ifeq ($(ENABLE_TX_WHEN_AM),1)
 	CFLAGS  += -DENABLE_TX_WHEN_AM
