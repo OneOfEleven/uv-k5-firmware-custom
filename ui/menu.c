@@ -48,15 +48,15 @@ const t_menu_item MenuList[] =
 	{"SQL",    VOICE_ID_SQUELCH,                       MENU_SQL           },
 	{"STEP",   VOICE_ID_FREQUENCY_STEP,                MENU_STEP          },
 	{"W/N",    VOICE_ID_CHANNEL_BANDWIDTH,             MENU_W_N           },
-	{"T PWR",  VOICE_ID_POWER,                         MENU_TXP           }, // was "TXP"
-	{"R DCS",  VOICE_ID_DCS,                           MENU_R_DCS         }, // was "R_DCS"
-	{"R CTCS", VOICE_ID_CTCSS,                         MENU_R_CTCS        }, // was "R_CTCS"
-	{"T DCS",  VOICE_ID_DCS,                           MENU_T_DCS         }, // was "T_DCS"
-	{"T CTCS", VOICE_ID_CTCSS,                         MENU_T_CTCS        }, // was "T_CTCS"
-	{"T DIR",  VOICE_ID_TX_OFFSET_FREQUENCY_DIRECTION, MENU_SFT_D         }, // was "SFT_D"
-	{"T OFFS", VOICE_ID_TX_OFFSET_FREQUENCY,           MENU_OFFSET        }, // was "OFFSET"
-	{"T TOUT", VOICE_ID_TRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
-	{"T VFO",  VOICE_ID_INVALID,                       MENU_XB            }, // was "WX"
+	{"Tx PWR", VOICE_ID_POWER,                         MENU_TXP           }, // was "TXP"
+	{"Rx DCS", VOICE_ID_DCS,                           MENU_R_DCS         }, // was "R_DCS"
+	{"RxCTCS", VOICE_ID_CTCSS,                         MENU_R_CTCS        }, // was "R_CTCS"
+	{"Tx DCS", VOICE_ID_DCS,                           MENU_T_DCS         }, // was "T_DCS"
+	{"TxCTCS", VOICE_ID_CTCSS,                         MENU_T_CTCS        }, // was "T_CTCS"
+	{"Tx DIR", VOICE_ID_TX_OFFSET_FREQUENCY_DIRECTION, MENU_SFT_D         }, // was "SFT_D"
+	{"TxOFFS", VOICE_ID_TX_OFFSET_FREQUENCY,           MENU_OFFSET        }, // was "OFFSET"
+	{"Tx TO",  VOICE_ID_TRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
+	{"Tx VFO", VOICE_ID_INVALID,                       MENU_XB            }, // was "WX"
 	{"2nd RX", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           }, // was "TDR"
 	{"SCRAM",  VOICE_ID_SCRAMBLER_ON,                  MENU_SCR           }, // was "SCR"
 	{"BUSYCL", VOICE_ID_BUSY_LOCKOUT,                  MENU_BCL           }, // was "BCL"
@@ -68,7 +68,7 @@ const t_menu_item MenuList[] =
 #ifdef ENABLE_VOX
 	{"VOX",    VOICE_ID_VOX,                           MENU_VOX           },
 #endif
-	{"BLT",    VOICE_ID_INVALID,                       MENU_ABR           }, // was "ABR"
+	{"Bak LT", VOICE_ID_INVALID,                       MENU_ABR           }, // was "ABR"
 	{"BLTTRX", VOICE_ID_INVALID,                       MENU_ABR_ON_TX_RX  },
 	{"BEEP",   VOICE_ID_BEEP_PROMPT,                   MENU_BEEP          },
 #ifdef ENABLE_VOICE
@@ -127,12 +127,12 @@ const t_menu_item MenuList[] =
 	// enabled by pressing both the PTT and upper side button at power-on
 
 	{"F LOCK", VOICE_ID_INVALID,                       MENU_F_LOCK        },
-	{"TX 200", VOICE_ID_INVALID,                       MENU_200TX         }, // was "200TX"
-	{"TX 350", VOICE_ID_INVALID,                       MENU_350TX         }, // was "350TX"
-	{"TX 500", VOICE_ID_INVALID,                       MENU_500TX         }, // was "500TX"
+	{"Tx 200", VOICE_ID_INVALID,                       MENU_200TX         }, // was "200TX"
+	{"Tx 350", VOICE_ID_INVALID,                       MENU_350TX         }, // was "350TX"
+	{"Tx 500", VOICE_ID_INVALID,                       MENU_500TX         }, // was "500TX"
 	{"350 EN", VOICE_ID_INVALID,                       MENU_350EN         }, // was "350EN"
 	{"SCR EN", VOICE_ID_INVALID,                       MENU_SCREN         }, // was "SCREN"
-	{"TX EN",  VOICE_ID_INVALID,                       MENU_TX_EN         }, // enable TX
+	{"Tx EN",  VOICE_ID_INVALID,                       MENU_TX_EN         }, // enable TX
 #ifdef ENABLE_F_CAL_MENU
 	{"F CALI", VOICE_ID_INVALID,                       MENU_F_CALI        }, // reference xtal calibration
 #endif
