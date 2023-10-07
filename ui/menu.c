@@ -36,15 +36,18 @@
 #include "ui/menu.h"
 #include "ui/ui.h"
 
-// NOTE. this menu list is half way through a change, what might seem
-// pointless at this time is for there for a reason.
+// ***************************************************************************************
+// NOTE. the oder of menu entries you on-screen is now solely determined by the enum list order in ui/menu.h
 //
+// the order of entries in this list below is no longer important, no longer has to match the enum list
+
 const t_menu_item MenuList[] =
 {
 //   text,     voice ID,                               menu ID
 
 	{"SQL",    VOICE_ID_SQUELCH,                       MENU_SQL           },
 	{"STEP",   VOICE_ID_FREQUENCY_STEP,                MENU_STEP          },
+	{"W/N",    VOICE_ID_CHANNEL_BANDWIDTH,             MENU_W_N           },
 	{"T PWR",  VOICE_ID_POWER,                         MENU_TXP           }, // was "TXP"
 	{"R DCS",  VOICE_ID_DCS,                           MENU_R_DCS         }, // was "R_DCS"
 	{"R CTCS", VOICE_ID_CTCSS,                         MENU_R_CTCS        }, // was "R_CTCS"
@@ -52,9 +55,9 @@ const t_menu_item MenuList[] =
 	{"T CTCS", VOICE_ID_CTCSS,                         MENU_T_CTCS        }, // was "T_CTCS"
 	{"T DIR",  VOICE_ID_TX_OFFSET_FREQUENCY_DIRECTION, MENU_SFT_D         }, // was "SFT_D"
 	{"T OFFS", VOICE_ID_TX_OFFSET_FREQUENCY,           MENU_OFFSET        }, // was "OFFSET"
-	{"T VFO",  VOICE_ID_INVALID,                       MENU_XB            }, // was "WX"
 	{"T TOUT", VOICE_ID_TRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
-	{"W/N",    VOICE_ID_CHANNEL_BANDWIDTH,             MENU_W_N           },
+	{"T VFO",  VOICE_ID_INVALID,                       MENU_XB            }, // was "WX"
+	{"2nd RX", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           }, // was "TDR"
 	{"SCRAM",  VOICE_ID_SCRAMBLER_ON,                  MENU_SCR           }, // was "SCR"
 	{"BUSYCL", VOICE_ID_BUSY_LOCKOUT,                  MENU_BCL           }, // was "BCL"
 	{"CH SAV", VOICE_ID_MEMORY_CHANNEL,                MENU_MEM_CH        }, // was "MEM-CH"
@@ -67,7 +70,6 @@ const t_menu_item MenuList[] =
 #endif
 	{"BLT",    VOICE_ID_INVALID,                       MENU_ABR           }, // was "ABR"
 	{"BLTTRX", VOICE_ID_INVALID,                       MENU_ABR_ON_TX_RX  },
-	{"DUALRX", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           }, // was "TDR"
 	{"BEEP",   VOICE_ID_BEEP_PROMPT,                   MENU_BEEP          },
 #ifdef ENABLE_VOICE
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE         },
@@ -122,7 +124,7 @@ const t_menu_item MenuList[] =
 	{"RESET",  VOICE_ID_INITIALISATION,                MENU_RESET         }, // might be better to move this to the hidden menu items ?
 
 	// hidden menu items from here on
-	// enabled if pressing both the PTT and upper side button at power-on
+	// enabled by pressing both the PTT and upper side button at power-on
 
 	{"F LOCK", VOICE_ID_INVALID,                       MENU_F_LOCK        },
 	{"TX 200", VOICE_ID_INVALID,                       MENU_200TX         }, // was "200TX"
@@ -130,15 +132,17 @@ const t_menu_item MenuList[] =
 	{"TX 500", VOICE_ID_INVALID,                       MENU_500TX         }, // was "500TX"
 	{"350 EN", VOICE_ID_INVALID,                       MENU_350EN         }, // was "350EN"
 	{"SCR EN", VOICE_ID_INVALID,                       MENU_SCREN         }, // was "SCREN"
-
 	{"TX EN",  VOICE_ID_INVALID,                       MENU_TX_EN         }, // enable TX
 #ifdef ENABLE_F_CAL_MENU
 	{"F CALI", VOICE_ID_INVALID,                       MENU_F_CALI        }, // reference xtal calibration
 #endif
 	{"BATCAL", VOICE_ID_INVALID,                       MENU_BATCAL        }, // battery voltage calibration
-
-	{"",       VOICE_ID_INVALID,                       0xff               }  // end of list - DO NOT delete or move this this
 };
+
+// number of hidden menu items at the end of the list - KEEP THIS UP-TO-DATE
+const unsigned int gHidden_menu_count = 9;
+
+// ***************************************************************************************
 
 const char gSubMenu_TXP[3][5] =
 {
@@ -349,15 +353,65 @@ const char gSubMenu_SIDE_BUTT[9][16] =
 	"TX\n1750Hz"
 };
 
+// ***************************************************************************************
+
+uint8_t MenuList_sorted[ARRAY_SIZE(MenuList)];
+
 bool    gIsInSubMenu;
 uint8_t gMenuCursor;
 int8_t  gMenuScrollDirection;
 int32_t gSubMenuSelection;
 
 // edit box
-char    edit_original[17]; // a copy of the text before editing so that we can easily test for changes/difference
+char    edit_original[17]; // a copy of the text before editing so that we can easily test for changes/differences
 char    edit[17];
 int     edit_index;
+
+// ***************************************************************************************
+
+void UI_SortMenu(const bool hide_hidden)
+{
+	// sort the menu order according to the MENU-ID value (enum list in id/menu.h)
+	//
+	// this means the menu order is entirely determined by the enum list (found in id/menu.h)
+	// it now no longer depends on the order of entries in the above const list (they can be any order)
+ 
+	unsigned int i;
+
+	unsigned int hidden_menu_count = gHidden_menu_count;
+
+	#ifndef ENABLE_F_CAL_MENU
+		hidden_menu_count--;
+	#endif
+
+	gMenuListCount = ARRAY_SIZE(MenuList_sorted);
+
+	for (i = 0; i < gMenuListCount; i++)
+		MenuList_sorted[i] = MenuList[i].menu_id;
+
+	// don't sort the hidden entries at the end, keep them at the end of the list
+
+	for (i = 0; i < (gMenuListCount - hidden_menu_count - 1); i++)
+	{
+		unsigned int k;
+		unsigned int menu_id1 = MenuList_sorted[i];
+		for (k = i + 1; k < (gMenuListCount - hidden_menu_count); k++)
+		{
+			unsigned int menu_id2 = MenuList_sorted[k];
+			if (menu_id2 < menu_id1)
+			{	// swap
+				const unsigned int id = menu_id1;
+				menu_id1 = menu_id2;
+				menu_id2 = id;
+				MenuList_sorted[i] = menu_id1;
+				MenuList_sorted[k] = menu_id2;
+			}
+		}
+	}
+
+	if (hide_hidden)
+		gMenuListCount -= hidden_menu_count;  // hide the hidden menu items
+}
 
 void UI_DisplayMenu(void)
 {
@@ -377,7 +431,7 @@ void UI_DisplayMenu(void)
 		for (i = 0; i < 3; i++)
 			if (gMenuCursor > 0 || i > 0)
 				if ((gMenuListCount - 1) != gMenuCursor || i != 2)
-					UI_PrintString(MenuList[gMenuCursor + i - 1].name, 0, 0, i * 2, 8);
+					UI_PrintString(MenuList[MenuList_sorted[gMenuCursor + i - 1]].name, 0, 0, i * 2, 8);
 
 		// invert the current menu list item pixels
 		for (i = 0; i < (8 * menu_list_width); i++)
@@ -410,26 +464,26 @@ void UI_DisplayMenu(void)
 			{	// leading menu items - small text
 				const int k = menu_index + i - 2;
 				if (k < 0)
-					UI_PrintStringSmall(MenuList[gMenuListCount + k].name, 0, 0, i);  // wrap-a-round
+					UI_PrintStringSmall(MenuList[MenuList_sorted[gMenuListCount + k]].name, 0, 0, i);  // wrap-a-round
 				else
 				if (k >= 0 && k < (int)gMenuListCount)
-					UI_PrintStringSmall(MenuList[k].name, 0, 0, i);
+					UI_PrintStringSmall(MenuList[MenuList_sorted[k]].name, 0, 0, i);
 				i++;
 			}
 
 			// current menu item - keep big n fat
 			if (menu_index >= 0 && menu_index < (int)gMenuListCount)
-				UI_PrintString(MenuList[menu_index].name, 0, 0, 2, 8);
+				UI_PrintString(MenuList[MenuList_sorted[menu_index]].name, 0, 0, 2, 8);
 			i++;
 
 			while (i < 4)
 			{	// trailing menu item - small text
 				const int k = menu_index + i - 2;
 				if (k >= 0 && k < (int)gMenuListCount)
-					UI_PrintStringSmall(MenuList[k].name, 0, 0, 1 + i);
+					UI_PrintStringSmall(MenuList[MenuList_sorted[k]].name, 0, 0, 1 + i);
 				else
 				if (k >= (int)gMenuListCount)
-					UI_PrintStringSmall(MenuList[gMenuListCount - k].name, 0, 0, 1 + i);  // wrap-a-round
+					UI_PrintStringSmall(MenuList[MenuList_sorted[gMenuListCount - k]].name, 0, 0, 1 + i);  // wrap-a-round
 				i++;
 			}
 
@@ -440,7 +494,7 @@ void UI_DisplayMenu(void)
 		else
 		if (menu_index >= 0 && menu_index < (int)gMenuListCount)
 		{	// current menu item
-			strcpy(String, MenuList[menu_index].name);
+			strcpy(String, MenuList[MenuList_sorted[menu_index]].name);
 //			strcat(String, ":");
 			UI_PrintString(String, 0, 0, 0, 8);
 //			UI_PrintStringSmall(String, 0, 0, 0);
@@ -785,7 +839,7 @@ void UI_DisplayMenu(void)
 		case MENU_PONMSG:
 			strcpy(String, gSubMenu_PONMSG[gSubMenuSelection]);
 			break;
-			
+
 		case MENU_ROGER:
 			strcpy(String, gSubMenu_ROGER[gSubMenuSelection]);
 			break;

@@ -104,24 +104,10 @@ void Main(void)
 
 	BootMode = BOOT_GetMode();
 
-	// count the number of menu items
-	gMenuListCount = 0;
-	while (MenuList[gMenuListCount].name[0] != '\0')
-		gMenuListCount++;
-	
-	if (BootMode == BOOT_MODE_F_LOCK)
-	{
-		gF_LOCK = true;            // flag to say include the hidden menu items
-	}
-	else
-	{	// hide the hidden menu items
+	gF_LOCK = (BootMode == BOOT_MODE_F_LOCK); // flag to say include the hidden menu items
 
-		gMenuListCount -= 9;
-
-		#ifndef ENABLE_F_CAL_MENU
-			gMenuListCount++;
-		#endif
-	}
+	// sort the menu list
+	UI_SortMenu(!gF_LOCK);
 	
 	// wait for user to release all butts before moving on
 	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||

@@ -733,7 +733,7 @@ void MENU_AcceptSetting(void)
 		case MENU_SIDE1_SHORT:
 			gEeprom.KEY_1_SHORT_PRESS_ACTION = gSubMenuSelection;
 			break;
-				
+
 		case MENU_SIDE1_LONG:
 			gEeprom.KEY_1_LONG_PRESS_ACTION = gSubMenuSelection;
 			break;
@@ -741,7 +741,7 @@ void MENU_AcceptSetting(void)
 		case MENU_SIDE2_SHORT:
 			gEeprom.KEY_2_SHORT_PRESS_ACTION = gSubMenuSelection;
 			break;
-				
+
 		case MENU_SIDE2_LONG:
 			gEeprom.KEY_2_LONG_PRESS_ACTION = gSubMenuSelection;
 			break;
@@ -1142,7 +1142,7 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_SIDE1_SHORT:
 			gSubMenuSelection = gEeprom.KEY_1_SHORT_PRESS_ACTION;
 			break;
-				
+
 		case MENU_SIDE1_LONG:
 			gSubMenuSelection = gEeprom.KEY_1_LONG_PRESS_ACTION;
 			break;
@@ -1150,7 +1150,7 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_SIDE2_SHORT:
 			gSubMenuSelection = gEeprom.KEY_2_SHORT_PRESS_ACTION;
 			break;
-				
+
 		case MENU_SIDE2_LONG:
 			gSubMenuSelection = gEeprom.KEY_2_LONG_PRESS_ACTION;
 			break;
@@ -1435,7 +1435,7 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 	{
 		#ifdef ENABLE_VOICE
 			if (gMenuCursor != MENU_SCR)
-				gAnotherVoiceID = MenuList[gMenuCursor].voice_id;
+				gAnotherVoiceID = MenuList[MenuList_sorted[gMenuCursor]].voice_id;
 		#endif
 
 		#if 1
