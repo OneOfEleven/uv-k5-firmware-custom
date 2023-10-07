@@ -356,7 +356,7 @@ void SCANNER_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 void SCANNER_Start(void)
 {
 	uint8_t  BackupStep;
-	uint16_t BackupFrequency;
+	uint16_t BackupStepFreq;
 
 	BK4819_StopScan();
 
@@ -367,13 +367,13 @@ void SCANNER_Start(void)
 			gRxVfo->CHANNEL_SAVE = FREQ_CHANNEL_FIRST + BAND6_400MHz;
 	#endif
 
-	BackupStep      = gRxVfo->STEP_SETTING;
-	BackupFrequency = gRxVfo->StepFrequency;
+	BackupStep     = gRxVfo->STEP_SETTING;
+	BackupStepFreq = gRxVfo->StepFrequency;
 
 	RADIO_InitInfo(gRxVfo, gRxVfo->CHANNEL_SAVE, gRxVfo->pRX->Frequency);
 
 	gRxVfo->STEP_SETTING  = BackupStep;
-	gRxVfo->StepFrequency = BackupFrequency;
+	gRxVfo->StepFrequency = BackupStepFreq;
 
 	RADIO_SetupRegisters(true);
 
