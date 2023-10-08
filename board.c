@@ -616,24 +616,24 @@ void BOARD_EEPROM_Init(void)
 	#endif
 	gEeprom.ROGER                          = (Data[1] <  3) ? Data[1] : ROGER_MODE_OFF;
 	gEeprom.REPEATER_TAIL_TONE_ELIMINATION = (Data[2] < 11) ? Data[2] : 0;
-	gEeprom.TX_VFO                     = (Data[3] <  2) ? Data[3] : 0;
+	gEeprom.TX_VFO                         = (Data[3] <  2) ? Data[3] : 0;
 
 	// 0ED0..0ED7
 	EEPROM_ReadBuffer(0x0ED0, Data, 8);
-	gEeprom.DTMF_SIDE_TONE               = (Data[0] <   2) ? Data[0] : true;
+	gEeprom.DTMF_SIDE_TONE               = (Data[0] < 2) ? Data[0] : true;
 	gEeprom.DTMF_SEPARATE_CODE           = DTMF_ValidateCodes((char *)(Data + 1), 1) ? Data[1] : '*';
 	gEeprom.DTMF_GROUP_CALL_CODE         = DTMF_ValidateCodes((char *)(Data + 2), 1) ? Data[2] : '#';
-	gEeprom.DTMF_DECODE_RESPONSE         = (Data[3] <   4) ? Data[3] : 0;
-	gEeprom.DTMF_auto_reset_time         = (Data[4] <  61) ? Data[4] : (Data[4] >= 5) ? Data[4] : 10;
-	gEeprom.DTMF_PRELOAD_TIME            = (Data[5] < 101) ? Data[5] * 10 : 300;
-	gEeprom.DTMF_FIRST_CODE_PERSIST_TIME = (Data[6] < 101) ? Data[6] * 10 : 100;
-	gEeprom.DTMF_HASH_CODE_PERSIST_TIME  = (Data[7] < 101) ? Data[7] * 10 : 100;
+	gEeprom.DTMF_DECODE_RESPONSE         = (Data[3] < 4) ? Data[3] : DTMF_DEC_RESPONSE_RING;
+	gEeprom.DTMF_auto_reset_time         = (Data[4] <= DTMF_HOLD_MAX) ? Data[4] : (Data[4] >= DTMF_HOLD_MIN) ? Data[4] : DTMF_HOLD_MAX;
+	gEeprom.DTMF_PRELOAD_TIME            = (Data[5] < 101) ? Data[5] * 10 : 200;
+	gEeprom.DTMF_FIRST_CODE_PERSIST_TIME = (Data[6] < 101) ? Data[6] * 10 : 70;
+	gEeprom.DTMF_HASH_CODE_PERSIST_TIME  = (Data[7] < 101) ? Data[7] * 10 : 70;
 
 	// 0ED8..0EDF
 	EEPROM_ReadBuffer(0x0ED8, Data, 8);
-	gEeprom.DTMF_CODE_PERSIST_TIME  = (Data[0] < 101) ? Data[0] * 10 : 100;
-	gEeprom.DTMF_CODE_INTERVAL_TIME = (Data[1] < 101) ? Data[1] * 10 : 100;
-	gEeprom.PERMIT_REMOTE_KILL      = (Data[2] <   2) ? Data[2] : true;
+	gEeprom.DTMF_CODE_PERSIST_TIME  = (Data[0] < 101) ? Data[0] * 10 : 70;
+	gEeprom.DTMF_CODE_INTERVAL_TIME = (Data[1] < 101) ? Data[1] * 10 : 70;
+	gEeprom.PERMIT_REMOTE_KILL      = (Data[2] <   2) ? Data[2] : false;
 
 	// 0EE0..0EE7
 	EEPROM_ReadBuffer(0x0EE0, Data, 8);

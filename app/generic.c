@@ -119,158 +119,154 @@ void GENERIC_Key_PTT(bool bKeyPressed)
 	gInputBoxIndex = 0;
 
 	if (!bKeyPressed || gSerialConfigCountDown_500ms > 0)
-	{
-		//if (gScreenToDisplay == DISPLAY_MAIN)
-		{
-			if (gCurrentFunction == FUNCTION_TRANSMIT)
+	{	// PTT released
+
+		if (gCurrentFunction == FUNCTION_TRANSMIT)
+		{	// we are transmitting .. stop
+
+			if (gFlagEndTransmission)
 			{
-				if (gFlagEndTransmission)
-				{
-					FUNCTION_Select(FUNCTION_FOREGROUND);
-				}
-				else
-				{
-					APP_EndTransmission();
-
-					if (gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0)
-					{
-						FUNCTION_Select(FUNCTION_FOREGROUND);
-					}
-					else
-						gRTTECountdown = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
-				}
-
-				gFlagEndTransmission = false;
-				#ifdef ENABLE_VOX
-					gVOX_NoiseDetected = false;
-				#endif
+				FUNCTION_Select(FUNCTION_FOREGROUND);
 			}
+			else
+			{
+				APP_EndTransmission();
+
+				if (gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0)
+					FUNCTION_Select(FUNCTION_FOREGROUND);
+				else
+					gRTTECountdown = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
+			}
+
+			gFlagEndTransmission = false;
+
+			#ifdef ENABLE_VOX
+				gVOX_NoiseDetected = false;
+			#endif
 
 			RADIO_SetVfoState(VFO_STATE_NORMAL);
 
 			if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
 				gRequestDisplayScreen = DISPLAY_MAIN;
-
-			return;
 		}
 
+		return;
+	}
+
+	// PTT pressed
+
+	if (gScanStateDir != SCAN_OFF ||             // frequency/channel scanning
+	    gScreenToDisplay == DISPLAY_SCANNER ||   // CTCSS/CDCSS scanning
+	    gCssScanMode != CSS_SCAN_MODE_OFF)       //   "     "
+	{	// we're scanning .. stop
+
+		if (gScreenToDisplay == DISPLAY_SCANNER)
+		{	// CTCSS/CDCSS scanning .. stop
+			gEeprom.CROSS_BAND_RX_TX = gBackup_CROSS_BAND_RX_TX;
+			gFlagStopScan            = true;
+			gVfoConfigureMode        = VFO_CONFIGURE_RELOAD;
+			gFlagResetVfos           = true;
+		}
+		else
+		if (gScanStateDir != SCAN_OFF)
+		{	// frequency/channel scanning . .stop
+			SCANNER_Stop();
+		}
+		else
+		if (gCssScanMode != CSS_SCAN_MODE_OFF)
+		{	// CTCSS/CDCSS scanning .. stop
+			MENU_StopCssScan();
+
+			#ifdef ENABLE_VOICE
+				gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+			#endif
+		}
+
+		goto cancel_tx;
+	}
+
+	#ifdef ENABLE_FMRADIO
+		if (gFM_ScanState != FM_SCAN_OFF)
+		{	// FM radio is scanning .. stop
+			FM_PlayAndUpdate();
+			#ifdef ENABLE_VOICE
+				gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+			#endif
+			gRequestDisplayScreen = DISPLAY_FM;
+			goto cancel_tx;
+		}
+	#endif
+
+	#ifdef ENABLE_FMRADIO
+		if (gScreenToDisplay == DISPLAY_FM)
+			goto start_tx;	// listening to the FM radio .. start TX'ing
+	#endif
+
+	if (gCurrentFunction == FUNCTION_TRANSMIT && gRTTECountdown == 0)
+	{	// already transmitting
 		gInputBoxIndex = 0;
 		return;
 	}
 
-	if (gScanStateDir != SCAN_OFF)
-	{
-		SCANNER_Stop();
+	if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
+		gRequestDisplayScreen = DISPLAY_MAIN;
 
-		gPttDebounceCounter   = 0;
-		gPttIsPressed         = false;
+	if (!gDTMF_InputMode && gDTMF_InputBox_Index == 0)
+		goto start_tx;	// wasn't entering a DTMF code .. start TX'ing (maybe)
 
-		if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
-			gRequestDisplayScreen = DISPLAY_MAIN;
+	// was entering a DTMF string
 
-		return;
+	if (gDTMF_InputBox_Index > 0 || gDTMF_PreviousIndex > 0)
+	{	// going to transmit a DTMF string
+
+		if (gDTMF_InputBox_Index == 0 && gDTMF_PreviousIndex > 0)
+			gDTMF_InputBox_Index = gDTMF_PreviousIndex;           // use the previous DTMF string
+
+		if (gDTMF_InputBox_Index < sizeof(gDTMF_InputBox))
+			gDTMF_InputBox[gDTMF_InputBox_Index] = 0;             // NULL term the string
+
+		#if 0
+			// append our DTMF ID to the inputted DTMF code -
+			//  IF the user inputted code is exactly 3 digits long
+			if (gDTMF_InputBox_Index == 3)
+				gDTMF_CallMode = DTMF_CheckGroupCall(gDTMF_InputBox, 3);
+			else
+				gDTMF_CallMode = DTMF_CALL_MODE_DTMF;
+		#else
+			// append our DTMF ID to the inputted DTMF code -
+			//  IF the user inputted code is exactly 3 digits long and D-DCD is enabled
+			if (gDTMF_InputBox_Index == 3 && gTxVfo->DTMF_DECODING_ENABLE > 0)
+				gDTMF_CallMode = DTMF_CheckGroupCall(gDTMF_InputBox, 3);
+			else
+				gDTMF_CallMode = DTMF_CALL_MODE_DTMF;
+		#endif
+
+		// remember the DTMF string
+		gDTMF_PreviousIndex = gDTMF_InputBox_Index;
+		strcpy(gDTMF_String, gDTMF_InputBox);
+
+		gDTMF_ReplyState = DTMF_REPLY_ANI;
+		gDTMF_State      = DTMF_STATE_0;
 	}
 
-	#ifdef ENABLE_FMRADIO
-		if (gFM_ScanState == FM_SCAN_OFF)
-	#endif
+	DTMF_clear_input_box();
+
+start_tx:
+	// request start TX
+	gFlagPrepareTX = true;
+	goto done;
+	
+cancel_tx:
+	if (gPttIsPressed)
 	{
-		if (gCssScanMode == CSS_SCAN_MODE_OFF)
-		{
-			#ifdef ENABLE_FMRADIO
-				if (gScreenToDisplay == DISPLAY_FM)
-				{
-					gRequestDisplayScreen = DISPLAY_MAIN;
-					gInputBoxIndex        = 0;
-					gPttIsPressed         = false;
-					gPttDebounceCounter   = 0;
-					return;
-				}
-			#endif
-
-			if (gScreenToDisplay != DISPLAY_SCANNER)
-			{
-				if (gCurrentFunction == FUNCTION_TRANSMIT && gRTTECountdown == 0)
-				{
-					gInputBoxIndex = 0;
-					return;
-				}
-
-				if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
-					gRequestDisplayScreen = DISPLAY_MAIN;
-
-				if (!gDTMF_InputMode)
-				{
-					gFlagPrepareTX = true;
-					gInputBoxIndex = 0;
-					return;
-				}
-
-				gDTMF_InputMode = false;
-//				gUpdateDisplay  = true;
-
-				if (gDTMF_InputBox_Index > 0 || gDTMF_PreviousIndex > 0)
-				{
-					if (gDTMF_InputBox_Index == 0)
-						gDTMF_InputBox_Index = gDTMF_PreviousIndex;
-
-					if (gDTMF_InputBox_Index < sizeof(gDTMF_InputBox))
-						gDTMF_InputBox[gDTMF_InputBox_Index] = 0;
-
-					#if 0
-						// append our DTMF ID to the inputted DTMF code -
-						//  IF the user inputted code is exactly 3 digits long
-						if (gDTMF_InputBox_Index == 3)
-							gDTMF_CallMode = DTMF_CheckGroupCall(gDTMF_InputBox, 3);
-						else
-					#else
-						// append our DTMF ID to the inputted DTMF code -
-						//  IF the user inputted code is exactly 3 digits long and D-DCD is enabled
-						if (gDTMF_InputBox_Index == 3 && gTxVfo->DTMF_DECODING_ENABLE > 0)
-							gDTMF_CallMode = DTMF_CheckGroupCall(gDTMF_InputBox, 3);
-						else
-					#endif
-						gDTMF_CallMode = DTMF_CALL_MODE_DTMF;
-
-					strcpy(gDTMF_String, gDTMF_InputBox);
-					gDTMF_PreviousIndex  = gDTMF_InputBox_Index;
-					DTMF_clear_input_box();
-
-					gDTMF_ReplyState     = DTMF_REPLY_ANI;
-					gDTMF_State          = DTMF_STATE_0;
-
-					gFlagPrepareTX = true;
-				}
-
-				return;
-			}
-
-			gEeprom.CROSS_BAND_RX_TX = gBackupCROSS_BAND_RX_TX;
-			gFlagStopScan            = true;
-			gVfoConfigureMode        = VFO_CONFIGURE_RELOAD;
-			gFlagResetVfos           = true;
-
-			gUpdateStatus            = true;
-		}
-		else
-		{
-			MENU_StopCssScan();
-
-			if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
-				gRequestDisplayScreen = DISPLAY_MENU;
-		}
+		gPttIsPressed  = false;
+		gPttWasPressed = true;
 	}
-	#ifdef ENABLE_FMRADIO
-		else
-		{
-			FM_PlayAndUpdate();
-			gRequestDisplayScreen = DISPLAY_FM;
-		}
-	#endif
 
-	#ifdef ENABLE_VOICE
-		gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
-	#endif
-
-	gPttWasPressed  = true;
+done:	
+	gPttDebounceCounter = 0;
+	if (gScreenToDisplay != DISPLAY_MENU && gRequestDisplayScreen != DISPLAY_FM)     // 1of11 .. don't close the menu
+		gRequestDisplayScreen = DISPLAY_MAIN;
+	gUpdateStatus  = true;
+	gUpdateDisplay = true;
 }

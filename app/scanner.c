@@ -95,7 +95,7 @@ static void SCANNER_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 			case SCAN_EDIT_STATE_NONE:
 				gRequestDisplayScreen    = DISPLAY_MAIN;
 
-				gEeprom.CROSS_BAND_RX_TX = gBackupCROSS_BAND_RX_TX;
+				gEeprom.CROSS_BAND_RX_TX = gBackup_CROSS_BAND_RX_TX;
 				gUpdateStatus            = true;
 				gFlagStopScan            = true;
 				gVfoConfigureMode        = VFO_CONFIGURE_RELOAD;
@@ -166,8 +166,6 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 			{
 
 				#if 0
-					// can't make head nor tail of what's being done here :(
-
 					uint32_t Freq250 = FREQUENCY_FloorToStep(gScanFrequency, 250, 0);
 					uint32_t Freq625 = FREQUENCY_FloorToStep(gScanFrequency, 625, 0);
 
@@ -207,6 +205,7 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 						const STEP_Setting_t small_step = STEP_2_5kHz;
 						const STEP_Setting_t big_step   = STEP_6_25kHz;
 					#endif
+
 					const uint32_t small_step_freq = StepFrequencyTable[small_step];
 					const uint32_t big_step_freq   = StepFrequencyTable[big_step];
 
@@ -254,12 +253,13 @@ static void SCANNER_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 				gScannerEditState = SCAN_EDIT_STATE_DONE;
 			}
 
-			gScanCssState         = SCAN_CSS_STATE_FOUND;
-			#ifdef ENABLE_VOICE
-				gAnotherVoiceID   = VOICE_ID_MEMORY_CHANNEL;
-			#endif
-			gRequestDisplayScreen = DISPLAY_SCANNER;
+			gScanCssState = SCAN_CSS_STATE_FOUND;
 
+			#ifdef ENABLE_VOICE
+				gAnotherVoiceID = VOICE_ID_MEMORY_CHANNEL;
+			#endif
+
+			gRequestDisplayScreen = DISPLAY_SCANNER;
 			gUpdateStatus = true;
 			break;
 
@@ -452,7 +452,7 @@ void SCANNER_Start(void)
 
 	DTMF_clear_RX();
 
-	gScanDelay_10ms        = scan_delay_10ms;
+	gScanDelay_10ms        = scan_freq_css_delay_10ms;
 	gScanCssResultCode     = 0xFF;
 	gScanCssResultType     = 0xFF;
 	gScanHitCount          = 0;
@@ -467,6 +467,7 @@ void SCANNER_Start(void)
 	g_SquelchLost          = false;
 	gScannerEditState      = SCAN_EDIT_STATE_NONE;
 	gScanProgressIndicator = 0;
+//	gFlagStartScan         = false;
 
 	gUpdateStatus = true;
 }
@@ -475,6 +476,9 @@ void SCANNER_Stop(void)
 {
 	const uint8_t Previous = gRestoreMrChannel;
 
+	if (gScanStateDir == SCAN_OFF)
+		return;   // but, but, we weren't !
+	
 	gScanStateDir = SCAN_OFF;
 
 	if (!bScanKeepFrequency)

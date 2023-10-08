@@ -195,12 +195,12 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
 			gWasFKeyPressed          = false;
 			gFlagStartScan           = true;
 			gScanSingleFrequency     = false;
-			gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
+			gBackup_CROSS_BAND_RX_TX = gEeprom.CROSS_BAND_RX_TX;
 			gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
 			gUpdateStatus            = true;
 
-			if (beep)
-				gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+//			if (beep)
+//				gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
 
 			break;
 
@@ -700,7 +700,7 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
 		// scan the CTCSS/DCS code
 		gFlagStartScan           = true;
 		gScanSingleFrequency     = true;
-		gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
+		gBackup_CROSS_BAND_RX_TX = gEeprom.CROSS_BAND_RX_TX;
 		gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
 	}
 	
@@ -821,31 +821,25 @@ void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 		}
 	#endif
 
-	if (gDTMF_InputMode && bKeyPressed)
+	if (gDTMF_InputMode && bKeyPressed && !bKeyHeld)
 	{
-		if (!bKeyHeld)
-		{
-			const char Character = DTMF_GetCharacter(Key);
-			if (Character != 0xFF)
-			{	// add key to DTMF string
-				DTMF_Append(Character);
-
-				gKeyInputCountdown    = key_input_timeout_500ms;
-
-				gRequestDisplayScreen = DISPLAY_MAIN;
-
-				gPttWasReleased       = true;
-				gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
-				return;
-			}
+		const char Character = DTMF_GetCharacter(Key);
+		if (Character != 0xFF)
+		{	// add key to DTMF string
+			DTMF_Append(Character);
+			gKeyInputCountdown    = key_input_timeout_500ms;
+			gRequestDisplayScreen = DISPLAY_MAIN;
+			gPttWasReleased       = true;
+			gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
+			return;
 		}
 	}
 
 	// TODO: ???
-	if (Key > KEY_PTT)
-	{
-		Key = KEY_SIDE2;      // what's this doing ???
-	}
+//	if (Key > KEY_PTT)
+//	{
+//		Key = KEY_SIDE2;      // what's this doing ???
+//	}
 
 	switch (Key)
 	{

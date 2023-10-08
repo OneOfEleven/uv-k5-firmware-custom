@@ -70,7 +70,6 @@ void UI_DisplayScanner(void)
 			else
 			if (gScanCssState == SCAN_CSS_STATE_FOUND)
 			{
-//				strcpy(String, "SCAN COMPLETE");
 				strcpy(String, "* repeat  M save");
 				text_centered = true;
 			}

@@ -113,7 +113,7 @@ extern const uint16_t        key_repeat_delay_10ms;
 extern const uint16_t        key_repeat_10ms;
 extern const uint16_t        key_debounce_10ms;
 
-extern const uint8_t         scan_delay_10ms;
+extern const uint8_t         scan_freq_css_delay_10ms;
 
 extern const uint16_t        battery_save_count_10ms;
 
@@ -296,7 +296,7 @@ extern bool                  gKeyBeingHeld;
 extern bool                  gPttIsPressed;
 extern uint8_t               gPttDebounceCounter;
 extern uint8_t               gMenuListCount;
-extern uint8_t               gBackupCROSS_BAND_RX_TX;
+extern uint8_t               gBackup_CROSS_BAND_RX_TX;
 extern uint8_t               gScanDelay_10ms;
 #ifdef ENABLE_AIRCOPY
 	extern uint8_t           gAircopySendCountdown;

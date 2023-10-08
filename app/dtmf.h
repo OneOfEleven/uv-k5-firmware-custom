@@ -33,7 +33,8 @@ typedef enum DTMF_State_t DTMF_State_t;
 enum DTMF_CallState_t {
 	DTMF_CALL_STATE_NONE = 0,
 	DTMF_CALL_STATE_CALL_OUT,
-	DTMF_CALL_STATE_RECEIVED
+	DTMF_CALL_STATE_RECEIVED,
+	DTMF_CALL_STATE_RECEIVED_STAY
 };
 
 enum DTMF_DecodeResponse_t {
@@ -58,6 +59,11 @@ enum DTMF_CallMode_t {
 	DTMF_CALL_MODE_NOT_GROUP = 0,
 	DTMF_CALL_MODE_GROUP,
 	DTMF_CALL_MODE_DTMF
+};
+
+enum {  // seconds
+	DTMF_HOLD_MIN =  5,
+	DTMF_HOLD_MAX = 60
 };
 
 typedef enum DTMF_CallMode_t DTMF_CallMode_t;

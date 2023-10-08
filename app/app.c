@@ -1319,7 +1319,7 @@ void APP_CheckKeys(void)
 	{	// PTT pressed
 		if (++gPttDebounceCounter >= 3)	    // 30ms
 		{	// start transmitting
-			boot_counter_10ms   = 0;
+			boot_counter_10ms   = 0;        // cancel the boot-up screen
 			gPttDebounceCounter = 0;
 			gPttIsPressed       = true;
 			APP_ProcessKey(KEY_PTT, true, false);
@@ -1333,8 +1333,16 @@ void APP_CheckKeys(void)
 	// scan the hardware keys
 	Key = KEYBOARD_Poll();
 
-	if (Key != KEY_INVALID)
-		boot_counter_10ms = 0;   // cancel boot screen/beeps if any key pressed
+	if (Key == KEY_INVALID)
+	{
+//		gKeyReading0     = KEY_INVALID;
+//		gKeyReading1     = KEY_INVALID;
+//		gDebounceCounter = 0;
+//		gKeyBeingHeld    = false;
+//		return;
+	}
+
+	boot_counter_10ms = 0;   // cancel boot screen/beeps
 
 	if (gKeyReading0 != Key)
 	{	// new key pressed
@@ -1549,9 +1557,11 @@ void APP_TimeSlice10ms(void)
 
 		if (gScanDelay_10ms > 0)
 		{
-			gScanDelay_10ms--;
-			APP_CheckKeys();
-			return;
+			if (--gScanDelay_10ms > 0)
+			{
+				APP_CheckKeys();
+				return;
+			}
 		}
 
 		if (gScannerEditState != SCAN_EDIT_STATE_NONE)
@@ -1564,36 +1574,33 @@ void APP_TimeSlice10ms(void)
 		{
 			case SCAN_CSS_STATE_OFF:
 
-				// must be RF frequency scanning if we're here ?
-
 				if (!BK4819_GetFrequencyScanResult(&Result))
 					break;
 
+				// accept only within 1kHz
 				Delta = Result - gScanFrequency;
+				gScanHitCount = (abs(Delta) < 100) ? gScanHitCount + 1 : 0;
+
+				BK4819_DisableFrequencyScan();
 
 				#if 0
 					gScanFrequency = Result;
 				#else
-				{
+				{	  // round to nearest step multiple
 					const uint32_t step = StepFrequencyTable[gStepSetting];
-					gScanFrequency = ((Result + (step / 2)) / step) * step;  // round to nearest step multiple
-//					gScanFrequency = (Result / step) * step;                 // round down
+					gScanFrequency = ((Result + (step / 2)) / step) * step;
 				}
 				#endif
 
-				Delta = abs(Delta);
-
-				gScanHitCount = (Delta < 100) ? gScanHitCount + 1 : 0;
-
-				BK4819_DisableFrequencyScan();
-
 				if (gScanHitCount < 3)
-				{
+				{	// keep scanning for an RF carrier
 					BK4819_EnableFrequencyScan();
 				}
 				else
-				{
+				{	// RF carrier found .. stop RF scanning
 					BK4819_SetScanFrequency(gScanFrequency);
+
+					// start CTCSS/CTDSS scanning
 					gScanCssResultCode     = 0xFF;
 					gScanCssResultType     = 0xFF;
 					gScanHitCount          = 0;
@@ -1602,12 +1609,10 @@ void APP_TimeSlice10ms(void)
 					gScanCssState          = SCAN_CSS_STATE_SCANNING;
 
 					GUI_SelectNextDisplay(DISPLAY_SCANNER);
-
-					gUpdateStatus          = true;
+					gUpdateStatus = true;
 				}
 
-				gScanDelay_10ms = scan_delay_10ms;
-				//gScanDelay_10ms = 1;   // 10ms
+				gScanDelay_10ms = scan_freq_css_delay_10ms;
 				break;
 
 			case SCAN_CSS_STATE_SCANNING:
@@ -1652,10 +1657,10 @@ void APP_TimeSlice10ms(void)
 					}
 				}
 
-				if (gScanCssState < SCAN_CSS_STATE_FOUND)
-				{
+				if (gScanCssState == SCAN_CSS_STATE_OFF || gScanCssState == SCAN_CSS_STATE_SCANNING)
+				{	// re-start scan
 					BK4819_SetScanFrequency(gScanFrequency);
-					gScanDelay_10ms = scan_delay_10ms;
+					gScanDelay_10ms = scan_freq_css_delay_10ms;
 					break;
 				}
 
@@ -1686,22 +1691,22 @@ void APP_TimeSlice10ms(void)
 
 void cancelUserInputModes(void)
 {
-	gKeyInputCountdown = 0;
-
-	if (gDTMF_InputMode || gDTMF_InputBox_Index > 0 || gInputBoxIndex > 0)
+	if (gDTMF_InputMode || gDTMF_InputBox_Index > 0)
 	{
 		DTMF_clear_input_box();
-		gInputBoxIndex        = 0;
 		gBeepToPlay           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		gRequestDisplayScreen = DISPLAY_MAIN;
 		gUpdateDisplay        = true;
 	}
 
-	if (gWasFKeyPressed)
+	if (gWasFKeyPressed || gKeyInputCountdown > 0 || gInputBoxIndex > 0)
 	{
-		gWasFKeyPressed  = false;
-		gBeepToPlay      = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-		gUpdateStatus    = true;
+		gWasFKeyPressed     = false;
+		gInputBoxIndex      = 0;
+		gKeyInputCountdown  = 0;
+		gBeepToPlay         = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		gUpdateStatus       = true;
+		gUpdateDisplay      = true;
 	}
 }
 
@@ -1997,7 +2002,6 @@ void APP_TimeSlice500ms(void)
 		if (gDTMF_DecodeRingCountdown_500ms > 0)
 		{	// make "ring-ring" sound
 			gDTMF_DecodeRingCountdown_500ms--;
-
 			AUDIO_PlayBeep(BEEP_880HZ_200MS);
 		}
 	}
@@ -2012,10 +2016,19 @@ void APP_TimeSlice500ms(void)
 		{
 			if (--gDTMF_auto_reset_time_500ms == 0)
 			{
-				gDTMF_CallState = DTMF_CALL_STATE_NONE;
+				if (gDTMF_CallState == DTMF_CALL_STATE_RECEIVED && gEeprom.DTMF_auto_reset_time >= DTMF_HOLD_MAX)
+					gDTMF_CallState = DTMF_CALL_STATE_RECEIVED_STAY;     // keep message on-screen till a key is pressed
+				else
+					gDTMF_CallState = DTMF_CALL_STATE_NONE;
 				gUpdateDisplay  = true;
 			}
 		}
+
+//		if (gDTMF_CallState != DTMF_CALL_STATE_RECEIVED_STAY)
+//		{
+//			gDTMF_CallState = DTMF_CALL_STATE_NONE;
+//			gUpdateDisplay  = true;
+//		}
 	}
 
 	if (gDTMF_IsTx && gDTMF_TxStopCountdown_500ms > 0)
@@ -2083,12 +2096,12 @@ void CHANNEL_Next(const bool bFlag, const int8_t scan_direction)
 	bScanKeepFrequency     = false;
 }
 
-static void APP_ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+static void APP_ProcessKey(const KEY_Code_t Key, const bool bKeyPressed, const bool bKeyHeld)
 {
 	bool bFlag = false;
 
-	if (Key == KEY_INVALID)
-		return;
+//	if (Key == KEY_INVALID)
+//		return;
 
 	const bool backlight_was_on = GPIO_CheckBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
@@ -2142,7 +2155,7 @@ static void APP_ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 	}
 	else
 	{
-		if (Key != KEY_PTT)
+		if (Key != KEY_PTT || gSetting_backlight_on_tx_rx == 1 || gSetting_backlight_on_tx_rx == 3)
 			BACKLIGHT_TurnOn();
 
 		if (Key == KEY_EXIT && bKeyHeld)
@@ -2155,6 +2168,9 @@ static void APP_ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 				gDTMF_RX_live_timeout = 0;
 				gUpdateDisplay        = true;
 			}
+
+			// cancel user input
+			cancelUserInputModes();
 		}
 
 		if (gScreenToDisplay == DISPLAY_MENU)       // 1of11
@@ -2232,7 +2248,6 @@ static void APP_ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 	{
 		if (bKeyHeld)
 			bFlag = true;
-
 		if (!bKeyPressed)
 		{
 			bFlag           = true;
@@ -2334,7 +2349,7 @@ static void APP_ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 			{
 				case DISPLAY_MAIN:
 					MAIN_ProcessKeys(Key, bKeyPressed, bKeyHeld);
-					bKeyHeld = false;	// allow the channel setting to be saved
+//					bKeyHeld = false;	// allow the channel setting to be saved
 					break;
 
 				#ifdef ENABLE_FMRADIO
@@ -2375,9 +2390,6 @@ static void APP_ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 		if (!bKeyHeld && bKeyPressed)
 			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 	}
-	else
-	if (Key == KEY_EXIT && bKeyHeld)
-		cancelUserInputModes();
 
 Skip:
 	if (gBeepToPlay != BEEP_NONE)
@@ -2399,7 +2411,6 @@ Skip:
 	if (gFlagStopScan)
 	{
 		BK4819_StopScan();
-
 		gFlagStopScan = false;
 	}
 
@@ -2506,6 +2517,8 @@ Skip:
 
 	if (gFlagStartScan)
 	{
+		gFlagStartScan = false;
+
 		gMonitor = false;
 
 		#ifdef ENABLE_VOICE
@@ -2516,7 +2529,6 @@ Skip:
 		SCANNER_Start();
 
 		gRequestDisplayScreen = DISPLAY_SCANNER;
-		gFlagStartScan        = false;
 	}
 
 	if (gFlagPrepareTX)
@@ -2536,6 +2548,7 @@ Skip:
 	#endif
 
 	GUI_SelectNextDisplay(gRequestDisplayScreen);
-
 	gRequestDisplayScreen = DISPLAY_INVALID;
+
+	gUpdateDisplay = true;
 }

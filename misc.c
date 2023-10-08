@@ -38,7 +38,7 @@ const uint16_t    key_repeat_delay_10ms            =   400 / 10;   // 400ms
 const uint16_t    key_repeat_10ms                  =    80 / 10;   // 80ms .. MUST be less than 'key_repeat_delay'
 const uint16_t    key_debounce_10ms                =    20 / 10;   // 20ms
 
-const uint8_t     scan_delay_10ms                  =   210 / 10;   // 210ms
+const uint8_t     scan_freq_css_delay_10ms         =   210 / 10;   // 210ms .. don't reduce this
 
 const uint16_t    dual_watch_count_after_tx_10ms   =  3600 / 10;   // 3.6 sec after TX ends
 const uint16_t    dual_watch_count_after_rx_10ms   =  1000 / 10;   // 1 sec after RX ends ?
@@ -224,7 +224,7 @@ bool              gKeyBeingHeld;
 bool              gPttIsPressed;
 uint8_t           gPttDebounceCounter;
 uint8_t           gMenuListCount;
-uint8_t           gBackupCROSS_BAND_RX_TX;
+uint8_t           gBackup_CROSS_BAND_RX_TX;
 uint8_t           gScanDelay_10ms;
 #ifdef ENABLE_AIRCOPY
 	uint8_t       gAircopySendCountdown;

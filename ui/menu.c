@@ -816,7 +816,30 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_D_HOLD:
-			sprintf(String, "%ds", gSubMenuSelection);
+			// only allow 5, 10, 20, 30, 40, 50 or "STAY ON SCREEN" (60)
+			switch (gSubMenuSelection)
+			{
+				case  4: gSubMenuSelection = 60; break;
+				case  6: gSubMenuSelection = 10; break;
+				case  9: gSubMenuSelection =  5; break;
+				case 11: gSubMenuSelection = 20; break;
+				case 19: gSubMenuSelection = 10; break;
+				case 21: gSubMenuSelection = 30; break;
+				case 29: gSubMenuSelection = 20; break;
+				case 31: gSubMenuSelection = 40; break;
+				case 39: gSubMenuSelection = 30; break;
+				case 41: gSubMenuSelection = 50; break;
+				case 49: gSubMenuSelection = 40; break;
+				case 51: gSubMenuSelection = 60; break;
+				case 59: gSubMenuSelection = 50; break;
+				case 61: gSubMenuSelection =  5; break;
+			}
+			
+			if (gSubMenuSelection < DTMF_HOLD_MAX)
+				sprintf(String, "%d sec", gSubMenuSelection);
+			else
+				strcpy(String, "STAY ON\nSCREEN");  // 60
+
 			break;
 
 		case MENU_D_PRE:

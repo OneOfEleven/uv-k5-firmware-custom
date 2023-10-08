@@ -377,7 +377,7 @@ void UI_DisplayMain(void)
 					if (gDTMF_CallState == DTMF_CALL_STATE_CALL_OUT)
 						strcpy(String, (gDTMF_State == DTMF_STATE_CALL_OUT_RSP) ? "CALL OUT(RSP)" : "CALL OUT");
 					else
-					if (gDTMF_CallState == DTMF_CALL_STATE_RECEIVED)
+					if (gDTMF_CallState == DTMF_CALL_STATE_RECEIVED || gDTMF_CallState == DTMF_CALL_STATE_RECEIVED_STAY)
 						sprintf(String, "CALL FRM:%s", (DTMF_FindContact(gDTMF_Caller, Contact)) ? Contact : gDTMF_Caller);
 					else
 					if (gDTMF_IsTx)
@@ -396,7 +396,7 @@ void UI_DisplayMain(void)
 					if (gDTMF_CallState == DTMF_CALL_STATE_CALL_OUT)
 						sprintf(String, ">%s", (DTMF_FindContact(gDTMF_String, Contact)) ? Contact : gDTMF_String);
 					else
-					if (gDTMF_CallState == DTMF_CALL_STATE_RECEIVED)
+					if (gDTMF_CallState == DTMF_CALL_STATE_RECEIVED || gDTMF_CallState == DTMF_CALL_STATE_RECEIVED_STAY)
 						sprintf(String, ">%s", (DTMF_FindContact(gDTMF_Callee, Contact)) ? Contact : gDTMF_Callee);
 					else
 					if (gDTMF_IsTx)
@@ -735,8 +735,7 @@ void UI_DisplayMain(void)
 		#if defined(ENABLE_AM_FIX) && defined(ENABLE_AM_FIX_SHOW_DATA)
 			if (rx && gEeprom.VfoInfo[gEeprom.RX_VFO].AM_mode && gSetting_AM_fix)
 			{
-				if (gScreenToDisplay != DISPLAY_MAIN ||
-					gDTMF_CallState != DTMF_CALL_STATE_NONE)
+				if (gScreenToDisplay != DISPLAY_MAIN || gDTMF_CallState != DTMF_CALL_STATE_NONE)
 					return;
 
 				center_line = CENTER_LINE_AM_FIX_DATA;
@@ -763,8 +762,7 @@ void UI_DisplayMain(void)
 					const unsigned int len = strlen(gDTMF_RX_live);
 					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
 
-					if (gScreenToDisplay != DISPLAY_MAIN ||
-						gDTMF_CallState != DTMF_CALL_STATE_NONE)
+					if (gScreenToDisplay != DISPLAY_MAIN || gDTMF_CallState != DTMF_CALL_STATE_NONE)
 						return;
 						
 					center_line = CENTER_LINE_DTMF_DEC;
@@ -779,8 +777,7 @@ void UI_DisplayMain(void)
 					const unsigned int len = gDTMF_RX_index;
 					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
 
-					if (gScreenToDisplay != DISPLAY_MAIN ||
-						gDTMF_CallState != DTMF_CALL_STATE_NONE)
+					if (gScreenToDisplay != DISPLAY_MAIN || gDTMF_CallState != DTMF_CALL_STATE_NONE)
 						return;
 
 					center_line = CENTER_LINE_DTMF_DEC;
@@ -795,8 +792,7 @@ void UI_DisplayMain(void)
 				else
 				if (gChargingWithTypeC)
 				{	// charging .. show the battery state
-					if (gScreenToDisplay != DISPLAY_MAIN ||
-						gDTMF_CallState != DTMF_CALL_STATE_NONE)
+					if (gScreenToDisplay != DISPLAY_MAIN || gDTMF_CallState != DTMF_CALL_STATE_NONE)
 						return;
 						
 					center_line = CENTER_LINE_CHARGE_DATA;

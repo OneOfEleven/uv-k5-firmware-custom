@@ -31,6 +31,7 @@
 #include "../font.h"
 #include "../frequencies.h"
 #include "../helper/battery.h"
+#include "../helper/measurements.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../settings.h"
@@ -41,17 +42,19 @@
 
 static const uint8_t DrawingEndY = 40;
 
-static const uint8_t U8RssiMap[] = {
-    121, 115, 109, 103, 97, 91, 85, 79, 73, 63,
-};
-
 static const uint16_t scanStepValues[] = {
     1,   10,  50,  100,
 
     250, 500, 625, 833, 1000, 1250, 2500, 10000,
 };
 
-static const uint16_t scanStepBWRegValues[] = {
+static const uint8_t gStepSettingToIndex[] = {
+    [STEP_2_5kHz] = 4,  [STEP_5_0kHz] = 5,  [STEP_6_25kHz] = 6,
+    [STEP_10_0kHz] = 8, [STEP_12_5kHz] = 9, [STEP_25_0kHz] = 10,
+    [STEP_8_33kHz] = 7,
+};
+
+static const uint16_t scanStepBWRegValues[12] = {
     //     RX  RXw TX  BW
     // 0b0 000 000 001 01 1000
     // 1
@@ -122,17 +125,16 @@ typedef enum ScanStep {
 } ScanStep;
 
 typedef struct SpectrumSettings {
-  uint32_t frequencyChangeStep;  
   StepsCount stepsCount;
   ScanStep scanStepIndex;
+  uint32_t frequencyChangeStep;
   uint16_t scanDelay;
   uint16_t rssiTriggerLevel;
+
+  bool backlightState;
   BK4819_FilterBandwidth_t bw;
   BK4819_FilterBandwidth_t listenBw;
-  int dbMin;
-  int dbMax;  
   ModulationType modulationType;
-  bool backlightState;
 } SpectrumSettings;
 
 typedef struct KeyboardState {
@@ -150,7 +152,7 @@ typedef struct ScanInfo {
 } ScanInfo;
 
 typedef struct RegisterSpec {
-  char *name;
+  const char *name;
   uint8_t num;
   uint8_t offset;
   uint16_t maxValue;
@@ -160,9 +162,55 @@ typedef struct RegisterSpec {
 typedef struct PeakInfo {
   uint16_t t;
   uint16_t rssi;
-  uint32_t f;
   uint8_t i;
+  uint32_t f;
 } PeakInfo;
+
+typedef struct MovingAverage {
+  uint16_t mean[128];
+  uint16_t buf[4][128];
+  uint16_t min, mid, max;
+  uint16_t t;
+} MovingAverage;
+
+typedef struct FreqPreset {
+  char name[16];
+  uint32_t fStart;
+  uint32_t fEnd;
+  StepsCount stepsCountIndex;
+  uint8_t stepSizeIndex;
+  ModulationType modulationType;
+  BK4819_FilterBandwidth_t listenBW;
+} FreqPreset;
+
+static const FreqPreset freqPresets[] = {
+    {"17m", 1806800, 1831800, STEPS_128, S_STEP_1_0kHz, MOD_USB,
+     BK4819_FILTER_BW_NARROWER},
+    {"15m", 2100000, 2145000, STEPS_128, S_STEP_1_0kHz, MOD_USB,
+     BK4819_FILTER_BW_NARROWER},
+    {"12m", 2489000, 2514000, STEPS_128, S_STEP_1_0kHz, MOD_USB,
+     BK4819_FILTER_BW_NARROWER},
+    {"CB", 2697500, 2785500, STEPS_128, S_STEP_5_0kHz, MOD_FM,
+     BK4819_FILTER_BW_NARROW},
+    {"10m", 2800000, 2970000, STEPS_128, S_STEP_1_0kHz, MOD_USB,
+     BK4819_FILTER_BW_NARROWER},
+    {"AIR", 11800000, 13500000, STEPS_128, S_STEP_100_0kHz, MOD_AM,
+     BK4819_FILTER_BW_NARROW},
+    {"2m", 14400000, 14600000, STEPS_128, S_STEP_25_0kHz, MOD_FM,
+     BK4819_FILTER_BW_NARROW},
+    {"JD1", 15175000, 15400000, STEPS_128, S_STEP_25_0kHz, MOD_FM,
+     BK4819_FILTER_BW_NARROW},
+    {"JD2", 15500000, 15600000, STEPS_64, S_STEP_25_0kHz, MOD_FM,
+     BK4819_FILTER_BW_NARROW},
+    {"LPD", 43307500, 43477500, STEPS_128, S_STEP_25_0kHz, MOD_FM,
+     BK4819_FILTER_BW_WIDE},
+    {"PMR", 44600625, 44620000, STEPS_16, S_STEP_12_5kHz, MOD_FM,
+     BK4819_FILTER_BW_NARROW},
+    {"FRS/GM 462", 46256250, 46272500, STEPS_16, S_STEP_12_5kHz, MOD_FM,
+     BK4819_FILTER_BW_NARROW},
+    {"FRS/GM 467", 46756250, 46771250, STEPS_16, S_STEP_12_5kHz, MOD_FM,
+     BK4819_FILTER_BW_NARROW},
+};
 
 void APP_RunSpectrum(void);
 

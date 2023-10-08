@@ -53,7 +53,8 @@ void SystickHandler(void)
 	gNextTimeslice = true;
 
 	if ((gGlobalSysTickCounter % 50) == 0)
-	{
+	{	// 500ms tick
+
 		gNextTimeslice_500ms = true;
 		
 		DECREMENT_AND_TRIGGER(gTxTimerCountdown_500ms, gTxTimeoutReached);

@@ -1478,33 +1478,78 @@ uint8_t BK4819_GetAfTxRx(void)
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency)
 {
-	const uint16_t High     = BK4819_ReadRegister(BK4819_REG_0D);
-	const bool     Finished = (High & 0x8000) == 0;
-	if (Finished)
-	{
-		const uint16_t Low = BK4819_ReadRegister(BK4819_REG_0E);
-		*pFrequency = (uint32_t)((High & 0x7FF) << 16) | Low;
-	}
-	return Finished;
+	// **********
+	// REG_0D  read only
+	//
+	// <15>    frequency scan indicator
+	//         1 = busy
+	//         0 = finished
+	//
+	// <14:11> ???
+	//
+	// <10:0>  frequency scan high 16 bits
+	//
+	// **********
+	// REG_0E  read only
+	//
+	// <15:0>  frequency scan low 16 bits
+	//
+	// **********
+	// (REG_0D <10:0> << 16) | (REG_0E <15:0>) .. unit is 10Hz
+	//
+	const uint16_t high      = BK4819_ReadRegister(BK4819_REG_0D);
+	const uint16_t low       = BK4819_ReadRegister(BK4819_REG_0E);
+	const bool     finished  = ((high >> 15) & 1u) == 0;
+	*pFrequency              = ((uint32_t)(high & 0x07FF) << 16) | low;
+	return finished;
 }
 
 BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t *pCtcssFreq)
 {
-	uint16_t Low;
-	uint16_t High = BK4819_ReadRegister(BK4819_REG_69);
+	// **********
+	// REG_68 read only
+	//
+	// <15>   CTCSS scan indicator
+	//        1 = busy
+	//        0 = found
+	//
+	// <12:0> CTCSS frequency (Hz)
+	//        div by 20.64888 ... 13M / 26M XTAL
+	//        div by 20.97152 ... 12.8M / 19.2M / 25.6M / 38.4M XTAL
+	//
+	// **********
+	// REG_69 read only
+	//
+	// <15>	  CDCSS scan indicator
+	//        1 = busy
+	//        0 = found
+	//
+	// <14>   23 or 24 bit CDCSS Indicator (BK4819v3)
+	//        1 = 24 bit
+	//        0 = 23 bit
+	//
+	// <11:0> CDCSS High 12 bits
+	//
+	// **********
+	// REG_6A read only
+	//
+	// <11:0> CDCSS Low 12 bits
+	//
+	//
+	const uint16_t High = BK4819_ReadRegister(BK4819_REG_69);
+	uint16_t       Low;
 
-	if ((High & 0x8000) == 0)
-	{
+	if (((High >> 15) & 1u) == 0)
+	{	// CDCSS
 		Low         = BK4819_ReadRegister(BK4819_REG_6A);
-		*pCdcssFreq = ((High & 0xFFF) << 12) | (Low & 0xFFF);
+		*pCdcssFreq = ((uint32_t)(High & 0xFFF) << 12) | (Low & 0xFFF);
 		return BK4819_CSS_RESULT_CDCSS;
 	}
 
 	Low = BK4819_ReadRegister(BK4819_REG_68);
-
-	if ((Low & 0x8000) == 0)
-	{
-		*pCtcssFreq = ((Low & 0x1FFF) * 4843) / 10000;
+	if (((Low >> 15) & 1u) == 0)
+	{	// CTCSS
+		*pCtcssFreq = ((uint32_t)(Low & 0x1FFF) * 4843) / 10000;
 		return BK4819_CSS_RESULT_CTCSS;
 	}
 
@@ -1513,12 +1558,46 @@ BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t 
 
 void BK4819_DisableFrequencyScan(void)
 {
-	BK4819_WriteRegister(BK4819_REG_32, 0x0244);
+	// REG_32
+	//
+	// <15:14> 0 frequency scan time
+	//         0 = 0.2 sec
+	//         1 = 0.4 sec
+	//         2 = 0.8 sec
+	//         3 = 1.6 sec
+	//
+	// <13:1>  ???
+	//
+	// <0>     0 frequency scan enable
+	//         1 = enable
+	//         0 = disable
+	//
+	BK4819_WriteRegister(BK4819_REG_32, // 0x0244);    // 00 0000100100010 0
+		(  0u << 14) |          // 0 frequency scan Time
+		(290u <<  1) |          // ???
+		(  0u <<  0));          // 0 frequency scan enable
 }
 
 void BK4819_EnableFrequencyScan(void)
 {
-	BK4819_WriteRegister(BK4819_REG_32, 0x0245);   // 00 0000100100010 1
+	// REG_32
+	//
+	// <15:14> 0 frequency scan time
+	//         0 = 0.2 sec
+	//         1 = 0.4 sec
+	//         2 = 0.8 sec
+	//         3 = 1.6 sec
+	//
+	// <13:1>  ???
+	//
+	// <0>     0 frequency scan enable
+	//         1 = enable
+	//         0 = disable
+	//
+	BK4819_WriteRegister(BK4819_REG_32, // 0x0245);   // 00 0000100100010 1
+		(  0u << 14) |          // 0 frequency scan time
+		(290u <<  1) |          // ???
+		(  1u <<  0));          // 1 frequency scan enable
 }
 
 void BK4819_SetScanFrequency(uint32_t Frequency)
@@ -1532,7 +1611,7 @@ void BK4819_SetScanFrequency(uint32_t Frequency)
 	//       0 = Disable
 	//
 	// <14>  0
-	//       1 = GPIO0Input for CDCSS
+	//       1 = GPIO-0 input for CDCSS
 	//       0 = Normal Mode (for BK4819 v3)
 	//
 	// <13>  0
@@ -1547,8 +1626,8 @@ void BK4819_SetScanFrequency(uint32_t Frequency)
 	//       1 = 24bit
 	//       0 = 23bit
 	//
-	// <10>  0 1050HzDetectionMode
-	//       1 = 1050/4 Detect Enable, CTC1 should be set to 1050/4 Hz
+	// <10>  0 1050Hz detection mode
+	//       1 = 1050/4 detect enable, CTC1 should be set to 1050/4 Hz
 	//
 	// <9>   0 Auto CDCSS Bw Mode
 	//       1 = Disable

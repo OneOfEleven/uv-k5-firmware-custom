@@ -314,8 +314,8 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			break;
 
 		case MENU_D_HOLD:
-			*pMin = 5;
-			*pMax = 60;
+			*pMin = DTMF_HOLD_MIN;
+			*pMax = DTMF_HOLD_MAX;
 			break;
 
 		case MENU_D_PRE:
@@ -1079,6 +1079,30 @@ void MENU_ShowCurrentSetting(void)
 
 		case MENU_D_HOLD:
 			gSubMenuSelection = gEeprom.DTMF_auto_reset_time;
+
+			if (gSubMenuSelection <= DTMF_HOLD_MIN)
+				gSubMenuSelection = DTMF_HOLD_MIN;
+			else
+			if (gSubMenuSelection <= 10)
+				gSubMenuSelection = 10;
+			else
+			if (gSubMenuSelection <= 20)
+				gSubMenuSelection = 20;
+			else
+			if (gSubMenuSelection <= 30)
+				gSubMenuSelection = 30;
+			else
+			if (gSubMenuSelection <= 40)
+				gSubMenuSelection = 40;
+			else
+			if (gSubMenuSelection <= 50)
+				gSubMenuSelection = 50;
+			else
+			if (gSubMenuSelection < DTMF_HOLD_MAX)
+				gSubMenuSelection = 50;
+			else
+				gSubMenuSelection = DTMF_HOLD_MAX;
+
 			break;
 
 		case MENU_D_PRE:
