@@ -2039,6 +2039,11 @@ void APP_TimeSlice500ms(void)
 			gUpdateDisplay = true;
 		}
 	}
+
+	#ifdef ENABLE_SHOW_TX_TIMEOUT
+		if (gCurrentFunction == FUNCTION_TRANSMIT && (gTxTimerCountdown_500ms & 1))
+			UI_DisplayTXCountdown(true);
+	#endif
 }
 
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)

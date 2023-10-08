@@ -11,10 +11,10 @@ ENABLE_UART                   := 1
 ENABLE_AIRCOPY                := 0
 ENABLE_FMRADIO                := 1
 ENABLE_NOAA                   := 0
-ENABLE_VOICE                  := 0
-ENABLE_VOX                    := 0
+ENABLE_VOICE                  := 1
+ENABLE_VOX                    := 1
 ENABLE_ALARM                  := 0
-ENABLE_TX1750                 := 0
+ENABLE_TX1750                 := 1
 ENABLE_PWRON_PASSWORD         := 0
 ENABLE_BIG_FREQ               := 0
 ENABLE_SMALL_BOLD             := 1
@@ -34,9 +34,10 @@ ENABLE_SQUELCH_MORE_SENSITIVE := 1
 ENABLE_FASTER_CHANNEL_SCAN    := 1
 ENABLE_RSSI_BAR               := 1
 ENABLE_AUDIO_BAR              := 0
+ENABLE_SHOW_TX_TIMEOUT        := 1
 ENABLE_COPY_CHAN_TO_VFO       := 1
-#ENABLE_SINGLE_VFO_CHAN        := 1
 #ENABLE_PANADAPTER             := 1
+#ENABLE_SINGLE_VFO_CHAN        := 1
 
 #############################################################
 
@@ -302,6 +303,9 @@ ifeq ($(ENABLE_RSSI_BAR),1)
 endif
 ifeq ($(ENABLE_AUDIO_BAR),1)
 	CFLAGS  += -DENABLE_AUDIO_BAR
+endif
+ifeq ($(ENABLE_SHOW_TX_TIMEOUT),1)
+	CFLAGS  += -DENABLE_SHOW_TX_TIMEOUT
 endif
 ifeq ($(ENABLE_COPY_CHAN_TO_VFO),1)
 	CFLAGS  += -DENABLE_COPY_CHAN_TO_VFO
