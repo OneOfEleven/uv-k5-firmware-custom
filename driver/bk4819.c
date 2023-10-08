@@ -31,7 +31,7 @@ static const uint16_t FSK_RogerTable[7] = {0xF1A2, 0x7446, 0x61A4, 0x6544, 0x4E8
 
 static uint16_t gBK4819_GpioOutState;
 
-bool gRxIdleMode;
+bool g_rx_idle_mode;
 
 __inline uint16_t scale_freq(const uint16_t freq)
 {
@@ -713,12 +713,12 @@ void BK4819_SetFrequency(uint32_t Frequency)
 }
 
 void BK4819_SetupSquelch(
-		uint8_t SquelchOpenRSSIThresh,
-		uint8_t SquelchCloseRSSIThresh,
-		uint8_t SquelchOpenNoiseThresh,
-		uint8_t SquelchCloseNoiseThresh,
-		uint8_t SquelchCloseGlitchThresh,
-		uint8_t SquelchOpenGlitchThresh)
+		uint8_t squelch_open_RSSI_thresh,
+		uint8_t squelch_close_RSSI_thresh,
+		uint8_t squelch_open_noise_thresh,
+		uint8_t squelch_close_noise_thresh,
+		uint8_t squelch_close_glitch_thresh,
+		uint8_t squelch_open_glitch_thresh)
 {
 	// REG_70
 	//
@@ -742,7 +742,7 @@ void BK4819_SetupSquelch(
 	//
 	// 0 ~ 255
 	//
-	BK4819_WriteRegister(BK4819_REG_4D, 0xA000 | SquelchCloseGlitchThresh);
+	BK4819_WriteRegister(BK4819_REG_4D, 0xA000 | squelch_close_glitch_thresh);
 
 	// REG_4E
 	//
@@ -765,13 +765,13 @@ void BK4819_SetupSquelch(
 		(1u << 14) |                  //  1 ???
 		(3u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
 		(2u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
-		SquelchOpenGlitchThresh);     //  0 ~ 255
+		squelch_open_glitch_thresh);     //  0 ~ 255
 	#else
 		// faster (but twitchier)
 		(1u << 14) |                  //  1 ???
 		(2u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
 		(1u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
-		SquelchOpenGlitchThresh);     //  0 ~ 255
+		squelch_open_glitch_thresh);     //  0 ~ 255
 	#endif
 
 	// REG_4F
@@ -784,7 +784,7 @@ void BK4819_SetupSquelch(
 	// <6:0>  46 Ex-noise threshold for Squelch = open
 	//        0 ~ 127
 	//
-	BK4819_WriteRegister(BK4819_REG_4F, ((uint16_t)SquelchCloseNoiseThresh << 8) | SquelchOpenNoiseThresh);
+	BK4819_WriteRegister(BK4819_REG_4F, ((uint16_t)squelch_close_noise_thresh << 8) | squelch_open_noise_thresh);
 
 	// REG_78
 	//
@@ -792,7 +792,7 @@ void BK4819_SetupSquelch(
 	//
 	// <7:0>  70 RSSI threshold for Squelch = close   0.5dB/step
 	//
-	BK4819_WriteRegister(BK4819_REG_78, ((uint16_t)SquelchOpenRSSIThresh   << 8) | SquelchCloseRSSIThresh);
+	BK4819_WriteRegister(BK4819_REG_78, ((uint16_t)squelch_open_RSSI_thresh   << 8) | squelch_close_RSSI_thresh);
 
 	BK4819_SetAF(BK4819_AF_MUTE);
 
@@ -1196,7 +1196,7 @@ void BK4819_ExitSubAu(void)
 
 void BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable(void)
 {
-	if (gRxIdleMode)
+	if (g_rx_idle_mode)
 	{
 		BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, true);
 		BK4819_RX_TurnOn();
@@ -1670,7 +1670,7 @@ uint8_t BK4819_GetDTMF_5TONE_Code(void)
 	return (BK4819_ReadRegister(BK4819_REG_0B) >> 8) & 0x0F;
 }
 
-uint8_t BK4819_GetCDCSSCodeType(void)
+uint8_t BK4819_get_CDCSS_code_type(void)
 {
 	return (BK4819_ReadRegister(BK4819_REG_0C) >> 14) & 3u;
 }

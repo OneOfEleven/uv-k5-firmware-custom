@@ -55,14 +55,14 @@ static void ACTION_FlashLight(void)
 
 void ACTION_Power(void)
 {
-	if (++gTxVfo->OUTPUT_POWER > OUTPUT_POWER_HIGH)
-		gTxVfo->OUTPUT_POWER = OUTPUT_POWER_LOW;
+	if (++gTxVfo->output_power > OUTPUT_POWER_HIGH)
+		gTxVfo->output_power = OUTPUT_POWER_LOW;
 
 	gRequestSaveChannel = 1;
 	//gRequestSaveChannel = 2;   // auto save the channel
 
 	#ifdef ENABLE_VOICE
-		gAnotherVoiceID   = VOICE_ID_POWER;
+		g_another_voice_id   = VOICE_ID_POWER;
 	#endif
 
 	gRequestDisplayScreen = gScreenToDisplay;
@@ -74,8 +74,8 @@ void ACTION_Monitor(void)
 	{	// enable the monitor
 		RADIO_SelectVfos();
 		#ifdef ENABLE_NOAA
-			if (gRxVfo->CHANNEL_SAVE >= NOAA_CHANNEL_FIRST && gIsNoaaMode)
-				gNoaaChannel = gRxVfo->CHANNEL_SAVE - NOAA_CHANNEL_FIRST;
+			if (gRxVfo->channel_save >= NOAA_CHANNEL_FIRST && gIsNoaaMode)
+				gNoaaChannel = gRxVfo->channel_save - NOAA_CHANNEL_FIRST;
 		#endif
 		RADIO_SetupRegisters(true);
 		APP_StartListening(FUNCTION_MONITOR, false);
@@ -92,7 +92,7 @@ void ACTION_Monitor(void)
 	}
 
 	#ifdef ENABLE_NOAA
-		if (gEeprom.DUAL_WATCH == DUAL_WATCH_OFF && gIsNoaaMode)
+		if (g_eeprom.dual_watch == DUAL_WATCH_OFF && gIsNoaaMode)
 		{
 			gNOAA_Countdown_10ms = NOAA_countdown_10ms;
 			gScheduleNOAA        = false;
@@ -130,7 +130,7 @@ void ACTION_Scan(bool bRestart)
 					FM_PlayAndUpdate();
 
 					#ifdef ENABLE_VOICE
-						gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+						g_another_voice_id = VOICE_ID_SCANNING_STOP;
 					#endif
 				}
 				else
@@ -142,20 +142,20 @@ void ACTION_Scan(bool bRestart)
 						gFM_AutoScan        = true;
 						gFM_ChannelPosition = 0;
 						FM_EraseChannels();
-						Frequency           = gEeprom.FM_LowerLimit;
+						Frequency           = g_eeprom.fm_lower_limit;
 					}
 					else
 					{
 						gFM_AutoScan        = false;
 						gFM_ChannelPosition = 0;
-						Frequency           = gEeprom.FM_FrequencyPlaying;
+						Frequency           = g_eeprom.fm_frequency_playing;
 					}
 
 					BK1080_GetFrequencyDeviation(Frequency);
 					FM_Tune(Frequency, 1, bRestart);
 
 					#ifdef ENABLE_VOICE
-						gAnotherVoiceID = VOICE_ID_SCANNING_BEGIN;
+						g_another_voice_id = VOICE_ID_SCANNING_BEGIN;
 					#endif
 				}
 			}
@@ -177,7 +177,7 @@ void ACTION_Scan(bool bRestart)
 		RADIO_SelectVfos();
 
 		#ifdef ENABLE_NOAA
-			if (IS_NOT_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
+			if (IS_NOT_NOAA_CHANNEL(gRxVfo->channel_save))
 		#endif
 		{
 			GUI_SelectNextDisplay(DISPLAY_MAIN);
@@ -185,11 +185,11 @@ void ACTION_Scan(bool bRestart)
 			if (gScanStateDir != SCAN_OFF)
 			{	// already scanning
 		
-				if (gNextMrChannel <= MR_CHANNEL_LAST)
+				if (gNextChannel <= USER_CHANNEL_LAST)
 				{	// channel mode
 
 					// keep scanning but toggle between scan lists
-					gEeprom.SCAN_LIST_DEFAULT = (gEeprom.SCAN_LIST_DEFAULT + 1) % 3;
+					g_eeprom.scan_list_default = (g_eeprom.scan_list_default + 1) % 3;
 
 					// jump to the next channel
 					CHANNEL_Next(true, gScanStateDir);
@@ -204,7 +204,7 @@ void ACTION_Scan(bool bRestart)
 					SCANNER_Stop();
 
 					#ifdef ENABLE_VOICE
-						gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+						g_another_voice_id = VOICE_ID_SCANNING_STOP;
 					#endif
 				}
 			}
@@ -219,7 +219,7 @@ void ACTION_Scan(bool bRestart)
 				#endif
 
 				// clear the other vfo's rssi level (to hide the antenna symbol)
-				gVFO_RSSI_bar_level[(gEeprom.RX_VFO + 1) & 1u] = 0;
+				gVFO_RSSI_bar_level[(g_eeprom.rx_vfo + 1) & 1u] = 0;
 
 				// let the user see DW is not active
 				gDualWatchActive = false;
@@ -229,9 +229,9 @@ void ACTION_Scan(bool bRestart)
 	}
 	else
 //	if (!bRestart)
-	if (!bRestart && gNextMrChannel <= MR_CHANNEL_LAST)
+	if (!bRestart && gNextChannel <= USER_CHANNEL_LAST)
 	{	// channel mode, keep scanning but toggle between scan lists
-		gEeprom.SCAN_LIST_DEFAULT = (gEeprom.SCAN_LIST_DEFAULT + 1) % 3;
+		g_eeprom.scan_list_default = (g_eeprom.scan_list_default + 1) % 3;
 
 		// jump to the next channel
 		CHANNEL_Next(true, gScanStateDir);
@@ -247,7 +247,7 @@ void ACTION_Scan(bool bRestart)
 		SCANNER_Stop();
 	
 		#ifdef ENABLE_VOICE
-			gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+			g_another_voice_id = VOICE_ID_SCANNING_STOP;
 		#endif
 	
 		gRequestDisplayScreen = DISPLAY_MAIN;
@@ -257,11 +257,11 @@ void ACTION_Scan(bool bRestart)
 #ifdef ENABLE_VOX
 	void ACTION_Vox(void)
 	{
-		gEeprom.VOX_SWITCH   = !gEeprom.VOX_SWITCH;
+		g_eeprom.vox_switch   = !g_eeprom.vox_switch;
 		gRequestSaveSettings = true;
 		gFlagReconfigureVfos = true;
 		#ifdef ENABLE_VOICE
-			gAnotherVoiceID  = VOICE_ID_VOX;
+			g_another_voice_id  = VOICE_ID_VOX;
 		#endif
 		gUpdateStatus        = true;
 	}
@@ -323,7 +323,7 @@ void ACTION_Scan(bool bRestart)
 	}
 #endif
 
-void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+void ACTION_Handle(key_code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
 	uint8_t Short = ACTION_OPT_NONE;
 	uint8_t Long  = ACTION_OPT_NONE;
@@ -346,7 +346,7 @@ void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 			}
 
 			#ifdef ENABLE_VOICE
-				gAnotherVoiceID   = VOICE_ID_CANCEL;
+				g_another_voice_id   = VOICE_ID_CANCEL;
 			#endif
 
 			gRequestDisplayScreen = DISPLAY_MAIN;
@@ -359,14 +359,14 @@ void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 
 	if (Key == KEY_SIDE1)
 	{
-		Short = gEeprom.KEY_1_SHORT_PRESS_ACTION;
-		Long  = gEeprom.KEY_1_LONG_PRESS_ACTION;
+		Short = g_eeprom.key1_short_press_action;
+		Long  = g_eeprom.key1_long_press_action;
 	}
 	else
 	if (Key == KEY_SIDE2)
 	{
-		Short = gEeprom.KEY_2_SHORT_PRESS_ACTION;
-		Long  = gEeprom.KEY_2_LONG_PRESS_ACTION;
+		Short = g_eeprom.key2_short_press_action;
+		Long  = g_eeprom.key2_long_press_action;
 	}
 
 	if (!bKeyHeld && bKeyPressed)

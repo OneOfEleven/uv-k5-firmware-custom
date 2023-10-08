@@ -10,12 +10,12 @@ ENABLE_LTO                    := 1
 ENABLE_UART                   := 1
 ENABLE_AIRCOPY                := 0
 ENABLE_FMRADIO                := 1
-ENABLE_NOAA                   := 0
+ENABLE_NOAA                   := 1
 ENABLE_VOICE                  := 1
 ENABLE_VOX                    := 1
-ENABLE_ALARM                  := 0
+ENABLE_ALARM                  := 1
 ENABLE_TX1750                 := 1
-ENABLE_PWRON_PASSWORD         := 0
+ENABLE_PWRON_PASSWORD         := 1
 ENABLE_BIG_FREQ               := 0
 ENABLE_SMALL_BOLD             := 1
 ENABLE_KEEP_MEM_NAME          := 1
@@ -33,8 +33,8 @@ ENABLE_AM_FIX_SHOW_DATA       := 1
 ENABLE_SQUELCH_MORE_SENSITIVE := 1
 ENABLE_FASTER_CHANNEL_SCAN    := 1
 ENABLE_RSSI_BAR               := 1
-ENABLE_AUDIO_BAR              := 0
 ENABLE_SHOW_TX_TIMEOUT        := 1
+ENABLE_AUDIO_BAR              := 0
 ENABLE_COPY_CHAN_TO_VFO       := 1
 #ENABLE_PANADAPTER             := 1
 #ENABLE_SINGLE_VFO_CHAN        := 1
@@ -51,6 +51,11 @@ endif
 ifeq ($(ENABLE_LTO),1)
 	# can't have LTO and OVERLAY enabled at same time
 	ENABLE_OVERLAY := 0
+endif
+
+ifeq ($(ENABLE_SHOW_TX_TIMEOUT),1)
+	# can't have ENABLE_SHOW_TX_TIMEOUT and ENABLE_AUDIO_BAR enabled at same time
+	ENABLE_AUDIO_BAR := 0
 endif
 
 BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
@@ -108,6 +113,9 @@ OBJS += app/generic.o
 OBJS += app/main.o
 OBJS += app/menu.o
 OBJS += app/scanner.o
+ifeq ($(ENABLE_PANADAPTER),1)
+	OBJS += app/spectrum.o
+endif
 ifeq ($(ENABLE_UART),1)
 	OBJS += app/uart.o
 endif
@@ -295,8 +303,8 @@ endif
 ifeq ($(ENABLE_FASTER_CHANNEL_SCAN),1)
 	CFLAGS  += -DENABLE_FASTER_CHANNEL_SCAN
 endif
-ifeq ($(ENABLE_BACKLIGHT_ON_RX),1)
-	CFLAGS  += -DENABLE_BACKLIGHT_ON_RX
+ifeq ($(ENABLE_backlight_ON_RX),1)
+	CFLAGS  += -DENABLE_backlight_ON_RX
 endif
 ifeq ($(ENABLE_RSSI_BAR),1)
 	CFLAGS  += -DENABLE_RSSI_BAR

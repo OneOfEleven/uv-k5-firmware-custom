@@ -73,7 +73,7 @@ void Main(void)
 
 	// Not implementing authentic device checks
 
-	memset(&gEeprom, 0, sizeof(gEeprom));
+	memset(&g_eeprom, 0, sizeof(g_eeprom));
 
 	memset(gDTMF_String, '-', sizeof(gDTMF_String));
 	gDTMF_String[sizeof(gDTMF_String) - 1] = 0;
@@ -115,23 +115,23 @@ void Main(void)
 		 BootMode != BOOT_MODE_NORMAL)
 	{	// keys are pressed
 		UI_DisplayReleaseKeys();
-		BACKLIGHT_TurnOn();
+		backlight_turn_on();
 		i = 0;
 		while (i < 50)  // 500ms
 		{
 			i = (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) && KEYBOARD_Poll() == KEY_INVALID) ? i + 1 : 0;
 			SYSTEM_DelayMs(10);
 		}
-		gKeyReading0 = KEY_INVALID;
-		gKeyReading1 = KEY_INVALID;
-		gDebounceCounter = 0;
+		g_key_reading_0 = KEY_INVALID;
+		g_key_reading_1 = KEY_INVALID;
+		g_debounce_counter = 0;
 	}
 
 	if (!gChargingWithTypeC && gBatteryDisplayLevel == 0)
 	{
 		FUNCTION_Select(FUNCTION_POWER_SAVE);
 
-		if (gEeprom.BACKLIGHT < (ARRAY_SIZE(gSubMenu_BACKLIGHT) - 1))
+		if (g_eeprom.backlight < (ARRAY_SIZE(gSubMenu_backlight) - 1))
 			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
 		else
 			GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  	// turn the backlight ON
@@ -142,9 +142,9 @@ void Main(void)
 	{
 		UI_DisplayWelcome();
 
-		BACKLIGHT_TurnOn();
+		backlight_turn_on();
 
-		if (gEeprom.POWER_ON_DISPLAY_MODE != POWER_ON_DISPLAY_MODE_NONE)
+		if (g_eeprom.pwr_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
 		{	// 2.55 second boot-up screen
 			while (boot_counter_10ms > 0)
 			{
@@ -161,7 +161,7 @@ void Main(void)
 		}
 
 		#ifdef ENABLE_PWRON_PASSWORD
-			if (gEeprom.POWER_ON_PASSWORD < 1000000)
+			if (g_eeprom.power_on_password < 1000000)
 			{
 				bIsInLockScreen = true;
 				UI_DisplayLock();
@@ -181,8 +181,8 @@ void Main(void)
 
 			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
 
-			Channel = gEeprom.ScreenChannel[gEeprom.TX_VFO];
-			if (IS_MR_CHANNEL(Channel))
+			Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
+			if (IS_USER_CHANNEL(Channel))
 			{
 				AUDIO_SetVoiceID(1, VOICE_ID_CHANNEL_MODE);
 				AUDIO_SetDigitVoice(2, Channel + 1);

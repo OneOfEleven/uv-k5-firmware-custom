@@ -43,7 +43,7 @@ typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
 
 #ifdef ENABLE_1250HZ_STEP
 	// includes 1.25kHz step
-	enum STEP_Setting_t {
+	enum step_setting_t {
 		STEP_1_25kHz = 0,
 		STEP_2_5kHz,
 		STEP_6_25kHz,
@@ -54,7 +54,7 @@ typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
 };
 #else
 	// QS steps
-	enum STEP_Setting_t {
+	enum step_setting_t {
 		STEP_2_5kHz = 0,
 		STEP_5_0kHz,
 		STEP_6_25kHz,
@@ -64,7 +64,7 @@ typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
 		STEP_8_33kHz
 	};
 #endif
-typedef enum STEP_Setting_t STEP_Setting_t;
+typedef enum step_setting_t step_setting_t;
 
 extern const uint16_t     StepFrequencyTable[7];
 

@@ -53,11 +53,11 @@ void UI_DisplayFM(void)
 	{
 		if (gFM_ScanState == FM_SCAN_OFF)
 		{
-			if (!gEeprom.FM_IsMrMode)
+			if (!g_eeprom.fm_is_channel_mode)
 			{
 				for (i = 0; i < 20; i++)
 				{
-					if (gEeprom.FM_FrequencyPlaying == gFM_Channels[i])
+					if (g_eeprom.fm_frequency_playing == gFM_Channels[i])
 					{
 						sprintf(String, "VFO(CH%02u)", i + 1);
 						break;
@@ -68,7 +68,7 @@ void UI_DisplayFM(void)
 					strcpy(String, "VFO");
 			}
 			else
-				sprintf(String, "MR(CH%02u)", gEeprom.FM_SelectedChannel + 1);
+				sprintf(String, "MR(CH%02u)", g_eeprom.fm_selected_channel + 1);
 		}
 		else
 		{
@@ -81,7 +81,7 @@ void UI_DisplayFM(void)
 	UI_PrintString(String, 0, 127, 2, 10);
 
 	memset(String, 0, sizeof(String));
-	if (gAskToSave || (gEeprom.FM_IsMrMode && gInputBoxIndex > 0))
+	if (gAskToSave || (g_eeprom.fm_is_channel_mode && gInputBoxIndex > 0))
 	{
 		UI_GenerateChannelString(String, gFM_ChannelPosition);
 	}
@@ -90,7 +90,7 @@ void UI_DisplayFM(void)
 	{
 		if (gInputBoxIndex == 0)
 		{
-			NUMBER_ToDigits(gEeprom.FM_FrequencyPlaying * 10000, String);
+			NUMBER_ToDigits(g_eeprom.fm_frequency_playing * 10000, String);
 			UI_DisplayFrequency(String, 23, 4, false, true);
 		}
 		else
@@ -101,7 +101,7 @@ void UI_DisplayFM(void)
 	}
 	else
 	{
-		sprintf(String, "CH-%02u", gEeprom.FM_SelectedChannel + 1);
+		sprintf(String, "CH-%02u", g_eeprom.fm_selected_channel + 1);
 	}
 	UI_PrintString(String, 0, 127, 4, 10);
 

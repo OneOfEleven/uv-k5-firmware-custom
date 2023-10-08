@@ -53,9 +53,9 @@ const t_menu_item MenuList[] =
 	{"RxCTCS", VOICE_ID_CTCSS,                         MENU_R_CTCS        }, // was "R_CTCS"
 	{"Tx DCS", VOICE_ID_DCS,                           MENU_T_DCS         }, // was "T_DCS"
 	{"TxCTCS", VOICE_ID_CTCSS,                         MENU_T_CTCS        }, // was "T_CTCS"
-	{"Tx DIR", VOICE_ID_TX_OFFSET_FREQUENCY_DIRECTION, MENU_SFT_D         }, // was "SFT_D"
-	{"TxOFFS", VOICE_ID_TX_OFFSET_FREQUENCY,           MENU_OFFSET        }, // was "OFFSET"
-	{"Tx TO",  VOICE_ID_TRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
+	{"Tx DIR", voice_id_tX_OFFSET_FREQ_DIR, MENU_SFT_D         }, // was "SFT_D"
+	{"TxOFFS", voice_id_tX_OFFSET_FREQ,           MENU_OFFSET        }, // was "OFFSET"
+	{"Tx TO",  voice_id_tRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
 	{"Tx VFO", VOICE_ID_INVALID,                       MENU_XB            }, // was "WX"
 	{"2nd RX", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           }, // was "TDR"
 	{"SCRAM",  VOICE_ID_SCRAMBLER_ON,                  MENU_SCR           }, // was "SCR"
@@ -288,7 +288,7 @@ const char gSubMenu_F_LOCK[6][4] =
 	"438"
 };
 
-const char gSubMenu_BACKLIGHT[8][7] =
+const char gSubMenu_backlight[8][7] =
 {
 	"OFF",
 	"5 sec",
@@ -556,16 +556,16 @@ void UI_DisplayMenu(void)
 		{
 			#if 1
 				unsigned int Code;
-				FREQ_Config_t *pConfig = (gMenuCursor == MENU_R_CTCS) ? &gTxVfo->freq_config_RX : &gTxVfo->freq_config_TX;
+				FREQ_Config_t *pConfig = (gMenuCursor == MENU_R_CTCS) ? &gTxVfo->freq_config_rx : &gTxVfo->freq_config_tx;
 				if (gSubMenuSelection == 0)
 				{
 					strcpy(String, "OFF");
 
-					if (pConfig->CodeType != CODE_TYPE_CONTINUOUS_TONE)
+					if (pConfig->code_type != CODE_TYPE_CONTINUOUS_TONE)
 						break;
 					Code = 0;
-					pConfig->CodeType = CODE_TYPE_OFF;
-					pConfig->Code = Code;
+					pConfig->code_type = CODE_TYPE_OFF;
+					pConfig->code = Code;
 
 					BK4819_ExitSubAu();
 				}
@@ -573,9 +573,9 @@ void UI_DisplayMenu(void)
 				{
 					sprintf(String, "%u.%uHz", CTCSS_Options[gSubMenuSelection - 1] / 10, CTCSS_Options[gSubMenuSelection - 1] % 10);
 
-					pConfig->CodeType = CODE_TYPE_CONTINUOUS_TONE;
+					pConfig->code_type = CODE_TYPE_CONTINUOUS_TONE;
 					Code = gSubMenuSelection - 1;
-					pConfig->Code = Code;
+					pConfig->code = Code;
 
 					BK4819_SetCTCSSFrequency(CTCSS_Options[Code]);
 				}
@@ -643,7 +643,7 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_ABR:
-			strcpy(String, gSubMenu_BACKLIGHT[gSubMenuSelection]);
+			strcpy(String, gSubMenu_backlight[gSubMenuSelection]);
 			break;
 
 		case MENU_AM:
@@ -800,15 +800,15 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_ANI_ID:
-			strcpy(String, gEeprom.ANI_DTMF_ID);
+			strcpy(String, g_eeprom.ani_DTMF_id);
 			break;
 
 		case MENU_UPCODE:
-			strcpy(String, gEeprom.DTMF_UP_CODE);
+			strcpy(String, g_eeprom.DTMF_up_code);
 			break;
 
 		case MENU_DWCODE:
-			strcpy(String, gEeprom.DTMF_DOWN_CODE);
+			strcpy(String, g_eeprom.DTMF_down_code);
 			break;
 
 		case MENU_D_RSP:
@@ -980,8 +980,8 @@ void UI_DisplayMenu(void)
 		else
 			UI_GenerateChannelStringEx(String, true, gSubMenuSelection);
 
-//		if (gSubMenuSelection == 0xFF || !gEeprom.SCAN_LIST_ENABLED[i])
-		if (gSubMenuSelection < 0 || !gEeprom.SCAN_LIST_ENABLED[i])
+//		if (gSubMenuSelection == 0xFF || !g_eeprom.scan_list_enabled[i])
+		if (gSubMenuSelection < 0 || !g_eeprom.scan_list_enabled[i])
 		{
 			// channel number
 			UI_PrintString(String, menu_item_x1, menu_item_x2, 0, 8);
@@ -1003,15 +1003,15 @@ void UI_DisplayMenu(void)
 				strcpy(String, "--");
 			UI_PrintStringSmall(String, menu_item_x1, menu_item_x2, 2);
 
-			if (IS_MR_CHANNEL(gEeprom.SCANLIST_PRIORITY_CH1[i]))
+			if (IS_USER_CHANNEL(g_eeprom.scan_list_priority_ch1[i]))
 			{
-				sprintf(String, "PRI1:%u", gEeprom.SCANLIST_PRIORITY_CH1[i] + 1);
+				sprintf(String, "PRI1:%u", g_eeprom.scan_list_priority_ch1[i] + 1);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 3, 8);
 			}
 
-			if (IS_MR_CHANNEL(gEeprom.SCANLIST_PRIORITY_CH2[i]))
+			if (IS_USER_CHANNEL(g_eeprom.scan_list_priority_ch2[i]))
 			{
-				sprintf(String, "PRI2:%u", gEeprom.SCANLIST_PRIORITY_CH2[i] + 1);
+				sprintf(String, "PRI2:%u", g_eeprom.scan_list_priority_ch2[i] + 1);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 5, 8);
 			}
 		}
@@ -1032,12 +1032,12 @@ void UI_DisplayMenu(void)
 		UI_PrintString("SCAN", menu_item_x1, menu_item_x2, 4, 8);
 
 	if (gMenuCursor == MENU_UPCODE)
-		if (strlen(gEeprom.DTMF_UP_CODE) > 8)
-			UI_PrintString(gEeprom.DTMF_UP_CODE + 8, menu_item_x1, menu_item_x2, 4, 8);
+		if (strlen(g_eeprom.DTMF_up_code) > 8)
+			UI_PrintString(g_eeprom.DTMF_up_code + 8, menu_item_x1, menu_item_x2, 4, 8);
 
 	if (gMenuCursor == MENU_DWCODE)
-		if (strlen(gEeprom.DTMF_DOWN_CODE) > 8)
-			UI_PrintString(gEeprom.DTMF_DOWN_CODE + 8, menu_item_x1, menu_item_x2, 4, 8);
+		if (strlen(g_eeprom.DTMF_down_code) > 8)
+			UI_PrintString(g_eeprom.DTMF_down_code + 8, menu_item_x1, menu_item_x2, 4, 8);
 
 	if (gMenuCursor == MENU_D_LIST && gIsDtmfContactValid)
 	{

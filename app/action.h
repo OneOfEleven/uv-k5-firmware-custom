@@ -33,7 +33,7 @@ void ACTION_Scan(bool bFlag);
 	void ACTION_FM(void);
 #endif
 
-void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+void ACTION_Handle(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
 
 #endif
 

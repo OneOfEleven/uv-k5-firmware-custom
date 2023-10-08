@@ -48,12 +48,12 @@ void UI_DisplayWelcome(void)
 	memset(gStatusLine,  0, sizeof(gStatusLine));
 	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
 
-	if (gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_NONE)
+	if (g_eeprom.pwr_on_display_mode == PWR_ON_DISPLAY_MODE_NONE)
 	{
 		ST7565_FillScreen(0xFF);
 	}
 	else
-	if (gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_FULL_SCREEN)
+	if (g_eeprom.pwr_on_display_mode == PWR_ON_DISPLAY_MODE_FULL_SCREEN)
 	{
 		ST7565_FillScreen(0xFF);
 	}
@@ -63,7 +63,7 @@ void UI_DisplayWelcome(void)
 		memset(WelcomeString1, 0, sizeof(WelcomeString1));
 		memset(WelcomeString2, 0, sizeof(WelcomeString2));
 
-		if (gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_VOLTAGE)
+		if (g_eeprom.pwr_on_display_mode == PWR_ON_DISPLAY_MODE_VOLTAGE)
 		{
 			strcpy(WelcomeString0, "VOLTAGE");
 			sprintf(WelcomeString1, "%u.%02uV %u%%",

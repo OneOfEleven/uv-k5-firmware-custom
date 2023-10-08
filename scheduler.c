@@ -78,12 +78,12 @@ void SystickHandler(void)
 	if (gCurrentFunction == FUNCTION_POWER_SAVE)
 		DECREMENT_AND_TRIGGER(gPowerSave_10ms, gPowerSaveCountdownExpired);
 
-	if (gScanStateDir == SCAN_OFF && gCssScanMode == CSS_SCAN_MODE_OFF && gEeprom.DUAL_WATCH != DUAL_WATCH_OFF)
+	if (gScanStateDir == SCAN_OFF && gCssScanMode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch != DUAL_WATCH_OFF)
 		if (gCurrentFunction != FUNCTION_MONITOR && gCurrentFunction != FUNCTION_TRANSMIT && gCurrentFunction != FUNCTION_RECEIVE)
 			DECREMENT_AND_TRIGGER(gDualWatchCountdown_10ms, gScheduleDualWatch);
 
 	#ifdef ENABLE_NOAA
-		if (gScanStateDir == SCAN_OFF && gCssScanMode == CSS_SCAN_MODE_OFF && gEeprom.DUAL_WATCH == DUAL_WATCH_OFF)
+		if (gScanStateDir == SCAN_OFF && gCssScanMode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch == DUAL_WATCH_OFF)
 			if (gIsNoaaMode && gCurrentFunction != FUNCTION_MONITOR && gCurrentFunction != FUNCTION_TRANSMIT)
 				if (gCurrentFunction != FUNCTION_RECEIVE)
 					DECREMENT_AND_TRIGGER(gNOAA_Countdown_10ms, gScheduleNOAA);
@@ -96,7 +96,7 @@ void SystickHandler(void)
 	DECREMENT_AND_TRIGGER(gTailNoteEliminationCountdown_10ms, gFlagTailNoteEliminationComplete);
 
 	#ifdef ENABLE_VOICE
-		DECREMENT_AND_TRIGGER(gCountdownToPlayNextVoice_10ms, gFlagPlayQueuedVoice);
+		DECREMENT_AND_TRIGGER(g_count_down_to_play_next_voice_10ms, g_flag_play_queued_voice);
 	#endif
 	
 	#ifdef ENABLE_FMRADIO

@@ -50,7 +50,7 @@ static void Render(void)
 
 void UI_DisplayLock(void)
 {
-	KEY_Code_t  Key;
+	key_code_t  Key;
 	BEEP_Type_t Beep;
 
 	gUpdateDisplay = true;
@@ -67,17 +67,17 @@ void UI_DisplayLock(void)
 
 		Key = KEYBOARD_Poll();
 
-		if (gKeyReading0 == Key)
+		if (g_key_reading_0 == Key)
 		{
-			if (++gDebounceCounter == key_debounce_10ms)
+			if (++g_debounce_counter == key_debounce_10ms)
 			{
 				if (Key == KEY_INVALID)
 				{
-					gKeyReading1 = KEY_INVALID;
+					g_key_reading_1 = KEY_INVALID;
 				}
 				else
 				{
-					gKeyReading1 = Key;
+					g_key_reading_1 = Key;
 
 					switch (Key)
 					{
@@ -105,7 +105,7 @@ void UI_DisplayLock(void)
 
 								NUMBER_Get(gInputBox, &Password);
 
-								if ((gEeprom.POWER_ON_PASSWORD * 100) == Password)
+								if ((g_eeprom.power_on_password * 100) == Password)
 								{
 									AUDIO_PlayBeep(BEEP_1KHZ_60MS_OPTIONAL);
 									return;
@@ -140,8 +140,8 @@ void UI_DisplayLock(void)
 		}
 		else
 		{
-			gDebounceCounter = 0;
-			gKeyReading0     = Key;
+			g_debounce_counter = 0;
+			g_key_reading_0     = Key;
 		}
 
 		if (UART_IsCommandAvailable())

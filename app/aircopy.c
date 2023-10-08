@@ -113,7 +113,7 @@ void AIRCOPY_StorePacket(void)
 	gErrorsDuringAirCopy++;
 }
 
-static void AIRCOPY_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+static void AIRCOPY_Key_DIGITS(key_code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
 	if (!bKeyHeld && bKeyPressed)
 	{
@@ -125,7 +125,7 @@ static void AIRCOPY_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 		if (gInputBoxIndex < 6)
 		{
 			#ifdef ENABLE_VOICE
-				gAnotherVoiceID = (VOICE_ID_t)Key;
+				g_another_voice_id = (voice_id_t)Key;
 			#endif
 			return;
 		}
@@ -139,13 +139,13 @@ static void AIRCOPY_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 			if (Frequency >= frequencyBandTable[i].lower && Frequency < frequencyBandTable[i].upper)
 			{
 				#ifdef ENABLE_VOICE
-					gAnotherVoiceID        = (VOICE_ID_t)Key;
+					g_another_voice_id        = (voice_id_t)Key;
 				#endif
-				gRxVfo->Band               = i;
+				gRxVfo->band               = i;
 				Frequency                 += 75;
-				Frequency                  = FREQUENCY_FloorToStep(Frequency, gRxVfo->StepFrequency, 0);
-				gRxVfo->freq_config_RX.Frequency = Frequency;
-				gRxVfo->freq_config_TX.Frequency = Frequency;
+				Frequency                  = FREQUENCY_FloorToStep(Frequency, gRxVfo->step_freq, 0);
+				gRxVfo->freq_config_rx.frequency = Frequency;
+				gRxVfo->freq_config_tx.frequency = Frequency;
 				RADIO_ConfigureSquelchAndOutputPower(gRxVfo);
 				gCurrentVfo                = gRxVfo;
 				RADIO_SetupRegisters(true);
@@ -202,7 +202,7 @@ static void AIRCOPY_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 	}
 }
 
-void AIRCOPY_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+void AIRCOPY_ProcessKeys(key_code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
 	switch (Key)
 	{

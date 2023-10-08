@@ -22,169 +22,181 @@
 const uint16_t RSSI_MAX_VALUE = 65535;
 
 static uint32_t initialFreq;
-static char String[32];
+static char     String[32];
 
-bool isInitialized = false;
-bool monitorMode = false;
-bool redrawStatus = true;
-bool redrawScreen = false;
-bool newScanStart = true;
+bool isInitialized   = false;
+bool monitorMode     = false;
+bool redrawStatus    = true;
+bool redrawScreen    = false;
+bool newScanStart    = true;
 bool preventKeypress = true;
 
-bool isListening = false;
-bool isTransmitting = false;
+bool isListening     = false;
+bool isTransmitting  = false;
 
-State currentState = SPECTRUM, previousState = SPECTRUM;
+State currentState   = SPECTRUM, previousState = SPECTRUM;
 
-PeakInfo peak;
-ScanInfo scanInfo;
-KeyboardState kbd = {KEY_INVALID, KEY_INVALID, 0};
+PeakInfo      peak;
+ScanInfo      scanInfo;
+KeyboardState kbd    = {KEY_INVALID, KEY_INVALID, 0};
 
-const char *bwOptions[] = {"  25k", "12.5k", "6.25k"};
-const char *modulationTypeOptions[] = {" FM", " AM", "USB"};
+const char   *bwOptions[]               = {"  25k", "12.5k", "6.25k"};
+const char   *modulationTypeOptions[]   = {" FM", " AM", "USB"};
 const uint8_t modulationTypeTuneSteps[] = {100, 50, 10};
-const uint8_t modTypeReg47Values[] = {1, 7, 5};
+const uint8_t modTypeReg47Values[]      = {1, 7, 5};
 
 SpectrumSettings settings = {
-    .stepsCount = STEPS_64,
-    .scanStepIndex = S_STEP_25_0kHz,
-    .frequencyChangeStep = 80000,
-    .scanDelay = 3200,
-    .rssiTriggerLevel = 150,
-    .backlightState = true,
-    .bw = BK4819_FILTER_BW_WIDE,
-    .listenBw = BK4819_FILTER_BW_WIDE,
-    .modulationType = false,
+	.stepsCount          = STEPS_64,
+	.scanStepIndex       = S_STEP_25_0kHz,
+	.frequencyChangeStep = 80000,
+	.scanDelay           = 3200,
+	.rssiTriggerLevel    = 150,
+	.backlightState      = true,
+	.bw                  = BK4819_FILTER_BW_WIDE,
+	.listenBw            = BK4819_FILTER_BW_WIDE,
+	.modulationType      = false,
 };
 
-uint32_t fMeasure = 0;
-uint32_t fTx = 0;
-uint32_t currentFreq, tempFreq;
+uint32_t fMeasure         = 0;
+uint32_t fTx              = 0;
+uint32_t currentFreq;
+uint32_t tempFreq;
 uint16_t rssiHistory[128] = {0};
-bool blacklist[128] = {false};
+bool     blacklist[128]   = {false};
 
-static const RegisterSpec afOutRegSpec = {"AF OUT", 0x47, 8, 0xF, 1};
+static const RegisterSpec afOutRegSpec     = {"AF OUT", 0x47, 8, 0xF, 1};
 static const RegisterSpec afDacGainRegSpec = {"AF DAC G", 0x48, 0, 0xF, 1};
-static const RegisterSpec registerSpecs[] = {
-    {},
-    {"LNAs", 0x13, 8, 0b11, 1},
-    {"LNA", 0x13, 5, 0b111, 1},
-    {"PGA", 0x13, 0, 0b111, 1},
-    {"MIX", 0x13, 3, 0b11, 1},
-
-    {"DEV", 0x40, 0, 4095, 1},
-    {"CMP", 0x31, 3, 1, 1},
-    {"MIC", 0x7D, 0, 0x1F, 1},
+static const RegisterSpec registerSpecs[]  = {
+	{},
+	{"LNAs", 0x13, 8, 0b11,  1},
+	{"LNA",  0x13, 5, 0b111, 1},
+	{"PGA",  0x13, 0, 0b111, 1},
+	{"MIX",  0x13, 3, 0b11,  1},
+	{"DEV",  0x40, 0, 4095,  1},
+	{"CMP",  0x31, 3, 1,     1},
+	{"MIC",  0x7D, 0, 0x1F,  1},
 };
 
 static uint16_t registersBackup[128];
 static const uint8_t registersToBackup[] = {
-    0x13, 0x30, 0x31, 0x37, 0x3D, 0x40, 0x43, 0x47, 0x48, 0x7D, 0x7E,
+	0x13, 0x30, 0x31, 0x37, 0x3D, 0x40, 0x43, 0x47, 0x48, 0x7D, 0x7E,
 };
 
-static MovingAverage mov = {{128}, {}, 255, 128, 0, 0};
+static MovingAverage mov   = {{128}, {}, 255, 128, 0, 0};
 static const uint8_t MOV_N = ARRAY_SIZE(mov.buf);
 
 const uint8_t FREQ_INPUT_LENGTH = 10;
-uint8_t freqInputIndex = 0;
-uint8_t freqInputDotIndex = 0;
-KEY_Code_t freqInputArr[10];
-char freqInputString[] = "----------"; // XXXX.XXXXX
+uint8_t       freqInputIndex    = 0;
+uint8_t       freqInputDotIndex = 0;
+key_code_t    freqInputArr[10];
+char          freqInputString[] = "----------"; // XXXX.XXXXX
 
-uint8_t menuState = 0;
+uint8_t  menuState = 0;
 
-uint16_t listenT = 0;
+uint16_t listenT   = 0;
 
-uint16_t batteryUpdateTimer = 0;
-bool isMovingInitialized = false;
-uint8_t lastStepsCount = 0;
+uint16_t batteryUpdateTimer  = 0;
+bool     isMovingInitialized = false;
+uint8_t  lastStepsCount      = 0;
 
-uint8_t CountBits(uint16_t n) {
-  uint8_t count = 0;
-  while (n) {
-    count++;
-    n >>= 1;
-  }
-  return count;
+uint8_t CountBits(uint16_t n)
+{
+	uint8_t count = 0;
+	while (n)
+	{
+		count++;
+		n >>= 1;
+	}
+	return count;
 }
 
-static uint16_t GetRegMask(RegisterSpec s) {
-  return (1 << CountBits(s.maxValue)) - 1;
+static uint16_t GetRegMask(RegisterSpec s)
+{
+	return (1 << CountBits(s.maxValue)) - 1;
 }
 
-static uint16_t GetRegValue(RegisterSpec s) {
-  return (BK4819_ReadRegister(s.num) >> s.offset) & s.maxValue;
+static uint16_t GetRegValue(RegisterSpec s)
+{
+	return (BK4819_ReadRegister(s.num) >> s.offset) & s.maxValue;
 }
 
-static void SetRegValue(RegisterSpec s, uint16_t v) {
-  uint16_t reg = BK4819_ReadRegister(s.num);
-  reg &= ~(GetRegMask(s) << s.offset);
-  BK4819_WriteRegister(s.num, reg | (v << s.offset));
+static void SetRegValue(RegisterSpec s, uint16_t v)
+{
+	uint16_t reg = BK4819_ReadRegister(s.num);
+	reg &= ~(GetRegMask(s) << s.offset);
+	BK4819_WriteRegister(s.num, reg | (v << s.offset));
 }
 
-static void UpdateRegMenuValue(RegisterSpec s, bool add) {
-  uint16_t v = GetRegValue(s);
-
-  if (add && v <= s.maxValue - s.inc) {
-    v += s.inc;
-  } else if (!add && v >= 0 + s.inc) {
-    v -= s.inc;
-  }
-
-  SetRegValue(s, v);
-  redrawScreen = true;
+static void UpdateRegMenuValue(RegisterSpec s, bool add)
+{
+	uint16_t v = GetRegValue(s);
+	
+	if (add && v <= s.maxValue - s.inc)
+		v += s.inc;
+	else
+	if (!add && v >= 0 + s.inc)
+		v -= s.inc;
+	
+	SetRegValue(s, v);
+	redrawScreen = true;
 }
 
 // Utility functions
 
-KEY_Code_t GetKey() {
-  KEY_Code_t btn = KEYBOARD_Poll();
-  if (btn == KEY_INVALID && !GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT)) {
-    btn = KEY_PTT;
-  }
-  return btn;
+key_code_t GetKey()
+{
+	key_code_t btn = KEYBOARD_Poll();
+	if (btn == KEY_INVALID && !GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT))
+		btn = KEY_PTT;
+	return btn;
 }
 
-void SetState(State state) {
-  previousState = currentState;
-  currentState = state;
-  redrawScreen = true;
-  redrawStatus = true;
+void SetState(State state)
+{
+	previousState = currentState;
+	currentState  = state;
+	redrawScreen  = true;
+	redrawStatus  = true;
 }
 
 // Radio functions
 
-static void BackupRegisters() {
-  for (int i = 0; i < ARRAY_SIZE(registersToBackup); ++i) {
-    uint8_t regNum = registersToBackup[i];
-    registersBackup[regNum] = BK4819_ReadRegister(regNum);
-  }
+static void BackupRegisters()
+{
+	for (int i = 0; i < ARRAY_SIZE(registersToBackup); ++i)
+	{
+		uint8_t regNum = registersToBackup[i];
+		registersBackup[regNum] = BK4819_ReadRegister(regNum);
+	}
 }
 
-static void RestoreRegisters() {
-  for (int i = 0; i < ARRAY_SIZE(registersToBackup); ++i) {
-    uint8_t regNum = registersToBackup[i];
-    BK4819_WriteRegister(regNum, registersBackup[regNum]);
-  }
+static void RestoreRegisters()
+{
+	for (int i = 0; i < ARRAY_SIZE(registersToBackup); ++i)
+	{
+		uint8_t regNum = registersToBackup[i];
+		BK4819_WriteRegister(regNum, registersBackup[regNum]);
+	}
 }
 
-static void SetModulation(ModulationType type) {
-  // restore only registers, which we affect here fully
-  BK4819_WriteRegister(0x37, registersBackup[0x37]);
-  BK4819_WriteRegister(0x3D, registersBackup[0x3D]);
-  BK4819_WriteRegister(0x48, registersBackup[0x48]);
-
-  SetRegValue(afOutRegSpec, modTypeReg47Values[type]);
-
-  if (type == MOD_USB) {
-    BK4819_WriteRegister(0x37, 0b0001011000001111);
-    BK4819_WriteRegister(0x3D, 0b0010101101000101);
-    BK4819_WriteRegister(0x48, 0b0000001110101000);
-  }
-
-  if (type == MOD_AM) {
-    SetRegValue(afDacGainRegSpec, 0xE);
-  }
+static void SetModulation(ModulationType type)
+{
+	// restore only registers, which we affect here fully
+	BK4819_WriteRegister(0x37, registersBackup[0x37]);
+	BK4819_WriteRegister(0x3D, registersBackup[0x3D]);
+	BK4819_WriteRegister(0x48, registersBackup[0x48]);
+	
+	SetRegValue(afOutRegSpec, modTypeReg47Values[type]);
+	
+	if (type == MOD_USB)
+	{
+		BK4819_WriteRegister(0x37, 0b0001011000001111);
+		BK4819_WriteRegister(0x3D, 0b0010101101000101);
+		BK4819_WriteRegister(0x48, 0b0000001110101000);
+	}
+	
+	if (type == MOD_AM)
+		SetRegValue(afDacGainRegSpec, 0xE);
 }
 
 static void SetF(uint32_t f) {
@@ -646,7 +658,7 @@ static void FreqInput() {
   SetState(FREQ_INPUT);
 }
 
-static void UpdateFreqInput(KEY_Code_t key) {
+static void UpdateFreqInput(key_code_t key) {
   if (key != KEY_EXIT && freqInputIndex >= 10) {
     return;
   }
@@ -667,7 +679,7 @@ static void UpdateFreqInput(KEY_Code_t key) {
   uint8_t dotIndex =
       freqInputDotIndex == 0 ? freqInputIndex : freqInputDotIndex;
 
-  KEY_Code_t digitKey;
+  key_code_t digitKey;
   for (int i = 0; i < 10; ++i) {
     if (i < freqInputIndex) {
       digitKey = freqInputArr[i];
@@ -965,7 +977,7 @@ static void OnKeyDownFreqInput(uint8_t key) {
   }
 }
 
-void OnKeyDownStill(KEY_Code_t key) {
+void OnKeyDownStill(key_code_t key) {
   switch (key) {
   case KEY_3:
     break;
@@ -1315,7 +1327,7 @@ static void AutomaticPresetChoose(uint32_t f) {
 void APP_RunSpectrum() {
   BackupRegisters();
   // TX here coz it always? set to active VFO
-  VFO_Info_t vfo = gEeprom.VfoInfo[gEeprom.TX_CHANNEL];
+  VFO_Info_t vfo = g_eeprom.VfoInfo[g_eeprom.TX_CHANNEL];
   initialFreq = vfo.pRX->Frequency;
   currentFreq = initialFreq;
   settings.scanStepIndex = gStepSettingToIndex[vfo.STEP_SETTING];

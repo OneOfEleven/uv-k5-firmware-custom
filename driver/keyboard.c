@@ -22,10 +22,10 @@
 #include "driver/i2c.h"
 #include "misc.h"
 
-KEY_Code_t gKeyReading0     = KEY_INVALID;
-KEY_Code_t gKeyReading1     = KEY_INVALID;
-uint16_t   gDebounceCounter = 0;
-bool       gWasFKeyPressed  = false;
+key_code_t g_key_reading_0     = KEY_INVALID;
+key_code_t g_key_reading_1     = KEY_INVALID;
+uint16_t   g_debounce_counter  = 0;
+bool       g_was_f_key_pressed = false;
 
 static const struct {
 
@@ -36,7 +36,7 @@ static const struct {
 	// We are very fortunate.
 	// The key and pin defines fit together in a single u8, making this very efficient
 	struct {
-		KEY_Code_t key : 5;
+		key_code_t key : 5;
 		uint8_t    pin : 3; // Pin 6 is highest
 	} pins[4];
 
@@ -92,9 +92,9 @@ static const struct {
 	}
 };
 
-KEY_Code_t KEYBOARD_Poll(void)
+key_code_t KEYBOARD_Poll(void)
 {
-	KEY_Code_t Key = KEY_INVALID;
+	key_code_t Key = KEY_INVALID;
 
 //	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT))
 //		return KEY_PTT;

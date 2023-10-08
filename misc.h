@@ -32,16 +32,16 @@
 	#define MIN(a, b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
 #endif
 
-#define IS_MR_CHANNEL(x)       ((x) >= MR_CHANNEL_FIRST   && (x) <= MR_CHANNEL_LAST)
+#define IS_USER_CHANNEL(x)       ((x) >= USER_CHANNEL_FIRST   && (x) <= USER_CHANNEL_LAST)
 #define IS_FREQ_CHANNEL(x)     ((x) >= FREQ_CHANNEL_FIRST && (x) <= FREQ_CHANNEL_LAST)
 #define IS_VALID_CHANNEL(x)    ((x) < LAST_CHANNEL)
 
 #define IS_NOAA_CHANNEL(x)     ((x) >= NOAA_CHANNEL_FIRST && (x) <= NOAA_CHANNEL_LAST)
-#define IS_NOT_NOAA_CHANNEL(x) ((x) >= MR_CHANNEL_FIRST   && (x) <= FREQ_CHANNEL_LAST)
+#define IS_NOT_NOAA_CHANNEL(x) ((x) >= USER_CHANNEL_FIRST   && (x) <= FREQ_CHANNEL_LAST)
 
 enum {
-	MR_CHANNEL_FIRST   = 0,
-	MR_CHANNEL_LAST    = 199u,
+	USER_CHANNEL_FIRST   = 0,
+	USER_CHANNEL_LAST    = 199u,
 	FREQ_CHANNEL_FIRST = 200u,
 	FREQ_CHANNEL_LAST  = 206u,
 	NOAA_CHANNEL_FIRST = 207u,
@@ -87,8 +87,8 @@ typedef enum CssScanMode_t   CssScanMode_t;
 enum scan_next_chan_t {
 	SCAN_NEXT_CHAN_SCANLIST1 = 0,
 	SCAN_NEXT_CHAN_SCANLIST2,
-	SCAN_NEXT_CHAN_DUAL_WATCH,
-	SCAN_NEXT_CHAN_MR,
+	SCAN_NEXT_CHAN_dual_watch,
+	SCAN_NEXT_CHAN_USER,
 	SCAN_NEXT_NUM
 };
 typedef enum scan_next_chan_t scan_next_chan_t;
@@ -187,17 +187,17 @@ extern bool                  bHasCustomAesKey;
 extern uint32_t              gChallenge[4];
 extern uint8_t               gTryCount;
 
-extern uint8_t               gEEPROM_1EC0_0[8];
-extern uint8_t               gEEPROM_1EC0_1[8];
-extern uint8_t               gEEPROM_1EC0_2[8];
-extern uint8_t               gEEPROM_1EC0_3[8];
+extern uint8_t               g_eeprom_1EC0_0[8];
+extern uint8_t               g_eeprom_1EC0_1[8];
+extern uint8_t               g_eeprom_1EC0_2[8];
+extern uint8_t               g_eeprom_1EC0_3[8];
 
-extern uint16_t              gEEPROM_RSSI_CALIB[2][4];
+extern uint16_t              g_eeprom_RSSI_CALIB[2][4];
 
-extern uint16_t              gEEPROM_1F8A;
-extern uint16_t              gEEPROM_1F8C;
+extern uint16_t              g_eeprom_1F8A;
+extern uint16_t              g_eeprom_1F8C;
 
-extern uint8_t               gMR_ChannelAttributes[207];
+extern uint8_t               gUSER_ChannelAttributes[207];
 
 extern volatile uint16_t     gBatterySaveCountdown_10ms;
 
@@ -267,25 +267,25 @@ extern bool                  gFlagSaveChannel;
 #ifdef ENABLE_FMRADIO
 	extern bool              gFlagSaveFM;
 #endif
-extern bool                  g_CDCSS_Lost;
-extern uint8_t               gCDCSSCodeType;
-extern bool                  g_CTCSS_Lost;
-extern bool                  g_CxCSS_TAIL_Found;
+extern bool                  g_CDCSS_lost;
+extern uint8_t               g_CDCSS_code_type;
+extern bool                  g_CTCSS_lost;
+extern bool                  g_CxCSS_tailL_found;
 #ifdef ENABLE_VOX
-	extern bool              g_VOX_Lost;
+	extern bool              g_vox_lost;
 	extern bool              gVOX_NoiseDetected;
 	extern uint16_t          gVoxResumeCountdown;
-	extern uint16_t          gVoxPauseCountdown;
+	extern uint16_t          g_vox_pause_count_down;
 #endif
 extern bool                  g_SquelchLost;
 extern uint8_t               gFlashLightState;
 extern volatile uint16_t     gFlashLightBlinkCounter;
 extern bool                  gFlagEndTransmission;
 extern uint16_t              gLowBatteryCountdown;
-extern uint8_t               gNextMrChannel;
+extern uint8_t               gNextChannel;
 extern ReceptionMode_t       gRxReceptionMode;
 
-extern uint8_t               gRestoreMrChannel;
+extern uint8_t               gRestoreUSER_CHANNEL;
 extern scan_next_chan_t      gCurrentScanList;
 extern uint32_t              gRestoreFrequency;
 
@@ -296,7 +296,7 @@ extern bool                  gKeyBeingHeld;
 extern bool                  gPttIsPressed;
 extern uint8_t               gPttDebounceCounter;
 extern uint8_t               gMenuListCount;
-extern uint8_t               gBackup_CROSS_BAND_RX_TX;
+extern uint8_t               gBackup_cross_vfo_rx_tx;
 extern uint8_t               gScanDelay_10ms;
 #ifdef ENABLE_AIRCOPY
 	extern uint8_t           gAircopySendCountdown;

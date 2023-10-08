@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-enum DCS_CodeType_t
+enum dcs_code_type_e
 {
 	CODE_TYPE_OFF = 0,
 	CODE_TYPE_CONTINUOUS_TONE,
@@ -27,7 +27,7 @@ enum DCS_CodeType_t
 	CODE_TYPE_REVERSE_DIGITAL
 };
 
-typedef enum DCS_CodeType_t DCS_CodeType_t;
+typedef enum dcs_code_type_e dcs_code_type_t;
 
 enum {
 	CDCSS_POSITIVE_CODE = 1U,
@@ -37,7 +37,7 @@ enum {
 extern const uint16_t CTCSS_Options[50];
 extern const uint16_t DCS_Options[104];
 
-uint32_t DCS_GetGolayCodeWord(DCS_CodeType_t CodeType, uint8_t Option);
+uint32_t DCS_GetGolayCodeWord(dcs_code_type_t code_type, uint8_t Option);
 uint8_t DCS_GetCdcssCode(uint32_t Code);
 uint8_t DCS_GetCtcssCode(int Code);
 

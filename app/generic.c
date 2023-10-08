@@ -61,10 +61,10 @@ void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld)
 			{	// toggle the keyboad lock
 
 				#ifdef ENABLE_VOICE
-					gAnotherVoiceID = gEeprom.KEY_LOCK ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
+					g_another_voice_id = g_eeprom.key_lock ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
 				#endif
 
-				gEeprom.KEY_LOCK = !gEeprom.KEY_LOCK;
+				g_eeprom.key_lock = !g_eeprom.key_lock;
 
 				gRequestSaveSettings = true;
 			}
@@ -79,14 +79,14 @@ void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld)
 					return;
 			#endif
 
-			gWasFKeyPressed = !gWasFKeyPressed;
+			g_was_f_key_pressed = !g_was_f_key_pressed;
 
-			if (gWasFKeyPressed)
+			if (g_was_f_key_pressed)
 				gKeyInputCountdown = key_input_timeout_500ms;
 
 			#ifdef ENABLE_VOICE
-				if (!gWasFKeyPressed)
-					gAnotherVoiceID = VOICE_ID_CANCEL;
+				if (!g_was_f_key_pressed)
+					g_another_voice_id = VOICE_ID_CANCEL;
 			#endif
 
 			gUpdateStatus = true;
@@ -132,10 +132,10 @@ void GENERIC_Key_PTT(bool bKeyPressed)
 			{
 				APP_EndTransmission();
 
-				if (gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0)
+				if (g_eeprom.repeater_tail_tone_elimination == 0)
 					FUNCTION_Select(FUNCTION_FOREGROUND);
 				else
-					gRTTECountdown = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
+					gRTTECountdown = g_eeprom.repeater_tail_tone_elimination * 10;
 			}
 
 			gFlagEndTransmission = false;
@@ -162,7 +162,7 @@ void GENERIC_Key_PTT(bool bKeyPressed)
 
 		if (gScreenToDisplay == DISPLAY_SCANNER)
 		{	// CTCSS/CDCSS scanning .. stop
-			gEeprom.CROSS_BAND_RX_TX = gBackup_CROSS_BAND_RX_TX;
+			g_eeprom.cross_vfo_rx_tx = gBackup_cross_vfo_rx_tx;
 			gFlagStopScan            = true;
 			gVfoConfigureMode        = VFO_CONFIGURE_RELOAD;
 			gFlagResetVfos           = true;
@@ -178,7 +178,7 @@ void GENERIC_Key_PTT(bool bKeyPressed)
 			MENU_StopCssScan();
 
 			#ifdef ENABLE_VOICE
-				gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+				g_another_voice_id = VOICE_ID_SCANNING_STOP;
 			#endif
 		}
 
@@ -190,7 +190,7 @@ void GENERIC_Key_PTT(bool bKeyPressed)
 		{	// FM radio is scanning .. stop
 			FM_PlayAndUpdate();
 			#ifdef ENABLE_VOICE
-				gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+				g_another_voice_id = VOICE_ID_SCANNING_STOP;
 			#endif
 			gRequestDisplayScreen = DISPLAY_FM;
 			goto cancel_tx;
@@ -235,7 +235,7 @@ void GENERIC_Key_PTT(bool bKeyPressed)
 		#else
 			// append our DTMF ID to the inputted DTMF code -
 			//  IF the user inputted code is exactly 3 digits long and D-DCD is enabled
-			if (gDTMF_InputBox_Index == 3 && gTxVfo->DTMF_DECODING_ENABLE > 0)
+			if (gDTMF_InputBox_Index == 3 && gTxVfo->DTMF_decoding_enable > 0)
 				gDTMF_CallMode = DTMF_CheckGroupCall(gDTMF_InputBox, 3);
 			else
 				gDTMF_CallMode = DTMF_CALL_MODE_DTMF;

@@ -162,7 +162,7 @@ bool DTMF_CompareMessage(const char *pMsg, const char *pTemplate, const unsigned
 	{
 		if (pMsg[i] != pTemplate[i])
 		{
-			if (!bCheckGroup || pMsg[i] != gEeprom.DTMF_GROUP_CALL_CODE)
+			if (!bCheckGroup || pMsg[i] != g_eeprom.DTMF_group_call_code)
 				return false;
 			gDTMF_IsGroupCall = true;
 		}
@@ -175,7 +175,7 @@ DTMF_CallMode_t DTMF_CheckGroupCall(const char *pMsg, const unsigned int size)
 {
 	unsigned int i;
 	for (i = 0; i < size; i++)
-		if (pMsg[i] == gEeprom.DTMF_GROUP_CALL_CODE)
+		if (pMsg[i] == g_eeprom.DTMF_group_call_code)
 			break;
 
 	return (i < size) ? DTMF_CALL_MODE_GROUP : DTMF_CALL_MODE_NOT_GROUP;
@@ -215,7 +215,7 @@ void DTMF_HandleRequest(void)
 		return;
 	}
 
-	if (!gRxVfo->DTMF_DECODING_ENABLE && !gSetting_KILLED)
+	if (!gRxVfo->DTMF_decoding_enable && !gSetting_KILLED)
 	{	// D-DCD is disabled or we're alive
 		DTMF_clear_RX();
 		return;
@@ -226,14 +226,14 @@ void DTMF_HandleRequest(void)
 	if (gDTMF_RX_index >= 9)
 	{	// look for the KILL code
 
-		sprintf(String, "%s%c%s", gEeprom.ANI_DTMF_ID, gEeprom.DTMF_SEPARATE_CODE, gEeprom.KILL_CODE);
+		sprintf(String, "%s%c%s", g_eeprom.ani_DTMF_id, g_eeprom.DTMF_separate_code, g_eeprom.kill_code);
 
 		Offset = gDTMF_RX_index - strlen(String);
 
 		if (DTMF_CompareMessage(gDTMF_RX + Offset, String, strlen(String), true))
 		{	// bugger
 
-			if (gEeprom.PERMIT_REMOTE_KILL)
+			if (g_eeprom.permit_remote_kill)
 			{
 				gSetting_KILLED = true;      // oooerr !
 
@@ -267,7 +267,7 @@ void DTMF_HandleRequest(void)
 	if (gDTMF_RX_index >= 9)
 	{	// look for the REVIVE code
 
-		sprintf(String, "%s%c%s", gEeprom.ANI_DTMF_ID, gEeprom.DTMF_SEPARATE_CODE, gEeprom.REVIVE_CODE);
+		sprintf(String, "%s%c%s", g_eeprom.ani_DTMF_id, g_eeprom.DTMF_separate_code, g_eeprom.revive_code);
 
 		Offset = gDTMF_RX_index - strlen(String);
 
@@ -316,7 +316,7 @@ void DTMF_HandleRequest(void)
 	    gDTMF_RX_index >= 9)
 	{	// waiting for a reply
 
-		sprintf(String, "%s%c%s", gDTMF_String, gEeprom.DTMF_SEPARATE_CODE, "AAAAA");
+		sprintf(String, "%s%c%s", gDTMF_String, g_eeprom.DTMF_separate_code, "AAAAA");
 
 		Offset = gDTMF_RX_index - strlen(String);
 
@@ -338,7 +338,7 @@ void DTMF_HandleRequest(void)
 
 		gDTMF_IsGroupCall = false;
 
-		sprintf(String, "%s%c", gEeprom.ANI_DTMF_ID, gEeprom.DTMF_SEPARATE_CODE);
+		sprintf(String, "%s%c", g_eeprom.ani_DTMF_id, g_eeprom.DTMF_separate_code);
 
 		Offset = gDTMF_RX_index - strlen(String) - 3;
 
@@ -359,7 +359,7 @@ void DTMF_HandleRequest(void)
 			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
-			switch (gEeprom.DTMF_DECODE_RESPONSE)
+			switch (g_eeprom.DTMF_decode_response)
 			{
 				case DTMF_DEC_RESPONSE_BOTH:
 					gDTMF_DecodeRingCountdown_500ms = DTMF_decode_ring_countdown_500ms;
@@ -399,7 +399,7 @@ void DTMF_Reply(void)
 			}
 			else
 			{	// append our ID code onto the end of the DTMF code to send
-				sprintf(String, "%s%c%s", gDTMF_String, gEeprom.DTMF_SEPARATE_CODE, gEeprom.ANI_DTMF_ID);
+				sprintf(String, "%s%c%s", gDTMF_String, g_eeprom.DTMF_separate_code, g_eeprom.ani_DTMF_id);
 				pString = String;
 			}
 			break;
@@ -409,23 +409,23 @@ void DTMF_Reply(void)
 			break;
 
 		case DTMF_REPLY_AAAAA:
-			sprintf(String, "%s%c%s", gEeprom.ANI_DTMF_ID, gEeprom.DTMF_SEPARATE_CODE, "AAAAA");
+			sprintf(String, "%s%c%s", g_eeprom.ani_DTMF_id, g_eeprom.DTMF_separate_code, "AAAAA");
 			pString = String;
 			break;
 
 		default:
 		case DTMF_REPLY_NONE:
 			if (gDTMF_CallState != DTMF_CALL_STATE_NONE           ||
-			    gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO ||
-			    gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_OFF    ||
-			    gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_TX_DOWN)
+			    gCurrentVfo->DTMF_ptt_id_tx_mode == PTT_ID_APOLLO ||
+			    gCurrentVfo->DTMF_ptt_id_tx_mode == PTT_ID_OFF    ||
+			    gCurrentVfo->DTMF_ptt_id_tx_mode == PTT_ID_TX_DOWN)
 			{
 				gDTMF_ReplyState = DTMF_REPLY_NONE;
 				return;
 			}
 
 			// send TX-UP DTMF
-			pString = gEeprom.DTMF_UP_CODE;
+			pString = g_eeprom.DTMF_up_code;
 			break;
 	}
 
@@ -434,9 +434,9 @@ void DTMF_Reply(void)
 	if (pString == NULL)
 		return;
 
-	Delay = (gEeprom.DTMF_PRELOAD_TIME < 200) ? 200 : gEeprom.DTMF_PRELOAD_TIME;
+	Delay = (g_eeprom.DTMF_preload_time < 200) ? 200 : g_eeprom.DTMF_preload_time;
 
-	if (gEeprom.DTMF_SIDE_TONE)
+	if (g_eeprom.DTMF_side_tone)
 	{	// the user will also hear the transmitted tones
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 		gEnableSpeaker = true;
@@ -444,15 +444,15 @@ void DTMF_Reply(void)
 
 	SYSTEM_DelayMs(Delay);
 
-	BK4819_EnterDTMF_TX(gEeprom.DTMF_SIDE_TONE);
+	BK4819_EnterDTMF_TX(g_eeprom.DTMF_side_tone);
 
 	BK4819_PlayDTMFString(
 		pString,
 		1,
-		gEeprom.DTMF_FIRST_CODE_PERSIST_TIME,
-		gEeprom.DTMF_HASH_CODE_PERSIST_TIME,
-		gEeprom.DTMF_CODE_PERSIST_TIME,
-		gEeprom.DTMF_CODE_INTERVAL_TIME);
+		g_eeprom.DTMF_first_code_persist_time,
+		g_eeprom.DTMF_hash_code_persist_time,
+		g_eeprom.DTMF_code_persist_time,
+		g_eeprom.DTMF_code_interval_time);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 

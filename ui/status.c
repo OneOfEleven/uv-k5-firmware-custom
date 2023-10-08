@@ -96,15 +96,15 @@ void UI_DisplayStatus(const bool test_display)
 		// SCAN indicator
 		if (gScanStateDir != SCAN_OFF || gScreenToDisplay == DISPLAY_SCANNER || test_display)
 		{
-			if (gNextMrChannel <= MR_CHANNEL_LAST)
+			if (gNextChannel <= USER_CHANNEL_LAST)
 			{	// channel mode
-				if (gEeprom.SCAN_LIST_DEFAULT == 0)
+				if (g_eeprom.scan_list_default == 0)
 					UI_PrintStringSmallBuffer("1", line + x);
 				else
-				if (gEeprom.SCAN_LIST_DEFAULT == 1)
+				if (g_eeprom.scan_list_default == 1)
 					UI_PrintStringSmallBuffer("2", line + x);
 				else
-				if (gEeprom.SCAN_LIST_DEFAULT == 2)
+				if (g_eeprom.scan_list_default == 2)
 					UI_PrintStringSmallBuffer("*", line + x);
 			}
 			else
@@ -117,7 +117,7 @@ void UI_DisplayStatus(const bool test_display)
 
 	#ifdef ENABLE_VOICE
 		// VOICE indicator
-		if (gEeprom.VOICE_PROMPT != VOICE_PROMPT_OFF || test_display)
+		if (g_eeprom.voice_prompt != VOICE_PROMPT_OFF || test_display)
 		{
 			memmove(line + x, BITMAP_VoicePrompt, sizeof(BITMAP_VoicePrompt));
 			x1 = x + sizeof(BITMAP_VoicePrompt);
@@ -128,7 +128,7 @@ void UI_DisplayStatus(const bool test_display)
 	#endif
 
 	// DUAL-WATCH indicator
-	if (gEeprom.DUAL_WATCH != DUAL_WATCH_OFF || test_display)
+	if (g_eeprom.dual_watch != DUAL_WATCH_OFF || test_display)
 	{
 		if (gDualWatchActive || test_display)
 			memmove(line + x, BITMAP_TDR1, sizeof(BITMAP_TDR1));
@@ -138,7 +138,7 @@ void UI_DisplayStatus(const bool test_display)
 	x += sizeof(BITMAP_TDR1);
 
 	// CROSS-VFO indicator
-	if (gEeprom.CROSS_BAND_RX_TX != CROSS_BAND_OFF || test_display)
+	if (g_eeprom.cross_vfo_rx_tx != CROSS_BAND_OFF || test_display)
 	{
 		memmove(line + x, BITMAP_XB, sizeof(BITMAP_XB));
 		x1 = x + sizeof(BITMAP_XB);
@@ -147,7 +147,7 @@ void UI_DisplayStatus(const bool test_display)
 	
 	#ifdef ENABLE_VOX
 		// VOX indicator
-		if (gEeprom.VOX_SWITCH || test_display)
+		if (g_eeprom.vox_switch || test_display)
 		{
 			memmove(line + x, BITMAP_VOX, sizeof(BITMAP_VOX));
 			x1 = x + sizeof(BITMAP_VOX);
@@ -156,14 +156,14 @@ void UI_DisplayStatus(const bool test_display)
 	#endif
 
 	// KEY-LOCK indicator
-	if (gEeprom.KEY_LOCK || test_display)
+	if (g_eeprom.key_lock || test_display)
 	{
 		memmove(line + x, BITMAP_KeyLock, sizeof(BITMAP_KeyLock));
 		x += sizeof(BITMAP_KeyLock);
 		x1 = x;
 	}
 	else
-	if (gWasFKeyPressed)
+	if (g_was_f_key_pressed)
 	{
 		memmove(line + x, BITMAP_F_Key, sizeof(BITMAP_F_Key));
 		x += sizeof(BITMAP_F_Key);

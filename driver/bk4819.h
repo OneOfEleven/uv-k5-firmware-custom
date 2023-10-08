@@ -62,7 +62,7 @@ enum BK4819_CssScanResult_t
 
 typedef enum BK4819_CssScanResult_t BK4819_CssScanResult_t;
 
-extern bool gRxIdleMode;
+extern bool g_rx_idle_mode;
 
 void     BK4819_Init(void);
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register);
@@ -150,7 +150,7 @@ void     BK4819_StopScan(void);
 
 uint8_t  BK4819_GetDTMF_5TONE_Code(void);
 
-uint8_t  BK4819_GetCDCSSCodeType(void);
+uint8_t  BK4819_get_CDCSS_code_type(void);
 uint8_t  BK4819_GetCTCShift(void);
 uint8_t  BK4819_GetCTCType(void);
 

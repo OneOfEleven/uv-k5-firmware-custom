@@ -59,12 +59,12 @@
 		0x41, 0x32, 0x3C, 0x37,
 	};
 	
-	VOICE_ID_t        gVoiceID[8];
-	uint8_t           gVoiceReadIndex;
-	uint8_t           gVoiceWriteIndex;
-	volatile uint16_t gCountdownToPlayNextVoice_10ms;
-	volatile bool     gFlagPlayQueuedVoice;
-	VOICE_ID_t        gAnotherVoiceID = VOICE_ID_INVALID;
+	voice_id_t        g_voice_id[8];
+	uint8_t           g_voice_read_index;
+	uint8_t           g_voice_write_index;
+	volatile uint16_t g_count_down_to_play_next_voice_10ms;
+	volatile bool     g_flag_play_queued_voice;
+	voice_id_t        g_another_voice_id = VOICE_ID_INVALID;
 	
 #endif
 
@@ -81,7 +81,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	    Beep != BEEP_440HZ_500MS &&
 	    Beep != BEEP_880HZ_200MS &&
 	    Beep != BEEP_880HZ_500MS &&
-	   !gEeprom.BEEP_CONTROL)
+	   !g_eeprom.beep_control)
 		return;
 
 	#ifdef ENABLE_AIRCOPY
@@ -99,7 +99,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
-	if (gCurrentFunction == FUNCTION_POWER_SAVE && gRxIdleMode)
+	if (gCurrentFunction == FUNCTION_POWER_SAVE && g_rx_idle_mode)
 		BK4819_RX_TurnOn();
 
 	#ifdef ENABLE_FMRADIO
@@ -209,7 +209,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 			BK1080_Mute(false);
 	#endif
 	
-	if (gCurrentFunction == FUNCTION_POWER_SAVE && gRxIdleMode)
+	if (gCurrentFunction == FUNCTION_POWER_SAVE && g_rx_idle_mode)
 		BK4819_Sleep();
 }
 
@@ -244,11 +244,11 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 		uint8_t VoiceID;
 		uint8_t Delay;
 	
-		VoiceID = gVoiceID[0];
+		VoiceID = g_voice_id[0];
 	
-		if (gEeprom.VOICE_PROMPT != VOICE_PROMPT_OFF && gVoiceWriteIndex > 0)
+		if (g_eeprom.voice_prompt != VOICE_PROMPT_OFF && g_voice_write_index > 0)
 		{
-			if (gEeprom.VOICE_PROMPT == VOICE_PROMPT_CHINESE)
+			if (g_eeprom.voice_prompt == VOICE_PROMPT_CHINESE)
 			{	// Chinese
 				if (VoiceID >= ARRAY_SIZE(VoiceClipLengthChinese))
 					goto Bailout;
@@ -284,7 +284,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 			SYSTEM_DelayMs(5);
 			AUDIO_PlayVoice(VoiceID);
 	
-			if (gVoiceWriteIndex == 1)
+			if (g_voice_write_index == 1)
 				Delay += 3;
 	
 			if (bFlag)
@@ -294,7 +294,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 				if (gCurrentFunction == FUNCTION_RECEIVE ||
 				    gCurrentFunction == FUNCTION_MONITOR ||
 					gCurrentFunction == FUNCTION_INCOMING)	// 1of11
-					BK4819_SetAF(gRxVfo->AM_mode ? BK4819_AF_AM : BK4819_AF_FM);
+					BK4819_SetAF(gRxVfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	
 				#ifdef ENABLE_FMRADIO
 					if (gFmRadioMode)
@@ -304,8 +304,8 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 				if (!gEnableSpeaker)
 					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 	
-				gVoiceWriteIndex    = 0;
-				gVoiceReadIndex     = 0;
+				g_voice_write_index    = 0;
+				g_voice_read_index     = 0;
 	
 				#ifdef ENABLE_VOX
 					gVoxResumeCountdown = 80;
@@ -314,32 +314,32 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 				return;
 			}
 	
-			gVoiceReadIndex                = 1;
-			gCountdownToPlayNextVoice_10ms = Delay;
-			gFlagPlayQueuedVoice           = false;
+			g_voice_read_index                = 1;
+			g_count_down_to_play_next_voice_10ms = Delay;
+			g_flag_play_queued_voice           = false;
 	
 			return;
 		}
 	
 	Bailout:
-		gVoiceReadIndex  = 0;
-		gVoiceWriteIndex = 0;
+		g_voice_read_index  = 0;
+		g_voice_write_index = 0;
 	}
 	
-	void AUDIO_SetVoiceID(uint8_t Index, VOICE_ID_t VoiceID)
+	void AUDIO_SetVoiceID(uint8_t Index, voice_id_t VoiceID)
 	{
-		if (Index >= ARRAY_SIZE(gVoiceID))
+		if (Index >= ARRAY_SIZE(g_voice_id))
 			return;
 	
 		if (Index == 0)
 		{
-			gVoiceWriteIndex = 0;
-			gVoiceReadIndex  = 0;
+			g_voice_write_index = 0;
+			g_voice_read_index  = 0;
 		}
 	
-		gVoiceID[Index] = VoiceID;
+		g_voice_id[Index] = VoiceID;
 	
-		gVoiceWriteIndex++;
+		g_voice_write_index++;
 	}
 	
 	uint8_t AUDIO_SetDigitVoice(uint8_t Index, uint16_t Value)
@@ -350,8 +350,8 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	
 		if (Index == 0)
 		{
-			gVoiceWriteIndex = 0;
-			gVoiceReadIndex  = 0;
+			g_voice_write_index = 0;
+			g_voice_read_index  = 0;
 		}
 	
 		Count     = 0;
@@ -365,17 +365,17 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 		else
 		{
 			Result = Remainder / 100U;
-			gVoiceID[gVoiceWriteIndex++] = (VOICE_ID_t)Result;
+			g_voice_id[g_voice_write_index++] = (voice_id_t)Result;
 			Count++;
 			Remainder -= Result * 100U;
 		}
 		Result = Remainder / 10U;
-		gVoiceID[gVoiceWriteIndex++] = (VOICE_ID_t)Result;
+		g_voice_id[g_voice_write_index++] = (voice_id_t)Result;
 		Count++;
 		Remainder -= Result * 10U;
 	
 	Skip:
-		gVoiceID[gVoiceWriteIndex++] = (VOICE_ID_t)Remainder;
+		g_voice_id[g_voice_write_index++] = (voice_id_t)Remainder;
 	
 		return Count + 1U;
 	}
@@ -388,10 +388,10 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	
 		Skip = false;
 	
-		if (gVoiceReadIndex != gVoiceWriteIndex && gEeprom.VOICE_PROMPT != VOICE_PROMPT_OFF)
+		if (g_voice_read_index != g_voice_write_index && g_eeprom.voice_prompt != VOICE_PROMPT_OFF)
 		{
-			VoiceID = gVoiceID[gVoiceReadIndex];
-			if (gEeprom.VOICE_PROMPT == VOICE_PROMPT_CHINESE)
+			VoiceID = g_voice_id[g_voice_read_index];
+			if (g_eeprom.voice_prompt == VOICE_PROMPT_CHINESE)
 			{
 				if (VoiceID < ARRAY_SIZE(VoiceClipLengthChinese))
 				{
@@ -412,17 +412,17 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 					Skip = true;
 			}
 	
-			gVoiceReadIndex++;
+			g_voice_read_index++;
 	
 			if (!Skip)
 			{
-				if (gVoiceReadIndex == gVoiceWriteIndex)
+				if (g_voice_read_index == g_voice_write_index)
 					Delay += 3;
 	
 				AUDIO_PlayVoice(VoiceID);
 				
-				gCountdownToPlayNextVoice_10ms = Delay;
-				gFlagPlayQueuedVoice           = false;
+				g_count_down_to_play_next_voice_10ms = Delay;
+				g_flag_play_queued_voice           = false;
 
 				#ifdef ENABLE_VOX
 					gVoxResumeCountdown = 2000;
@@ -435,7 +435,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 		if (gCurrentFunction == FUNCTION_RECEIVE ||
 		    gCurrentFunction == FUNCTION_MONITOR ||
 		    gCurrentFunction == FUNCTION_INCOMING)    // 1of11
-			BK4819_SetAF(gRxVfo->AM_mode ? BK4819_AF_AM : BK4819_AF_FM);
+			BK4819_SetAF(gRxVfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	
 		#ifdef ENABLE_FMRADIO
 			if (gFmRadioMode)
@@ -449,8 +449,8 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 			gVoxResumeCountdown = 80;
 		#endif
 		
-		gVoiceWriteIndex    = 0;
-		gVoiceReadIndex     = 0;
+		g_voice_write_index    = 0;
+		g_voice_read_index     = 0;
 	}
 
 #endif

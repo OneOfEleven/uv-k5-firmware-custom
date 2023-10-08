@@ -43,26 +43,26 @@ FUNCTION_Type_t gCurrentFunction;
 void FUNCTION_Init(void)
 {
 	#ifdef ENABLE_NOAA
-		if (IS_NOT_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
+		if (IS_NOT_NOAA_CHANNEL(gRxVfo->channel_save))
 	#endif
 	{
-		gCurrentCodeType = gSelectedCodeType;
+		gCurrentcode_type = gSelectedcode_type;
 		if (gCssScanMode == CSS_SCAN_MODE_OFF)
-			gCurrentCodeType = gRxVfo->AM_mode ? CODE_TYPE_OFF : gRxVfo->pRX->CodeType;
+			gCurrentcode_type = gRxVfo->am_mode ? CODE_TYPE_OFF : gRxVfo->pRX->code_type;
 	}
 	#ifdef ENABLE_NOAA
 		else
-			gCurrentCodeType = CODE_TYPE_CONTINUOUS_TONE;
+			gCurrentcode_type = CODE_TYPE_CONTINUOUS_TONE;
 	#endif
 
 	DTMF_clear_RX();
 
-	g_CxCSS_TAIL_Found = false;
-	g_CDCSS_Lost       = false;
-	g_CTCSS_Lost       = false;
+	g_CxCSS_tailL_found = false;
+	g_CDCSS_lost       = false;
+	g_CTCSS_lost       = false;
 
 	#ifdef ENABLE_VOX
-		g_VOX_Lost     = false;
+		g_vox_lost     = false;
 	#endif
 
 	g_SquelchLost      = false;
@@ -92,7 +92,7 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 	if (bWasPowerSave && Function != FUNCTION_POWER_SAVE)
 	{
 		BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
-		gRxIdleMode = false;
+		g_rx_idle_mode = false;
 		UI_DisplayStatus(false);
 	}
 
@@ -120,7 +120,7 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			    gDTMF_CallState == DTMF_CALL_STATE_RECEIVED ||
 				gDTMF_CallState == DTMF_CALL_STATE_RECEIVED_STAY)
 			{
-				gDTMF_auto_reset_time_500ms = gEeprom.DTMF_auto_reset_time * 2;
+				gDTMF_auto_reset_time_500ms = g_eeprom.DTMF_auto_reset_time * 2;
 			}
 
 			gUpdateStatus = true;
@@ -135,10 +135,10 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			break;
 
 		case FUNCTION_POWER_SAVE:
-			gPowerSave_10ms            = gEeprom.BATTERY_SAVE * 10;
+			gPowerSave_10ms            = g_eeprom.battery_save * 10;
 			gPowerSaveCountdownExpired = false;
 
-			gRxIdleMode = true;
+			g_rx_idle_mode = true;
 
 			gMonitor = false;
 
@@ -173,7 +173,7 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			#endif
 
 			#ifdef ENABLE_ALARM
-				if (gAlarmState == ALARM_STATE_TXALARM && gEeprom.ALARM_MODE != ALARM_MODE_TONE)
+				if (gAlarmState == ALARM_STATE_TXALARM && g_eeprom.alarm_mode != ALARM_MODE_TONE)
 				{
 					gAlarmState = ALARM_STATE_ALARM;
 
@@ -208,8 +208,8 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 
 			DTMF_Reply();
 
-			if (gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO)
-				BK4819_PlaySingleTone(2525, 250, 0, gEeprom.DTMF_SIDE_TONE);
+			if (gCurrentVfo->DTMF_ptt_id_tx_mode == PTT_ID_APOLLO)
+				BK4819_PlaySingleTone(2525, 250, 0, g_eeprom.DTMF_side_tone);
 
 			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 				if (gAlarmState != ALARM_STATE_OFF)
@@ -232,13 +232,13 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 				}
 			#endif
 
-			if (gCurrentVfo->SCRAMBLING_TYPE > 0 && gSetting_ScrambleEnable)
-				BK4819_EnableScramble(gCurrentVfo->SCRAMBLING_TYPE - 1);
+			if (gCurrentVfo->scrambling_type > 0 && gSetting_ScrambleEnable)
+				BK4819_EnableScramble(gCurrentVfo->scrambling_type - 1);
 			else
 				BK4819_DisableScramble();
 
 			if (gSetting_backlight_on_tx_rx == 1 || gSetting_backlight_on_tx_rx == 3)
-				BACKLIGHT_TurnOn();
+				backlight_turn_on();
 
 			break;
 

@@ -58,12 +58,12 @@ static uint32_t DCS_CalculateGolay(uint32_t CodeWord)
 	return CodeWord | ((Word & 0x0FFE) << 11);
 }
 
-uint32_t DCS_GetGolayCodeWord(DCS_CodeType_t CodeType, uint8_t Option)
+uint32_t DCS_GetGolayCodeWord(dcs_code_type_t code_type, uint8_t Option)
 {
-	uint32_t Code = DCS_CalculateGolay(DCS_Options[Option] + 0x800U);
-	if (CodeType == CODE_TYPE_REVERSE_DIGITAL)
-		Code ^= 0x7FFFFF;
-	return Code;
+	uint32_t code = DCS_CalculateGolay(DCS_Options[Option] + 0x800U);
+	if (code_type == CODE_TYPE_REVERSE_DIGITAL)
+		code ^= 0x7FFFFF;
+	return code;
 }
 
 uint8_t DCS_GetCdcssCode(uint32_t Code)

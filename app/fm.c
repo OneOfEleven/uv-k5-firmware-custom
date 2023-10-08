@@ -74,18 +74,18 @@ uint8_t FM_FindNextChannel(uint8_t Channel, uint8_t Direction)
 
 int FM_ConfigureChannelState(void)
 {
-	gEeprom.FM_FrequencyPlaying = gEeprom.FM_SelectedFrequency;
+	g_eeprom.fm_frequency_playing = g_eeprom.fm_selected_frequency;
 
-	if (gEeprom.FM_IsMrMode)
+	if (g_eeprom.fm_is_channel_mode)
 	{
-		const uint8_t Channel = FM_FindNextChannel(gEeprom.FM_SelectedChannel, FM_CHANNEL_UP);
+		const uint8_t Channel = FM_FindNextChannel(g_eeprom.fm_selected_channel, FM_CHANNEL_UP);
 		if (Channel == 0xFF)
 		{
-			gEeprom.FM_IsMrMode = false;
+			g_eeprom.fm_is_channel_mode = false;
 			return -1;
 		}
-		gEeprom.FM_SelectedChannel  = Channel;
-		gEeprom.FM_FrequencyPlaying = gFM_Channels[Channel];
+		g_eeprom.fm_selected_channel  = Channel;
+		g_eeprom.fm_frequency_playing = gFM_Channels[Channel];
 	}
 
 	return 0;
@@ -130,23 +130,23 @@ void FM_Tune(uint16_t Frequency, int8_t Step, bool bFlag)
 	gFM_FoundFrequency          = false;
 	gAskToSave                  = false;
 	gAskToDelete                = false;
-	gEeprom.FM_FrequencyPlaying = Frequency;
+	g_eeprom.fm_frequency_playing = Frequency;
 
 	if (!bFlag)
 	{
 		Frequency += Step;
-		if (Frequency < gEeprom.FM_LowerLimit)
-			Frequency = gEeprom.FM_UpperLimit;
+		if (Frequency < g_eeprom.fm_lower_limit)
+			Frequency = g_eeprom.fm_upper_limit;
 		else
-		if (Frequency > gEeprom.FM_UpperLimit)
-			Frequency = gEeprom.FM_LowerLimit;
+		if (Frequency > g_eeprom.fm_upper_limit)
+			Frequency = g_eeprom.fm_lower_limit;
 
-		gEeprom.FM_FrequencyPlaying = Frequency;
+		g_eeprom.fm_frequency_playing = Frequency;
 	}
 
 	gFM_ScanState = Step;
 
-	BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
+	BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 }
 
 void FM_PlayAndUpdate(void)
@@ -155,12 +155,12 @@ void FM_PlayAndUpdate(void)
 
 	if (gFM_AutoScan)
 	{
-		gEeprom.FM_IsMrMode        = true;
-		gEeprom.FM_SelectedChannel = 0;
+		g_eeprom.fm_is_channel_mode        = true;
+		g_eeprom.fm_selected_channel = 0;
 	}
 
 	FM_ConfigureChannelState();
-	BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
+	BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 	SETTINGS_SaveFM();
 
 	gFmPlayCountdown_10ms = 0;
@@ -224,15 +224,15 @@ Bail:
 	return ret;
 }
 
-static void FM_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+static void FM_Key_DIGITS(key_code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
 	#define STATE_FREQ_MODE 0
-	#define STATE_MR_MODE   1
+	#define STATE_USER_MODE   1
 	#define STATE_SAVE      2
 
 	if (!bKeyHeld && bKeyPressed)
 	{
-		if (!gWasFKeyPressed)
+		if (!g_was_f_key_pressed)
 		{
 			uint8_t State;
 
@@ -254,7 +254,7 @@ static void FM_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 					return;
 				}
 
-				State = gEeprom.FM_IsMrMode ? STATE_MR_MODE : STATE_FREQ_MODE;
+				State = g_eeprom.fm_is_channel_mode ? STATE_USER_MODE : STATE_FREQ_MODE;
 			}
 
 			INPUTBOX_Append(Key);
@@ -281,21 +281,21 @@ static void FM_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 					NUMBER_Get(gInputBox, &Frequency);
 					Frequency /= 10000;
 
-					if (Frequency < gEeprom.FM_LowerLimit || gEeprom.FM_UpperLimit < Frequency)
+					if (Frequency < g_eeprom.fm_lower_limit || g_eeprom.fm_upper_limit < Frequency)
 					{
 						gBeepToPlay           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 						gRequestDisplayScreen = DISPLAY_FM;
 						return;
 					}
 
-					gEeprom.FM_SelectedFrequency = (uint16_t)Frequency;
+					g_eeprom.fm_selected_frequency = (uint16_t)Frequency;
 
 					#ifdef ENABLE_VOICE
-						gAnotherVoiceID = (VOICE_ID_t)Key;
+						g_another_voice_id = (voice_id_t)Key;
 					#endif
 
-					gEeprom.FM_FrequencyPlaying = gEeprom.FM_SelectedFrequency;
-					BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
+					g_eeprom.fm_frequency_playing = g_eeprom.fm_selected_frequency;
+					BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 					gRequestSaveFM = true;
 					return;
 				}
@@ -308,16 +308,16 @@ static void FM_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 				gInputBoxIndex = 0;
 				Channel = ((gInputBox[0] * 10) + gInputBox[1]) - 1;
 
-				if (State == STATE_MR_MODE)
+				if (State == STATE_USER_MODE)
 				{
 					if (FM_CheckValidChannel(Channel))
 					{
 						#ifdef ENABLE_VOICE
-							gAnotherVoiceID = (VOICE_ID_t)Key;
+							g_another_voice_id = (voice_id_t)Key;
 						#endif
-						gEeprom.FM_SelectedChannel = Channel;
-						gEeprom.FM_FrequencyPlaying = gFM_Channels[Channel];
-						BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
+						g_eeprom.fm_selected_channel = Channel;
+						g_eeprom.fm_frequency_playing = gFM_Channels[Channel];
+						BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 						gRequestSaveFM = true;
 						return;
 					}
@@ -326,7 +326,7 @@ static void FM_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 				if (Channel < 20)
 				{
 					#ifdef ENABLE_VOICE
-						gAnotherVoiceID = (VOICE_ID_t)Key;
+						g_another_voice_id = (voice_id_t)Key;
 					#endif
 					gRequestDisplayScreen = DISPLAY_FM;
 					gInputBoxIndex = 0;
@@ -339,14 +339,14 @@ static void FM_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 			}
 
 			#ifdef ENABLE_VOICE
-				gAnotherVoiceID = (VOICE_ID_t)Key;
+				g_another_voice_id = (voice_id_t)Key;
 			#endif
 
 			return;
 		}
 
 		gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
-		gWasFKeyPressed       = false;
+		g_was_f_key_pressed       = false;
 		gUpdateStatus         = true;
 		gRequestDisplayScreen = DISPLAY_FM;
 
@@ -357,11 +357,11 @@ static void FM_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 				break;
 
 			case KEY_1:
-				gEeprom.FM_IsMrMode = !gEeprom.FM_IsMrMode;
+				g_eeprom.fm_is_channel_mode = !g_eeprom.fm_is_channel_mode;
 
 				if (!FM_ConfigureChannelState())
 				{
-					BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
+					BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 					gRequestSaveFM = true;
 				}
 				else
@@ -429,14 +429,14 @@ static void FM_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 		}
 
 		#ifdef ENABLE_VOICE
-			gAnotherVoiceID = VOICE_ID_CANCEL;
+			g_another_voice_id = VOICE_ID_CANCEL;
 		#endif
 	}
 	else
 	{
 		FM_PlayAndUpdate();
 		#ifdef ENABLE_VOICE
-			gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+			g_another_voice_id = VOICE_ID_SCANNING_STOP;
 		#endif
 	}
 
@@ -456,11 +456,11 @@ static void FM_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 
 	if (gFM_ScanState == FM_SCAN_OFF)
 	{
-		if (!gEeprom.FM_IsMrMode)
+		if (!g_eeprom.fm_is_channel_mode)
 		{
 			if (gAskToSave)
 			{
-				gFM_Channels[gFM_ChannelPosition] = gEeprom.FM_FrequencyPlaying;
+				gFM_Channels[gFM_ChannelPosition] = g_eeprom.fm_frequency_playing;
 				gAskToSave                        = false;
 				gRequestSaveFM                    = true;
 			}
@@ -471,10 +471,10 @@ static void FM_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 		{
 			if (gAskToDelete)
 			{
-				gFM_Channels[gEeprom.FM_SelectedChannel] = 0xFFFF;
+				gFM_Channels[g_eeprom.fm_selected_channel] = 0xFFFF;
 
 				FM_ConfigureChannelState();
-				BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
+				BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 
 				gRequestSaveFM = true;
 				gAskToDelete   = false;
@@ -494,7 +494,7 @@ static void FM_Key_MENU(bool bKeyPressed, bool bKeyHeld)
 
 		if (gAskToSave)
 		{
-			gFM_Channels[gFM_ChannelPosition] = gEeprom.FM_FrequencyPlaying;
+			gFM_Channels[gFM_ChannelPosition] = g_eeprom.fm_frequency_playing;
 			gAskToSave     = false;
 			gRequestSaveFM = true;
 		}
@@ -539,42 +539,42 @@ static void FM_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Step)
 			return;
 		}
 
-		FM_Tune(gEeprom.FM_FrequencyPlaying, Step, false);
+		FM_Tune(g_eeprom.fm_frequency_playing, Step, false);
 		gRequestDisplayScreen = DISPLAY_FM;
 		return;
 	}
 
-	if (gEeprom.FM_IsMrMode)
+	if (g_eeprom.fm_is_channel_mode)
 	{
-		const uint8_t Channel = FM_FindNextChannel(gEeprom.FM_SelectedChannel + Step, Step);
-		if (Channel == 0xFF || gEeprom.FM_SelectedChannel == Channel)
+		const uint8_t Channel = FM_FindNextChannel(g_eeprom.fm_selected_channel + Step, Step);
+		if (Channel == 0xFF || g_eeprom.fm_selected_channel == Channel)
 			goto Bail;
 
-		gEeprom.FM_SelectedChannel  = Channel;
-		gEeprom.FM_FrequencyPlaying = gFM_Channels[Channel];
+		g_eeprom.fm_selected_channel  = Channel;
+		g_eeprom.fm_frequency_playing = gFM_Channels[Channel];
 	}
 	else
 	{
-		uint16_t Frequency = gEeprom.FM_SelectedFrequency + Step;
-		if (Frequency < gEeprom.FM_LowerLimit)
-			Frequency = gEeprom.FM_UpperLimit;
+		uint16_t Frequency = g_eeprom.fm_selected_frequency + Step;
+		if (Frequency < g_eeprom.fm_lower_limit)
+			Frequency = g_eeprom.fm_upper_limit;
 		else
-		if (Frequency > gEeprom.FM_UpperLimit)
-			Frequency = gEeprom.FM_LowerLimit;
+		if (Frequency > g_eeprom.fm_upper_limit)
+			Frequency = g_eeprom.fm_lower_limit;
 
-		gEeprom.FM_FrequencyPlaying  = Frequency;
-		gEeprom.FM_SelectedFrequency = gEeprom.FM_FrequencyPlaying;
+		g_eeprom.fm_frequency_playing  = Frequency;
+		g_eeprom.fm_selected_frequency = g_eeprom.fm_frequency_playing;
 	}
 
 	gRequestSaveFM = true;
 
 Bail:
-	BK1080_SetFrequency(gEeprom.FM_FrequencyPlaying);
+	BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 
 	gRequestDisplayScreen = DISPLAY_FM;
 }
 
-void FM_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+void FM_ProcessKeys(key_code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
 	switch (Key)
 	{
@@ -617,15 +617,15 @@ void FM_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 
 void FM_Play(void)
 {
-	if (!FM_CheckFrequencyLock(gEeprom.FM_FrequencyPlaying, gEeprom.FM_LowerLimit))
+	if (!FM_CheckFrequencyLock(g_eeprom.fm_frequency_playing, g_eeprom.fm_lower_limit))
 	{
 		if (!gFM_AutoScan)
 		{
 			gFmPlayCountdown_10ms = 0;
 			gFM_FoundFrequency    = true;
 
-			if (!gEeprom.FM_IsMrMode)
-				gEeprom.FM_SelectedFrequency = gEeprom.FM_FrequencyPlaying;
+			if (!g_eeprom.fm_is_channel_mode)
+				g_eeprom.fm_selected_frequency = g_eeprom.fm_frequency_playing;
 
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 			gEnableSpeaker = true;
@@ -635,7 +635,7 @@ void FM_Play(void)
 		}
 
 		if (gFM_ChannelPosition < 20)
-			gFM_Channels[gFM_ChannelPosition++] = gEeprom.FM_FrequencyPlaying;
+			gFM_Channels[gFM_ChannelPosition++] = g_eeprom.fm_frequency_playing;
 
 		if (gFM_ChannelPosition >= 20)
 		{
@@ -645,10 +645,10 @@ void FM_Play(void)
 		}
 	}
 
-	if (gFM_AutoScan && gEeprom.FM_FrequencyPlaying >= gEeprom.FM_UpperLimit)
+	if (gFM_AutoScan && g_eeprom.fm_frequency_playing >= g_eeprom.fm_upper_limit)
 		FM_PlayAndUpdate();
 	else
-		FM_Tune(gEeprom.FM_FrequencyPlaying, gFM_ScanState, false);
+		FM_Tune(g_eeprom.fm_frequency_playing, gFM_ScanState, false);
 
 	GUI_SelectNextDisplay(DISPLAY_FM);
 }
@@ -659,7 +659,7 @@ void FM_Start(void)
 	gFM_ScanState             = FM_SCAN_OFF;
 	gFM_RestoreCountdown_10ms = 0;
 
-	BK1080_Init(gEeprom.FM_FrequencyPlaying, true);
+	BK1080_Init(g_eeprom.fm_frequency_playing, true);
 
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 

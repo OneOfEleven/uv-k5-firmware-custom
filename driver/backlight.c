@@ -22,15 +22,15 @@
 // this is decremented once every 500ms
 uint16_t gBacklightCountdown = 0;
 
-void BACKLIGHT_TurnOn(void)
+void backlight_turn_on(void)
 {
-	if (gEeprom.BACKLIGHT == 0)
+	if (g_eeprom.backlight == 0)
 		return;
 
 	// turn the backlight ON
 	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 		
-	switch (gEeprom.BACKLIGHT)
+	switch (g_eeprom.backlight)
 	{
 		default:
 		case 1:	// 5 sec

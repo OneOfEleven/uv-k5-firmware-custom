@@ -125,7 +125,7 @@ void BATTERY_GetReadings(const bool bDisplayBatteryLevel)
 		{
 			gUpdateStatus  = true;
 			gUpdateDisplay = true;
-			BACKLIGHT_TurnOn();
+			backlight_turn_on();
 		}
 
 		gChargingWithTypeC = true;

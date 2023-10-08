@@ -113,17 +113,17 @@ bool              bHasCustomAesKey;
 uint32_t          gChallenge[4];
 uint8_t           gTryCount;
 
-uint8_t           gEEPROM_1EC0_0[8];
-uint8_t           gEEPROM_1EC0_1[8];
-uint8_t           gEEPROM_1EC0_2[8];
-uint8_t           gEEPROM_1EC0_3[8];
+uint8_t           g_eeprom_1EC0_0[8];
+uint8_t           g_eeprom_1EC0_1[8];
+uint8_t           g_eeprom_1EC0_2[8];
+uint8_t           g_eeprom_1EC0_3[8];
 
-uint16_t          gEEPROM_RSSI_CALIB[2][4];
+uint16_t          g_eeprom_RSSI_CALIB[2][4];
 
-uint16_t          gEEPROM_1F8A;
-uint16_t          gEEPROM_1F8C;
+uint16_t          g_eeprom_1F8A;
+uint16_t          g_eeprom_1F8C;
 
-uint8_t           gMR_ChannelAttributes[FREQ_CHANNEL_LAST + 1];
+uint8_t           gUSER_ChannelAttributes[FREQ_CHANNEL_LAST + 1];
 
 volatile uint16_t gBatterySaveCountdown_10ms = battery_save_count_10ms;
 
@@ -193,25 +193,25 @@ bool              gFlagSaveChannel;
 #ifdef ENABLE_FMRADIO
 	bool          gFlagSaveFM;
 #endif
-bool              g_CDCSS_Lost;
-uint8_t           gCDCSSCodeType;
-bool              g_CTCSS_Lost;
-bool              g_CxCSS_TAIL_Found;
+bool              g_CDCSS_lost;
+uint8_t           g_CDCSS_code_type;
+bool              g_CTCSS_lost;
+bool              g_CxCSS_tailL_found;
 #ifdef ENABLE_VOX
-	bool          g_VOX_Lost;
+	bool          g_vox_lost;
 	bool          gVOX_NoiseDetected;
 	uint16_t      gVoxResumeCountdown;
-	uint16_t      gVoxPauseCountdown;
+	uint16_t      g_vox_pause_count_down;
 #endif
 bool              g_SquelchLost;
 uint8_t           gFlashLightState;
 volatile uint16_t gFlashLightBlinkCounter;
 bool              gFlagEndTransmission;
 uint16_t          gLowBatteryCountdown;
-uint8_t           gNextMrChannel;
+uint8_t           gNextChannel;
 ReceptionMode_t   gRxReceptionMode;
 
-uint8_t                gRestoreMrChannel;
+uint8_t                gRestoreUSER_CHANNEL;
 enum scan_next_chan_t  gCurrentScanList;
 uint32_t               gRestoreFrequency;
 
@@ -224,7 +224,7 @@ bool              gKeyBeingHeld;
 bool              gPttIsPressed;
 uint8_t           gPttDebounceCounter;
 uint8_t           gMenuListCount;
-uint8_t           gBackup_CROSS_BAND_RX_TX;
+uint8_t           gBackup_cross_vfo_rx_tx;
 uint8_t           gScanDelay_10ms;
 #ifdef ENABLE_AIRCOPY
 	uint8_t       gAircopySendCountdown;
@@ -266,34 +266,34 @@ uint8_t           gIsLocked = 0xFF;
 
 unsigned int get_rx_VFO(void)
 {
-	unsigned int rx_vfo = gEeprom.TX_VFO;
-	if (gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_CHAN_B)
+	unsigned int rx_vfo = g_eeprom.tx_vfo;
+	if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_B)
 		rx_vfo = 0;
 	else
-	if (gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_CHAN_A)
+	if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_A)
 		rx_vfo = 1;
 	else
-	if (gEeprom.DUAL_WATCH == DUAL_WATCH_CHAN_B)
+	if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_B)
 		rx_vfo = 1;
 	else
-	if (gEeprom.DUAL_WATCH == DUAL_WATCH_CHAN_A)
+	if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_A)
 		rx_vfo = 0;
 	return rx_vfo;
 }
 
 unsigned int get_tx_VFO(void)
 {
-	unsigned int tx_vfo = gEeprom.TX_VFO;
-	if (gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_CHAN_B)
+	unsigned int tx_vfo = g_eeprom.tx_vfo;
+	if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_B)
 		tx_vfo = 1;
 	else
-	if (gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_CHAN_A)
+	if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_A)
 		tx_vfo = 0;
 	else
-	if (gEeprom.DUAL_WATCH == DUAL_WATCH_CHAN_B)
+	if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_B)
 		tx_vfo = 1;
 	else
-	if (gEeprom.DUAL_WATCH == DUAL_WATCH_CHAN_A)
+	if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_A)
 		tx_vfo = 0;
 	return tx_vfo;
 }

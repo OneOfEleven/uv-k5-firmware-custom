@@ -42,7 +42,7 @@ enum SCAN_edit_state_e {
 };
 typedef enum SCAN_edit_state_e SCAN_edit_state_t;
 
-extern DCS_CodeType_t    gScanCssResultType;
+extern dcs_code_type_t    gScanCssResultType;
 extern uint8_t           gScanCssResultCode;
 extern bool              gFlagStartScan;
 extern bool              gFlagStopScan;
@@ -60,7 +60,7 @@ extern bool              gScanUseCssResult;
 extern int8_t            gScanStateDir;
 extern bool              bScanKeepFrequency;
 
-void SCANNER_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+void SCANNER_ProcessKeys(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
 void SCANNER_Start(void);
 void SCANNER_Stop(void);
 

@@ -24,10 +24,10 @@
 #include "frequencies.h"
 
 enum {
-	MR_CH_BAND_MASK   = 0x0F << 0,
-	MR_CH_COMPAND     =   3u << 4,  // new
-	MR_CH_SCANLIST2   =   1u << 6,
-	MR_CH_SCANLIST1   =   1u << 7
+	USER_CH_BAND_MASK = 0x0F << 0,
+	USER_CH_COMPAND   =   3u << 4,  // new
+	USER_CH_SCANLIST2 =   1u << 6,
+	USER_CH_SCANLIST1 =   1u << 7
 };
 
 enum {
@@ -63,67 +63,67 @@ typedef enum VfoState_t VfoState_t;
 
 typedef struct
 {
-	uint32_t       Frequency;
-	DCS_CodeType_t CodeType;
-	uint8_t        Code;
-	uint8_t        Padding[2];
+	uint32_t        frequency;
+	dcs_code_type_t code_type;
+	uint8_t         code;
+	uint8_t         padding[2];
 } FREQ_Config_t;
 
 typedef struct VFO_Info_t
 {
-	FREQ_Config_t  freq_config_RX;
-	FREQ_Config_t  freq_config_TX;
+	FREQ_Config_t  freq_config_rx;
+	FREQ_Config_t  freq_config_tx;
 	FREQ_Config_t *pRX;
 	FREQ_Config_t *pTX;
 
-	uint32_t       TX_OFFSET_FREQUENCY;
-	uint16_t       StepFrequency;
+	uint32_t       tx_offset_freq;
+	uint16_t       step_freq;
 
-	uint8_t        CHANNEL_SAVE;
+	uint8_t        channel_save;
 
-	uint8_t        TX_OFFSET_FREQUENCY_DIRECTION;
+	uint8_t        tx_offset_freq_dir;
 
-	uint8_t        SquelchOpenRSSIThresh;
-	uint8_t        SquelchOpenNoiseThresh;
-	uint8_t        SquelchCloseGlitchThresh;
-	uint8_t        SquelchCloseRSSIThresh;
-	uint8_t        SquelchCloseNoiseThresh;
-	uint8_t        SquelchOpenGlitchThresh;
+	uint8_t        squelch_open_RSSI_thresh;
+	uint8_t        squelch_open_noise_thresh;
+	uint8_t        squelch_close_glitch_thresh;
+	uint8_t        squelch_close_RSSI_thresh;
+	uint8_t        squelch_close_noise_thresh;
+	uint8_t        squelch_open_glitch_thresh;
 
-	STEP_Setting_t STEP_SETTING;
-	uint8_t        OUTPUT_POWER;
-	uint8_t        TXP_CalculatedSetting;
-	bool           FrequencyReverse;
+	step_setting_t step_setting;
+	uint8_t        output_power;
+	uint8_t        txp_calculated_setting;
+	bool           frequency_reverse;
 
-	uint8_t        SCRAMBLING_TYPE;
-	uint8_t        CHANNEL_BANDWIDTH;
+	uint8_t        scrambling_type;
+	uint8_t        channel_bandwidth;
 
-	uint8_t        SCANLIST1_PARTICIPATION;
-	uint8_t        SCANLIST2_PARTICIPATION;
+	uint8_t        scanlist_1_participation;
+	uint8_t        scanlist_2_participation;
 
-	uint8_t        Band;
+	uint8_t        band;
 
-	uint8_t        DTMF_DECODING_ENABLE;
-	PTT_ID_t       DTMF_PTT_ID_TX_MODE;
+	uint8_t        DTMF_decoding_enable;
+	PTT_ID_t       DTMF_ptt_id_tx_mode;
 
-	uint8_t        BUSY_CHANNEL_LOCK;
+	uint8_t        busy_channel_lock;
 
-	uint8_t        AM_mode;
+	uint8_t        am_mode;
 
-	uint8_t        Compander;
+	uint8_t        compander;
 
-	char           Name[16];
+	char           name[16];
 } VFO_Info_t;
 
 extern VFO_Info_t    *gTxVfo;
 extern VFO_Info_t    *gRxVfo;
 extern VFO_Info_t    *gCurrentVfo;
 
-extern DCS_CodeType_t gSelectedCodeType;
-extern DCS_CodeType_t gCurrentCodeType;
+extern dcs_code_type_t gSelectedcode_type;
+extern dcs_code_type_t gCurrentcode_type;
 extern uint8_t        gSelectedCode;
 
-extern STEP_Setting_t gStepSetting;
+extern step_setting_t gStepSetting;
 
 extern VfoState_t     VfoState[2];
 
