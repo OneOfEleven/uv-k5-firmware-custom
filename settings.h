@@ -94,7 +94,7 @@ enum {
 #endif
 
 enum alarm_mode_e {
-	alarm_mode_SITE = 0,
+	ALARM_MODE_SITE = 0,
 	ALARM_MODE_TONE
 };
 typedef enum alarm_mode_e alarm_mode_t;
@@ -179,11 +179,11 @@ typedef struct {
 	uint8_t               mic_sensitivity;
 	uint8_t               mic_sensitivity_tuning;
 	uint8_t               chan_1_call;
-	char                  ani_DTMF_id[8];
+	char                  ani_dtmf_id[8];
 	char                  kill_code[8];
 	char                  revive_code[8];
-	char                  DTMF_up_code[16];
-	char                  DTMF_down_code[16];
+	char                  dtmf_up_code[16];
+	char                  dtmf_down_code[16];
 
 	uint8_t               field57_0x6c;
 	uint8_t               field58_0x6d;
@@ -191,24 +191,24 @@ typedef struct {
 	uint8_t               field60_0x7e;
 	uint8_t               field61_0x7f;
 
-	char                  DTMF_separate_code;
-	char                  DTMF_group_call_code;
-	uint8_t               DTMF_decode_response;
-	uint8_t               DTMF_auto_reset_time;
-	uint16_t              DTMF_preload_time;
-	uint16_t              DTMF_first_code_persist_time;
-	uint16_t              DTMF_hash_code_persist_time;
-	uint16_t              DTMF_code_persist_time;
-	uint16_t              DTMF_code_interval_time;
-	bool                  DTMF_side_tone;
+	char                  dtmf_separate_code;
+	char                  dtmf_group_call_code;
+	uint8_t               dtmf_decode_response;
+	uint8_t               dtmf_auto_reset_time;
+	uint16_t              dtmf_preload_time;
+	uint16_t              dtmf_first_code_persist_time;
+	uint16_t              dtmf_hash_code_persist_time;
+	uint16_t              dtmf_code_persist_time;
+	uint16_t              dtmf_code_interval_time;
+	bool                  dtmf_side_tone;
 	bool                  permit_remote_kill;
 	int16_t               BK4819_xtal_freq_low;
 	#ifdef ENABLE_NOAA
-		bool              NOAA_auto_scan;
+		bool              noaa_auto_scan;
 	#endif
 	uint8_t               volume_gain;
 	uint8_t               dac_gain;
-	VFO_Info_t            VfoInfo[2];
+	vfo_info_t            vfo_info[2];
 	uint32_t              power_on_password;
 	uint16_t              vox1_threshold;
 	uint16_t              vox0_threshold;
@@ -218,16 +218,16 @@ typedef struct {
 	uint8_t               field79_0x97;
 
 	uint8_t _pad[1];
-} EEPROM_Config_t;
+} eeprom_config_t;
 
-extern EEPROM_Config_t g_eeprom;
+extern eeprom_config_t g_eeprom;
 
 #ifdef ENABLE_FMRADIO
 	void SETTINGS_SaveFM(void);
 #endif
 void SETTINGS_SaveVfoIndices(void);
 void SETTINGS_SaveSettings(void);
-void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, uint8_t Mode);
-void SETTINGS_UpdateChannel(uint8_t Channel, const VFO_Info_t *pVFO, bool keep);
+void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, uint8_t Mode);
+void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep);
 
 #endif

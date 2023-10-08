@@ -12,9 +12,9 @@ extern const uint8_t BITMAP_BATTERY_LEVEL[17];
 
 extern const uint8_t BITMAP_USB_C[9];
 
-extern const uint8_t BITMAP_KeyLock[6];
+extern const uint8_t BITMAP_KEYLOCK[6];
 
-extern const uint8_t BITMAP_F_Key[6];
+extern const uint8_t BITMAP_F_KEY[6];
 
 #ifdef ENABLE_VOX
 	extern const uint8_t BITMAP_VOX[18];
@@ -30,7 +30,7 @@ extern const uint8_t BITMAP_TDR1[12];
 extern const uint8_t BITMAP_TDR2[12];
 
 #ifdef ENABLE_VOICE
-	extern const uint8_t BITMAP_VoicePrompt[9];
+	extern const uint8_t BITMAP_VOICE_PROMPT[9];
 #endif
 
 #ifdef ENABLE_FMRADIO
@@ -41,23 +41,23 @@ extern const uint8_t BITMAP_TDR2[12];
 	extern const uint8_t BITMAP_NOAA[12];
 #endif
 
-extern const uint8_t BITMAP_Antenna[5];
-extern const uint8_t BITMAP_AntennaLevel1[3];
-extern const uint8_t BITMAP_AntennaLevel2[3];
-extern const uint8_t BITMAP_AntennaLevel3[3];
-extern const uint8_t BITMAP_AntennaLevel4[3];
-extern const uint8_t BITMAP_AntennaLevel5[3];
-extern const uint8_t BITMAP_AntennaLevel6[3];
+extern const uint8_t BITMAP_ANTENNA[5];
+extern const uint8_t BITMAP_ANTENNA_LEVEL1[3];
+extern const uint8_t BITMAP_ANTENNA_LEVEL2[3];
+extern const uint8_t BITMAP_ANTENNA_LEVEL3[3];
+extern const uint8_t BITMAP_ANTENNA_LEVEL4[3];
+extern const uint8_t BITMAP_ANTENNA_LEVEL5[3];
+extern const uint8_t BITMAP_ANTENNA_LEVEL6[3];
 
 extern const uint8_t BITMAP_MARKER[8];
 
-extern const uint8_t BITMAP_VFO_Default[8];
-extern const uint8_t BITMAP_VFO_NotDefault[8];
+extern const uint8_t BITMAP_VFO_DEFAULT[8];
+extern const uint8_t BITMAP_VFO_NOT_DEFAULT[8];
 
-extern const uint8_t BITMAP_ScanList1[6];
-extern const uint8_t BITMAP_ScanList2[6];
+extern const uint8_t BITMAP_SCANLIST1[6];
+extern const uint8_t BITMAP_SCANLIST2[6];
 
-extern const uint8_t BITMAP_compand[6];
+extern const uint8_t BITMAP_COMPAND[6];
 
 #endif
 

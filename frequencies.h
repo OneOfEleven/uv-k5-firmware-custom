@@ -27,7 +27,7 @@ typedef struct {
 extern const freq_band_table_t BX4819_band1;
 extern const freq_band_table_t BX4819_band2;
 
-extern const freq_band_table_t frequencyBandTable[7];
+extern const freq_band_table_t FREQ_BAND_TABLE[7];
 
 enum FREQUENCY_Band_t {
 	BAND_NONE   = -1,
@@ -66,7 +66,7 @@ typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
 #endif
 typedef enum step_setting_t step_setting_t;
 
-extern const uint16_t     StepFrequencyTable[7];
+extern const uint16_t     STEP_FREQ_TABLE[7];
 
 #ifdef ENABLE_NOAA
 	extern const uint32_t NoaaFrequencyTable[10];

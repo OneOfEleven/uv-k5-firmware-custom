@@ -29,8 +29,8 @@
 
 void UI_DisplayReleaseKeys(void)
 {
-	memset(gStatusLine,  0, sizeof(gStatusLine));
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_status_line,  0, sizeof(g_status_line));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	UI_PrintString("RELEASE", 0, 127, 1, 10);
 	UI_PrintString("ALL KEYS", 0, 127, 3, 10);
@@ -45,8 +45,8 @@ void UI_DisplayWelcome(void)
 	char WelcomeString1[16];
 	char WelcomeString2[16];
 	
-	memset(gStatusLine,  0, sizeof(gStatusLine));
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_status_line,  0, sizeof(g_status_line));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	if (g_eeprom.pwr_on_display_mode == PWR_ON_DISPLAY_MODE_NONE)
 	{
@@ -67,12 +67,12 @@ void UI_DisplayWelcome(void)
 		{
 			strcpy(WelcomeString0, "VOLTAGE");
 			sprintf(WelcomeString1, "%u.%02uV %u%%",
-				gBatteryVoltageAverage / 100,
-				gBatteryVoltageAverage % 100,
-				BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+				g_battery_voltage_average / 100,
+				g_battery_voltage_average % 100,
+				BATTERY_VoltsToPercent(g_battery_voltage_average));
 
 			#if 0
-				sprintf(WelcomeString2, "Current %u", gBatteryCurrent);  // needs scaling into mA
+				sprintf(WelcomeString2, "Current %u", g_battery_current);  // needs scaling into mA
 			#endif
 		}
 		else

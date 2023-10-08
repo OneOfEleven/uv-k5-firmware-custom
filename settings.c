@@ -24,7 +24,7 @@
 #include "misc.h"
 #include "settings.h"
 
-EEPROM_Config_t g_eeprom;
+eeprom_config_t g_eeprom;
 
 #ifdef ENABLE_FMRADIO
 	void SETTINGS_SaveFM(void)
@@ -47,7 +47,7 @@ EEPROM_Config_t g_eeprom;
 		EEPROM_WriteBuffer(0x0E88, &state);
 
 		for (i = 0; i < 5; i++)
-			EEPROM_WriteBuffer(0x0E40 + (i * 8), &gFM_Channels[i * 4]);
+			EEPROM_WriteBuffer(0x0E40 + (i * 8), &g_fm_channels[i * 4]);
 	}
 #endif
 
@@ -81,7 +81,7 @@ void SETTINGS_SaveSettings(void)
 	State[1] = g_eeprom.squelch_level;
 	State[2] = g_eeprom.tx_timeout_timer;
 	#ifdef ENABLE_NOAA
-		State[3] = g_eeprom.NOAA_auto_scan;
+		State[3] = g_eeprom.noaa_auto_scan;
 	#else
 		State[3] = false;
 	#endif
@@ -146,19 +146,19 @@ void SETTINGS_SaveSettings(void)
 	State[3] = g_eeprom.tx_vfo;
 	EEPROM_WriteBuffer(0x0EA8, State);
 
-	State[0] = g_eeprom.DTMF_side_tone;
-	State[1] = g_eeprom.DTMF_separate_code;
-	State[2] = g_eeprom.DTMF_group_call_code;
-	State[3] = g_eeprom.DTMF_decode_response;
-	State[4] = g_eeprom.DTMF_auto_reset_time;
-	State[5] = g_eeprom.DTMF_preload_time / 10U;
-	State[6] = g_eeprom.DTMF_first_code_persist_time / 10U;
-	State[7] = g_eeprom.DTMF_hash_code_persist_time / 10U;
+	State[0] = g_eeprom.dtmf_side_tone;
+	State[1] = g_eeprom.dtmf_separate_code;
+	State[2] = g_eeprom.dtmf_group_call_code;
+	State[3] = g_eeprom.dtmf_decode_response;
+	State[4] = g_eeprom.dtmf_auto_reset_time;
+	State[5] = g_eeprom.dtmf_preload_time / 10U;
+	State[6] = g_eeprom.dtmf_first_code_persist_time / 10U;
+	State[7] = g_eeprom.dtmf_hash_code_persist_time / 10U;
 	EEPROM_WriteBuffer(0x0ED0, State);
 
 	memset(State, 0xFF, sizeof(State));
-	State[0] = g_eeprom.DTMF_code_persist_time / 10U;
-	State[1] = g_eeprom.DTMF_code_interval_time / 10U;
+	State[0] = g_eeprom.dtmf_code_persist_time / 10U;
+	State[1] = g_eeprom.dtmf_code_interval_time / 10U;
 	State[2] = g_eeprom.permit_remote_kill;
 	EEPROM_WriteBuffer(0x0ED8, State);
 
@@ -173,28 +173,28 @@ void SETTINGS_SaveSettings(void)
 	EEPROM_WriteBuffer(0x0F18, State);
 
 	memset(State, 0xFF, sizeof(State));
-	State[0]  = gSetting_F_LOCK;
-	State[1]  = gSetting_350TX;
-	State[2]  = gSetting_KILLED;
-	State[3]  = gSetting_200TX;
-	State[4]  = gSetting_500TX;
-	State[5]  = gSetting_350EN;
-	State[6]  = gSetting_ScrambleEnable;
-	if (!gSetting_TX_EN)             State[7] &= ~(1u << 0);
-	if (!gSetting_live_DTMF_decoder) State[7] &= ~(1u << 1);
-	State[7] = (State[7] & ~(3u << 2)) | ((gSetting_battery_text & 3u) << 2);
+	State[0]  = g_setting_f_lock;
+	State[1]  = g_setting_350_tx_enable;
+	State[2]  = g_setting_killed;
+	State[3]  = g_setting_200_tx_enable;
+	State[4]  = g_setting_500_tx_enable;
+	State[5]  = g_setting_350_enable;
+	State[6]  = g_setting_scramble_enable;
+	if (!g_Setting_tx_enable)             State[7] &= ~(1u << 0);
+	if (!g_setting_live_dtmf_decoder) State[7] &= ~(1u << 1);
+	State[7] = (State[7] & ~(3u << 2)) | ((g_setting_battery_text & 3u) << 2);
 	#ifdef ENABLE_AUDIO_BAR
-		if (!gSetting_mic_bar)           State[7] &= ~(1u << 4);
+		if (!g_setting_mic_bar)           State[7] &= ~(1u << 4);
 	#endif
 	#ifdef ENABLE_AM_FIX
-		if (!gSetting_AM_fix)            State[7] &= ~(1u << 5);
+		if (!g_setting_am_fix)            State[7] &= ~(1u << 5);
 	#endif
-	State[7] = (State[7] & ~(3u << 6)) | ((gSetting_backlight_on_tx_rx & 3u) << 6);
+	State[7] = (State[7] & ~(3u << 6)) | ((g_setting_backlight_on_tx_rx & 3u) << 6);
 	 
 	EEPROM_WriteBuffer(0x0F40, State);
 }
 
-void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, uint8_t Mode)
+void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, uint8_t Mode)
 {
 	#ifdef ENABLE_NOAA
 		if (IS_NOT_NOAA_CHANNEL(Channel))
@@ -227,7 +227,7 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, 
 				| (pVFO->output_power      << 2)
 				| (pVFO->channel_bandwidth << 1)
 				| (pVFO->frequency_reverse  << 0);
-			State[5] = ((pVFO->DTMF_ptt_id_tx_mode & 7u) << 1) | ((pVFO->DTMF_decoding_enable & 1u) << 0);
+			State[5] = ((pVFO->dtmf_ptt_id_tx_mode & 7u) << 1) | ((pVFO->dtmf_decoding_enable & 1u) << 0);
 			State[6] =  pVFO->step_setting;
 			State[7] =  pVFO->scrambling_type;
 			EEPROM_WriteBuffer(OffsetVFO + 8, State);
@@ -259,7 +259,7 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, 
 	}
 }
 
-void SETTINGS_UpdateChannel(uint8_t Channel, const VFO_Info_t *pVFO, bool keep)
+void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep)
 {
 	#ifdef ENABLE_NOAA
 		if (IS_NOT_NOAA_CHANNEL(Channel))
@@ -284,7 +284,7 @@ void SETTINGS_UpdateChannel(uint8_t Channel, const VFO_Info_t *pVFO, bool keep)
 
 		EEPROM_WriteBuffer(Offset, State);
 
-		gUSER_ChannelAttributes[Channel] = Attributes;
+		g_user_channel_attributes[Channel] = Attributes;
 
 //		#ifndef ENABLE_KEEP_MEM_NAME
 			if (Channel <= USER_CHANNEL_LAST)

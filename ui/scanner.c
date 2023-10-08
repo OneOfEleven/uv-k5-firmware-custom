@@ -32,10 +32,10 @@ void UI_DisplayScanner(void)
 	char    String[16];
 	bool    text_centered = false;
 
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	memset(String, 0, sizeof(String));
-	if (gScanSingleFrequency || (gScanCssState != SCAN_CSS_STATE_OFF && gScanCssState != SCAN_CSS_STATE_FAILED))
+	if (g_scan_single_frequency || (gScanCssState != SCAN_CSS_STATE_OFF && gScanCssState != SCAN_CSS_STATE_FAILED))
 	{
 		const uint32_t freq = gScanFrequency;
 		sprintf(String, "FREQ %u.%05u", freq / 100000, freq % 100000);
@@ -51,9 +51,9 @@ void UI_DisplayScanner(void)
 		strcpy(String, "CODE scanning");
 	else
 	if (gScanCssResultType == CODE_TYPE_CONTINUOUS_TONE)
-		sprintf(String, " CTC %u.%uHz", CTCSS_Options[gScanCssResultCode] / 10, CTCSS_Options[gScanCssResultCode] % 10);
+		sprintf(String, " CTC %u.%uHz", CTCSS_OPTIONS[gScanCssResultCode] / 10, CTCSS_OPTIONS[gScanCssResultCode] % 10);
 	else
-		sprintf(String, " DCS D%03oN", DCS_Options[gScanCssResultCode]);
+		sprintf(String, " DCS D%03oN", DCS_OPTIONS[gScanCssResultCode]);
 	UI_PrintString(String, 2, 0, 3, 8);
 
 	memset(String, 0, sizeof(String));
@@ -81,7 +81,7 @@ void UI_DisplayScanner(void)
 
 		case SCAN_EDIT_STATE_BUSY:
 			strcpy(String, "SAVE ");
-			UI_GenerateChannelStringEx(String + 5, gShowChPrefix, gScanChannel);
+			UI_GenerateChannelStringEx(String + 5, g_show_chan_prefix, gScanChannel);
 			break;
 
 		case SCAN_EDIT_STATE_DONE:

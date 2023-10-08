@@ -44,23 +44,23 @@ typedef enum SCAN_edit_state_e SCAN_edit_state_t;
 
 extern dcs_code_type_t    gScanCssResultType;
 extern uint8_t           gScanCssResultCode;
-extern bool              gFlagStartScan;
-extern bool              gFlagStopScan;
-extern bool              gScanSingleFrequency;
+extern bool              g_flag_start_scan;
+extern bool              g_flag_stop_scan;
+extern bool              g_scan_single_frequency;
 extern SCAN_edit_state_t gScannerEditState;
 extern uint8_t           gScanChannel;
 extern uint32_t          gScanFrequency;
 extern bool              gScanPauseMode;
 extern SCAN_CssState_t   gScanCssState;
-extern volatile bool     gScheduleScanListen;
-extern volatile uint16_t gScanPauseDelayIn_10ms;
+extern volatile bool     g_schedule_scan_listen;
+extern volatile uint16_t g_scan_pause_delay_in_10ms;
 extern uint8_t           gScanProgressIndicator;
 extern uint8_t           gScanHitCount;
 extern bool              gScanUseCssResult;
-extern int8_t            gScanStateDir;
+extern int8_t            g_scan_state_dir;
 extern bool              bScanKeepFrequency;
 
-void SCANNER_ProcessKeys(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
+void SCANNER_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held);
 void SCANNER_Start(void);
 void SCANNER_Stop(void);
 

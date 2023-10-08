@@ -17,7 +17,7 @@
 #ifndef UI_MAIN_H
 #define UI_MAIN_H
 
-enum center_line_t {
+enum center_line_e {
 	CENTER_LINE_NONE = 0,
 	CENTER_LINE_IN_USE,
 	CENTER_LINE_TX_TIMEOUT,
@@ -27,7 +27,7 @@ enum center_line_t {
 	CENTER_LINE_DTMF_DEC,
 	CENTER_LINE_CHARGE_DATA
 };
-typedef enum center_line_t center_line_t;
+typedef enum center_line_e center_line_t;
 
 extern center_line_t center_line;
 

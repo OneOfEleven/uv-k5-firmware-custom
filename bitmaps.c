@@ -112,7 +112,7 @@ const uint8_t BITMAP_USB_C[9] =
 	0b00011100
 };
 
-const uint8_t BITMAP_KeyLock[6] =
+const uint8_t BITMAP_KEYLOCK[6] =
 {	// teeny padlock symbol
 	0b00000000,
 	0b01111100,
@@ -122,7 +122,7 @@ const uint8_t BITMAP_KeyLock[6] =
 	0b01111100
 };
 
-const uint8_t BITMAP_F_Key[6] =
+const uint8_t BITMAP_F_KEY[6] =
 {	// F-Key symbol
 	0b00000000,
 	0b01011111,
@@ -224,7 +224,7 @@ const uint8_t BITMAP_TDR2[12] =
 };
 
 #ifdef ENABLE_VOICE
-	const uint8_t BITMAP_VoicePrompt[9] =
+	const uint8_t BITMAP_VOICE_PROMPT[9] =
 	{
 		0b00000000,
 		0b00011000,
@@ -276,7 +276,7 @@ const uint8_t BITMAP_TDR2[12] =
 	};
 #endif
 
-const uint8_t BITMAP_Antenna[5] =
+const uint8_t BITMAP_ANTENNA[5] =
 {
 	0b00000011,
 	0b00000101,
@@ -285,42 +285,42 @@ const uint8_t BITMAP_Antenna[5] =
 	0b00000011
 };
 
-const uint8_t BITMAP_AntennaLevel1[3] =
+const uint8_t BITMAP_ANTENNA_LEVEL1[3] =
 {
 	0b01100000,
 	0b01100000,
 	0b00000000
 };
 
-const uint8_t BITMAP_AntennaLevel2[3] =
+const uint8_t BITMAP_ANTENNA_LEVEL2[3] =
 {
 	0b01110000,
 	0b01110000,
 	0b00000000
 };
 
-const uint8_t BITMAP_AntennaLevel3[3] =
+const uint8_t BITMAP_ANTENNA_LEVEL3[3] =
 {
 	0b01111000,
 	0b01111000,
 	0b00000000
 };
 
-const uint8_t BITMAP_AntennaLevel4[3] =
+const uint8_t BITMAP_ANTENNA_LEVEL4[3] =
 {
 	0b01111100,
 	0b01111100,
 	0b00000000
 };
 
-const uint8_t BITMAP_AntennaLevel5[3] =
+const uint8_t BITMAP_ANTENNA_LEVEL5[3] =
 {
 	0b01111110,
 	0b01111110,
 	0b00000000
 };
 
-const uint8_t BITMAP_AntennaLevel6[3] =
+const uint8_t BITMAP_ANTENNA_LEVEL6[3] =
 {
 	0b01111111,
 	0b01111111,
@@ -339,7 +339,7 @@ const uint8_t BITMAP_MARKER[8] =
 	0b00011000
 };
 
-const uint8_t BITMAP_VFO_Default[8] =
+const uint8_t BITMAP_VFO_DEFAULT[8] =
 {
 	0b00000000,
 	0b01111111,
@@ -351,7 +351,7 @@ const uint8_t BITMAP_VFO_Default[8] =
 	0b00001000
 };
 
-const uint8_t BITMAP_VFO_NotDefault[8] =
+const uint8_t BITMAP_VFO_NOT_DEFAULT[8] =
 {
 	0b00000000,
 	0b01000001,
@@ -363,7 +363,7 @@ const uint8_t BITMAP_VFO_NotDefault[8] =
 	0b00001000
 };
 
-const uint8_t BITMAP_ScanList1[6] =
+const uint8_t BITMAP_SCANLIST1[6] =
 {	// 'I' symbol
 	0b00000000,
 	0b00000000,
@@ -373,7 +373,7 @@ const uint8_t BITMAP_ScanList1[6] =
 	0b00000000
 };
 
-const uint8_t BITMAP_ScanList2[6] =
+const uint8_t BITMAP_SCANLIST2[6] =
 {	// 'II' symbol
 	0b00000000,
 	0b01000010,
@@ -383,7 +383,7 @@ const uint8_t BITMAP_ScanList2[6] =
 	0b01000010
 };
 
-const uint8_t BITMAP_compand[6] =
+const uint8_t BITMAP_COMPAND[6] =
 {
 	0b00000000,
 	0b00111100,

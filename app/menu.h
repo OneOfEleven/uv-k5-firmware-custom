@@ -30,7 +30,7 @@ void MENU_ShowCurrentSetting(void);
 void MENU_StartCssScan(int8_t Direction);
 void MENU_StopCssScan(void);
 
-void MENU_ProcessKeys(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
+void MENU_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held);
 
 #endif
 

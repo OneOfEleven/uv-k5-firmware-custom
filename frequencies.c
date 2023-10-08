@@ -22,7 +22,7 @@
 const freq_band_table_t BX4819_band1 = { 1800000,  63000000};
 const freq_band_table_t BX4819_band2 = {84000000, 130000000};
 
-const freq_band_table_t frequencyBandTable[7] =
+const freq_band_table_t FREQ_BAND_TABLE[7] =
 {
 	#ifndef ENABLE_WIDE_RX
 		// QS original
@@ -63,18 +63,18 @@ const freq_band_table_t frequencyBandTable[7] =
 
 #ifdef ENABLE_1250HZ_STEP
 	// includes 1.25kHz step
-	const uint16_t StepFrequencyTable[7] = {125, 250, 625, 1000, 1250, 2500, 833};
+	const uint16_t STEP_FREQ_TABLE[7] = {125, 250, 625, 1000, 1250, 2500, 833};
 #else
 	// QS steps (*10 Hz)
-	const uint16_t StepFrequencyTable[7] = {250, 500, 625, 1000, 1250, 2500, 833};
+	const uint16_t STEP_FREQ_TABLE[7] = {250, 500, 625, 1000, 1250, 2500, 833};
 #endif
 
 FREQUENCY_Band_t FREQUENCY_GetBand(uint32_t Frequency)
 {
 	int band;
-	for (band = ARRAY_SIZE(frequencyBandTable) - 1; band >= 0; band--)
-		if (Frequency >= frequencyBandTable[band].lower)
-//		if (Frequency <  frequencyBandTable[band].upper)
+	for (band = ARRAY_SIZE(FREQ_BAND_TABLE) - 1; band >= 0; band--)
+		if (Frequency >= FREQ_BAND_TABLE[band].lower)
+//		if (Frequency <  FREQ_BAND_TABLE[band].upper)
 			return (FREQUENCY_Band_t)band;
 
 	return BAND1_50MHz;
@@ -128,27 +128,27 @@ int TX_freq_check(const uint32_t Frequency)
 {	// return '0' if TX frequency is allowed
 	// otherwise return '-1'
 
-	if (Frequency < frequencyBandTable[0].lower || Frequency > frequencyBandTable[ARRAY_SIZE(frequencyBandTable) - 1].upper)
+	if (Frequency < FREQ_BAND_TABLE[0].lower || Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
 		return -1;  // not allowed outside this range
 
 	if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
 		return -1;  // BX chip does not work in this range
 
-	switch (gSetting_F_LOCK)
+	switch (g_setting_f_lock)
 	{
 		case F_LOCK_OFF:
 			if (Frequency >= 13600000 && Frequency < 17400000)
 				return 0;
 			if (Frequency >= 17400000 && Frequency < 35000000)
-				if (gSetting_200TX)
+				if (g_setting_200_tx_enable)
 					return 0;
 			if (Frequency >= 35000000 && Frequency < 40000000)
-				if (gSetting_350TX && gSetting_350EN)
+				if (g_setting_350_tx_enable && g_setting_350_enable)
 					return 0;
 			if (Frequency >= 40000000 && Frequency < 47000000)
 				return 0;
 			if (Frequency >= 47000000 && Frequency <= 60000000)
-				if (gSetting_500TX)
+				if (g_setting_500_tx_enable)
 					return 0;
 			break;
 
@@ -196,7 +196,7 @@ int RX_freq_check(const uint32_t Frequency)
 {	// return '0' if RX frequency is allowed
 	// otherwise return '-1'
 
-	if (Frequency < frequencyBandTable[0].lower || Frequency > frequencyBandTable[ARRAY_SIZE(frequencyBandTable) - 1].upper)
+	if (Frequency < FREQ_BAND_TABLE[0].lower || Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
 		return -1;
 
 	if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)

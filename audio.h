@@ -20,7 +20,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-enum BEEP_Type_t
+enum beep_type_e
 {
 	BEEP_NONE = 0,
 	BEEP_1KHZ_60MS_OPTIONAL,
@@ -33,12 +33,11 @@ enum BEEP_Type_t
 	BEEP_880HZ_40MS_OPTIONAL,
 	BEEP_880HZ_60MS_TRIPLE_BEEP
 };
+typedef enum beep_type_e beep_type_t;
 
-typedef enum BEEP_Type_t BEEP_Type_t;
+extern beep_type_t       g_beep_to_play;
 
-extern BEEP_Type_t       gBeepToPlay;
-
-void AUDIO_PlayBeep(BEEP_Type_t Beep);
+void AUDIO_PlayBeep(beep_type_t Beep);
 
 enum
 {
@@ -76,12 +75,12 @@ enum voice_id_e
 	VOICE_ID_DELETE_CHANNEL      = 0x19U,
 	VOICE_ID_FREQUENCY_STEP      = 0x1AU,
 	VOICE_ID_SQUELCH             = 0x1BU,
-	voice_id_tRANSMIT_OVER_TIME  = 0x1CU,
+	VOICE_ID_TRANSMIT_OVER_TIME  = 0x1CU,
 	VOICE_ID_BACKLIGHT_SELECTION = 0x1DU,
 	VOICE_ID_VOX                 = 0x1EU,
-	voice_id_tX_OFFSET_FREQ_DIR  = 0x1FU,
-	voice_id_tX_OFFSET_FREQ      = 0x20U,
-	voice_id_tRANSMITING_MEMORY  = 0x21U,
+	VOICE_ID_TX_OFFSET_FREQ_DIR  = 0x1FU,
+	VOICE_ID_TX_OFFSET_FREQ      = 0x20U,
+	VOICE_ID_TRANSMITING_MEMORY  = 0x21U,
 	VOICE_ID_RECEIVING_MEMORY    = 0x22U,
 	VOICE_ID_EMERGENCY_CALL      = 0x23U,
 	VOICE_ID_LOW_VOLTAGE         = 0x24U,
@@ -138,7 +137,7 @@ typedef enum voice_id_e voice_id_t;
 	extern voice_id_t        g_another_voice_id;
 	
 	void    AUDIO_PlayVoice(uint8_t VoiceID);
-	void    AUDIO_PlaySingleVoice(bool bFlag);
+	void    AUDIO_PlaySingleVoice(bool flag);
 	void    AUDIO_SetVoiceID(uint8_t Index, voice_id_t VoiceID);
 	uint8_t AUDIO_SetDigitVoice(uint8_t Index, uint16_t Value);
 	void    AUDIO_PlayQueuedVoice(void);

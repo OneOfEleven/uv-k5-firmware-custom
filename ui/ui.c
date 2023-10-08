@@ -35,16 +35,15 @@
 #include "ui/scanner.h"
 #include "ui/ui.h"
 
-GUI_DisplayType_t gScreenToDisplay;
-GUI_DisplayType_t gRequestDisplayScreen = DISPLAY_INVALID;
-
-uint8_t           gAskForConfirmation;
-bool              gAskToSave;
-bool              gAskToDelete;
+gui_display_type_t g_screen_to_display;
+gui_display_type_t g_request_display_screen = DISPLAY_INVALID;
+uint8_t            g_ask_for_confirmation;
+bool               g_ask_to_save;
+bool               g_ask_to_delete;
 
 void GUI_DisplayScreen(void)
 {
-	switch (gScreenToDisplay)
+	switch (g_screen_to_display)
 	{
 		case DISPLAY_MAIN:
 			UI_DisplayMain();
@@ -75,30 +74,30 @@ void GUI_DisplayScreen(void)
 	}
 }
 
-void GUI_SelectNextDisplay(GUI_DisplayType_t Display)
+void GUI_SelectNextDisplay(gui_display_type_t Display)
 {
 	if (Display == DISPLAY_INVALID)
 		return;
 
-	if (gScreenToDisplay != Display)
+	if (g_screen_to_display != Display)
 	{
 		DTMF_clear_input_box();
 
-		gInputBoxIndex       = 0;
-		gIsInSubMenu         = false;
-		gCssScanMode         = CSS_SCAN_MODE_OFF;
-		gScanStateDir        = SCAN_OFF;
+		g_input_box_index      = 0;
+		g_is_in_sub_menu       = false;
+		g_css_scan_mode        = CSS_SCAN_MODE_OFF;
+		g_scan_state_dir       = SCAN_OFF;
 		#ifdef ENABLE_FMRADIO
-			gFM_ScanState    = FM_SCAN_OFF;
+			g_fm_scan_state    = FM_SCAN_OFF;
 		#endif
-		gAskForConfirmation  = 0;
-		gAskToSave           = false;
-		gAskToDelete         = false;
-		g_was_f_key_pressed      = false;
+		g_ask_for_confirmation = 0;
+		g_ask_to_save          = false;
+		g_ask_to_delete        = false;
+		g_f_key_was_pressed    = false;
 
-		gUpdateStatus        = true;
+		g_update_status        = true;
 	}
 
-	gScreenToDisplay = Display;
-	gUpdateDisplay   = true;
+	g_screen_to_display = Display;
+	g_update_display    = true;
 }

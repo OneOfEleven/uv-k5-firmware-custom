@@ -529,7 +529,7 @@ void BOARD_EEPROM_Init(void)
 	g_eeprom.squelch_level        = (Data[1] < 10) ? Data[1] : 1;
 	g_eeprom.tx_timeout_timer     = (Data[2] < 11) ? Data[2] : 1;
 	#ifdef ENABLE_NOAA
-		g_eeprom.NOAA_auto_scan   = (Data[3] <  2) ? Data[3] : false;
+		g_eeprom.noaa_auto_scan   = (Data[3] <  2) ? Data[3] : false;
 	#endif
 	g_eeprom.key_lock             = (Data[4] <  2) ? Data[4] : false;
 	#ifdef ENABLE_VOX
@@ -541,10 +541,10 @@ void BOARD_EEPROM_Init(void)
 	// 0E78..0E7F
 	EEPROM_ReadBuffer(0x0E78, Data, 8);
 	g_eeprom.channel_display_mode  = (Data[1] < 4) ? Data[1] : MDF_FREQUENCY;    // 4 instead of 3 - extra display mode
-	g_eeprom.cross_vfo_rx_tx      = (Data[2] < 3) ? Data[2] : CROSS_BAND_OFF;
+	g_eeprom.cross_vfo_rx_tx       = (Data[2] < 3) ? Data[2] : CROSS_BAND_OFF;
 	g_eeprom.battery_save          = (Data[3] < 5) ? Data[3] : 4;
 	g_eeprom.dual_watch            = (Data[4] < 3) ? Data[4] : DUAL_WATCH_CHAN_A;
-	g_eeprom.backlight             = (Data[5] < ARRAY_SIZE(gSubMenu_backlight)) ? Data[5] : 3;
+	g_eeprom.backlight             = (Data[5] < ARRAY_SIZE(g_sub_menu_backlight)) ? Data[5] : 3;
 	g_eeprom.tail_note_elimination = (Data[6] < 2) ? Data[6] : false;
 	g_eeprom.vfo_open              = (Data[7] < 2) ? Data[7] : true;
 
@@ -584,7 +584,7 @@ void BOARD_EEPROM_Init(void)
 	}
 
 	// 0E40..0E67
-	EEPROM_ReadBuffer(0x0E40, gFM_Channels, sizeof(gFM_Channels));
+	EEPROM_ReadBuffer(0x0E40, g_fm_channels, sizeof(g_fm_channels));
 	FM_ConfigureChannelState();
 #endif
 
@@ -620,29 +620,29 @@ void BOARD_EEPROM_Init(void)
 
 	// 0ED0..0ED7
 	EEPROM_ReadBuffer(0x0ED0, Data, 8);
-	g_eeprom.DTMF_side_tone               = (Data[0] < 2) ? Data[0] : true;
-	g_eeprom.DTMF_separate_code           = DTMF_ValidateCodes((char *)(Data + 1), 1) ? Data[1] : '*';
-	g_eeprom.DTMF_group_call_code         = DTMF_ValidateCodes((char *)(Data + 2), 1) ? Data[2] : '#';
-	g_eeprom.DTMF_decode_response         = (Data[3] < 4) ? Data[3] : DTMF_DEC_RESPONSE_RING;
-	g_eeprom.DTMF_auto_reset_time         = (Data[4] <= DTMF_HOLD_MAX) ? Data[4] : (Data[4] >= DTMF_HOLD_MIN) ? Data[4] : DTMF_HOLD_MAX;
-	g_eeprom.DTMF_preload_time            = (Data[5] < 101) ? Data[5] * 10 : 200;
-	g_eeprom.DTMF_first_code_persist_time = (Data[6] < 101) ? Data[6] * 10 : 70;
-	g_eeprom.DTMF_hash_code_persist_time  = (Data[7] < 101) ? Data[7] * 10 : 70;
+	g_eeprom.dtmf_side_tone               = (Data[0] < 2) ? Data[0] : true;
+	g_eeprom.dtmf_separate_code           = DTMF_ValidateCodes((char *)(Data + 1), 1) ? Data[1] : '*';
+	g_eeprom.dtmf_group_call_code         = DTMF_ValidateCodes((char *)(Data + 2), 1) ? Data[2] : '#';
+	g_eeprom.dtmf_decode_response         = (Data[3] < 4) ? Data[3] : DTMF_DEC_RESPONSE_RING;
+	g_eeprom.dtmf_auto_reset_time         = (Data[4] <= DTMF_HOLD_MAX) ? Data[4] : (Data[4] >= DTMF_HOLD_MIN) ? Data[4] : DTMF_HOLD_MAX;
+	g_eeprom.dtmf_preload_time            = (Data[5] < 101) ? Data[5] * 10 : 200;
+	g_eeprom.dtmf_first_code_persist_time = (Data[6] < 101) ? Data[6] * 10 : 70;
+	g_eeprom.dtmf_hash_code_persist_time  = (Data[7] < 101) ? Data[7] * 10 : 70;
 
 	// 0ED8..0EDF
 	EEPROM_ReadBuffer(0x0ED8, Data, 8);
-	g_eeprom.DTMF_code_persist_time  = (Data[0] < 101) ? Data[0] * 10 : 70;
-	g_eeprom.DTMF_code_interval_time = (Data[1] < 101) ? Data[1] * 10 : 70;
+	g_eeprom.dtmf_code_persist_time  = (Data[0] < 101) ? Data[0] * 10 : 70;
+	g_eeprom.dtmf_code_interval_time = (Data[1] < 101) ? Data[1] * 10 : 70;
 	g_eeprom.permit_remote_kill      = (Data[2] <   2) ? Data[2] : false;
 
 	// 0EE0..0EE7
 	EEPROM_ReadBuffer(0x0EE0, Data, 8);
 	if (DTMF_ValidateCodes((char *)Data, 8))
-		memmove(g_eeprom.ani_DTMF_id, Data, 8);
+		memmove(g_eeprom.ani_dtmf_id, Data, 8);
 	else
 	{
-		memset(g_eeprom.ani_DTMF_id, 0, sizeof(g_eeprom.ani_DTMF_id));
-		strcpy(g_eeprom.ani_DTMF_id, "123");
+		memset(g_eeprom.ani_dtmf_id, 0, sizeof(g_eeprom.ani_dtmf_id));
+		strcpy(g_eeprom.ani_dtmf_id, "123");
 	}
 	
 	// 0EE8..0EEF
@@ -668,21 +668,21 @@ void BOARD_EEPROM_Init(void)
 	// 0EF8..0F07
 	EEPROM_ReadBuffer(0x0EF8, Data, 16);
 	if (DTMF_ValidateCodes((char *)Data, 16))
-		memmove(g_eeprom.DTMF_up_code, Data, 16);
+		memmove(g_eeprom.dtmf_up_code, Data, 16);
 	else
 	{
-		memset(g_eeprom.DTMF_up_code, 0, sizeof(g_eeprom.DTMF_up_code));
-		strcpy(g_eeprom.DTMF_up_code, "12345");
+		memset(g_eeprom.dtmf_up_code, 0, sizeof(g_eeprom.dtmf_up_code));
+		strcpy(g_eeprom.dtmf_up_code, "12345");
 	}
 	
 	// 0F08..0F17
 	EEPROM_ReadBuffer(0x0F08, Data, 16);
 	if (DTMF_ValidateCodes((char *)Data, 16))
-		memmove(g_eeprom.DTMF_down_code, Data, 16);
+		memmove(g_eeprom.dtmf_down_code, Data, 16);
 	else
 	{
-		memset(g_eeprom.DTMF_down_code, 0, sizeof(g_eeprom.DTMF_down_code));
-		strcpy(g_eeprom.DTMF_down_code, "54321");
+		memset(g_eeprom.dtmf_down_code, 0, sizeof(g_eeprom.dtmf_down_code));
+		strcpy(g_eeprom.dtmf_down_code, "54321");
 	}
 	
 	// 0F18..0F1F
@@ -699,23 +699,23 @@ void BOARD_EEPROM_Init(void)
 
 	// 0F40..0F47
 	EEPROM_ReadBuffer(0x0F40, Data, 8);
-	gSetting_F_LOCK            = (Data[0] < 6) ? Data[0] : F_LOCK_OFF;
-	gSetting_350TX             = (Data[1] < 2) ? Data[1] : false;  // was true
-	gSetting_KILLED            = (Data[2] < 2) ? Data[2] : false;
-	gSetting_200TX             = (Data[3] < 2) ? Data[3] : false;
-	gSetting_500TX             = (Data[4] < 2) ? Data[4] : false;
-	gSetting_350EN             = (Data[5] < 2) ? Data[5] : true;
-	gSetting_ScrambleEnable    = (Data[6] < 2) ? Data[6] : true;
-	gSetting_TX_EN             = (Data[7] & (1u << 0)) ? true : false;
-	gSetting_live_DTMF_decoder = (Data[7] & (1u << 1)) ? true : false;
-	gSetting_battery_text      = (((Data[7] >> 2) & 3u) <= 2) ? (Data[7] >> 2) & 3 : 2;
+	g_setting_f_lock            = (Data[0] < 6) ? Data[0] : F_LOCK_OFF;
+	g_setting_350_tx_enable             = (Data[1] < 2) ? Data[1] : false;  // was true
+	g_setting_killed            = (Data[2] < 2) ? Data[2] : false;
+	g_setting_200_tx_enable             = (Data[3] < 2) ? Data[3] : false;
+	g_setting_500_tx_enable             = (Data[4] < 2) ? Data[4] : false;
+	g_setting_350_enable             = (Data[5] < 2) ? Data[5] : true;
+	g_setting_scramble_enable    = (Data[6] < 2) ? Data[6] : true;
+	g_Setting_tx_enable             = (Data[7] & (1u << 0)) ? true : false;
+	g_setting_live_dtmf_decoder = (Data[7] & (1u << 1)) ? true : false;
+	g_setting_battery_text      = (((Data[7] >> 2) & 3u) <= 2) ? (Data[7] >> 2) & 3 : 2;
 	#ifdef ENABLE_AUDIO_BAR
-		gSetting_mic_bar       = (Data[7] & (1u << 4)) ? true : false;
+		g_setting_mic_bar       = (Data[7] & (1u << 4)) ? true : false;
 	#endif
 	#ifdef ENABLE_AM_FIX
-		gSetting_AM_fix        = (Data[7] & (1u << 5)) ? true : false;
+		g_setting_am_fix        = (Data[7] & (1u << 5)) ? true : false;
 	#endif
-	gSetting_backlight_on_tx_rx = (Data[7] >> 6) & 3u;
+	g_setting_backlight_on_tx_rx = (Data[7] >> 6) & 3u;
 
 	if (!g_eeprom.vfo_open)
 	{
@@ -724,16 +724,16 @@ void BOARD_EEPROM_Init(void)
 	}
 
 	// 0D60..0E27
-	EEPROM_ReadBuffer(0x0D60, gUSER_ChannelAttributes, sizeof(gUSER_ChannelAttributes));
+	EEPROM_ReadBuffer(0x0D60, g_user_channel_attributes, sizeof(g_user_channel_attributes));
 
 	// 0F30..0F3F
-	EEPROM_ReadBuffer(0x0F30, gCustomAesKey, sizeof(gCustomAesKey));
-	bHasCustomAesKey = false;
-	for (i = 0; i < ARRAY_SIZE(gCustomAesKey); i++)
+	EEPROM_ReadBuffer(0x0F30, g_custom_aes_key, sizeof(g_custom_aes_key));
+	g_has_custom_aes_key = false;
+	for (i = 0; i < ARRAY_SIZE(g_custom_aes_key); i++)
 	{
-		if (gCustomAesKey[i] != 0xFFFFFFFFu)
+		if (g_custom_aes_key[i] != 0xFFFFFFFFu)
 		{
-			bHasCustomAesKey = true;
+			g_has_custom_aes_key = true;
 			return;
 		}
 	}
@@ -749,16 +749,16 @@ void BOARD_EEPROM_LoadMoreSettings(void)
 	memmove(g_eeprom_1EC0_3, g_eeprom_1EC0_0, 8);
 
 	// 8 * 16-bit values
-	EEPROM_ReadBuffer(0x1EC0, g_eeprom_RSSI_CALIB[0], 8);
-	EEPROM_ReadBuffer(0x1EC8, g_eeprom_RSSI_CALIB[1], 8);
+	EEPROM_ReadBuffer(0x1EC0, g_eeprom_rssi_calib[0], 8);
+	EEPROM_ReadBuffer(0x1EC8, g_eeprom_rssi_calib[1], 8);
 
-	EEPROM_ReadBuffer(0x1F40, gBatteryCalibration, 12);
-	if (gBatteryCalibration[0] >= 5000)
+	EEPROM_ReadBuffer(0x1F40, g_battery_calibration, 12);
+	if (g_battery_calibration[0] >= 5000)
 	{
-		gBatteryCalibration[0] = 1900;
-		gBatteryCalibration[1] = 2000;
+		g_battery_calibration[0] = 1900;
+		g_battery_calibration[1] = 2000;
 	}
-	gBatteryCalibration[5] = 2300;
+	g_battery_calibration[5] = 2300;
 
 	#ifdef ENABLE_VOX
 		EEPROM_ReadBuffer(0x1F50 + (g_eeprom.vox_level * 2), &g_eeprom.vox1_threshold, 2);
@@ -767,7 +767,7 @@ void BOARD_EEPROM_LoadMoreSettings(void)
 	
 	//EEPROM_ReadBuffer(0x1F80 + g_eeprom.mic_sensitivity, &Mic, 1);
 	//g_eeprom.mic_sensitivity_tuning = (Mic < 32) ? Mic : 15;
-	g_eeprom.mic_sensitivity_tuning = gMicGain_dB2[g_eeprom.mic_sensitivity];
+	g_eeprom.mic_sensitivity_tuning = g_mic_gain_dB_2[g_eeprom.mic_sensitivity];
 
 	{
 		struct
@@ -867,16 +867,16 @@ void BOARD_FactoryReset(bool bIsAll)
 
 	if (bIsAll)
 	{
-		RADIO_InitInfo(gRxVfo, FREQ_CHANNEL_FIRST + BAND6_400MHz, 43350000);
+		RADIO_InitInfo(g_rx_vfo, FREQ_CHANNEL_FIRST + BAND6_400MHz, 43350000);
 
 		// set the first few memory channels
 		for (i = 0; i < ARRAY_SIZE(gDefaultFrequencyTable); i++)
 		{
 			const uint32_t Frequency   = gDefaultFrequencyTable[i];
-			gRxVfo->freq_config_rx.frequency = Frequency;
-			gRxVfo->freq_config_tx.frequency = Frequency;
-			gRxVfo->band               = FREQUENCY_GetBand(Frequency);
-			SETTINGS_SaveChannel(USER_CHANNEL_FIRST + i, 0, gRxVfo, 2);
+			g_rx_vfo->freq_config_rx.frequency = Frequency;
+			g_rx_vfo->freq_config_tx.frequency = Frequency;
+			g_rx_vfo->band               = FREQUENCY_GetBand(Frequency);
+			SETTINGS_SaveChannel(USER_CHANNEL_FIRST + i, 0, g_rx_vfo, 2);
 		}
 	}
 }

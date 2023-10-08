@@ -25,7 +25,7 @@
 key_code_t g_key_reading_0     = KEY_INVALID;
 key_code_t g_key_reading_1     = KEY_INVALID;
 uint16_t   g_debounce_counter  = 0;
-bool       g_was_f_key_pressed = false;
+bool       g_f_key_was_pressed = false;
 
 static const struct {
 

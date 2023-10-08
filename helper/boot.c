@@ -85,20 +85,20 @@ void BOOT_ProcessMode(BOOT_Mode_t Mode)
 			g_eeprom.key2_short_press_action  = ACTION_OPT_NONE;
 			g_eeprom.key2_long_press_action   = ACTION_OPT_NONE;
 
-			RADIO_InitInfo(gRxVfo, FREQ_CHANNEL_LAST - 1, 41002500);
+			RADIO_InitInfo(g_rx_vfo, FREQ_CHANNEL_LAST - 1, 41002500);
 
-			gRxVfo->channel_bandwidth        = BANDWIDTH_WIDE;
-			gRxVfo->output_power             = OUTPUT_POWER_LOW;
+			g_rx_vfo->channel_bandwidth        = BANDWIDTH_WIDE;
+			g_rx_vfo->output_power             = OUTPUT_POWER_LOW;
 
-			RADIO_ConfigureSquelchAndOutputPower(gRxVfo);
+			RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
 
-			gCurrentVfo = gRxVfo;
+			g_current_vfo = g_rx_vfo;
 
 			RADIO_SetupRegisters(true);
 			BK4819_SetupAircopy();
 			BK4819_ResetFSK();
 
-			gAircopyState = AIRCOPY_READY;
+			g_aircopy_state = AIRCOPY_READY;
 
 			GUI_SelectNextDisplay(DISPLAY_AIRCOPY);
 		}

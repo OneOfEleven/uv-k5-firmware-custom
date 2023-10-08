@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-enum FUNCTION_Type_t
+enum function_type_e
 {
 	FUNCTION_FOREGROUND = 0,  // ???
 	FUNCTION_TRANSMIT,        // transmitting
@@ -29,13 +29,12 @@ enum FUNCTION_Type_t
 	FUNCTION_POWER_SAVE,      // sleeping
 	FUNCTION_BAND_SCOPE       // bandscope mode (panadpter/spectrum) .. not yet implemented
 };
+typedef enum function_type_e function_type_t;
 
-typedef enum FUNCTION_Type_t FUNCTION_Type_t;
-
-extern FUNCTION_Type_t       gCurrentFunction;
+extern function_type_t       g_current_function;
 
 void FUNCTION_Init(void);
-void FUNCTION_Select(FUNCTION_Type_t Function);
+void FUNCTION_Select(function_type_t Function);
 
 #endif
 

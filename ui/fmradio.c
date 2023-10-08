@@ -33,31 +33,31 @@ void UI_DisplayFM(void)
 	unsigned int i;
 	char         String[16];
 
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	memset(String, 0, sizeof(String));
 	strcpy(String, "FM");
 	UI_PrintString(String, 0, 127, 0, 12);
 
 	memset(String, 0, sizeof(String));
-	if (gAskToSave)
+	if (g_ask_to_save)
 	{
 		strcpy(String, "SAVE?");
 	}
 	else
-	if (gAskToDelete)
+	if (g_ask_to_delete)
 	{
 		strcpy(String, "DEL?");
 	}
 	else
 	{
-		if (gFM_ScanState == FM_SCAN_OFF)
+		if (g_fm_scan_state == FM_SCAN_OFF)
 		{
 			if (!g_eeprom.fm_is_channel_mode)
 			{
 				for (i = 0; i < 20; i++)
 				{
-					if (g_eeprom.fm_frequency_playing == gFM_Channels[i])
+					if (g_eeprom.fm_frequency_playing == g_fm_channels[i])
 					{
 						sprintf(String, "VFO(CH%02u)", i + 1);
 						break;
@@ -72,29 +72,29 @@ void UI_DisplayFM(void)
 		}
 		else
 		{
-			if (!gFM_AutoScan)
+			if (!g_fm_auto_scan)
 				strcpy(String, "M-SCAN");
 			else
-				sprintf(String, "A-SCAN(%u)", gFM_ChannelPosition + 1);
+				sprintf(String, "A-SCAN(%u)", g_fm_channel_position + 1);
 		}
 	}
 	UI_PrintString(String, 0, 127, 2, 10);
 
 	memset(String, 0, sizeof(String));
-	if (gAskToSave || (g_eeprom.fm_is_channel_mode && gInputBoxIndex > 0))
+	if (g_ask_to_save || (g_eeprom.fm_is_channel_mode && g_input_box_index > 0))
 	{
-		UI_GenerateChannelString(String, gFM_ChannelPosition);
+		UI_GenerateChannelString(String, g_fm_channel_position);
 	}
 	else
-	if (!gAskToDelete)
+	if (!g_ask_to_delete)
 	{
-		if (gInputBoxIndex == 0)
+		if (g_input_box_index == 0)
 		{
 			NUMBER_ToDigits(g_eeprom.fm_frequency_playing * 10000, String);
 			UI_DisplayFrequency(String, 23, 4, false, true);
 		}
 		else
-			UI_DisplayFrequency(gInputBox, 23, 4, true, false);
+			UI_DisplayFrequency(g_input_box, 23, 4, true, false);
 
 		ST7565_BlitFullScreen();
 		return;

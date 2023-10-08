@@ -342,7 +342,7 @@ uint32_t GetOffsetedF(uint32_t f) {
                FrequencyBandTable[ARRAY_SIZE(FrequencyBandTable) - 1].upper);
 }
 
-bool IsTXAllowed() { return gSetting_ALL_TX != 2; }
+bool IsTXAllowed() { return g_setting_ALL_TX != 2; }
 
 static void ToggleAudio(bool on) {
   if (on) {
@@ -749,19 +749,19 @@ static void UpdateBatteryInfo() {
 
 static void DrawStatus() {
 
-  gStatusLine[127] = 0b01111110;
+  g_status_line[127] = 0b01111110;
   for (int i = 126; i >= 116; i--) {
-    gStatusLine[i] = 0b01000010;
+    g_status_line[i] = 0b01000010;
   }
   uint8_t v = gBatteryDisplayLevel;
   v <<= 1;
   for (int i = 125; i >= 116; i--) {
     if (126 - i <= v) {
-      gStatusLine[i + 2] = 0b01111110;
+      g_status_line[i + 2] = 0b01111110;
     }
   }
-  gStatusLine[117] = 0b01111110;
-  gStatusLine[116] = 0b00011000;
+  g_status_line[117] = 0b01111110;
+  g_status_line[116] = 0b00011000;
 }
 
 static void DrawF(uint32_t f) {
@@ -829,25 +829,25 @@ static void DrawTicks() {
     (f % 50000) < step && (barValue |= 0b00000100);
     (f % 100000) < step && (barValue |= 0b00011000);
 
-    gFrameBuffer[5][i] |= barValue;
+    g_frame_buffer[5][i] |= barValue;
   }
 
   // center
   /* if (IsCenterMode()) {
-    gFrameBuffer[5][62] = 0x80;
-    gFrameBuffer[5][63] = 0x80;
-    gFrameBuffer[5][64] = 0xff;
-    gFrameBuffer[5][65] = 0x80;
-    gFrameBuffer[5][66] = 0x80;
+    g_frame_buffer[5][62] = 0x80;
+    g_frame_buffer[5][63] = 0x80;
+    g_frame_buffer[5][64] = 0xff;
+    g_frame_buffer[5][65] = 0x80;
+    g_frame_buffer[5][66] = 0x80;
   } else {
-    gFrameBuffer[5][0] = 0xff;
-    gFrameBuffer[5][1] = 0x80;
-    gFrameBuffer[5][2] = 0x80;
-    gFrameBuffer[5][3] = 0x80;
-    gFrameBuffer[5][124] = 0x80;
-    gFrameBuffer[5][125] = 0x80;
-    gFrameBuffer[5][126] = 0x80;
-    gFrameBuffer[5][127] = 0xff;
+    g_frame_buffer[5][0] = 0xff;
+    g_frame_buffer[5][1] = 0x80;
+    g_frame_buffer[5][2] = 0x80;
+    g_frame_buffer[5][3] = 0x80;
+    g_frame_buffer[5][124] = 0x80;
+    g_frame_buffer[5][125] = 0x80;
+    g_frame_buffer[5][126] = 0x80;
+    g_frame_buffer[5][127] = 0xff;
   } */
 }
 
@@ -856,7 +856,7 @@ static void DrawArrow(uint8_t x) {
     signed v = x + i;
     uint8_t a = i > 0 ? i : -i;
     if (!(v & 128)) {
-      gFrameBuffer[5][v] |= (0b01111000 << a) & 0b01111000;
+      g_frame_buffer[5][v] |= (0b01111000 << a) & 0b01111000;
     }
   }
 }
@@ -1059,7 +1059,7 @@ static void RenderFreqInput() {
 }
 
 static void RenderStatus() {
-  memset(gStatusLine, 0, sizeof(gStatusLine));
+  memset(g_status_line, 0, sizeof(g_status_line));
   DrawStatus();
   ST7565_BlitStatusLine();
 }
@@ -1080,16 +1080,16 @@ static void RenderStill() {
 
   for (int i = 0; i < 121; i++) {
     if (i % 10 == 0) {
-      gFrameBuffer[2][i + METER_PAD_LEFT] = 0b11000000;
+      g_frame_buffer[2][i + METER_PAD_LEFT] = 0b11000000;
     } else {
-      gFrameBuffer[2][i + METER_PAD_LEFT] = 0b01000000;
+      g_frame_buffer[2][i + METER_PAD_LEFT] = 0b01000000;
     }
   }
 
   uint8_t x = Rssi2PX(scanInfo.rssi, 0, 121);
   for (int i = 0; i < x; ++i) {
     if (i % 5 && i / 5 < x / 5) {
-      gFrameBuffer[2][i + METER_PAD_LEFT] |= 0b00011100;
+      g_frame_buffer[2][i + METER_PAD_LEFT] |= 0b00011100;
     }
   }
 
@@ -1108,15 +1108,15 @@ static void RenderStill() {
     uint8_t afDB = BK4819_ReadRegister(0x6F) & 0b1111111;
     uint8_t afPX = ConvertDomain(afDB, 26, 194, 0, 121);
     for (int i = 0; i < afPX; ++i) {
-      gFrameBuffer[3][i + METER_PAD_LEFT] |= 0b00000011;
+      g_frame_buffer[3][i + METER_PAD_LEFT] |= 0b00000011;
     }
   }
 
   if (!monitorMode) {
     uint8_t x = Rssi2PX(settings.rssiTriggerLevel, 0, 121);
-    gFrameBuffer[2][METER_PAD_LEFT + x - 1] |= 0b01000001;
-    gFrameBuffer[2][METER_PAD_LEFT + x] = 0b01111111;
-    gFrameBuffer[2][METER_PAD_LEFT + x + 1] |= 0b01000001;
+    g_frame_buffer[2][METER_PAD_LEFT + x - 1] |= 0b01000001;
+    g_frame_buffer[2][METER_PAD_LEFT + x] = 0b01111111;
+    g_frame_buffer[2][METER_PAD_LEFT + x + 1] |= 0b01000001;
   }
 
   const uint8_t PAD_LEFT = 4;
@@ -1132,8 +1132,8 @@ static void RenderStill() {
     offset = PAD_LEFT + i * CELL_WIDTH;
     if (menuState == idx) {
       for (int j = 0; j < CELL_WIDTH; ++j) {
-        gFrameBuffer[row][j + offset] = 0xFF;
-        gFrameBuffer[row + 1][j + offset] = 0xFF;
+        g_frame_buffer[row][j + offset] = 0xFF;
+        g_frame_buffer[row + 1][j + offset] = 0xFF;
       }
     }
     RegisterSpec s = registerSpecs[idx];
@@ -1147,7 +1147,7 @@ static void RenderStill() {
 }
 
 static void Render() {
-  memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+  memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
   switch (currentState) {
   case SPECTRUM:
@@ -1327,7 +1327,7 @@ static void AutomaticPresetChoose(uint32_t f) {
 void APP_RunSpectrum() {
   BackupRegisters();
   // TX here coz it always? set to active VFO
-  VFO_Info_t vfo = g_eeprom.VfoInfo[g_eeprom.TX_CHANNEL];
+  VFO_Info_t vfo = g_eeprom.vfo_info[g_eeprom.TX_CHANNEL];
   initialFreq = vfo.pRX->Frequency;
   currentFreq = initialFreq;
   settings.scanStepIndex = gStepSettingToIndex[vfo.STEP_SETTING];

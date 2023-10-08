@@ -23,13 +23,13 @@
 #include "audio.h"     // voice_id_t
 
 typedef struct {
-	const char  name[7];    // menu display area only has room for 6 characters
-	voice_id_t  voice_id;
-	uint8_t     menu_id;
+	const char name[7];    // menu display area only has room for 6 characters
+	voice_id_t voice_id;
+	uint8_t    menu_id;
 } t_menu_item;
 
 // currently this list MUST be in exactly the same order
-// as the other menu list "MenuList[]" in "ui/menu.c", otherwise
+// as the other menu list "g_menu_list[]" in "ui/menu.c", otherwise
 // you'll have big problems
 //
 // I'm going to fix that so that you can reorder the menu items
@@ -137,53 +137,53 @@ enum
 	// ************************************
 };
 
-extern const unsigned int gHidden_menu_count;
+extern const unsigned int g_hidden_menu_count;
 
-extern const t_menu_item  MenuList[];
-extern uint8_t            MenuList_sorted[];
+extern const t_menu_item  g_menu_list[];
+extern uint8_t            g_menu_list_sorted[];
 
-extern const char         gSubMenu_TXP[3][5];
-extern const char         gSubMenu_SFT_D[3][4];
-extern const char         gSubMenu_W_N[2][7];
-extern const char         gSubMenu_OFF_ON[2][4];
-extern const char         gSubMenu_SAVE[5][4];
-extern const char         gSubMenu_TOT[11][7];
-extern const char         gSubMenu_TDR[3][10];
-extern const char         gSubMenu_XB[3][10];
+extern const char         g_sub_menu_txp[3][5];
+extern const char         g_sub_menu_shift_dir[3][4];
+extern const char         g_sub_menu_w_n[2][7];
+extern const char         g_sub_menu_off_on[2][4];
+extern const char         g_sub_menu_SAVE[5][4];
+extern const char         g_sub_menu_TOT[11][7];
+extern const char         g_sub_menu_tdr[3][10];
+extern const char         g_sub_menu_xb[3][10];
 #ifdef ENABLE_VOICE       
-	extern const char     gSubMenu_VOICE[3][4];
+	extern const char     g_sub_menu_voice[3][4];
 #endif                    
-extern const char         gSubMenu_SC_REV[3][13];
-extern const char         gSubMenu_MDF[4][15];
+extern const char         g_sub_menu_sc_rev[3][13];
+extern const char         g_sub_menu_mdf[4][15];
 #ifdef ENABLE_ALARM       
-	extern const char     gSubMenu_AL_MOD[2][5];
+	extern const char     g_sub_menu_AL_MOD[2][5];
 #endif                    
-extern const char         gSubMenu_D_RSP[4][11];
-extern const char         gSubMenu_PTT_ID[5][15];
-extern const char         gSubMenu_PONMSG[4][8];
-extern const char         gSubMenu_ROGER[3][9];
-extern const char         gSubMenu_RESET[2][4];
-extern const char         gSubMenu_F_LOCK[6][4];
-extern const char         gSubMenu_backlight[8][7];
-extern const char         gSubMenu_RX_TX[4][6];
+extern const char         g_sub_menu_D_RSP[4][11];
+extern const char         g_sub_menu_PTT_ID[5][15];
+extern const char         g_sub_menu_pwr_on_msg[4][8];
+extern const char         g_sub_menu_roger_mode[3][9];
+extern const char         g_sub_menu_RESET[2][4];
+extern const char         g_sub_menu_f_lock[6][4];
+extern const char         g_sub_menu_backlight[8][7];
+extern const char         g_sub_menu_rx_tx[4][6];
 #ifdef ENABLE_AM_FIX_TEST1
-	extern const char     gSubMenu_AM_fix_test1[4][8];
+	extern const char     g_sub_menu_AM_fix_test1[4][8];
 #endif                    
-extern const char         gSubMenu_BAT_TXT[3][8];
+extern const char         g_sub_menu_BAT_TXT[3][8];
 						  
-extern const char         gSubMenu_SCRAMBLER[11][7];
+extern const char         g_sub_menu_SCRAMBLER[11][7];
 						  
-extern const char         gSubMenu_SIDE_BUTT[9][16];
+extern const char         g_sub_menu_SIDE_BUTT[9][16];
 						  
-extern bool               gIsInSubMenu;
+extern bool               g_is_in_sub_menu;
 						  
-extern uint8_t            gMenuCursor;
-extern int8_t             gMenuScrollDirection;
-extern int32_t            gSubMenuSelection;
+extern uint8_t            g_menu_cursor;
+extern int8_t             g_menu_scroll_direction;
+extern int32_t            g_sub_menu_selection;
 						  
-extern char               edit_original[17];
-extern char               edit[17];
-extern int                edit_index;
+extern char               g_edit_original[17];
+extern char               g_edit[17];
+extern int                g_edit_index;
 
 void UI_SortMenu(const bool hide_hidden);
 void UI_DisplayMenu(void);

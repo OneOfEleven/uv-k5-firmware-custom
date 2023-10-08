@@ -41,7 +41,7 @@
 //
 // the order of entries in this list below is no longer important, no longer has to match the enum list
 
-const t_menu_item MenuList[] =
+const t_menu_item g_menu_list[] =
 {
 //   text,     voice ID,                               menu ID
 
@@ -53,9 +53,9 @@ const t_menu_item MenuList[] =
 	{"RxCTCS", VOICE_ID_CTCSS,                         MENU_R_CTCS        }, // was "R_CTCS"
 	{"Tx DCS", VOICE_ID_DCS,                           MENU_T_DCS         }, // was "T_DCS"
 	{"TxCTCS", VOICE_ID_CTCSS,                         MENU_T_CTCS        }, // was "T_CTCS"
-	{"Tx DIR", voice_id_tX_OFFSET_FREQ_DIR, MENU_SFT_D         }, // was "SFT_D"
-	{"TxOFFS", voice_id_tX_OFFSET_FREQ,           MENU_OFFSET        }, // was "OFFSET"
-	{"Tx TO",  voice_id_tRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
+	{"Tx DIR", VOICE_ID_TX_OFFSET_FREQ_DIR,            MENU_SFT_D         }, // was "SFT_D"
+	{"TxOFFS", VOICE_ID_TX_OFFSET_FREQ,                MENU_OFFSET        }, // was "OFFSET"
+	{"Tx TO",  VOICE_ID_TRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
 	{"Tx VFO", VOICE_ID_INVALID,                       MENU_XB            }, // was "WX"
 	{"2nd RX", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           }, // was "TDR"
 	{"SCRAM",  VOICE_ID_SCRAMBLER_ON,                  MENU_SCR           }, // was "SCR"
@@ -140,37 +140,37 @@ const t_menu_item MenuList[] =
 };
 
 // number of hidden menu items at the end of the list - KEEP THIS UP-TO-DATE
-const unsigned int gHidden_menu_count = 9;
+const unsigned int g_hidden_menu_count = 9;
 
 // ***************************************************************************************
 
-const char gSubMenu_TXP[3][5] =
+const char g_sub_menu_txp[3][5] =
 {
 	"LOW",
 	"MID",
 	"HIGH"
 };
 
-const char gSubMenu_SFT_D[3][4] =
+const char g_sub_menu_shift_dir[3][4] =
 {
 	"OFF",
 	"+",
 	"-"
 };
 
-const char gSubMenu_W_N[2][7] =
+const char g_sub_menu_w_n[2][7] =
 {
 	"WIDE",
 	"NARROW"
 };
 
-const char gSubMenu_OFF_ON[2][4] =
+const char g_sub_menu_off_on[2][4] =
 {
 	"OFF",
 	"ON"
 };
 
-const char gSubMenu_SAVE[5][4] =
+const char g_sub_menu_SAVE[5][4] =
 {
 	"OFF",
 	"1:1",
@@ -179,7 +179,7 @@ const char gSubMenu_SAVE[5][4] =
 	"1:4"
 };
 
-const char gSubMenu_TOT[11][7] =
+const char g_sub_menu_TOT[11][7] =
 {
 	"30 sec",
 	"1 min",
@@ -194,14 +194,14 @@ const char gSubMenu_TOT[11][7] =
 	"15 min"
 };
 
-const char gSubMenu_TDR[3][10] =
+const char g_sub_menu_tdr[3][10] =
 {
 	"OFF",
 	"LOWER\nVFO",
 	"UPPER\nVFO",
 };
 
-const char gSubMenu_XB[3][10] =
+const char g_sub_menu_xb[3][10] =
 {
 	"RX\nVFO",
 	"UPPER\nVFO",
@@ -209,7 +209,7 @@ const char gSubMenu_XB[3][10] =
 };
 
 #ifdef ENABLE_VOICE
-	const char gSubMenu_VOICE[3][4] =
+	const char g_sub_menu_voice[3][4] =
 	{
 		"OFF",
 		"CHI",
@@ -217,14 +217,14 @@ const char gSubMenu_XB[3][10] =
 	};
 #endif
 
-const char gSubMenu_SC_REV[3][13] =
+const char g_sub_menu_sc_rev[3][13] =
 {
 	"TIME",
 	"CARRIER",
 	"SEARCH"
 };
 
-const char gSubMenu_MDF[4][15] =
+const char g_sub_menu_mdf[4][15] =
 {
 	"FREQ",
 	"CHANNEL\nNUMBER",
@@ -233,14 +233,14 @@ const char gSubMenu_MDF[4][15] =
 };
 
 #ifdef ENABLE_ALARM
-	const char gSubMenu_AL_MOD[2][5] =
+	const char g_sub_menu_AL_MOD[2][5] =
 	{
 		"SITE",
 		"TONE"
 	};
 #endif
 
-const char gSubMenu_D_RSP[4][11] =
+const char g_sub_menu_D_RSP[4][11] =
 {
 	"DO\nNOTHING",
 	"RING",
@@ -248,7 +248,7 @@ const char gSubMenu_D_RSP[4][11] =
 	"BOTH"
 };
 
-const char gSubMenu_PTT_ID[5][15] =
+const char g_sub_menu_PTT_ID[5][15] =
 {
 	"OFF",
 	"KEY\nUP",
@@ -257,7 +257,7 @@ const char gSubMenu_PTT_ID[5][15] =
 	"APOLLO\nQUINDAR"
 };
 
-const char gSubMenu_PONMSG[4][8] =
+const char g_sub_menu_pwr_on_msg[4][8] =
 {
 	"FULL",
 	"MESSAGE",
@@ -265,20 +265,20 @@ const char gSubMenu_PONMSG[4][8] =
 	"NONE"
 };
 
-const char gSubMenu_ROGER[3][9] =
+const char g_sub_menu_roger_mode[3][9] =
 {
 	"OFF",
 	"ROGER",
 	"MDC\n1200"
 };
 
-const char gSubMenu_RESET[2][4] =
+const char g_sub_menu_RESET[2][4] =
 {
 	"VFO",
 	"ALL"
 };
 
-const char gSubMenu_F_LOCK[6][4] =
+const char g_sub_menu_f_lock[6][4] =
 {
 	"OFF",
 	"FCC",
@@ -288,7 +288,7 @@ const char gSubMenu_F_LOCK[6][4] =
 	"438"
 };
 
-const char gSubMenu_backlight[8][7] =
+const char g_sub_menu_backlight[8][7] =
 {
 	"OFF",
 	"5 sec",
@@ -300,7 +300,7 @@ const char gSubMenu_backlight[8][7] =
 	"ON"
 };
 
-const char gSubMenu_RX_TX[4][6] =
+const char g_sub_menu_rx_tx[4][6] =
 {
 	"OFF",
 	"TX",
@@ -309,7 +309,7 @@ const char gSubMenu_RX_TX[4][6] =
 };
 
 #ifdef ENABLE_AM_FIX_TEST1
-	const char gSubMenu_AM_fix_test1[4][8] =
+	const char g_sub_menu_AM_fix_test1[4][8] =
 	{
 		"LNA-S 0",
 		"LNA-S 1",
@@ -318,14 +318,14 @@ const char gSubMenu_RX_TX[4][6] =
 	};
 #endif
 
-const char gSubMenu_BAT_TXT[3][8] =
+const char g_sub_menu_BAT_TXT[3][8] =
 {
 	"NONE",
 	"VOLTAGE",
 	"PERCENT"
 };
 
-const char gSubMenu_SCRAMBLER[11][7] =
+const char g_sub_menu_SCRAMBLER[11][7] =
 {
 	"OFF",
 	"2600Hz",
@@ -340,8 +340,8 @@ const char gSubMenu_SCRAMBLER[11][7] =
 	"3500Hz"
 };
 
-const char gSubMenu_SIDE_BUTT[9][16] =
-//const char gSubMenu_SIDE_BUTT[10][16] =
+const char g_sub_menu_SIDE_BUTT[9][16] =
+//const char g_sub_menu_SIDE_BUTT[10][16] =
 {
 	"NONE",
 	"FLASH\nLIGHT",
@@ -357,17 +357,17 @@ const char gSubMenu_SIDE_BUTT[9][16] =
 
 // ***************************************************************************************
 
-uint8_t MenuList_sorted[ARRAY_SIZE(MenuList)];
+uint8_t g_menu_list_sorted[ARRAY_SIZE(g_menu_list)];
 
-bool    gIsInSubMenu;
-uint8_t gMenuCursor;
-int8_t  gMenuScrollDirection;
-int32_t gSubMenuSelection;
+bool    g_is_in_sub_menu;
+uint8_t g_menu_cursor;
+int8_t  g_menu_scroll_direction;
+int32_t g_sub_menu_selection;
 
 // edit box
-char    edit_original[17]; // a copy of the text before editing so that we can easily test for changes/differences
-char    edit[17];
-int     edit_index;
+char    g_edit_original[17]; // a copy of the text before editing so that we can easily test for changes/differences
+char    g_edit[17];
+int     g_edit_index;
 
 // ***************************************************************************************
 
@@ -377,42 +377,42 @@ void UI_SortMenu(const bool hide_hidden)
 	//
 	// this means the menu order is entirely determined by the enum list (found in id/menu.h)
 	// it now no longer depends on the order of entries in the above const list (they can be any order)
- 
+
 	unsigned int i;
 
-	unsigned int hidden_menu_count = gHidden_menu_count;
+	unsigned int hidden_menu_count = g_hidden_menu_count;
 
 	#ifndef ENABLE_F_CAL_MENU
 		hidden_menu_count--;
 	#endif
 
-	gMenuListCount = ARRAY_SIZE(MenuList_sorted);
+	g_menu_list_count = ARRAY_SIZE(g_menu_list_sorted);
 
-	for (i = 0; i < gMenuListCount; i++)
-		MenuList_sorted[i] = MenuList[i].menu_id;
+	for (i = 0; i < g_menu_list_count; i++)
+		g_menu_list_sorted[i] = g_menu_list[i].menu_id;
 
 	// don't sort the hidden entries at the end, keep them at the end of the list
 
-	for (i = 0; i < (gMenuListCount - hidden_menu_count - 1); i++)
+	for (i = 0; i < (g_menu_list_count - hidden_menu_count - 1); i++)
 	{
 		unsigned int k;
-		unsigned int menu_id1 = MenuList_sorted[i];
-		for (k = i + 1; k < (gMenuListCount - hidden_menu_count); k++)
+		unsigned int menu_id1 = g_menu_list_sorted[i];
+		for (k = i + 1; k < (g_menu_list_count - hidden_menu_count); k++)
 		{
-			unsigned int menu_id2 = MenuList_sorted[k];
+			unsigned int menu_id2 = g_menu_list_sorted[k];
 			if (menu_id2 < menu_id1)
 			{	// swap
 				const unsigned int id = menu_id1;
 				menu_id1 = menu_id2;
 				menu_id2 = id;
-				MenuList_sorted[i] = menu_id1;
-				MenuList_sorted[k] = menu_id2;
+				g_menu_list_sorted[i] = menu_id1;
+				g_menu_list_sorted[k] = menu_id2;
 			}
 		}
 	}
 
 	if (hide_hidden)
-		gMenuListCount -= hidden_menu_count;  // hide the hidden menu items
+		g_menu_list_count -= hidden_menu_count;  // hide the hidden menu items
 }
 
 void UI_DisplayMenu(void)
@@ -425,78 +425,78 @@ void UI_DisplayMenu(void)
 	char               Contact[16];
 
 	// clear the screen buffer
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	#if 0
 		// original menu layout
 
 		for (i = 0; i < 3; i++)
-			if (gMenuCursor > 0 || i > 0)
-				if ((gMenuListCount - 1) != gMenuCursor || i != 2)
-					UI_PrintString(MenuList[MenuList_sorted[gMenuCursor + i - 1]].name, 0, 0, i * 2, 8);
+			if (g_menu_cursor > 0 || i > 0)
+				if ((g_menu_list_count - 1) != g_menu_cursor || i != 2)
+					UI_PrintString(g_menu_list[g_menu_list_sorted[g_menu_cursor + i - 1]].name, 0, 0, i * 2, 8);
 
 		// invert the current menu list item pixels
 		for (i = 0; i < (8 * menu_list_width); i++)
 		{
-			gFrameBuffer[2][i] ^= 0xFF;
-			gFrameBuffer[3][i] ^= 0xFF;
+			g_frame_buffer[2][i] ^= 0xFF;
+			g_frame_buffer[3][i] ^= 0xFF;
 		}
 
 		// draw vertical separating dotted line
 		for (i = 0; i < 7; i++)
-			gFrameBuffer[i][(8 * menu_list_width) + 1] = 0xAA;
+			g_frame_buffer[i][(8 * menu_list_width) + 1] = 0xAA;
 
 		// draw the little sub-menu triangle marker
-		if (gIsInSubMenu)
-			memmove(gFrameBuffer[0] + (8 * menu_list_width) + 1, BITMAP_CurrentIndicator, sizeof(BITMAP_CurrentIndicator));
+		if (g_is_in_sub_menu)
+			memmove(g_frame_buffer[0] + (8 * menu_list_width) + 1, BITMAP_CurrentIndicator, sizeof(BITMAP_CurrentIndicator));
 
 		// draw the menu index number/count
-		sprintf(String, "%2u.%u", 1 + gMenuCursor, gMenuListCount);
+		sprintf(String, "%2u.%u", 1 + g_menu_cursor, g_menu_list_count);
 		UI_PrintStringSmall(String, 2, 0, 6);
 
 	#else
 	{	// new menu layout .. experimental & unfinished
 
-		const int menu_index = gMenuCursor;  // current selected menu item
+		const int menu_index = g_menu_cursor;  // current selected menu item
 		i = 1;
 
-		if (!gIsInSubMenu)
+		if (!g_is_in_sub_menu)
 		{
 			while (i < 2)
 			{	// leading menu items - small text
 				const int k = menu_index + i - 2;
 				if (k < 0)
-					UI_PrintStringSmall(MenuList[MenuList_sorted[gMenuListCount + k]].name, 0, 0, i);  // wrap-a-round
+					UI_PrintStringSmall(g_menu_list[g_menu_list_sorted[g_menu_list_count + k]].name, 0, 0, i);  // wrap-a-round
 				else
-				if (k >= 0 && k < (int)gMenuListCount)
-					UI_PrintStringSmall(MenuList[MenuList_sorted[k]].name, 0, 0, i);
+				if (k >= 0 && k < (int)g_menu_list_count)
+					UI_PrintStringSmall(g_menu_list[g_menu_list_sorted[k]].name, 0, 0, i);
 				i++;
 			}
 
 			// current menu item - keep big n fat
-			if (menu_index >= 0 && menu_index < (int)gMenuListCount)
-				UI_PrintString(MenuList[MenuList_sorted[menu_index]].name, 0, 0, 2, 8);
+			if (menu_index >= 0 && menu_index < (int)g_menu_list_count)
+				UI_PrintString(g_menu_list[g_menu_list_sorted[menu_index]].name, 0, 0, 2, 8);
 			i++;
 
 			while (i < 4)
 			{	// trailing menu item - small text
 				const int k = menu_index + i - 2;
-				if (k >= 0 && k < (int)gMenuListCount)
-					UI_PrintStringSmall(MenuList[MenuList_sorted[k]].name, 0, 0, 1 + i);
+				if (k >= 0 && k < (int)g_menu_list_count)
+					UI_PrintStringSmall(g_menu_list[g_menu_list_sorted[k]].name, 0, 0, 1 + i);
 				else
-				if (k >= (int)gMenuListCount)
-					UI_PrintStringSmall(MenuList[MenuList_sorted[gMenuListCount - k]].name, 0, 0, 1 + i);  // wrap-a-round
+				if (k >= (int)g_menu_list_count)
+					UI_PrintStringSmall(g_menu_list[g_menu_list_sorted[g_menu_list_count - k]].name, 0, 0, 1 + i);  // wrap-a-round
 				i++;
 			}
 
 			// draw the menu index number/count
-			sprintf(String, "%2u.%u", 1 + gMenuCursor, gMenuListCount);
+			sprintf(String, "%2u.%u", 1 + g_menu_cursor, g_menu_list_count);
 			UI_PrintStringSmall(String, 2, 0, 6);
 		}
 		else
-		if (menu_index >= 0 && menu_index < (int)gMenuListCount)
+		if (menu_index >= 0 && menu_index < (int)g_menu_list_count)
 		{	// current menu item
-			strcpy(String, MenuList[MenuList_sorted[menu_index]].name);
+			strcpy(String, g_menu_list[g_menu_list_sorted[menu_index]].name);
 //			strcat(String, ":");
 			UI_PrintString(String, 0, 0, 0, 8);
 //			UI_PrintStringSmall(String, 0, 0, 0);
@@ -513,42 +513,42 @@ void UI_DisplayMenu(void)
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
-	switch (gMenuCursor)
+	switch (g_menu_cursor)
 	{
 		case MENU_SQL:
-			sprintf(String, "%d", gSubMenuSelection);
+			sprintf(String, "%d", g_sub_menu_selection);
 			break;
 
 		case MENU_MIC:
 			{	// display the mic gain in actual dB rather than just an index number
-				const uint8_t mic = gMicGain_dB2[gSubMenuSelection];
+				const uint8_t mic = g_mic_gain_dB_2[g_sub_menu_selection];
 				sprintf(String, "+%u.%01udB", mic / 2, mic % 2);
 			}
 			break;
 
 		#ifdef ENABLE_AUDIO_BAR
 			case MENU_MIC_BAR:
-				strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+				strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
 				break;
 		#endif
 
 		case MENU_STEP:
-			sprintf(String, "%d.%02ukHz", StepFrequencyTable[gSubMenuSelection] / 100, abs(StepFrequencyTable[gSubMenuSelection]) % 100);
+			sprintf(String, "%d.%02ukHz", STEP_FREQ_TABLE[g_sub_menu_selection] / 100, abs(STEP_FREQ_TABLE[g_sub_menu_selection]) % 100);
 			break;
 
 		case MENU_TXP:
-			strcpy(String, gSubMenu_TXP[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_txp[g_sub_menu_selection]);
 			break;
 
 		case MENU_R_DCS:
 		case MENU_T_DCS:
-			if (gSubMenuSelection == 0)
+			if (g_sub_menu_selection == 0)
 				strcpy(String, "OFF");
 			else
-			if (gSubMenuSelection < 105)
-				sprintf(String, "D%03oN", DCS_Options[gSubMenuSelection -   1]);
+			if (g_sub_menu_selection < 105)
+				sprintf(String, "D%03oN", DCS_OPTIONS[g_sub_menu_selection -   1]);
 			else
-				sprintf(String, "D%03oI", DCS_Options[gSubMenuSelection - 105]);
+				sprintf(String, "D%03oI", DCS_OPTIONS[g_sub_menu_selection - 105]);
 			break;
 
 		case MENU_R_CTCS:
@@ -556,8 +556,8 @@ void UI_DisplayMenu(void)
 		{
 			#if 1
 				unsigned int Code;
-				FREQ_Config_t *pConfig = (gMenuCursor == MENU_R_CTCS) ? &gTxVfo->freq_config_rx : &gTxVfo->freq_config_tx;
-				if (gSubMenuSelection == 0)
+				freq_config_t *pConfig = (g_menu_cursor == MENU_R_CTCS) ? &g_tx_vfo->freq_config_rx : &g_tx_vfo->freq_config_tx;
+				if (g_sub_menu_selection == 0)
 				{
 					strcpy(String, "OFF");
 
@@ -571,41 +571,41 @@ void UI_DisplayMenu(void)
 				}
 				else
 				{
-					sprintf(String, "%u.%uHz", CTCSS_Options[gSubMenuSelection - 1] / 10, CTCSS_Options[gSubMenuSelection - 1] % 10);
+					sprintf(String, "%u.%uHz", CTCSS_OPTIONS[g_sub_menu_selection - 1] / 10, CTCSS_OPTIONS[g_sub_menu_selection - 1] % 10);
 
 					pConfig->code_type = CODE_TYPE_CONTINUOUS_TONE;
-					Code = gSubMenuSelection - 1;
+					Code = g_sub_menu_selection - 1;
 					pConfig->code = Code;
 
-					BK4819_SetCTCSSFrequency(CTCSS_Options[Code]);
+					BK4819_SetCTCSSFrequency(CTCSS_OPTIONS[Code]);
 				}
 			#else
-				if (gSubMenuSelection == 0)
+				if (g_sub_menu_selection == 0)
 					strcpy(String, "OFF");
 				else
-					sprintf(String, "%u.%uHz", CTCSS_Options[gSubMenuSelection - 1] / 10, CTCSS_Options[gSubMenuSelection - 1] % 10);
+					sprintf(String, "%u.%uHz", CTCSS_OPTIONS[g_sub_menu_selection - 1] / 10, CTCSS_OPTIONS[g_sub_menu_selection - 1] % 10);
 			#endif
 
 			break;
 		}
 
 		case MENU_SFT_D:
-			strcpy(String, gSubMenu_SFT_D[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_shift_dir[g_sub_menu_selection]);
 			break;
 
 		case MENU_OFFSET:
-			if (!gIsInSubMenu || gInputBoxIndex == 0)
+			if (!g_is_in_sub_menu || g_input_box_index == 0)
 			{
-				sprintf(String, "%d.%05u", gSubMenuSelection / 100000, abs(gSubMenuSelection) % 100000);
+				sprintf(String, "%d.%05u", g_sub_menu_selection / 100000, abs(g_sub_menu_selection) % 100000);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
 			}
 			else
 			{
 				for (i = 0; i < 3; i++)
-					String[i    ] = (gInputBox[i] == 10) ? '-' : gInputBox[i] + '0';
+					String[i    ] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
 				String[3] = '.';
 				for (i = 3; i < 6; i++)
-					String[i + 1] = (gInputBox[i] == 10) ? '-' : gInputBox[i] + '0';
+					String[i + 1] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
 				String[ 7] = '-';
 				String[ 8] = '-';
 				String[ 9] = 0;
@@ -620,14 +620,14 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_W_N:
-			strcpy(String, gSubMenu_W_N[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_w_n[g_sub_menu_selection]);
 			break;
 
 		case MENU_SCR:
-			strcpy(String, gSubMenu_SCRAMBLER[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_SCRAMBLER[g_sub_menu_selection]);
 			#if 1
-				if (gSubMenuSelection > 0 && gSetting_ScrambleEnable)
-					BK4819_EnableScramble(gSubMenuSelection - 1);
+				if (g_sub_menu_selection > 0 && g_setting_scramble_enable)
+					BK4819_EnableScramble(g_sub_menu_selection - 1);
 				else
 					BK4819_DisableScramble();
 			#endif
@@ -635,35 +635,35 @@ void UI_DisplayMenu(void)
 
 		#ifdef ENABLE_VOX
 			case MENU_VOX:
-				if (gSubMenuSelection == 0)
+				if (g_sub_menu_selection == 0)
 					strcpy(String, "OFF");
 				else
-					sprintf(String, "%d", gSubMenuSelection);
+					sprintf(String, "%d", g_sub_menu_selection);
 				break;
 		#endif
 
 		case MENU_ABR:
-			strcpy(String, gSubMenu_backlight[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_backlight[g_sub_menu_selection]);
 			break;
 
 		case MENU_AM:
-			strcpy(String, (gSubMenuSelection == 0) ? "FM" : "AM");
+			strcpy(String, (g_sub_menu_selection == 0) ? "FM" : "AM");
 			break;
 
 		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
-				strcpy(String, gSubMenu_AM_fix_test1[gSubMenuSelection]);
-//				gSetting_AM_fix = gSubMenuSelection;
+				strcpy(String, g_sub_menu_AM_fix_test1[g_sub_menu_selection]);
+//				g_setting_am_fix = g_sub_menu_selection;
 				break;
 		#endif
 
 		case MENU_AUTOLK:
-			strcpy(String, (gSubMenuSelection == 0) ? "OFF" : "AUTO");
+			strcpy(String, (g_sub_menu_selection == 0) ? "OFF" : "AUTO");
 			break;
 
 		case MENU_COMPAND:
 		case MENU_ABR_ON_TX_RX:
-			strcpy(String, gSubMenu_RX_TX[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_rx_tx[g_sub_menu_selection]);
 			break;
 
 		#ifdef ENABLE_AM_FIX
@@ -686,21 +686,21 @@ void UI_DisplayMenu(void)
 		case MENU_350EN:
 		case MENU_SCREN:
 		case MENU_TX_EN:
-			strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
 		case MENU_MEM_CH:
 		case MENU_1_CALL:
 		case MENU_DEL_CH:
 		{
-			const bool valid = RADIO_CheckValidChannel(gSubMenuSelection, false, 0);
+			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
 
-			UI_GenerateChannelStringEx(String, valid, gSubMenuSelection);
+			UI_GenerateChannelStringEx(String, valid, g_sub_menu_selection);
 			UI_PrintString(String, menu_item_x1, menu_item_x2, 0, 8);
 
-			if (valid && !gAskForConfirmation)
+			if (valid && !g_ask_for_confirmation)
 			{	// show the frequency so that the user knows the channels frequency
-				const uint32_t frequency = BOARD_fetchChannelFrequency(gSubMenuSelection);
+				const uint32_t frequency = BOARD_fetchChannelFrequency(g_sub_menu_selection);
 				sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
 			}
@@ -711,33 +711,33 @@ void UI_DisplayMenu(void)
 
 		case MENU_MEM_NAME:
 		{
-			const bool valid = RADIO_CheckValidChannel(gSubMenuSelection, false, 0);
+			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
 
-			UI_GenerateChannelStringEx(String, valid, gSubMenuSelection);
+			UI_GenerateChannelStringEx(String, valid, g_sub_menu_selection);
 			UI_PrintString(String, menu_item_x1, menu_item_x2, 0, 8);
 
 			if (valid)
 			{
-				const uint32_t frequency = BOARD_fetchChannelFrequency(gSubMenuSelection);
+				const uint32_t frequency = BOARD_fetchChannelFrequency(g_sub_menu_selection);
 
-				if (!gIsInSubMenu || edit_index < 0)
+				if (!g_is_in_sub_menu || g_edit_index < 0)
 				{	// show the channel name
-					BOARD_fetchChannelName(String, gSubMenuSelection);
+					BOARD_fetchChannelName(String, g_sub_menu_selection);
 					if (String[0] == 0)
 						strcpy(String, "--");
 					UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
 				}
 				else
 				{	// show the channel name being edited
-					UI_PrintString(edit, menu_item_x1, 0, 2, 8);
-					if (edit_index < 10)
-						UI_PrintString(     "^", menu_item_x1 + (8 * edit_index), 0, 4, 8);  // show the cursor
+					UI_PrintString(g_edit, menu_item_x1, 0, 2, 8);
+					if (g_edit_index < 10)
+						UI_PrintString("^", menu_item_x1 + (8 * g_edit_index), 0, 4, 8);  // show the cursor
 				}
 
-				if (!gAskForConfirmation)
+				if (!g_ask_for_confirmation)
 				{	// show the frequency so that the user knows the channels frequency
 					sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
-					if (!gIsInSubMenu || edit_index < 0)
+					if (!g_is_in_sub_menu || g_edit_index < 0)
 						UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
 					else
 						UI_PrintString(String, menu_item_x1, menu_item_x2, 5, 8);
@@ -749,158 +749,158 @@ void UI_DisplayMenu(void)
 		}
 
 		case MENU_SAVE:
-			strcpy(String, gSubMenu_SAVE[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_SAVE[g_sub_menu_selection]);
 			break;
 
 		case MENU_TDR:
-//			strcpy(String, gSubMenu_TDR[gSubMenuSelection]);
-			strcpy(String, gSubMenu_OFF_ON[gSubMenuSelection]);
+//			strcpy(String, g_sub_menu_tdr[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
 		case MENU_XB:
-			strcpy(String, gSubMenu_XB[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_xb[g_sub_menu_selection]);
 			break;
 
 		case MENU_TOT:
-			strcpy(String, gSubMenu_TOT[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_TOT[g_sub_menu_selection]);
 			break;
 
 		#ifdef ENABLE_VOICE
 			case MENU_VOICE:
-				strcpy(String, gSubMenu_VOICE[gSubMenuSelection]);
+				strcpy(String, g_sub_menu_voice[g_sub_menu_selection]);
 				break;
 		#endif
 
 		case MENU_SC_REV:
-			strcpy(String, gSubMenu_SC_REV[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_sc_rev[g_sub_menu_selection]);
 			break;
 
 		case MENU_MDF:
-			strcpy(String, gSubMenu_MDF[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_mdf[g_sub_menu_selection]);
 			break;
 
 		case MENU_RP_STE:
-			if (gSubMenuSelection == 0)
+			if (g_sub_menu_selection == 0)
 				strcpy(String, "OFF");
 			else
-				sprintf(String, "%d*100ms", gSubMenuSelection);
+				sprintf(String, "%d*100ms", g_sub_menu_selection);
 			break;
 
 		case MENU_S_LIST:
-			if (gSubMenuSelection < 2)
-				sprintf(String, "LIST%u", 1 + gSubMenuSelection);
+			if (g_sub_menu_selection < 2)
+				sprintf(String, "LIST%u", 1 + g_sub_menu_selection);
 			else
 				strcpy(String, "ALL");
 			break;
 
 		#ifdef ENABLE_ALARM
 			case MENU_AL_MOD:
-				sprintf(String, gSubMenu_AL_MOD[gSubMenuSelection]);
+				sprintf(String, g_sub_menu_AL_MOD[g_sub_menu_selection]);
 				break;
 		#endif
 
 		case MENU_ANI_ID:
-			strcpy(String, g_eeprom.ani_DTMF_id);
+			strcpy(String, g_eeprom.ani_dtmf_id);
 			break;
 
 		case MENU_UPCODE:
-			strcpy(String, g_eeprom.DTMF_up_code);
+			strcpy(String, g_eeprom.dtmf_up_code);
 			break;
 
 		case MENU_DWCODE:
-			strcpy(String, g_eeprom.DTMF_down_code);
+			strcpy(String, g_eeprom.dtmf_down_code);
 			break;
 
 		case MENU_D_RSP:
-			strcpy(String, gSubMenu_D_RSP[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_D_RSP[g_sub_menu_selection]);
 			break;
 
 		case MENU_D_HOLD:
 			// only allow 5, 10, 20, 30, 40, 50 or "STAY ON SCREEN" (60)
-			switch (gSubMenuSelection)
+			switch (g_sub_menu_selection)
 			{
-				case  4: gSubMenuSelection = 60; break;
-				case  6: gSubMenuSelection = 10; break;
-				case  9: gSubMenuSelection =  5; break;
-				case 11: gSubMenuSelection = 20; break;
-				case 19: gSubMenuSelection = 10; break;
-				case 21: gSubMenuSelection = 30; break;
-				case 29: gSubMenuSelection = 20; break;
-				case 31: gSubMenuSelection = 40; break;
-				case 39: gSubMenuSelection = 30; break;
-				case 41: gSubMenuSelection = 50; break;
-				case 49: gSubMenuSelection = 40; break;
-				case 51: gSubMenuSelection = 60; break;
-				case 59: gSubMenuSelection = 50; break;
-				case 61: gSubMenuSelection =  5; break;
+				case  4: g_sub_menu_selection = 60; break;
+				case  6: g_sub_menu_selection = 10; break;
+				case  9: g_sub_menu_selection =  5; break;
+				case 11: g_sub_menu_selection = 20; break;
+				case 19: g_sub_menu_selection = 10; break;
+				case 21: g_sub_menu_selection = 30; break;
+				case 29: g_sub_menu_selection = 20; break;
+				case 31: g_sub_menu_selection = 40; break;
+				case 39: g_sub_menu_selection = 30; break;
+				case 41: g_sub_menu_selection = 50; break;
+				case 49: g_sub_menu_selection = 40; break;
+				case 51: g_sub_menu_selection = 60; break;
+				case 59: g_sub_menu_selection = 50; break;
+				case 61: g_sub_menu_selection =  5; break;
 			}
-			
-			if (gSubMenuSelection < DTMF_HOLD_MAX)
-				sprintf(String, "%d sec", gSubMenuSelection);
+
+			if (g_sub_menu_selection < DTMF_HOLD_MAX)
+				sprintf(String, "%d sec", g_sub_menu_selection);
 			else
 				strcpy(String, "STAY ON\nSCREEN");  // 60
 
 			break;
 
 		case MENU_D_PRE:
-			sprintf(String, "%d*10ms", gSubMenuSelection);
+			sprintf(String, "%d*10ms", g_sub_menu_selection);
 			break;
 
 		case MENU_PTT_ID:
-			strcpy(String, gSubMenu_PTT_ID[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_PTT_ID[g_sub_menu_selection]);
 			break;
 
 		case MENU_BAT_TXT:
-			strcpy(String, gSubMenu_BAT_TXT[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_BAT_TXT[g_sub_menu_selection]);
 			break;
 
 		case MENU_D_LIST:
-			gIsDtmfContactValid = DTMF_GetContact((int)gSubMenuSelection - 1, Contact);
-			if (!gIsDtmfContactValid)
+			g_dtmf_is_contact_valid = DTMF_GetContact((int)g_sub_menu_selection - 1, Contact);
+			if (!g_dtmf_is_contact_valid)
 				strcpy(String, "NULL");
 			else
 				memmove(String, Contact, 8);
 			break;
 
 		case MENU_PONMSG:
-			strcpy(String, gSubMenu_PONMSG[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_pwr_on_msg[g_sub_menu_selection]);
 			break;
 
 		case MENU_ROGER:
-			strcpy(String, gSubMenu_ROGER[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_roger_mode[g_sub_menu_selection]);
 			break;
 
 		case MENU_VOL:
 			sprintf(String, "%u.%02uV\n%u%%",
-				gBatteryVoltageAverage / 100, gBatteryVoltageAverage % 100,
-				BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+				g_battery_voltage_average / 100, g_battery_voltage_average % 100,
+				BATTERY_VoltsToPercent(g_battery_voltage_average));
 			break;
 
 		case MENU_SIDE1_SHORT:
 		case MENU_SIDE1_LONG:
 		case MENU_SIDE2_SHORT:
 		case MENU_SIDE2_LONG:
-			strcpy(String, gSubMenu_SIDE_BUTT[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_SIDE_BUTT[g_sub_menu_selection]);
 			break;
 
 		case MENU_RESET:
-			strcpy(String, gSubMenu_RESET[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_RESET[g_sub_menu_selection]);
 			break;
 
 		case MENU_F_LOCK:
-			strcpy(String, gSubMenu_F_LOCK[gSubMenuSelection]);
+			strcpy(String, g_sub_menu_f_lock[g_sub_menu_selection]);
 			break;
 
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
 				{
-					const uint32_t value   = 22656 + gSubMenuSelection;
+					const uint32_t value   = 22656 + g_sub_menu_selection;
 					const uint32_t xtal_Hz = (0x4f0000u + value) * 5;
 
-					writeXtalFreqCal(gSubMenuSelection, false);
+					writeXtalFreqCal(g_sub_menu_selection, false);
 
 					sprintf(String, "%d\n%u.%06u\nMHz",
-						gSubMenuSelection,
+						g_sub_menu_selection,
 						xtal_Hz / 1000000, xtal_Hz % 1000000);
 				}
 				break;
@@ -908,8 +908,8 @@ void UI_DisplayMenu(void)
 
 		case MENU_BATCAL:
 		{
-			const uint16_t vol = (uint32_t)gBatteryVoltageAverage * gBatteryCalibration[3] / gSubMenuSelection;
-			sprintf(String, "%u.%02uV\n%u", vol / 100, vol % 100, gSubMenuSelection);
+			const uint16_t vol = (uint32_t)g_battery_voltage_average * g_battery_calibration[3] / g_sub_menu_selection;
+			sprintf(String, "%u.%02uV\n%u", vol / 100, vol % 100, g_sub_menu_selection);
 			break;
 		}
 	}
@@ -970,24 +970,24 @@ void UI_DisplayMenu(void)
 		}
 	}
 
-	if (gMenuCursor == MENU_SLIST1 || gMenuCursor == MENU_SLIST2)
+	if (g_menu_cursor == MENU_SLIST1 || g_menu_cursor == MENU_SLIST2)
 	{
-		i = (gMenuCursor == MENU_SLIST1) ? 0 : 1;
+		i = (g_menu_cursor == MENU_SLIST1) ? 0 : 1;
 
-//		if (gSubMenuSelection == 0xFF)
-		if (gSubMenuSelection < 0)
+//		if (g_sub_menu_selection == 0xFF)
+		if (g_sub_menu_selection < 0)
 			strcpy(String, "NULL");
 		else
-			UI_GenerateChannelStringEx(String, true, gSubMenuSelection);
+			UI_GenerateChannelStringEx(String, true, g_sub_menu_selection);
 
-//		if (gSubMenuSelection == 0xFF || !g_eeprom.scan_list_enabled[i])
-		if (gSubMenuSelection < 0 || !g_eeprom.scan_list_enabled[i])
+//		if (g_sub_menu_selection == 0xFF || !g_eeprom.scan_list_enabled[i])
+		if (g_sub_menu_selection < 0 || !g_eeprom.scan_list_enabled[i])
 		{
 			// channel number
 			UI_PrintString(String, menu_item_x1, menu_item_x2, 0, 8);
 
 			// channel name
-			BOARD_fetchChannelName(String, gSubMenuSelection);
+			BOARD_fetchChannelName(String, g_sub_menu_selection);
 			if (String[0] == 0)
 				strcpy(String, "--");
 			UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
@@ -998,7 +998,7 @@ void UI_DisplayMenu(void)
 			UI_PrintString(String, menu_item_x1, menu_item_x2, 0, 8);
 
 			// channel name
-			BOARD_fetchChannelName(String, gSubMenuSelection);
+			BOARD_fetchChannelName(String, g_sub_menu_selection);
 			if (String[0] == 0)
 				strcpy(String, "--");
 			UI_PrintStringSmall(String, menu_item_x1, menu_item_x2, 2);
@@ -1017,54 +1017,54 @@ void UI_DisplayMenu(void)
 		}
 	}
 
-	if (gMenuCursor == MENU_MEM_CH   ||
-	    gMenuCursor == MENU_DEL_CH   ||
-	    gMenuCursor == MENU_1_CALL)
+	if (g_menu_cursor == MENU_MEM_CH   ||
+	    g_menu_cursor == MENU_DEL_CH   ||
+	    g_menu_cursor == MENU_1_CALL)
 	{	// display the channel name
 		char s[11];
-		BOARD_fetchChannelName(s, gSubMenuSelection);
+		BOARD_fetchChannelName(s, g_sub_menu_selection);
 		if (s[0] == 0)
 			strcpy(s, "--");
 		UI_PrintString(s, menu_item_x1, menu_item_x2, 2, 8);
 	}
 
-	if ((gMenuCursor == MENU_R_CTCS || gMenuCursor == MENU_R_DCS) && gCssScanMode != CSS_SCAN_MODE_OFF)
+	if ((g_menu_cursor == MENU_R_CTCS || g_menu_cursor == MENU_R_DCS) && g_css_scan_mode != CSS_SCAN_MODE_OFF)
 		UI_PrintString("SCAN", menu_item_x1, menu_item_x2, 4, 8);
 
-	if (gMenuCursor == MENU_UPCODE)
-		if (strlen(g_eeprom.DTMF_up_code) > 8)
-			UI_PrintString(g_eeprom.DTMF_up_code + 8, menu_item_x1, menu_item_x2, 4, 8);
+	if (g_menu_cursor == MENU_UPCODE)
+		if (strlen(g_eeprom.dtmf_up_code) > 8)
+			UI_PrintString(g_eeprom.dtmf_up_code + 8, menu_item_x1, menu_item_x2, 4, 8);
 
-	if (gMenuCursor == MENU_DWCODE)
-		if (strlen(g_eeprom.DTMF_down_code) > 8)
-			UI_PrintString(g_eeprom.DTMF_down_code + 8, menu_item_x1, menu_item_x2, 4, 8);
+	if (g_menu_cursor == MENU_DWCODE)
+		if (strlen(g_eeprom.dtmf_down_code) > 8)
+			UI_PrintString(g_eeprom.dtmf_down_code + 8, menu_item_x1, menu_item_x2, 4, 8);
 
-	if (gMenuCursor == MENU_D_LIST && gIsDtmfContactValid)
+	if (g_menu_cursor == MENU_D_LIST && g_dtmf_is_contact_valid)
 	{
 		Contact[11] = 0;
-		memmove(&gDTMF_ID, Contact + 8, 4);
+		memmove(&g_dtmf_id, Contact + 8, 4);
 		sprintf(String, "ID:%s", Contact + 8);
 		UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
 	}
 
-	if (gMenuCursor == MENU_R_CTCS ||
-	    gMenuCursor == MENU_T_CTCS ||
-	    gMenuCursor == MENU_R_DCS  ||
-	    gMenuCursor == MENU_T_DCS  ||
-	    gMenuCursor == MENU_D_LIST)
+	if (g_menu_cursor == MENU_R_CTCS ||
+	    g_menu_cursor == MENU_T_CTCS ||
+	    g_menu_cursor == MENU_R_DCS  ||
+	    g_menu_cursor == MENU_T_DCS  ||
+	    g_menu_cursor == MENU_D_LIST)
 	{
 		unsigned int Offset;
-		NUMBER_ToDigits(gSubMenuSelection, String);
-		Offset = (gMenuCursor == MENU_D_LIST) ? 2 : 3;
-		UI_DisplaySmallDigits(Offset, String + (8 - Offset), 105, 0, false);
+		NUMBER_ToDigits(g_sub_menu_selection, String);
+		Offset = (g_menu_cursor == MENU_D_LIST) ? 2 : 3;
+		UI_Displaysmall_digits(Offset, String + (8 - Offset), 105, 0, false);
 	}
 
-	if ((gMenuCursor == MENU_RESET    ||
-	     gMenuCursor == MENU_MEM_CH   ||
-	     gMenuCursor == MENU_MEM_NAME ||
-	     gMenuCursor == MENU_DEL_CH) && gAskForConfirmation)
+	if ((g_menu_cursor == MENU_RESET    ||
+	     g_menu_cursor == MENU_MEM_CH   ||
+	     g_menu_cursor == MENU_MEM_NAME ||
+	     g_menu_cursor == MENU_DEL_CH) && g_ask_for_confirmation)
 	{	// display confirmation
-		strcpy(String, (gAskForConfirmation == 1) ? "SURE?" : "WAIT!");
+		strcpy(String, (g_ask_for_confirmation == 1) ? "SURE?" : "WAIT!");
 		UI_PrintString(String, menu_item_x1, menu_item_x2, 5, 8);
 	}
 

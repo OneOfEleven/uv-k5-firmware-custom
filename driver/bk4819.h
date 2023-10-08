@@ -22,7 +22,7 @@
 
 #include "driver/bk4819-regs.h"
 
-enum BK4819_AF_Type_t
+enum BK4819_af_type_e
 {
 	BK4819_AF_MUTE      =  0u,  //
 	BK4819_AF_FM        =  1u,  // FM
@@ -38,29 +38,26 @@ enum BK4819_AF_Type_t
 	BK4819_AF_UNKNOWN5  = 11u,  // distorted
 	BK4819_AF_UNKNOWN6  = 12u,  // distorted
 	BK4819_AF_UNKNOWN7  = 13u,  // interesting
-	BK4819_AF_UNKNOWN8  = 14u,  // interesting 
+	BK4819_AF_UNKNOWN8  = 14u,  // interesting
 	BK4819_AF_UNKNOWN9  = 15u   // not a lot
 };
+typedef enum BK4819_af_type_e BK4819_af_type_t;
 
-typedef enum BK4819_AF_Type_t BK4819_AF_Type_t;
-
-enum BK4819_FilterBandwidth_t
+enum BK4819_filter_bandwidth_e
 {
 	BK4819_FILTER_BW_WIDE = 0,
 	BK4819_FILTER_BW_NARROW,
 	BK4819_FILTER_BW_NARROWER
 };
+typedef enum BK4819_filter_bandwidth_e BK4819_filter_bandwidth_t;
 
-typedef enum BK4819_FilterBandwidth_t BK4819_FilterBandwidth_t;
-
-enum BK4819_CssScanResult_t
+enum BK4819_CSS_scan_result_e
 {
 	BK4819_CSS_RESULT_NOT_FOUND = 0,
 	BK4819_CSS_RESULT_CTCSS,
 	BK4819_CSS_RESULT_CDCSS
 };
-
-typedef enum BK4819_CssScanResult_t BK4819_CssScanResult_t;
+typedef enum BK4819_CSS_scan_result_e BK4819_CSS_scan_result_t;
 
 extern bool g_rx_idle_mode;
 
@@ -78,7 +75,7 @@ void     BK4819_SetCDCSSCodeWord(uint32_t CodeWord);
 void     BK4819_SetCTCSSFrequency(uint32_t BaudRate);
 void     BK4819_SetTailDetection(const uint32_t freq_10Hz);
 void     BK4819_EnableVox(uint16_t Vox1Threshold, uint16_t Vox0Threshold);
-void     BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const bool weak_no_different);
+void     BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const bool weak_no_different);
 void     BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency);
 void     BK4819_SetFrequency(uint32_t Frequency);
 void     BK4819_SetupSquelch(
@@ -89,7 +86,7 @@ void     BK4819_SetupSquelch(
 			uint8_t SquelchCloseGlitchThresh,
 			uint8_t SquelchOpenGlitchThresh);
 
-void     BK4819_SetAF(BK4819_AF_Type_t AF);
+void     BK4819_SetAF(BK4819_af_type_t AF);
 void     BK4819_RX_TurnOn(void);
 void     BK4819_PickRXFilterPathBasedOnFrequency(uint32_t Frequency);
 void     BK4819_DisableScramble(void);
@@ -139,7 +136,7 @@ uint16_t BK4819_GetVoiceAmplitudeOut(void);
 uint8_t  BK4819_GetAfTxRx(void);
 
 bool     BK4819_GetFrequencyScanResult(uint32_t *pFrequency);
-BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t *pCtcssFreq);
+BK4819_CSS_scan_result_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t *pCtcssFreq);
 void     BK4819_DisableFrequencyScan(void);
 void     BK4819_EnableFrequencyScan(void);
 void     BK4819_SetScanFrequency(uint32_t Frequency);
@@ -156,15 +153,14 @@ uint8_t  BK4819_GetCTCType(void);
 
 void     BK4819_SendFSKData(uint16_t *pData);
 void     BK4819_PrepareFSKReceive(void);
-	    
+
 void     BK4819_PlayRoger(void);
 void     BK4819_PlayRogerMDC(void);
-	    
+
 void     BK4819_Enable_AfDac_DiscMode_TxDsp(void);
-	    
+
 void     BK4819_GetVoxAmp(uint16_t *pResult);
 void     BK4819_SetScrambleFrequencyControlWord(uint32_t Frequency);
 void     BK4819_PlayDTMFEx(bool bLocalLoopback, char Code);
 
 #endif
-

@@ -542,7 +542,7 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
 	BK4819_WriteRegister(BK4819_REG_31, REG_31_Value | (1u << 2));    // VOX Enable
 }
 
-void BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const bool weak_no_different)
+void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const bool weak_no_different)
 {
 	// REG_43
 	// <15>    0 ???
@@ -713,8 +713,8 @@ void BK4819_SetFrequency(uint32_t Frequency)
 }
 
 void BK4819_SetupSquelch(
-		uint8_t squelch_open_RSSI_thresh,
-		uint8_t squelch_close_RSSI_thresh,
+		uint8_t squelch_open_rssi_thresh,
+		uint8_t squelch_close_rssi_thresh,
 		uint8_t squelch_open_noise_thresh,
 		uint8_t squelch_close_noise_thresh,
 		uint8_t squelch_close_glitch_thresh,
@@ -792,14 +792,14 @@ void BK4819_SetupSquelch(
 	//
 	// <7:0>  70 RSSI threshold for Squelch = close   0.5dB/step
 	//
-	BK4819_WriteRegister(BK4819_REG_78, ((uint16_t)squelch_open_RSSI_thresh   << 8) | squelch_close_RSSI_thresh);
+	BK4819_WriteRegister(BK4819_REG_78, ((uint16_t)squelch_open_rssi_thresh   << 8) | squelch_close_rssi_thresh);
 
 	BK4819_SetAF(BK4819_AF_MUTE);
 
 	BK4819_RX_TurnOn();
 }
 
-void BK4819_SetAF(BK4819_AF_Type_t AF)
+void BK4819_SetAF(BK4819_af_type_t AF)
 {
 	// AF Output Inverse Mode = Inverse
 	// Undocumented bits 0x2040
@@ -1504,7 +1504,7 @@ bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency)
 	return finished;
 }
 
-BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t *pCtcssFreq)
+BK4819_CSS_scan_result_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t *pCtcssFreq)
 {
 	// **********
 	// REG_68 read only

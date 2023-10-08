@@ -34,32 +34,32 @@
 
 void UI_DisplayStatus(const bool test_display)
 {
-	uint8_t     *line = gStatusLine;
+	uint8_t     *line = g_status_line;
 	unsigned int x    = 0;
 	unsigned int x1   = 0;
 	
-	gUpdateStatus = false;
+	g_update_status = false;
 	
-	memset(gStatusLine, 0, sizeof(gStatusLine));
+	memset(g_status_line, 0, sizeof(g_status_line));
 
 	// **************
 
 	// POWER-SAVE indicator
-	if (gCurrentFunction == FUNCTION_TRANSMIT)
+	if (g_current_function == FUNCTION_TRANSMIT)
 	{
 		memmove(line + x, BITMAP_TX, sizeof(BITMAP_TX));
 		x1 = x + sizeof(BITMAP_TX);
 	}
 	else
-	if (gCurrentFunction == FUNCTION_RECEIVE ||
-	    gCurrentFunction == FUNCTION_MONITOR ||
-	    gCurrentFunction == FUNCTION_INCOMING)
+	if (g_current_function == FUNCTION_RECEIVE ||
+	    g_current_function == FUNCTION_MONITOR ||
+	    g_current_function == FUNCTION_INCOMING)
 	{
 		memmove(line + x, BITMAP_RX, sizeof(BITMAP_RX));
 		x1 = x + sizeof(BITMAP_RX);
 	}
 	else
-	if (gCurrentFunction == FUNCTION_POWER_SAVE || test_display)
+	if (g_current_function == FUNCTION_POWER_SAVE || test_display)
 	{
 		memmove(line + x, BITMAP_POWERSAVE, sizeof(BITMAP_POWERSAVE));
 		x1 = x + sizeof(BITMAP_POWERSAVE);
@@ -68,7 +68,7 @@ void UI_DisplayStatus(const bool test_display)
 
 	#ifdef ENABLE_NOAA
 		// NOASS SCAN indicator
-		if (gIsNoaaMode || test_display)
+		if (g_is_noaa_mode || test_display)
 		{
 			memmove(line + x, BITMAP_NOAA, sizeof(BITMAP_NOAA));
 			x1 = x + sizeof(BITMAP_NOAA);
@@ -78,7 +78,7 @@ void UI_DisplayStatus(const bool test_display)
 		// hmmm, what to put in it's place
 	#endif
 	
-	if (gSetting_KILLED)
+	if (g_setting_killed)
 	{
 		memset(line + x, 0xFF, 10);
 		x1 = x + 10;
@@ -86,7 +86,7 @@ void UI_DisplayStatus(const bool test_display)
 	else
 	#ifdef ENABLE_FMRADIO
 		// FM indicator
-		if (gFmRadioMode || test_display)
+		if (g_fm_radio_mode || test_display)
 		{
 			memmove(line + x, BITMAP_FM, sizeof(BITMAP_FM));
 			x1 = x + sizeof(BITMAP_FM);
@@ -94,9 +94,9 @@ void UI_DisplayStatus(const bool test_display)
 		else
 	#endif
 		// SCAN indicator
-		if (gScanStateDir != SCAN_OFF || gScreenToDisplay == DISPLAY_SCANNER || test_display)
+		if (g_scan_state_dir != SCAN_OFF || g_screen_to_display == DISPLAY_SCANNER || test_display)
 		{
-			if (gNextChannel <= USER_CHANNEL_LAST)
+			if (g_next_channel <= USER_CHANNEL_LAST)
 			{	// channel mode
 				if (g_eeprom.scan_list_default == 0)
 					UI_PrintStringSmallBuffer("1", line + x);
@@ -119,10 +119,10 @@ void UI_DisplayStatus(const bool test_display)
 		// VOICE indicator
 		if (g_eeprom.voice_prompt != VOICE_PROMPT_OFF || test_display)
 		{
-			memmove(line + x, BITMAP_VoicePrompt, sizeof(BITMAP_VoicePrompt));
-			x1 = x + sizeof(BITMAP_VoicePrompt);
+			memmove(line + x, BITMAP_VOICE_PROMPT, sizeof(BITMAP_VOICE_PROMPT));
+			x1 = x + sizeof(BITMAP_VOICE_PROMPT);
 		}
-		x += sizeof(BITMAP_VoicePrompt);
+		x += sizeof(BITMAP_VOICE_PROMPT);
 	#else
 		// hmmm, what to put in it's place
 	#endif
@@ -130,7 +130,7 @@ void UI_DisplayStatus(const bool test_display)
 	// DUAL-WATCH indicator
 	if (g_eeprom.dual_watch != DUAL_WATCH_OFF || test_display)
 	{
-		if (gDualWatchActive || test_display)
+		if (g_dual_watch_active || test_display)
 			memmove(line + x, BITMAP_TDR1, sizeof(BITMAP_TDR1));
 		else
 			memmove(line + x, BITMAP_TDR2, sizeof(BITMAP_TDR2));
@@ -158,15 +158,15 @@ void UI_DisplayStatus(const bool test_display)
 	// KEY-LOCK indicator
 	if (g_eeprom.key_lock || test_display)
 	{
-		memmove(line + x, BITMAP_KeyLock, sizeof(BITMAP_KeyLock));
-		x += sizeof(BITMAP_KeyLock);
+		memmove(line + x, BITMAP_KEYLOCK, sizeof(BITMAP_KEYLOCK));
+		x += sizeof(BITMAP_KEYLOCK);
 		x1 = x;
 	}
 	else
-	if (g_was_f_key_pressed)
+	if (g_f_key_was_pressed)
 	{
-		memmove(line + x, BITMAP_F_Key, sizeof(BITMAP_F_Key));
-		x += sizeof(BITMAP_F_Key);
+		memmove(line + x, BITMAP_F_KEY, sizeof(BITMAP_F_KEY));
+		x += sizeof(BITMAP_F_KEY);
 		x1 = x;
 	}
 
@@ -176,10 +176,10 @@ void UI_DisplayStatus(const bool test_display)
 		
 		unsigned int x2 = LCD_WIDTH - sizeof(BITMAP_BATTERY_LEVEL) - 3;
 
-		if (gChargingWithTypeC)
+		if (g_charging_with_type_c)
 			x2 -= sizeof(BITMAP_USB_C);  // the radio is on charge
 
-		switch (gSetting_battery_text)
+		switch (g_setting_battery_text)
 		{
 			default:
 			case 0:
@@ -187,7 +187,7 @@ void UI_DisplayStatus(const bool test_display)
 	
 			case 1:		// voltage
 			{
-				const uint16_t voltage = (gBatteryVoltageAverage <= 999) ? gBatteryVoltageAverage : 999; // limit to 9.99V
+				const uint16_t voltage = (g_battery_voltage_average <= 999) ? g_battery_voltage_average : 999; // limit to 9.99V
 				sprintf(s, "%u.%02uV", voltage / 100, voltage % 100);
 				space_needed = (7 * strlen(s));
 				if (x2 >= (x1 + space_needed))
@@ -199,7 +199,7 @@ void UI_DisplayStatus(const bool test_display)
 			
 			case 2:		// percentage
 			{
-				sprintf(s, "%u%%", BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+				sprintf(s, "%u%%", BATTERY_VoltsToPercent(g_battery_voltage_average));
 				space_needed = (7 * strlen(s));
 				if (x2 >= (x1 + space_needed))
 					UI_PrintStringSmallBuffer(s, line + x2 - space_needed);
@@ -212,13 +212,13 @@ void UI_DisplayStatus(const bool test_display)
 	x = LCD_WIDTH - sizeof(BITMAP_BATTERY_LEVEL) - sizeof(BITMAP_USB_C);
 	
 	// USB-C charge indicator
-	if (gChargingWithTypeC || test_display)
+	if (g_charging_with_type_c || test_display)
 		memmove(line + x, BITMAP_USB_C, sizeof(BITMAP_USB_C));
 	x += sizeof(BITMAP_USB_C);
 
 	{	// BATTERY LEVEL indicator
 		uint8_t      bitmap[sizeof(BITMAP_BATTERY_LEVEL)];
-		unsigned int i = gBatteryDisplayLevel;
+		unsigned int i = g_battery_display_level;
 	
 		memmove(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
 	
@@ -237,7 +237,7 @@ void UI_DisplayStatus(const bool test_display)
 			}
 		}
 		else
-		if (gLowBattery)
+		if (g_low_battery)
 			memset(bitmap, 0, sizeof(bitmap));
 
 		memmove(line + x, bitmap, sizeof(bitmap));

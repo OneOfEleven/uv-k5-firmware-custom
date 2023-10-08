@@ -68,9 +68,9 @@
 	
 #endif
 
-BEEP_Type_t gBeepToPlay = BEEP_NONE;
+beep_type_t g_beep_to_play = BEEP_NONE;
 
-void AUDIO_PlayBeep(BEEP_Type_t Beep)
+void AUDIO_PlayBeep(beep_type_t Beep)
 {
 	uint16_t ToneConfig;
 	uint16_t ToneFrequency;
@@ -85,25 +85,25 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 		return;
 
 	#ifdef ENABLE_AIRCOPY
-		if (gScreenToDisplay == DISPLAY_AIRCOPY)
+		if (g_screen_to_display == DISPLAY_AIRCOPY)
 			return;
 	#endif
 	
-	if (gCurrentFunction == FUNCTION_RECEIVE)
+	if (g_current_function == FUNCTION_RECEIVE)
 		return;
 
-	if (gCurrentFunction == FUNCTION_MONITOR)
+	if (g_current_function == FUNCTION_MONITOR)
 		return;
 
 	ToneConfig = BK4819_ReadRegister(BK4819_REG_71);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
-	if (gCurrentFunction == FUNCTION_POWER_SAVE && g_rx_idle_mode)
+	if (g_current_function == FUNCTION_POWER_SAVE && g_rx_idle_mode)
 		BK4819_RX_TurnOn();
 
 	#ifdef ENABLE_FMRADIO
-		if (gFmRadioMode)
+		if (g_fm_radio_mode)
 			BK1080_Mute(true);
 	#endif
 	
@@ -193,7 +193,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
 	#ifdef ENABLE_VOX
-		gVoxResumeCountdown = 80;
+		g_vox_resume_count_down = 80;
 	#endif
 
 	SYSTEM_DelayMs(5);
@@ -201,15 +201,15 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	SYSTEM_DelayMs(5);
 	BK4819_WriteRegister(BK4819_REG_71, ToneConfig);
 
-	if (gEnableSpeaker)
+	if (g_enable_speaker)
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
 	#ifdef ENABLE_FMRADIO
-		if (gFmRadioMode)
+		if (g_fm_radio_mode)
 			BK1080_Mute(false);
 	#endif
 	
-	if (gCurrentFunction == FUNCTION_POWER_SAVE && g_rx_idle_mode)
+	if (g_current_function == FUNCTION_POWER_SAVE && g_rx_idle_mode)
 		BK4819_Sleep();
 }
 
@@ -239,7 +239,7 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 		}
 	}
 	
-	void AUDIO_PlaySingleVoice(bool bFlag)
+	void AUDIO_PlaySingleVoice(bool flag)
 	{
 		uint8_t VoiceID;
 		uint8_t Delay;
@@ -265,20 +265,20 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 				VoiceID += VOICE_ID_ENG_BASE;
 			}
 	
-			if (gCurrentFunction == FUNCTION_RECEIVE ||
-			    gCurrentFunction == FUNCTION_MONITOR ||
-			    gCurrentFunction == FUNCTION_INCOMING)   // 1of11
+			if (g_current_function == FUNCTION_RECEIVE ||
+			    g_current_function == FUNCTION_MONITOR ||
+			    g_current_function == FUNCTION_INCOMING)   // 1of11
 				BK4819_SetAF(BK4819_AF_MUTE);
 	
 			#ifdef ENABLE_FMRADIO
-				if (gFmRadioMode)
+				if (g_fm_radio_mode)
 					BK1080_Mute(true);
 			#endif
 			
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
 			#ifdef ENABLE_VOX
-				gVoxResumeCountdown = 2000;
+				g_vox_resume_count_down = 2000;
 			#endif
 			
 			SYSTEM_DelayMs(5);
@@ -287,28 +287,28 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 			if (g_voice_write_index == 1)
 				Delay += 3;
 	
-			if (bFlag)
+			if (flag)
 			{
 				SYSTEM_DelayMs(Delay * 10);
 	
-				if (gCurrentFunction == FUNCTION_RECEIVE ||
-				    gCurrentFunction == FUNCTION_MONITOR ||
-					gCurrentFunction == FUNCTION_INCOMING)	// 1of11
-					BK4819_SetAF(gRxVfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
+				if (g_current_function == FUNCTION_RECEIVE ||
+				    g_current_function == FUNCTION_MONITOR ||
+					g_current_function == FUNCTION_INCOMING)	// 1of11
+					BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	
 				#ifdef ENABLE_FMRADIO
-					if (gFmRadioMode)
+					if (g_fm_radio_mode)
 						BK1080_Mute(false);
 				#endif
 				
-				if (!gEnableSpeaker)
+				if (!g_enable_speaker)
 					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 	
 				g_voice_write_index    = 0;
 				g_voice_read_index     = 0;
 	
 				#ifdef ENABLE_VOX
-					gVoxResumeCountdown = 80;
+					g_vox_resume_count_down = 80;
 				#endif
 					
 				return;
@@ -425,28 +425,28 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 				g_flag_play_queued_voice           = false;
 
 				#ifdef ENABLE_VOX
-					gVoxResumeCountdown = 2000;
+					g_vox_resume_count_down = 2000;
 				#endif
 	
 				return;
 			}
 		}
 	
-		if (gCurrentFunction == FUNCTION_RECEIVE ||
-		    gCurrentFunction == FUNCTION_MONITOR ||
-		    gCurrentFunction == FUNCTION_INCOMING)    // 1of11
-			BK4819_SetAF(gRxVfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
+		if (g_current_function == FUNCTION_RECEIVE ||
+		    g_current_function == FUNCTION_MONITOR ||
+		    g_current_function == FUNCTION_INCOMING)    // 1of11
+			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	
 		#ifdef ENABLE_FMRADIO
-			if (gFmRadioMode)
+			if (g_fm_radio_mode)
 				BK1080_Mute(false);
 		#endif
 		
-		if (!gEnableSpeaker)
+		if (!g_enable_speaker)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 	
 		#ifdef ENABLE_VOX
-			gVoxResumeCountdown = 80;
+			g_vox_resume_count_down = 80;
 		#endif
 		
 		g_voice_write_index    = 0;

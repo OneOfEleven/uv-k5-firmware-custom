@@ -21,8 +21,8 @@
 
 #include "driver/keyboard.h"
 
-extern char    gInputBox[8];
-extern uint8_t gInputBoxIndex;
+extern char    g_input_box[8];
+extern uint8_t g_input_box_index;
 
 void INPUTBOX_Append(const key_code_t Digit);
 
