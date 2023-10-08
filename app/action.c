@@ -30,6 +30,7 @@
 #endif
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
+#include "driver/uart.h"
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"
@@ -58,11 +59,14 @@ void ACTION_Power(void)
 	if (++g_tx_vfo->output_power > OUTPUT_POWER_HIGH)
 		g_tx_vfo->output_power = OUTPUT_POWER_LOW;
 
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("act_pwr %u\r\n", g_tx_vfo->output_power);
+	#endif
+
 	g_request_save_channel = 1;
-	//g_request_save_channel = 2;   // auto save the channel
 
 	#ifdef ENABLE_VOICE
-		g_another_voice_id   = VOICE_ID_POWER;
+		g_another_voice_id = VOICE_ID_POWER;
 	#endif
 
 	g_request_display_screen = g_screen_to_display;

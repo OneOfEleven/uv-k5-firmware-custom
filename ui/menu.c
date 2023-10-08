@@ -871,9 +871,10 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_VOL:
-			sprintf(String, "%u.%02uV\n%u%%",
+			sprintf(String, "%u.%02uV\n%u%%\ncurr %u",
 				g_battery_voltage_average / 100, g_battery_voltage_average % 100,
-				BATTERY_VoltsToPercent(g_battery_voltage_average));
+				BATTERY_VoltsToPercent(g_battery_voltage_average),
+				g_battery_current);
 			break;
 
 		case MENU_SIDE1_SHORT:

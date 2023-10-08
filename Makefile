@@ -8,14 +8,15 @@ ENABLE_SWD                    := 0
 ENABLE_OVERLAY                := 0
 ENABLE_LTO                    := 1
 ENABLE_UART                   := 1
-ENABLE_AIRCOPY                := 0
+ENABLE_UART_DEBUG             := 0
+ENABLE_AIRCOPY                := 1
 ENABLE_FMRADIO                := 1
 ENABLE_NOAA                   := 1
-ENABLE_VOICE                  := 1
+ENABLE_VOICE                  := 0
 ENABLE_VOX                    := 1
 ENABLE_ALARM                  := 1
 ENABLE_TX1750                 := 1
-ENABLE_PWRON_PASSWORD         := 1
+ENABLE_PWRON_PASSWORD         := 0
 ENABLE_BIG_FREQ               := 0
 ENABLE_SMALL_BOLD             := 1
 ENABLE_KEEP_MEM_NAME          := 1
@@ -36,8 +37,8 @@ ENABLE_RSSI_BAR               := 1
 ENABLE_SHOW_TX_TIMEOUT        := 1
 ENABLE_AUDIO_BAR              := 0
 ENABLE_COPY_CHAN_TO_VFO       := 1
-#ENABLE_PANADAPTER             := 1
-#ENABLE_SINGLE_VFO_CHAN        := 1
+#ENABLE_PANADAPTER             := 0
+#ENABLE_SINGLE_VFO_CHAN        := 0
 
 #############################################################
 
@@ -56,6 +57,10 @@ endif
 ifeq ($(ENABLE_SHOW_TX_TIMEOUT),1)
 	# can't have ENABLE_SHOW_TX_TIMEOUT and ENABLE_AUDIO_BAR enabled at same time
 	ENABLE_AUDIO_BAR := 0
+endif
+
+ifeq ($(ENABLE_UART_DEBUG),1)
+	ENABLE_UART := 1
 endif
 
 BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
@@ -233,6 +238,9 @@ ifeq ($(ENABLE_FMRADIO),1)
 endif
 ifeq ($(ENABLE_UART),1)
 	CFLAGS += -DENABLE_UART
+endif
+ifeq ($(ENABLE_UART_DEBUG),1)
+	CFLAGS += -DENABLE_UART_DEBUG
 endif
 ifeq ($(ENABLE_BIG_FREQ),1)
 	CFLAGS  += -DENABLE_BIG_FREQ

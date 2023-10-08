@@ -308,9 +308,9 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 				g_eeprom.freq_channel[g_eeprom.tx_vfo] = Channel;
 			}
 
-			g_tx_vfo->channel_save                  = Channel;
+			g_tx_vfo->channel_save = Channel;
 			g_eeprom.screen_channel[g_eeprom.tx_vfo] = Channel;
-			g_request_save_channel                   = 2;
+			g_request_save_channel = 2;
 
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = VOICE_ID_CONFIRM;

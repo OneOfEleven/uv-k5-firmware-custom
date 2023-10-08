@@ -84,7 +84,7 @@ bool                  g_setting_killed;
 bool                  g_setting_200_tx_enable;
 bool                  g_setting_500_tx_enable;
 bool                  g_setting_350_enable;
-bool                  g_Setting_tx_enable;
+bool                  g_setting_tx_enable;
 uint8_t               g_setting_f_lock;
 bool                  g_setting_scramble_enable;
 
@@ -190,7 +190,7 @@ bool                  g_flag_refresh_menu;
 
 bool                  g_flag_SaveVfo;
 bool                  g_flag_SaveSettings;
-bool                  g_flag_SaveChannel;
+bool                  g_flag_save_channel;
 #ifdef ENABLE_FMRADIO
 	bool              g_flag_SaveFM;
 #endif

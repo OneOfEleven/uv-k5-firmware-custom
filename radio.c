@@ -325,7 +325,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 			const uint8_t d4 = Data[4];
 			g_eeprom.vfo_info[VFO].frequency_reverse = ((d4 >> 0) & 1u) ? true : false;
 			g_eeprom.vfo_info[VFO].channel_bandwidth = ((d4 >> 1) & 1u) ? true : false;
-			g_eeprom.vfo_info[VFO].output_power      = ((d4 >> 2) & 3u) ? true : false;
+			g_eeprom.vfo_info[VFO].output_power      =  (d4 >> 2) & 3u;
 			g_eeprom.vfo_info[VFO].busy_channel_lock = ((d4 >> 4) & 1u) ? true : false;
 		}
 
@@ -976,7 +976,7 @@ void RADIO_PrepareTX(void)
 		}
 		else
 	#endif
-	if (!g_Setting_tx_enable || g_serial_config_count_down_500ms > 0)
+	if (!g_setting_tx_enable || g_serial_config_count_down_500ms > 0)
 	{	// TX is disabled or config upload/download in progress
 		State = VFO_STATE_TX_DISABLE;
 	}

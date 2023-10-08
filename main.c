@@ -69,7 +69,9 @@ void Main(void)
 
 	g_boot_counter_10ms = 250;   // 2.5 sec
 
-	UART_Send(UART_Version, strlen(UART_Version));
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_SendText(UART_Version);
+	#endif
 
 	// Not implementing authentic device checks
 
@@ -105,6 +107,11 @@ void Main(void)
 	BootMode = BOOT_GetMode();
 
 	g_f_lock = (BootMode == BOOT_MODE_F_LOCK); // flag to say include the hidden menu items
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		if (g_f_lock)
+			UART_SendText("boot_f_lock\r\n");
+	#endif
 
 	// sort the menu list
 	UI_SortMenu(!g_f_lock);

@@ -44,6 +44,7 @@
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
+#include "driver/uart.h"
 #include "am_fix.h"
 #include "dtmf.h"
 #include "external/printf/printf.h"
@@ -1301,7 +1302,7 @@ void APP_CheckKeys(void)
 
 	if (g_ptt_is_pressed)
 	{
-		if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) || g_serial_config_count_down_500ms > 0)
+		if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) || g_serial_config_count_down_500ms > 0 || !g_setting_tx_enable)
 		{	// PTT released or serial comms config in progress
 			if (++g_ptt_debounce_counter >= 3 || g_serial_config_count_down_500ms > 0)	    // 30ms
 			{	// stop transmitting
@@ -1315,11 +1316,11 @@ void APP_CheckKeys(void)
 			g_ptt_debounce_counter = 0;
 	}
 	else
-	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) && g_serial_config_count_down_500ms == 0)
+	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) && g_serial_config_count_down_500ms == 0 && g_setting_tx_enable)
 	{	// PTT pressed
 		if (++g_ptt_debounce_counter >= 3)	    // 30ms
 		{	// start transmitting
-			g_boot_counter_10ms   = 0;        // cancel the boot-up screen
+			g_boot_counter_10ms    = 0;        // cancel the boot-up screen
 			g_ptt_debounce_counter = 0;
 			g_ptt_is_pressed       = true;
 			APP_ProcessKey(KEY_PTT, true, false);
@@ -1350,7 +1351,7 @@ void APP_CheckKeys(void)
 		if (g_key_reading_0 != KEY_INVALID && Key != KEY_INVALID)
 			APP_ProcessKey(g_key_reading_1, false, g_key_being_held);  // key pressed without releasing previous key
 
-		g_key_reading_0     = Key;
+		g_key_reading_0    = Key;
 		g_debounce_counter = 0;
 		return;
 	}
@@ -2108,8 +2109,9 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 //	if (Key == KEY_INVALID)
 //		return;
 
+	// reset the state so as to remove it from the screen
 	if (Key != KEY_INVALID && Key != KEY_PTT)
-		RADIO_Setg_vfo_state(VFO_STATE_NORMAL);	// reset the state
+		RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
 
 	const bool backlight_was_on = GPIO_CheckBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
@@ -2150,10 +2152,10 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 			}
 		#endif
 
-		if (g_flag_SaveChannel)
+		if (g_flag_save_channel)
 		{
-			SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_flag_SaveChannel);
-			g_flag_SaveChannel = false;
+			SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_flag_save_channel);
+			g_flag_save_channel = false;
 
 			RADIO_ConfigureChannel(g_eeprom.tx_vfo, VFO_CONFIGURE);
 			RADIO_SetupRegisters(true);
@@ -2464,7 +2466,7 @@ Skip:
 		}
 		else
 		{
-			g_flag_SaveChannel = g_request_save_channel;
+			g_flag_save_channel = g_request_save_channel;
 
 			if (g_request_display_screen == DISPLAY_INVALID)
 				g_request_display_screen = DISPLAY_MAIN;

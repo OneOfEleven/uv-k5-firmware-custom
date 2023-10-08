@@ -50,7 +50,7 @@ center_line_t center_line = CENTER_LINE_NONE;
 	{
 		unsigned int timeout_secs = 0;
 
-		if (g_current_function != FUNCTION_TRANSMIT)
+		if (g_current_function != FUNCTION_TRANSMIT || g_screen_to_display != DISPLAY_MAIN)
 			return false;
 
 		if (center_line != CENTER_LINE_NONE && center_line != CENTER_LINE_TX_TIMEOUT)

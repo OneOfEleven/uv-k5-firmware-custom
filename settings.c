@@ -180,7 +180,7 @@ void SETTINGS_SaveSettings(void)
 	State[4]  = g_setting_500_tx_enable;
 	State[5]  = g_setting_350_enable;
 	State[6]  = g_setting_scramble_enable;
-	if (!g_Setting_tx_enable)             State[7] &= ~(1u << 0);
+	if (!g_setting_tx_enable)             State[7] &= ~(1u << 0);
 	if (!g_setting_live_dtmf_decoder) State[7] &= ~(1u << 1);
 	State[7] = (State[7] & ~(3u << 2)) | ((g_setting_battery_text & 3u) << 2);
 	#ifdef ENABLE_AUDIO_BAR
@@ -196,118 +196,117 @@ void SETTINGS_SaveSettings(void)
 
 void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, uint8_t Mode)
 {
+	const uint16_t OffsetMR  = Channel * 16;
+	      uint16_t OffsetVFO = OffsetMR;
+	      uint8_t  State[8];
+
 	#ifdef ENABLE_NOAA
-		if (IS_NOT_NOAA_CHANNEL(Channel))
+		if (IS_NOAA_CHANNEL(Channel))
+			return;
 	#endif
-	{
-		const uint16_t OffsetMR  = Channel * 16;
-		      uint16_t OffsetVFO = OffsetMR;
 
-		if (Channel > USER_CHANNEL_LAST)
-		{	// it's a VFO, not a channel
-			OffsetVFO  = (VFO == 0) ? 0x0C80 : 0x0C90;
-			OffsetVFO += (Channel - FREQ_CHANNEL_FIRST) * 32;
-		}
-
-		if (Mode >= 2 || Channel > USER_CHANNEL_LAST)
-		{	// copy VFO to a channel
-
-			uint8_t State[8];
-
-			((uint32_t *)State)[0] = pVFO->freq_config_rx.frequency;
-			((uint32_t *)State)[1] = pVFO->tx_offset_freq;
-			EEPROM_WriteBuffer(OffsetVFO + 0, State);
-
-			State[0] =  pVFO->freq_config_rx.code;
-			State[1] =  pVFO->freq_config_tx.code;
-			State[2] = (pVFO->freq_config_tx.code_type << 4) | pVFO->freq_config_rx.code_type;
-			State[3] = ((pVFO->am_mode & 1u)          << 4) | pVFO->tx_offset_freq_dir;
-			State[4] = 0
-				| (pVFO->busy_channel_lock << 4)
-				| (pVFO->output_power      << 2)
-				| (pVFO->channel_bandwidth << 1)
-				| (pVFO->frequency_reverse  << 0);
-			State[5] = ((pVFO->dtmf_ptt_id_tx_mode & 7u) << 1) | ((pVFO->dtmf_decoding_enable & 1u) << 0);
-			State[6] =  pVFO->step_setting;
-			State[7] =  pVFO->scrambling_type;
-			EEPROM_WriteBuffer(OffsetVFO + 8, State);
-
-			SETTINGS_UpdateChannel(Channel, pVFO, true);
-
-			if (Channel <= USER_CHANNEL_LAST)
-			{	// it's a memory channel
-		
-				#ifndef ENABLE_KEEP_MEM_NAME
-					// clear/reset the channel name
-					//memset(&State, 0xFF, sizeof(State));
-					memset(&State, 0x00, sizeof(State));     // follow the QS way
-					EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-					EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
-				#else
-					if (Mode >= 3)
-					{	// save the channel name
-						memmove(State, pVFO->name + 0, 8);
-						EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-						//memset(State, 0xFF, sizeof(State));
-						memset(State, 0x00, sizeof(State));  // follow the QS way
-						memmove(State, pVFO->name + 8, 2);
-						EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
-					}
-				#endif
-			}
-		}
+	if (IS_FREQ_CHANNEL(Channel))
+	{	// it's a VFO
+		OffsetVFO  = (VFO == 0) ? 0x0C80 : 0x0C90;
+		OffsetVFO += (Channel - FREQ_CHANNEL_FIRST) * 32;
 	}
+	
+	if (Mode < 2 && Channel <= USER_CHANNEL_LAST)
+		return;
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("sav_chan %u %u %u\r\n", Channel, VFO, Mode);
+	#endif
+
+	((uint32_t *)State)[0] = pVFO->freq_config_rx.frequency;
+	((uint32_t *)State)[1] = pVFO->tx_offset_freq;
+	EEPROM_WriteBuffer(OffsetVFO + 0, State);
+
+	State[0] =  pVFO->freq_config_rx.code;
+	State[1] =  pVFO->freq_config_tx.code;
+	State[2] = (pVFO->freq_config_tx.code_type << 4) | pVFO->freq_config_rx.code_type;
+	State[3] = ((pVFO->am_mode & 1u)           << 4) | pVFO->tx_offset_freq_dir;
+	State[4] =
+		  (pVFO->busy_channel_lock << 4)
+		| (pVFO->output_power      << 2)
+		| (pVFO->channel_bandwidth << 1)
+		| (pVFO->frequency_reverse  << 0);
+	State[5] = ((pVFO->dtmf_ptt_id_tx_mode & 7u) << 1) | ((pVFO->dtmf_decoding_enable & 1u) << 0);
+	State[6] =  pVFO->step_setting;
+	State[7] =  pVFO->scrambling_type;
+	EEPROM_WriteBuffer(OffsetVFO + 8, State);
+
+	SETTINGS_UpdateChannel(Channel, pVFO, true);
+
+	if (Channel > USER_CHANNEL_LAST)
+		return;	// it's not a user channel
+	
+	#ifndef ENABLE_KEEP_MEM_NAME
+		// clear/reset the channel name
+		memset(&State, 0x00, sizeof(State));
+		EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
+		EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
+	#else
+		if (Mode >= 3)
+		{	// save the channel name
+			memmove(State, pVFO->name + 0, 8);
+			EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
+			memset(State, 0x00, sizeof(State));
+			memmove(State, pVFO->name + 8, 2);
+			EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
+		}
+	#endif
 }
 
 void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep)
 {
+	uint8_t  State[8];
+	uint8_t  Attributes = 0xFF;        // default attributes
+	uint16_t Offset = 0x0D60 + (Channel & ~7u);
+
 	#ifdef ENABLE_NOAA
-		if (IS_NOT_NOAA_CHANNEL(Channel))
+		if (IS_NOAA_CHANNEL(Channel))
+			return;
 	#endif
+		
+	Attributes &= (uint8_t)(~USER_CH_COMPAND);  // default to '0' = compander disabled
+	
+	EEPROM_ReadBuffer(Offset, State, sizeof(State));
+	
+	if (keep)
 	{
-		uint8_t  State[8];
-		uint8_t  Attributes = 0xFF;        // default attributes
-		uint16_t Offset = 0x0D60 + (Channel & ~7u);
-		
-		Attributes &= (uint8_t)(~USER_CH_COMPAND);  // default to '0' = compander disabled
-
-		EEPROM_ReadBuffer(Offset, State, sizeof(State));
-
-		if (keep)
-		{
-			Attributes = (pVFO->scanlist_1_participation << 7) | (pVFO->scanlist_2_participation << 6) | (pVFO->compander << 4) | (pVFO->band << 0);
-			if (State[Channel & 7u] == Attributes)
-				return; // no change in the attributes
-		}
-
-		State[Channel & 7u] = Attributes;
-
-		EEPROM_WriteBuffer(Offset, State);
-
-		g_user_channel_attributes[Channel] = Attributes;
-
-//		#ifndef ENABLE_KEEP_MEM_NAME
-			if (Channel <= USER_CHANNEL_LAST)
-			{	// it's a memory channel
-		
-				const uint16_t OffsetMR = Channel * 16;
-				if (!keep)
-				{	// clear/reset the channel name
-					//memset(&State, 0xFF, sizeof(State));
-					memset(&State, 0x00, sizeof(State));   // follow the QS way
-					EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-					EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
-				}
-//				else
-//				{	// update the channel name
-//					memmove(State, pVFO->name + 0, 8);
-//					EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-//					//memset(State, 0xFF, sizeof(State));
-//					memset(State, 0x00, sizeof(State));  // follow the QS way
-//					memmove(State, pVFO->name + 8, 2);
-//					EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
-//				}
-			}
-//		#endif
+		Attributes = (pVFO->scanlist_1_participation << 7) | (pVFO->scanlist_2_participation << 6) | (pVFO->compander << 4) | (pVFO->band << 0);
+		if (State[Channel & 7u] == Attributes)
+			return; // no change in the attributes
 	}
+	
+	State[Channel & 7u] = Attributes;
+	
+	EEPROM_WriteBuffer(Offset, State);
+	
+	g_user_channel_attributes[Channel] = Attributes;
+	
+//	#ifndef ENABLE_KEEP_MEM_NAME
+		if (Channel <= USER_CHANNEL_LAST)
+		{	// it's a memory channel
+	
+			const uint16_t OffsetMR = Channel * 16;
+			if (!keep)
+			{	// clear/reset the channel name
+				//memset(&State, 0xFF, sizeof(State));
+				memset(&State, 0x00, sizeof(State));   // follow the QS way
+				EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
+				EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
+			}
+//			else
+//			{	// update the channel name
+//				memmove(State, pVFO->name + 0, 8);
+//				EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
+//				//memset(State, 0xFF, sizeof(State));
+//				memset(State, 0x00, sizeof(State));  // follow the QS way
+//				memmove(State, pVFO->name + 8, 2);
+//				EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
+//			}
+		}
+//	#endif
 }

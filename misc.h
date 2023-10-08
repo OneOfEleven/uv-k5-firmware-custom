@@ -153,7 +153,7 @@ extern bool                  g_setting_killed;
 extern bool                  g_setting_200_tx_enable;
 extern bool                  g_setting_500_tx_enable;
 extern bool                  g_setting_350_enable;
-extern bool                  g_Setting_tx_enable;
+extern bool                  g_setting_tx_enable;
 extern uint8_t               g_setting_f_lock;
 extern bool                  g_setting_scramble_enable;
 
@@ -260,7 +260,7 @@ extern bool                  g_flag_refresh_menu;  // refresh menu display
 
 extern bool                  g_flag_SaveVfo;
 extern bool                  g_flag_SaveSettings;
-extern bool                  g_flag_SaveChannel;
+extern bool                  g_flag_save_channel;
 #ifdef ENABLE_FMRADIO
 	extern bool              g_flag_SaveFM;
 #endif

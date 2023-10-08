@@ -781,7 +781,7 @@ void MENU_AcceptSetting(void)
 			break;
 
 		case MENU_TX_EN:
-			g_Setting_tx_enable = g_sub_menu_selection;
+			g_setting_tx_enable = g_sub_menu_selection;
 			break;
 
 		#ifdef ENABLE_F_CAL_MENU
@@ -1208,7 +1208,7 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_TX_EN:
-			g_sub_menu_selection = g_Setting_tx_enable;
+			g_sub_menu_selection = g_setting_tx_enable;
 			break;
 
 		#ifdef ENABLE_F_CAL_MENU
