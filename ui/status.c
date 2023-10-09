@@ -28,6 +28,7 @@
 #include "helper/battery.h"
 #include "misc.h"
 #include "settings.h"
+#include "ui/battery.h"
 #include "ui/helper.h"
 #include "ui/ui.h"
 #include "ui/status.h"
@@ -216,33 +217,9 @@ void UI_DisplayStatus(const bool test_display)
 		memmove(line + x, BITMAP_USB_C, sizeof(BITMAP_USB_C));
 	x += sizeof(BITMAP_USB_C);
 
-	{	// BATTERY LEVEL indicator
-		uint8_t      bitmap[sizeof(BITMAP_BATTERY_LEVEL)];
-		unsigned int i = g_battery_display_level;
+	// BATTERY LEVEL indicator
+	UI_DrawBattery(line + x, g_battery_display_level, g_low_battery);
 	
-		memmove(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
-	
-		if (i >= 1)
-		{
-			const uint8_t bars = (i <= 5) - 1 ? i - 1 : 5 - 1;
-			for (i = 0; i < bars; i++)
-			{
-				#ifndef ENABLE_REVERSE_BAT_SYMBOL
-					bitmap[sizeof(bitmap) - 3 - (i * 3) - 0] = 0b01011101;
-					bitmap[sizeof(bitmap) - 3 - (i * 3) - 1] = 0b01011101;
-				#else
-					bitmap[3 + (i * 3) + 0] = 0b01011101;
-					bitmap[3 + (i * 3) + 1] = 0b01011101;
-				#endif
-			}
-		}
-		else
-		if (g_low_battery)
-			memset(bitmap, 0, sizeof(bitmap));
-
-		memmove(line + x, bitmap, sizeof(bitmap));
-	}
-
 	// **************
 
 	ST7565_BlitStatusLine();

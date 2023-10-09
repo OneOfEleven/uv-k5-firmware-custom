@@ -22,16 +22,15 @@
 #include "functions.h"
 #include "ui/battery.h"
 
-void UI_DisplayBattery(const unsigned int level, const unsigned int blink)
+void UI_DrawBattery(uint8_t* bitmap, const unsigned int level, const unsigned int blink)
 {
-	uint8_t bitmap[sizeof(BITMAP_BATTERY_LEVEL)];
-
 	memmove(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
 
 	if (level >= 1)
 	{
 		unsigned int i;
-		const uint8_t bars = (level <= 5) - 1 ? level - 1 : 5 - 1;
+		uint8_t bars = level > 0 ? level - 1 : 0;
+		if(bars>4) bars = 4;
 		for (i = 0; i < bars; i++)
 		{
 			#ifndef ENABLE_REVERSE_BAT_SYMBOL
@@ -46,7 +45,13 @@ void UI_DisplayBattery(const unsigned int level, const unsigned int blink)
 	else
 	if (blink == 0)
 		memset(bitmap, 0, sizeof(bitmap));
+}
 
-	// col lne, siz, bm
+void UI_DisplayBattery(const unsigned int level, const unsigned int blink)
+{
+	uint8_t bitmap[sizeof(BITMAP_BATTERY_LEVEL)];
+
+	UI_DrawBattery(bitmap, level, blink);
+	memmove(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
 	ST7565_DrawLine(LCD_WIDTH - sizeof(bitmap), 0, sizeof(bitmap), bitmap);
 }
