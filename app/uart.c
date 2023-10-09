@@ -39,6 +39,7 @@
 	#include "sram-overlay.h"
 #endif
 #include "version.h"
+#include "ui/ui.h"
 
 #define DMA_INDEX(x, y) (((x) + (y)) % sizeof(UART_DMA_Buffer))
 
@@ -238,7 +239,11 @@ static void CMD_0514(const uint8_t *pBuffer)
 	g_serial_config_count_down_500ms = serial_config_count_down_500ms;
 	
 	// turn the LCD backlight off
-	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
+//	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
+
+	// show message
+	g_request_display_screen = DISPLAY_MAIN;
+	g_update_display = true;
 
 	SendVersion();
 }
@@ -413,7 +418,11 @@ static void CMD_052F(const uint8_t *pBuffer)
 	Timestamp = pCmd->Timestamp;
 
 	// turn the LCD backlight off
-	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
+//	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
+
+	// show message
+	g_request_display_screen = DISPLAY_MAIN;
+	g_update_display = true;
 
 	SendVersion();
 }
