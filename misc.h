@@ -107,6 +107,8 @@ extern const uint8_t         dtmf_rx_timeout_500ms;
 extern const uint8_t         dtmf_decode_ring_countdown_500ms;
 extern const uint8_t         dtmf_txstop_countdown_500ms;
 
+extern const uint8_t         serial_config_count_down_500ms;
+
 extern const uint8_t         key_input_timeout_500ms;
 
 extern const uint16_t        key_repeat_delay_10ms;

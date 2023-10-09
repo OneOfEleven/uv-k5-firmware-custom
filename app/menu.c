@@ -661,9 +661,9 @@ void MENU_AcceptSetting(void)
 		case MENU_PTT_ID:
 			g_tx_vfo->dtmf_ptt_id_tx_mode = g_sub_menu_selection;
 			g_request_save_channel = 1;
-			if (g_sub_menu_selection == PTT_ID_TX_DOWN ||
-			    g_sub_menu_selection == PTT_ID_BOTH ||
-			    g_sub_menu_selection == PTT_ID_APOLLO)
+			if (g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN ||
+			    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_BOTH    ||
+			    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 			{
 				g_eeprom.roger_mode = ROGER_MODE_OFF;
 				break;
@@ -708,6 +708,16 @@ void MENU_AcceptSetting(void)
 
 		case MENU_ROGER:
 			g_eeprom.roger_mode = g_sub_menu_selection;
+			if (g_eeprom.roger_mode != ROGER_MODE_OFF)
+			{
+				if (g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN ||
+				    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_BOTH    ||
+				    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+				{
+					g_tx_vfo->dtmf_ptt_id_tx_mode = PTT_ID_OFF;  // // disable PTT ID tail
+					g_request_save_channel = 1;
+				}
+			}
 			break;
 
 		case MENU_AM:
