@@ -174,7 +174,7 @@ LD = arm-none-eabi-gcc
 
 ifeq ($(ENABLE_CLANG),0)
 	CC += arm-none-eabi-gcc
-# Use GCC's linker to avoid undefined symbol errors
+#	Use GCC's linker to avoid undefined symbol errors
 #	LD += arm-none-eabi-gcc
 else
 #	May need to adjust this to match your system
@@ -200,7 +200,7 @@ endif
 
 CFLAGS =
 ifeq ($(ENABLE_CLANG),0)
-	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
+	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -std=c11 -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c99 -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=gnu99 -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=gnu11 -MMD
@@ -216,10 +216,11 @@ else
 	CFLAGS += -ffunction-sections -fdata-sections
 endif
 
-# May cause unhelpful build failures
+# Warn about structs wasting space
 #CFLAGS += -Wpadded
 
 # catch any and all warnings
+# better to bust than add new bugs
 #CFLAGS += -Wextra
 
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
@@ -345,7 +346,7 @@ endif
 LDFLAGS += --specs=nano.specs
 
 ifeq ($(ENABLE_LTO),0)
-	# Throw away unneeded func/data sections like LTO does
+#	Throw away unneeded func/data sections like LTO does
 	LDFLAGS += -Wl,--gc-sections
 endif
 

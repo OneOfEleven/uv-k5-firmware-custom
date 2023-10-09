@@ -21,7 +21,7 @@
 
 enum function_type_e
 {
-	FUNCTION_FOREGROUND = 0,  // ???
+	FUNCTION_FOREGROUND = 0,  // ??? (TBR: idle, i.e. not in power save)
 	FUNCTION_TRANSMIT,        // transmitting
 	FUNCTION_MONITOR,         // receiving with squelch forced open
 	FUNCTION_INCOMING,        // receiving a signal (squelch is open)

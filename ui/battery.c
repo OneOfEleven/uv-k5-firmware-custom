@@ -44,7 +44,7 @@ void UI_DrawBattery(uint8_t* bitmap, const unsigned int level, const unsigned in
 	}
 	else
 	if (blink == 0)
-		memset(bitmap, 0, sizeof(bitmap));
+		memset(bitmap, 0, sizeof(BITMAP_BATTERY_LEVEL));
 }
 
 void UI_DisplayBattery(const unsigned int level, const unsigned int blink)

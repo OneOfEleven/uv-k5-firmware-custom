@@ -838,6 +838,9 @@ void MAIN_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 	// TODO: ???
 //	if (Key > KEY_PTT)
 //	{
+//		TBR: May be so Key falls into default case in
+//		switch below, making the radio play a beep
+
 //		Key = KEY_SIDE2;      // what's this doing ???
 //	}
 

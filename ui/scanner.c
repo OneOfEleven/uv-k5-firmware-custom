@@ -29,7 +29,7 @@
 
 void UI_DisplayScanner(void)
 {
-	char    String[16];
+	char    String[17];
 	bool    text_centered = false;
 
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
