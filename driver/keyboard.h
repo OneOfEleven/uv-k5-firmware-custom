@@ -22,33 +22,41 @@
 #include <stdint.h>
 
 enum key_code_e {
-	KEY_0 = 0,  // 0
-	KEY_1,      // 1
-	KEY_2,      // 2
-	KEY_3,      // 3
-	KEY_4,      // 4
-	KEY_5,      // 5
-	KEY_6,      // 6
-	KEY_7,      // 7
-	KEY_8,      // 8
-	KEY_9,      // 9
-	KEY_MENU,   // A
-	KEY_UP,     // B
-	KEY_DOWN,   // C
-	KEY_EXIT,   // D
-	KEY_STAR,   // *
-	KEY_F,      // #
+	KEY_INVALID = 0,
+	KEY_0,      // DTMF 0
+	KEY_1,      // DTMF 1
+	KEY_2,      // DTMF 2
+	KEY_3,      // DTMF 3
+	KEY_4,      // DTMF 4
+	KEY_5,      // DTMF 5
+	KEY_6,      // DTMF 6
+	KEY_7,      // DTMF 7
+	KEY_8,      // DTMF 8
+	KEY_9,      // DTMF 9
+	KEY_MENU,   // DTMF A
+	KEY_UP,     // DTMF B
+	KEY_DOWN,   // DTMF C
+	KEY_EXIT,   // DTMF D
+	KEY_STAR,   // DTMF *
+	KEY_F,      // DTMF #
 	KEY_PTT,    //
 	KEY_SIDE2,  //
 	KEY_SIDE1,  //
-	KEY_INVALID //
+//	KEY_INVALID //
 };
 typedef enum key_code_e key_code_t;
 
-extern key_code_t g_key_reading_0;
-extern key_code_t g_key_reading_1;
-extern uint16_t   g_debounce_counter;
-extern bool       g_f_key_was_pressed;
+extern uint8_t    g_ptt_debounce;
+extern uint8_t    g_key_debounce_press;
+extern uint8_t    g_key_debounce_repeat;
+extern key_code_t g_key_prev;
+extern bool       g_key_held;
+extern bool       g_fkey_pressed;
+extern bool       g_ptt_is_pressed;
+
+extern bool       g_ptt_was_released;
+extern bool       g_ptt_was_pressed;
+extern uint8_t    g_keypad_locked;
 
 key_code_t KEYBOARD_Poll(void);
 

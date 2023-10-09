@@ -583,7 +583,7 @@ void MENU_AcceptSetting(void)
 
 		case MENU_AUTOLK:
 			g_eeprom.auto_keypad_lock = g_sub_menu_selection;
-			g_key_lock_count_down     = 30;
+			g_key_lock_count_down_500ms     = 30;
 			break;
 
 		case MENU_S_ADD1:
@@ -1672,6 +1672,7 @@ static void MENU_Key_STAR(const bool key_pressed, const bool key_held)
 		}
 
 		g_ptt_was_released = true;
+
 		return;
 	}
 

@@ -70,7 +70,7 @@ const uint8_t orig_lna       = 2;   // -14dB
 const uint8_t orig_mixer     = 3;   //   0dB
 const uint8_t orig_pga       = 6;   //  -3dB
 
-static void APP_ProcessKey(key_code_t Key, bool key_pressed, bool key_held);
+static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const bool key_held);
 
 static void updateRSSI(const int vfo)
 {
@@ -992,7 +992,9 @@ void APP_EndTransmission(void)
 			if (g_vox_stop_count_down_10ms == 0)
 				g_vox_noise_detected = false;
 
-			if (g_current_function == FUNCTION_TRANSMIT && !g_ptt_is_pressed && !g_vox_noise_detected)
+			if (g_current_function == FUNCTION_TRANSMIT &&
+			   !g_ptt_is_pressed &&
+			   !g_vox_noise_detected)
 			{
 				if (g_flag_end_tx)
 				{
@@ -1067,36 +1069,39 @@ void APP_Update(void)
 		APP_HandleFunction();
 
 	#ifdef ENABLE_FMRADIO
-//		if (g_fm_radio_count_down_500ms > 0)
-		if (g_fm_radio_mode && g_fm_radio_count_down_500ms > 0)    // 1of11
+		if (g_fm_radio_mode && g_fm_radio_count_down_500ms > 0)
 			return;
 	#endif
 
 	#ifdef ENABLE_VOICE
-		if (g_screen_to_display != DISPLAY_SCANNER && g_scan_state_dir != SCAN_OFF && g_schedule_scan_listen && !g_ptt_is_pressed && g_voice_write_index == 0)
-	#else
-		if (g_screen_to_display != DISPLAY_SCANNER && g_scan_state_dir != SCAN_OFF && g_schedule_scan_listen && !g_ptt_is_pressed)
+		if (g_voice_write_index == 0)
 	#endif
-	{	// scanning
+	{
+		if (g_screen_to_display != DISPLAY_SCANNER &&
+		    g_scan_state_dir != SCAN_OFF &&
+		    g_schedule_scan_listen &&
+		    !g_ptt_is_pressed)
+		{	// scanning
 
-		if (IS_FREQ_CHANNEL(g_next_channel))
-		{
-			if (g_current_function == FUNCTION_INCOMING)
-				APP_StartListening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
+			if (IS_FREQ_CHANNEL(g_next_channel))
+			{
+				if (g_current_function == FUNCTION_INCOMING)
+					APP_StartListening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
+				else
+					FREQ_NextChannel();  // switch to next frequency
+			}
 			else
-				FREQ_NextChannel();  // switch to next frequency
-		}
-		else
-		{
-			if (g_current_code_type == CODE_TYPE_OFF && g_current_function == FUNCTION_INCOMING)
-				APP_StartListening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
-			else
-				USER_NextChannel();    // switch to next channel
-		}
+			{
+				if (g_current_code_type == CODE_TYPE_OFF && g_current_function == FUNCTION_INCOMING)
+					APP_StartListening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
+				else
+					USER_NextChannel();    // switch to next channel
+			}
 
-		g_scan_pause_mode      = false;
-		g_rx_reception_mode    = RX_MODE_NONE;
-		g_schedule_scan_listen = false;
+			g_scan_pause_mode      = false;
+			g_rx_reception_mode    = RX_MODE_NONE;
+			g_schedule_scan_listen = false;
+		}
 	}
 
 	#ifdef ENABLE_VOICE
@@ -1129,29 +1134,32 @@ void APP_Update(void)
 	if (g_screen_to_display != DISPLAY_SCANNER && g_eeprom.dual_watch != DUAL_WATCH_OFF)
 	{
 		#ifdef ENABLE_VOICE
-			if (g_schedule_dual_watch && g_voice_write_index == 0)
-		#else
-			if (g_schedule_dual_watch)
+			if (g_voice_write_index == 0)
 		#endif
 		{
-			if (g_scan_state_dir == SCAN_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
+			if (g_schedule_dual_watch)
 			{
-				if (!g_ptt_is_pressed &&
-					#ifdef ENABLE_FMRADIO
-						!g_fm_radio_mode &&
-					#endif
-				    g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
-				    g_current_function != FUNCTION_POWER_SAVE)
+				if (g_scan_state_dir == SCAN_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
 				{
-					DUALWATCH_Alternate();    // toggle between the two VFO's
+					#ifdef ENABLE_FMRADIO
+						if (!g_fm_radio_mode)
+					#endif
+					{
+						if (!g_ptt_is_pressed &&
+							g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
+							g_current_function != FUNCTION_POWER_SAVE)
+						{
+							DUALWATCH_Alternate();    // toggle between the two VFO's
 
-					if (g_rx_vfo_is_active && g_screen_to_display == DISPLAY_MAIN)
-						GUI_SelectNextDisplay(DISPLAY_MAIN);
+							if (g_rx_vfo_is_active && g_screen_to_display == DISPLAY_MAIN)
+								GUI_SelectNextDisplay(DISPLAY_MAIN);
 
-					g_rx_vfo_is_active     = false;
-					g_scan_pause_mode     = false;
-					g_rx_reception_mode   = RX_MODE_NONE;
-					g_schedule_dual_watch = false;
+							g_rx_vfo_is_active     = false;
+							g_scan_pause_mode     = false;
+							g_rx_reception_mode   = RX_MODE_NONE;
+							g_schedule_dual_watch = false;
+						}
+					}
 				}
 			}
 		}
@@ -1182,8 +1190,8 @@ void APP_Update(void)
 					g_fm_radio_mode                  ||
 			    #endif
 				g_ptt_is_pressed                     ||
-			    g_key_being_held                     ||
-				g_eeprom.battery_save == 0         ||
+			    g_key_held                           ||
+				g_eeprom.battery_save == 0           ||
 			    g_scan_state_dir != SCAN_OFF         ||
 			    g_css_scan_mode != CSS_SCAN_MODE_OFF ||
 			    g_screen_to_display != DISPLAY_MAIN  ||
@@ -1194,8 +1202,7 @@ void APP_Update(void)
 			else
 			if ((IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[0]) && IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[1])) || !g_is_noaa_mode)
 			{
-				//if (g_current_function != FUNCTION_POWER_SAVE)
-					FUNCTION_Select(FUNCTION_POWER_SAVE);
+				FUNCTION_Select(FUNCTION_POWER_SAVE);
 			}
 			else
 			{
@@ -1207,8 +1214,8 @@ void APP_Update(void)
 					g_fm_radio_mode                  ||
 			    #endif
 				g_ptt_is_pressed                     ||
-			    g_key_being_held                     ||
-				g_eeprom.battery_save == 0         ||
+			    g_key_held                           ||
+				g_eeprom.battery_save == 0           ||
 			    g_scan_state_dir != SCAN_OFF         ||
 			    g_css_scan_mode != CSS_SCAN_MODE_OFF ||
 			    g_screen_to_display != DISPLAY_MAIN  ||
@@ -1218,8 +1225,7 @@ void APP_Update(void)
 			}
 			else
 			{
-				//if (g_current_function != FUNCTION_POWER_SAVE)
-					FUNCTION_Select(FUNCTION_POWER_SAVE);
+				FUNCTION_Select(FUNCTION_POWER_SAVE);
 			}
 
 			g_schedule_power_save = false;
@@ -1254,7 +1260,7 @@ void APP_Update(void)
 			FUNCTION_Init();
 
 			g_power_save_10ms = power_save1_10ms; // come back here in a bit
-			g_rx_idle_mode     = false;            // RX is awake
+			g_rx_idle_mode    = false;           // RX is awake
 		}
 		else
 		if (g_eeprom.dual_watch == DUAL_WATCH_OFF || g_scan_state_dir != SCAN_OFF || g_css_scan_mode != CSS_SCAN_MODE_OFF || g_update_rssi)
@@ -1265,7 +1271,7 @@ void APP_Update(void)
 			// go back to sleep
 
 			g_power_save_10ms = g_eeprom.battery_save * 10;
-			g_rx_idle_mode     = true;
+			g_rx_idle_mode    = true;
 
 			BK4819_DisableVox();
 			BK4819_Sleep();
@@ -1279,8 +1285,8 @@ void APP_Update(void)
 			// toggle between the two VFO's
 			DUALWATCH_Alternate();
 
-			g_update_rssi       = true;
-			g_power_save_10ms   = power_save1_10ms;
+			g_update_rssi     = true;
+			g_power_save_10ms = power_save1_10ms;
 		}
 
 		g_power_save_count_down_expired = false;
@@ -1290,7 +1296,9 @@ void APP_Update(void)
 // called every 10ms
 void APP_CheckKeys(void)
 {
-	key_code_t Key;
+	const bool ptt_pressed = !GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) && (g_serial_config_count_down_500ms == 0) && g_setting_tx_enable;
+
+	key_code_t key;
 
 	#ifdef ENABLE_AIRCOPY
 		if (g_setting_killed || (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state != AIRCOPY_READY))
@@ -1300,133 +1308,164 @@ void APP_CheckKeys(void)
 			return;
 	#endif
 
-	if (g_ptt_is_pressed)
-	{
-		if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) || g_serial_config_count_down_500ms > 0 || !g_setting_tx_enable)
-		{	// PTT released or serial comms config in progress
-			if (++g_ptt_debounce_counter >= 3 || g_serial_config_count_down_500ms > 0)	    // 30ms
-			{	// stop transmitting
-				APP_ProcessKey(KEY_PTT, false, false);
-				g_ptt_is_pressed = false;
-				if (g_key_reading_1 != KEY_INVALID)
-					g_ptt_was_released = true;
+	// *****************
+	// PTT is treated completely separately from all the other buttons
+
+	if (ptt_pressed)
+	{	// PTT pressed
+		if (!g_ptt_is_pressed)
+		{
+			if (++g_ptt_debounce >= 3)      // 30ms
+			{	// start TX'ing
+
+				g_boot_counter_10ms = 0;    // cancel the boot-up screen
+				g_ptt_is_pressed    = true;
+				g_ptt_was_released  = false;
+				g_ptt_debounce      = 0;
+
+				APP_ProcessKey(KEY_PTT, true, false);
+
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
+				#endif
 			}
 		}
 		else
-			g_ptt_debounce_counter = 0;
+			g_ptt_debounce = 0;
 	}
 	else
-	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) && g_serial_config_count_down_500ms == 0 && g_setting_tx_enable)
-	{	// PTT pressed
-		if (++g_ptt_debounce_counter >= 3)	    // 30ms
-		{	// start transmitting
-			g_boot_counter_10ms    = 0;        // cancel the boot-up screen
-			g_ptt_debounce_counter = 0;
-			g_ptt_is_pressed       = true;
-			APP_ProcessKey(KEY_PTT, true, false);
+	{	// PTT released
+		if (g_ptt_is_pressed)
+		{
+			if (++g_ptt_debounce >= 3)  // 30ms
+			{	// stop TX'ing
+
+				g_ptt_is_pressed   = false;
+				g_ptt_was_released = true;
+				g_ptt_debounce     = 0;
+
+				APP_ProcessKey(KEY_PTT, false, false);
+
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
+				#endif
+			}
 		}
+		else
+			g_ptt_debounce = 0;
 	}
-	else
-		g_ptt_debounce_counter = 0;
 
 	// *****************
+	// button processing (non-PTT)
 
 	// scan the hardware keys
-	Key = KEYBOARD_Poll();
-
-	if (Key == KEY_INVALID)
-	{
-//		g_key_reading_0     = KEY_INVALID;
-//		g_key_reading_1     = KEY_INVALID;
-//		g_debounce_counter = 0;
-//		g_key_being_held    = false;
-//		return;
-	}
+	key = KEYBOARD_Poll();
 
 	g_boot_counter_10ms = 0;   // cancel boot screen/beeps
 
 	if (g_serial_config_count_down_500ms > 0)
-	{
-		g_boot_counter_10ms    = 0;        // cancel the boot-up screen
-		return;                            // the PC is uploading/downloading config
-	}
-
-	if (g_key_reading_0 != Key)
-	{	// new key pressed
-
-		if (g_key_reading_0 != KEY_INVALID && Key != KEY_INVALID)
-			APP_ProcessKey(g_key_reading_1, false, g_key_being_held);  // key pressed without releasing previous key
-
-		g_key_reading_0    = Key;
-		g_debounce_counter = 0;
+	{	// config upload/download in progress
+		g_key_debounce_press  = 0;
+		g_key_debounce_repeat = 0;
+		g_key_prev            = KEY_INVALID;
+		g_key_held            = false;
+		g_fkey_pressed        = false;
 		return;
 	}
 
-	if (++g_debounce_counter == key_debounce_10ms)
-	{	// debounced new key pressed
-
-		if (Key == KEY_INVALID)
+	if (key == KEY_INVALID || (g_key_prev != KEY_INVALID && key != g_key_prev))
+	{	// key not pressed or different key pressed
+		if (g_key_debounce_press > 0)
 		{
-			if (g_key_reading_1 != KEY_INVALID)
+			if (--g_key_debounce_press == 0)
 			{
-				APP_ProcessKey(g_key_reading_1, false, g_key_being_held);
-				g_key_reading_1 = KEY_INVALID;
+				if (g_key_prev != KEY_INVALID)
+				{	// key now fully released
+
+					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+						UART_printf(" old key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+					#endif
+
+					APP_ProcessKey(g_key_prev, false, g_key_held);
+					g_key_debounce_press  = 0;
+					g_key_debounce_repeat = 0;
+					g_key_prev            = KEY_INVALID;
+					g_key_held            = false;
+					g_boot_counter_10ms   = 0;         // cancel the boot-up screen
+
+					g_update_status       = true;
+					g_update_display      = true;
+				}
 			}
-		}
-		else
-		{
-			g_key_reading_1 = Key;
-			APP_ProcessKey(Key, true, false);
-		}
-
-		g_key_being_held = false;
-		return;
-	}
-
-	if (g_debounce_counter < key_repeat_delay_10ms)
-		return;
-
-	// key is being held pressed
-
-	if (g_debounce_counter == key_repeat_delay_10ms)
-	{	// initial key repeat delay after pressed
-		if (Key != KEY_PTT)
-		{
-			g_key_being_held = true;
-			APP_ProcessKey(Key, true, true);
+			if (g_key_debounce_repeat > 0)
+				g_key_debounce_repeat--;
 		}
 	}
 	else
-	{	// key repeat
-		if (Key == KEY_UP || Key == KEY_DOWN)
+	{	// key pressed
+		if (g_key_debounce_press < key_debounce_10ms)
 		{
-			g_key_being_held = true;
-			if ((g_debounce_counter % key_repeat_10ms) == 0)
-				APP_ProcessKey(Key, true, true);
+			if (++g_key_debounce_press >= key_debounce_10ms)
+			{
+				if (key != g_key_prev)
+				{	// key now fully pressed
+					g_key_debounce_repeat = key_debounce_10ms;
+					g_key_held            = false;
+
+					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+						UART_printf("\r\n new key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+					#endif
+
+					g_key_prev = key;
+					APP_ProcessKey(g_key_prev, true, g_key_held);
+
+					g_update_status  = true;
+					g_update_display = true;
+				}
+			}
 		}
+		else
+		if (g_key_debounce_repeat < key_long_press_10ms)
+		{
+			if (++g_key_debounce_repeat >= key_long_press_10ms)
+			{	// key long press
+				g_key_held = true;
 
-		if (g_debounce_counter < 0xFFFF)
-			return;
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("long key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+				#endif
 
-		g_debounce_counter = key_repeat_delay_10ms;
+				APP_ProcessKey(g_key_prev, true, g_key_held);
+
+				//g_update_status  = true;
+				//g_update_display = true;
+			}
+		}
+		else
+		if (key == KEY_UP || key == KEY_DOWN)
+		{	// only the up and down keys are repeatable
+			if (++g_key_debounce_repeat >= (key_long_press_10ms + key_repeat_10ms))
+			{	// key repeat
+				g_key_debounce_repeat -= key_repeat_10ms;
+
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("rept key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+				#endif
+
+				APP_ProcessKey(g_key_prev, true, g_key_held);
+
+				//g_update_status  = true;
+				//g_update_display = true;
+			}
+		}
 	}
+
+	// *****************
 }
 
 void APP_TimeSlice10ms(void)
 {
-	g_flash_light_bBlink_counter++;
-
-	#ifdef ENABLE_BOOT_BEEPS
-		if (g_boot_counter_10ms > 0)
-			if ((g_boot_counter_10ms % 25) == 0)
-				AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
-	#endif
-
-	#ifdef ENABLE_AM_FIX
-//		if (g_eeprom.vfo_info[g_eeprom.rx_vfo].am_mode && g_setting_am_fix)
-		if (g_rx_vfo->am_mode && g_setting_am_fix)
-			AM_fix_10ms(g_eeprom.rx_vfo);
-	#endif
+	g_flash_light_blink_counter++;
 
 	if (UART_IsCommandAvailable())
 	{
@@ -1434,6 +1473,17 @@ void APP_TimeSlice10ms(void)
 		UART_HandleCommand();
 		__enable_irq();
 	}
+
+	#ifdef ENABLE_BOOT_BEEPS
+		if (g_boot_counter_10ms > 0 && ((g_boot_counter_10ms % 25) == 0)
+			AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
+	#endif
+
+	#ifdef ENABLE_AM_FIX
+//		if (g_eeprom.vfo_info[g_eeprom.rx_vfo].am_mode && g_setting_am_fix)
+		if (g_rx_vfo->am_mode && g_setting_am_fix)
+			AM_fix_10ms(g_eeprom.rx_vfo);
+	#endif
 
 	if (g_reduced_service)
 		return;
@@ -1444,16 +1494,13 @@ void APP_TimeSlice10ms(void)
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{	// transmitting
 		#ifdef ENABLE_AUDIO_BAR
-			if (g_setting_mic_bar && (g_flash_light_bBlink_counter % (150 / 10)) == 0) // once every 150ms
+			if (g_setting_mic_bar && (g_flash_light_blink_counter % (150 / 10)) == 0) // once every 150ms
 				UI_DisplayAudioBar();
 		#endif
 	}
 
 	if (g_update_display)
-	{
-		g_update_display = false;
 		GUI_DisplayScreen();
-	}
 
 	if (g_update_status)
 		UI_DisplayStatus(false);
@@ -1461,11 +1508,11 @@ void APP_TimeSlice10ms(void)
 	// Skipping authentic device checks
 
 	#ifdef ENABLE_FMRADIO
-		if (g_fm_radio_mode && g_fm_radio_count_down_500ms > 0)   // 1of11
+		if (g_fm_radio_mode && g_fm_radio_count_down_500ms > 0)
 			return;
 	#endif
 
-	if (g_flash_light_state == FLASHLIGHT_BLINK && (g_flash_light_bBlink_counter & 15u) == 0)
+	if (g_flash_light_state == FLASHLIGHT_BLINK && (g_flash_light_blink_counter & 15u) == 0)
 		GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
 
 	#ifdef ENABLE_VOX
@@ -1489,7 +1536,7 @@ void APP_TimeSlice10ms(void)
 				Tone = 500 + (g_alarm_tone_counter * 25);
 				if (Tone > 1500)
 				{
-					Tone              = 500;
+					Tone = 500;
 					g_alarm_tone_counter = 0;
 				}
 
@@ -1535,9 +1582,7 @@ void APP_TimeSlice10ms(void)
 		{
 			if (--g_rtte_count_down == 0)
 			{
-				//if (g_current_function != FUNCTION_FOREGROUND)
-					FUNCTION_Select(FUNCTION_FOREGROUND);
-
+				FUNCTION_Select(FUNCTION_FOREGROUND);
 				g_update_status  = true;
 				g_update_display = true;
 			}
@@ -1747,18 +1792,20 @@ void cancelUserInputModes(void)
 	{
 		DTMF_clear_input_box();
 		g_beep_to_play           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+
 		g_request_display_screen = DISPLAY_MAIN;
 		g_update_display        = true;
 	}
 
-	if (g_f_key_was_pressed || g_key_input_count_down > 0 || g_input_box_index > 0)
+	if (g_fkey_pressed || g_key_input_count_down > 0 || g_input_box_index > 0)
 	{
-		g_f_key_was_pressed     = false;
+		g_fkey_pressed         = false;
 		g_input_box_index      = 0;
-		g_key_input_count_down  = 0;
+		g_key_input_count_down = 0;
+
 		g_beep_to_play         = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-		g_update_status       = true;
-		g_update_display      = true;
+		g_update_status        = true;
+		g_update_display       = true;
 	}
 }
 
@@ -1882,57 +1929,57 @@ void APP_TimeSlice500ms(void)
 		#ifdef ENABLE_AIRCOPY
 			if (g_screen_to_display != DISPLAY_AIRCOPY)
 		#endif
-		{				
+		{
 			if (g_scan_state_dir == SCAN_OFF &&
 		       (g_screen_to_display != DISPLAY_SCANNER ||
 			    g_scan_css_state == SCAN_CSS_STATE_FOUND ||
-	            g_scan_css_state == SCAN_CSS_STATE_FAILED || 
+	            g_scan_css_state == SCAN_CSS_STATE_FAILED ||
 			    g_scan_css_state == SCAN_CSS_STATE_FREQ_FAILED))
 			{
-				if (g_eeprom.auto_keypad_lock && g_key_lock_count_down > 0 && !g_dtmf_input_mode)
+				if (g_eeprom.auto_keypad_lock && g_key_lock_count_down_500ms > 0 && !g_dtmf_input_mode)
 				{
-					if (--g_key_lock_count_down == 0)
-						g_eeprom.key_lock = true;     // lock the keyboard
+					if (--g_key_lock_count_down_500ms == 0)
+						g_eeprom.key_lock = true;      // lock the keyboard
 					g_update_status = true;            // lock symbol needs showing
 				}
-	
+
 				if (exit_menu)
 				{
 					g_menu_count_down = 0;
-	
+
 					if (g_eeprom.backlight == 0)
 					{
 						g_backlight_count_down = 0;
 						GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
 					}
-	
+
 					if (g_input_box_index > 0 || g_dtmf_input_mode)
 						AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
-/*	
+/*
 					if (g_screen_to_display == DISPLAY_SCANNER)
 					{
 						BK4819_StopScan();
-	
+
 						RADIO_ConfigureChannel(0, VFO_CONFIGURE_RELOAD);
 						RADIO_ConfigureChannel(1, VFO_CONFIGURE_RELOAD);
-	
+
 						RADIO_SetupRegisters(true);
 					}
-*/	
+*/
 					DTMF_clear_input_box();
-	
-					g_f_key_was_pressed  = false;
-					g_input_box_index   = 0;
-	
-					g_ask_to_save       = false;
-					g_ask_to_delete     = false;
-	
-					g_update_status    = true;
-					g_update_display   = true;
-	
+
+					g_fkey_pressed    = false;
+					g_input_box_index = 0;
+
+					g_ask_to_save     = false;
+					g_ask_to_delete   = false;
+
+					g_update_status   = true;
+					g_update_display  = true;
+
 					{
 						gui_display_type_t disp = DISPLAY_INVALID;
-	
+
 						#ifdef ENABLE_FMRADIO
 							if (g_fm_radio_mode &&
 								g_current_function != FUNCTION_RECEIVE &&
@@ -1942,7 +1989,7 @@ void APP_TimeSlice500ms(void)
 								disp = DISPLAY_FM;
 							}
 						#endif
-	
+
 						if (disp == DISPLAY_INVALID)
 						{
 							#ifndef ENABLE_CODE_SCAN_TIMEOUT
@@ -1950,7 +1997,7 @@ void APP_TimeSlice500ms(void)
 							#endif
 									disp = DISPLAY_MAIN;
 						}
-	
+
 						if (disp != DISPLAY_INVALID)
 							GUI_SelectNextDisplay(disp);
 					}
@@ -2141,8 +2188,8 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 {
 	bool flag = false;
 
-//	if (Key == KEY_INVALID)
-//		return;
+	if (Key == KEY_INVALID && !key_pressed && !key_held)
+		return;
 
 	// reset the state so as to remove it from the screen
 	if (Key != KEY_INVALID && Key != KEY_PTT)
@@ -2163,7 +2210,7 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	g_battery_save_count_down_10ms = battery_save_count_10ms;
 
 	if (g_eeprom.auto_keypad_lock)
-		g_key_lock_count_down = 30;     // 15 seconds
+		g_key_lock_count_down_500ms = key_lock_timeout_500ms;
 
 	if (!key_pressed)
 	{
@@ -2211,7 +2258,7 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 			{
 				memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
 				g_dtmf_rx_live_timeout = 0;
-				g_update_display        = true;
+				g_update_display       = true;
 			}
 
 			// cancel user input
@@ -2229,7 +2276,7 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 
 			if (Key != KEY_PTT)
 			{
-				g_ptt_was_released = true;
+//				g_ptt_was_released = true;   // why is this being set ?
 				return;
 			}
 		}
@@ -2276,35 +2323,46 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 		}
 	}
 
-	if (Key == KEY_PTT)
+	if (Key == KEY_PTT && g_ptt_was_pressed)
 	{
-		if (g_ptt_was_pressed)
-		{
-			flag = key_held;
-			if (!key_pressed)
-			{
-				flag          = true;
-				g_ptt_was_pressed = false;
-			}
-		}
-	}
-	else
-	if (g_ptt_was_released)
-	{
-		if (key_held)
-			flag = true;
+		flag = key_held;
+
 		if (!key_pressed)
 		{
-			flag           = true;
-			g_ptt_was_released = false;
+			flag = true;
+			g_ptt_was_pressed = false;
 		}
 	}
 
-	if (g_f_key_was_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2))
-	{	// cancel the F-key
-		g_f_key_was_pressed = false;
-		g_update_status   = true;
+	// this bit of code has caused soooooo many problems due
+	// to this causing key releases to be totally ignored :( .. 1of11
+	if (Key != KEY_PTT && g_ptt_was_released)
+	{
+/*		if (key_held)
+			flag = true;
+
+		if (!key_pressed)
+		{
+			flag = true;
+*/
+			g_ptt_was_released = false;
+/*		}
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+		#endif
+*/
 	}
+
+	if (g_fkey_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2))
+	{	// cancel the F-key
+		g_fkey_pressed  = false;
+		g_update_status = true;
+	}
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("proc key 2 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+	#endif
 
 	if (!flag)
 	{

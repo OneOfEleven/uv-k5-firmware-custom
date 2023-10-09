@@ -164,21 +164,21 @@ void UI_DisplayStatus(const bool test_display)
 		x1 = x;
 	}
 	else
-	if (g_f_key_was_pressed)
+	if (g_fkey_pressed)
 	{
 		memmove(line + x, BITMAP_F_KEY, sizeof(BITMAP_F_KEY));
 		x += sizeof(BITMAP_F_KEY);
 		x1 = x;
 	}
 
-	{	// battery voltage or percentage
+	{	// battery voltage or percentage text
 		char         s[8];
 		unsigned int space_needed;
 		
 		unsigned int x2 = LCD_WIDTH - sizeof(BITMAP_BATTERY_LEVEL) - 3;
 
 		if (g_charging_with_type_c)
-			x2 -= sizeof(BITMAP_USB_C);  // the radio is on charge
+			x2 -= sizeof(BITMAP_USB_C);  // the radio is on USB charge
 
 		switch (g_setting_battery_text)
 		{
@@ -192,9 +192,7 @@ void UI_DisplayStatus(const bool test_display)
 				sprintf(s, "%u.%02uV", voltage / 100, voltage % 100);
 				space_needed = (7 * strlen(s));
 				if (x2 >= (x1 + space_needed))
-				{
 					UI_PrintStringSmallBuffer(s, line + x2 - space_needed);
-				}
 				break;
 			}
 			

@@ -38,9 +38,11 @@ const uint8_t         dtmf_txstop_countdown_500ms      =  3000 / 500;  // 6 seco
 const uint8_t         serial_config_count_down_500ms   =  3000 / 500;  // 3 seconds
 
 const uint8_t         key_input_timeout_500ms          =  6000 / 500;  // 6 seconds
-const uint16_t        key_repeat_delay_10ms            =   400 / 10;   // 400ms
-const uint16_t        key_repeat_10ms                  =    80 / 10;   // 80ms .. MUST be less than 'key_repeat_delay'
-const uint16_t        key_debounce_10ms                =    20 / 10;   // 20ms
+const uint8_t         key_lock_timeout_500ms           = 30000 / 500;  // 30 seconds
+
+const uint8_t         key_debounce_10ms                =    30 / 10;   // 30ms
+const uint8_t         key_long_press_10ms              =   300 / 10;   // 300ms
+const uint8_t         key_repeat_10ms                  =    80 / 10;   // 80ms
 
 const uint16_t        scan_freq_css_timeout_10ms       = 10000 / 10;   // 10 seconds
 const uint8_t         scan_freq_css_delay_10ms         =   210 / 10;   // 210ms .. don't reduce this
@@ -155,7 +157,7 @@ volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 
 bool                  g_enable_speaker;
 uint8_t               g_key_input_count_down = 0;
-uint8_t               g_key_lock_count_down;
+uint8_t               g_key_lock_count_down_500ms;
 uint8_t               g_rtte_count_down;
 bool                  g_is_in_lock_screen;
 uint8_t               g_update_status;
@@ -174,9 +176,6 @@ bool                  g_update_rssi;
 	alarm_state_t     g_alarm_state;
 #endif
 uint16_t              g_menu_count_down;
-bool                  g_ptt_was_released;
-bool                  g_ptt_was_pressed;
-uint8_t               g_keypad_locked;
 bool                  g_flag_reconfigure_vfos;
 uint8_t               g_vfo_configure_mode;
 bool                  g_flag_reset_vfos;
@@ -209,7 +208,7 @@ bool                  g_CxCSS_tail_found;
 #endif
 bool                  g_squelch_lost;
 uint8_t               g_flash_light_state;
-volatile uint16_t     g_flash_light_bBlink_counter;
+volatile uint16_t     g_flash_light_blink_counter;
 bool                  g_flag_end_tx;
 uint16_t              g_low_batteryCountdown;
 uint8_t               g_next_channel;
@@ -224,9 +223,6 @@ bool                  g_rx_vfo_is_active;
 	uint8_t           g_alarm_tone_counter;
 	uint16_t          g_alarm_running_counter;
 #endif
-bool                  g_key_being_held;
-bool                  g_ptt_is_pressed;
-uint8_t               g_ptt_debounce_counter;
 uint8_t               g_menu_list_count;
 uint8_t               g_backup_cross_vfo_rx_tx;
 uint8_t               g_scan_delay_10ms;

@@ -43,6 +43,8 @@ bool               g_ask_to_delete;
 
 void GUI_DisplayScreen(void)
 {
+	g_update_display = false;
+
 	switch (g_screen_to_display)
 	{
 		case DISPLAY_MAIN:
@@ -93,7 +95,7 @@ void GUI_SelectNextDisplay(gui_display_type_t Display)
 		g_ask_for_confirmation = 0;
 		g_ask_to_save          = false;
 		g_ask_to_delete        = false;
-		g_f_key_was_pressed    = false;
+		g_fkey_pressed    = false;
 
 		g_update_status        = true;
 	}

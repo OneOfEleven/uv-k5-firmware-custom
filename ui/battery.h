@@ -18,6 +18,7 @@
 #define UI_BATTERY_H
 
 #include <stdint.h>
+
 void UI_DrawBattery(uint8_t* bitmap, const unsigned int level, const unsigned int blink);
 void UI_DisplayBattery(const unsigned int Level, const unsigned int blink);
 

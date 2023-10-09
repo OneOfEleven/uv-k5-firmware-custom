@@ -97,7 +97,7 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 		case KEY_1:
 			if (!IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
 			{
-				g_f_key_was_pressed = false;
+				g_fkey_pressed = false;
 				g_update_status   = true;
 				g_beep_to_play     = BEEP_1KHZ_60MS_OPTIONAL;
 				return;
@@ -192,7 +192,7 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 			break;
 
 		case KEY_4:
-			g_f_key_was_pressed          = false;
+			g_fkey_pressed          = false;
 			g_flag_start_scan           = true;
 			g_scan_single_frequency     = false;
 			g_backup_cross_vfo_rx_tx = g_eeprom.cross_vfo_rx_tx;
@@ -267,7 +267,7 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 
 		default:
 			g_update_status   = true;
-			g_f_key_was_pressed = false;
+			g_fkey_pressed = false;
 
 			if (beep)
 				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
@@ -290,7 +290,7 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 					g_request_display_screen = DISPLAY_MAIN;
 				}
 
-				g_f_key_was_pressed = false;
+				g_fkey_pressed = false;
 				g_update_status   = true;
 
 				processFKeyFunction(Key, false);
@@ -306,7 +306,7 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		return;                                 // don't use the key till it's released
 	}
 
-	if (!g_f_key_was_pressed)
+	if (!g_fkey_pressed)
 	{	// F-key wasn't pressed
 
 		const uint8_t Vfo = g_eeprom.tx_vfo;
@@ -466,7 +466,7 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		return;
 	}
 
-	g_f_key_was_pressed = false;
+	g_fkey_pressed = false;
 	g_update_status   = true;
 
 	processFKeyFunction(Key, true);
@@ -550,7 +550,7 @@ static void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 		if (key_pressed)
 		{	// long press MENU key
 
-			g_f_key_was_pressed = false;
+			g_fkey_pressed = false;
 
 			if (g_screen_to_display == DISPLAY_MAIN)
 			{
@@ -560,7 +560,7 @@ static void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 					g_request_display_screen = DISPLAY_MAIN;
 				}
 
-				g_f_key_was_pressed = false;
+				g_fkey_pressed = false;
 				g_update_status   = true;
 
 				#ifdef ENABLE_COPY_CHAN_TO_VFO
@@ -646,7 +646,7 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 		return;
 	}
 
-	if (key_held && !g_f_key_was_pressed)
+	if (key_held && !g_fkey_pressed)
 	{	// long press .. toggle scanning
 		if (!key_pressed)
 			return; // released
@@ -666,7 +666,7 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 
 	// just released
 
-	if (!g_f_key_was_pressed)
+	if (!g_fkey_pressed)
 	{	// pressed without the F-key
 
 		#ifdef ENABLE_NOAA
@@ -687,7 +687,7 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 	}
 	else
 	{	// with the F-key
-		g_f_key_was_pressed = false;
+		g_fkey_pressed = false;
 
 		#ifdef ENABLE_NOAA
 			if (IS_NOAA_CHANNEL(g_tx_vfo->channel_save))
@@ -704,7 +704,7 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 		g_eeprom.cross_vfo_rx_tx = CROSS_BAND_OFF;
 	}
 
-	g_ptt_was_released = true;
+//	g_ptt_was_released = true;	// why is this being set ?
 
 	g_update_status   = true;
 }
@@ -807,7 +807,7 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 	g_scan_pause_delay_in_10ms = 1;
 	g_schedule_scan_listen    = false;
 
-	g_ptt_was_released = true;
+//	g_ptt_was_released = true;    // why is this being set ?
 }
 
 void MAIN_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
@@ -829,7 +829,9 @@ void MAIN_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 			DTMF_Append(Character);
 			g_key_input_count_down   = key_input_timeout_500ms;
 			g_request_display_screen = DISPLAY_MAIN;
-			g_ptt_was_released       = true;
+			
+//			g_ptt_was_released       = true;  // why is this being set ?
+
 			g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
 			return;
 		}

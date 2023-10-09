@@ -116,10 +116,11 @@ extern const uint8_t         dtmf_txstop_countdown_500ms;
 extern const uint8_t         serial_config_count_down_500ms;
 
 extern const uint8_t         key_input_timeout_500ms;
+extern const uint8_t         key_lock_timeout_500ms;
 
-extern const uint16_t        key_repeat_delay_10ms;
-extern const uint16_t        key_repeat_10ms;
-extern const uint16_t        key_debounce_10ms;
+extern const uint8_t         key_debounce_10ms;
+extern const uint8_t         key_long_press_10ms;
+extern const uint8_t         key_repeat_10ms;
 
 extern const uint16_t        scan_freq_css_timeout_10ms;
 extern const uint8_t         scan_freq_css_delay_10ms;
@@ -233,7 +234,7 @@ extern volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 #endif
 extern bool                  g_enable_speaker;
 extern uint8_t               g_key_input_count_down;
-extern uint8_t               g_key_lock_count_down;
+extern uint8_t               g_key_lock_count_down_500ms;
 extern uint8_t               g_rtte_count_down;
 extern bool                  g_is_in_lock_screen;
 extern uint8_t               g_update_status;
@@ -250,8 +251,6 @@ extern css_scan_mode_t       g_css_scan_mode;
 extern bool                  g_update_rssi;
 extern alarm_state_t         g_alarm_state;
 extern uint16_t              g_menu_count_down;
-extern bool                  g_ptt_was_released;
-extern bool                  g_ptt_was_pressed;
 extern bool                  g_flag_reconfigure_vfos;
 extern uint8_t               g_vfo_configure_mode;
 extern bool                  g_flag_reset_vfos;
@@ -261,7 +260,6 @@ extern bool                  g_request_save_settings;
 #ifdef ENABLE_FMRADIO
 	extern bool              g_request_save_fm;
 #endif
-extern uint8_t               g_keypad_locked;
 extern bool                  g_flag_prepare_tx;
 
 extern bool                  g_flag_AcceptSetting;   // accept menu setting
@@ -285,7 +283,7 @@ extern bool                  g_CxCSS_tail_found;
 #endif
 extern bool                  g_squelch_lost;
 extern uint8_t               g_flash_light_state;
-extern volatile uint16_t     g_flash_light_bBlink_counter;
+extern volatile uint16_t     g_flash_light_blink_counter;
 extern bool                  g_flag_end_tx;
 extern uint16_t              g_low_batteryCountdown;
 extern uint8_t               g_next_channel;
@@ -298,9 +296,6 @@ extern uint32_t              g_restore_frequency;
 extern bool                  g_rx_vfo_is_active;
 extern uint8_t               g_alarm_tone_counter;
 extern uint16_t              g_alarm_running_counter;
-extern bool                  g_key_being_held;
-extern bool                  g_ptt_is_pressed;
-extern uint8_t               g_ptt_debounce_counter;
 extern uint8_t               g_menu_list_count;
 extern uint8_t               g_backup_cross_vfo_rx_tx;
 extern uint8_t               g_scan_delay_10ms;

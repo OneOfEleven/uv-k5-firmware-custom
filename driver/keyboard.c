@@ -22,10 +22,17 @@
 #include "driver/i2c.h"
 #include "misc.h"
 
-key_code_t g_key_reading_0     = KEY_INVALID;
-key_code_t g_key_reading_1     = KEY_INVALID;
-uint16_t   g_debounce_counter  = 0;
-bool       g_f_key_was_pressed = false;
+uint8_t    g_ptt_debounce;
+uint8_t    g_key_debounce_press;
+uint8_t    g_key_debounce_repeat;
+key_code_t g_key_prev = KEY_INVALID;
+bool       g_key_held;
+bool       g_fkey_pressed;
+bool       g_ptt_is_pressed;
+
+bool       g_ptt_was_released;
+bool       g_ptt_was_pressed;
+uint8_t    g_keypad_locked;
 
 static const struct {
 
@@ -95,9 +102,6 @@ static const struct {
 key_code_t KEYBOARD_Poll(void)
 {
 	key_code_t Key = KEY_INVALID;
-
-//	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT))
-//		return KEY_PTT;
 
 	// *****************
 

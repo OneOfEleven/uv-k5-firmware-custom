@@ -52,40 +52,44 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 			if (!key_pressed)
 				return;
 
-			if (g_screen_to_display != DISPLAY_MENU &&
-			    g_screen_to_display != DISPLAY_FM &&
-			    #ifdef ENABLE_FMRADIO
-					!g_fm_radio_mode &&
-			    #endif
-			    g_current_function != FUNCTION_TRANSMIT)
-			{	// toggle the keyboad lock
+		    #ifdef ENABLE_FMRADIO
+				if (!g_fm_radio_mode)
+		    #endif
+			{
+				if (g_screen_to_display != DISPLAY_MENU &&
+					g_screen_to_display != DISPLAY_FM &&
+					g_current_function != FUNCTION_TRANSMIT)
+				{	// toggle the keyboad lock
 
-				#ifdef ENABLE_VOICE
-					g_another_voice_id = g_eeprom.key_lock ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
-				#endif
+					#ifdef ENABLE_VOICE
+						g_another_voice_id = g_eeprom.key_lock ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
+					#endif
 
-				g_eeprom.key_lock = !g_eeprom.key_lock;
+					g_eeprom.key_lock = !g_eeprom.key_lock;
 
-				g_request_save_settings = true;
+					g_request_save_settings = true;
+				}
 			}
 		}
 		else
 		{
 			#ifdef ENABLE_FMRADIO
-				if ((g_fm_radio_mode || g_screen_to_display != DISPLAY_MAIN) && g_screen_to_display != DISPLAY_FM)
+				if ((g_fm_radio_mode || g_screen_to_display != DISPLAY_MAIN) &&
+				   g_screen_to_display != DISPLAY_FM)
 					return;
 			#else
 				if (g_screen_to_display != DISPLAY_MAIN)
 					return;
 			#endif
 
-			g_f_key_was_pressed = !g_f_key_was_pressed;
+			// toggle the fkey on/off
+			g_fkey_pressed = !g_fkey_pressed;
 
-			if (g_f_key_was_pressed)
+			if (g_fkey_pressed)
 				g_key_input_count_down = key_input_timeout_500ms;
 
 			#ifdef ENABLE_VOICE
-				if (!g_f_key_was_pressed)
+				if (!g_fkey_pressed)
 					g_another_voice_id = VOICE_ID_CANCEL;
 			#endif
 
@@ -108,9 +112,9 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 			}
 		#endif
 
-		g_beep_to_play     = BEEP_440HZ_500MS;
+		g_beep_to_play = BEEP_440HZ_500MS;
 
-		g_ptt_was_released = true;
+//		g_ptt_was_released = true;   // why is this being set ???
 	}
 }
 
@@ -257,14 +261,10 @@ start_tx:
 	goto done;
 
 cancel_tx:
-	if (g_ptt_is_pressed)
-	{
-		g_ptt_is_pressed  = false;
-		g_ptt_was_pressed = true;
-	}
+	g_ptt_was_pressed = true;
 
 done:
-	g_ptt_debounce_counter = 0;
+	g_ptt_debounce = 0;
 	if (g_screen_to_display != DISPLAY_MENU && g_request_display_screen != DISPLAY_FM)     // 1of11 .. don't close the menu
 		g_request_display_screen = DISPLAY_MAIN;
 	g_update_status  = true;

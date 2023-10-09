@@ -46,11 +46,6 @@ BOOT_Mode_t BOOT_GetMode(void)
 
 	if (Keys[0] == Keys[1])
 	{
-		g_key_reading_0 = Keys[0];
-		g_key_reading_1 = Keys[0];
-
-		g_debounce_counter = 2;
-
 		if (Keys[0] == KEY_SIDE1)
 			return BOOT_MODE_F_LOCK;
 

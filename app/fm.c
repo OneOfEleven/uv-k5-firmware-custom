@@ -232,7 +232,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 	if (!key_held && key_pressed)
 	{
-		if (!g_f_key_was_pressed)
+		if (!g_fkey_pressed)
 		{
 			uint8_t State;
 
@@ -346,8 +346,8 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		}
 
 		g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
-		g_f_key_was_pressed       = false;
-		g_update_status         = true;
+		g_fkey_pressed          = false;
+		g_update_status          = true;
 		g_request_display_screen = DISPLAY_FM;
 
 		switch (Key)

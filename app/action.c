@@ -332,35 +332,6 @@ void ACTION_Handle(key_code_t Key, bool key_pressed, bool key_held)
 	uint8_t Short = ACTION_OPT_NONE;
 	uint8_t Long  = ACTION_OPT_NONE;
 
-	if (g_screen_to_display == DISPLAY_MAIN && g_dtmf_input_mode)
-	{
-		if (Key == KEY_SIDE1 && !key_held && key_pressed)
-		{
-			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-
-			if (g_dtmf_input_box_index > 0)
-			{
-				g_dtmf_input_box[--g_dtmf_input_box_index] = '-';
-				if (g_dtmf_input_box_index > 0)
-				{
-					g_ptt_was_released       = true;
-					g_request_display_screen = DISPLAY_MAIN;
-					return;
-				}
-			}
-
-			#ifdef ENABLE_VOICE
-				g_another_voice_id   = VOICE_ID_CANCEL;
-			#endif
-
-			g_request_display_screen = DISPLAY_MAIN;
-			g_dtmf_input_mode       = false;
-		}
-
-		g_ptt_was_released = true;
-		return;
-	}
-
 	if (Key == KEY_SIDE1)
 	{
 		Short = g_eeprom.key1_short_press_action;

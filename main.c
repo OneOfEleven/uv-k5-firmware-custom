@@ -129,9 +129,6 @@ void Main(void)
 			i = (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) && KEYBOARD_Poll() == KEY_INVALID) ? i + 1 : 0;
 			SYSTEM_DelayMs(10);
 		}
-		g_key_reading_0 = KEY_INVALID;
-		g_key_reading_1 = KEY_INVALID;
-		g_debounce_counter = 0;
 	}
 
 	if (!g_charging_with_type_c && g_battery_display_level == 0)
