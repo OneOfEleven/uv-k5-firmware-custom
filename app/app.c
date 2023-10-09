@@ -2313,6 +2313,9 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 		}
 	}
 
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wtype-limits"
+
 	if ((Key >= KEY_0 && Key <= KEY_9) || Key == KEY_F)
 	{
 		if (g_scan_state_dir != SCAN_OFF || g_css_scan_mode != CSS_SCAN_MODE_OFF)
@@ -2322,6 +2325,8 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 			return;
 		}
 	}
+
+	#pragma GCC diagnostic pop
 
 	if (Key == KEY_PTT && g_ptt_was_pressed)
 	{
@@ -2338,20 +2343,20 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	// to this causing key releases to be totally ignored :( .. 1of11
 	if (Key != KEY_PTT && g_ptt_was_released)
 	{
-/*		if (key_held)
+		if (key_held)
 			flag = true;
 
-		if (!key_pressed)
+//		if (!key_pressed)
+		if (key_pressed)	// I now use key released for button press detections
 		{
 			flag = true;
-*/
 			g_ptt_was_released = false;
-/*		}
+		}
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 		#endif
-*/
+
 	}
 
 	if (g_fkey_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2))

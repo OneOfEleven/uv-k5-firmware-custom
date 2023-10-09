@@ -1264,6 +1264,9 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 		if (g_edit_index < 10)
 		{
+			#pragma GCC diagnostic push
+			#pragma GCC diagnostic ignored "-Wtype-limits"
+
 			if (Key >= KEY_0 && Key <= KEY_9)
 			{
 				g_edit[g_edit_index] = '0' + Key - KEY_0;
@@ -1276,6 +1279,8 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 				g_request_display_screen = DISPLAY_MENU;
 			}
+
+			#pragma GCC diagnostic pop
 		}
 
 		return;

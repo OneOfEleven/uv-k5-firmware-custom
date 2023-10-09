@@ -29,7 +29,12 @@ void INPUTBOX_Append(const key_code_t Digit)
 	if (g_input_box_index == 0)
 		memset(g_input_box, 10, sizeof(g_input_box));
 
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wtype-limits"
+
 	if (Digit >= KEY_0 && Digit != KEY_INVALID)
 		g_input_box[g_input_box_index++] = (char)(Digit - KEY_0);
+
+	#pragma GCC diagnostic pop
 }
 

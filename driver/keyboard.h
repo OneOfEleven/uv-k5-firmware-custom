@@ -22,8 +22,7 @@
 #include <stdint.h>
 
 enum key_code_e {
-	KEY_INVALID = 0,
-	KEY_0,      // DTMF 0
+	KEY_0 = 0,  // DTMF 0
 	KEY_1,      // DTMF 1
 	KEY_2,      // DTMF 2
 	KEY_3,      // DTMF 3
@@ -42,7 +41,7 @@ enum key_code_e {
 	KEY_PTT,    //
 	KEY_SIDE2,  //
 	KEY_SIDE1,  //
-//	KEY_INVALID //
+	KEY_INVALID //
 };
 typedef enum key_code_e key_code_t;
 
