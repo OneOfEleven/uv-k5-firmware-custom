@@ -30,12 +30,12 @@ enum {
 	USER_CH_SCANLIST2 =   1u << 6,
 	USER_CH_SCANLIST1 =   1u << 7
 };
-
+/*
 enum {
 	RADIO_CHANNEL_UP   = 0x01u,
 	RADIO_CHANNEL_DOWN = 0xFFu,
 };
-
+*/
 enum {
 	BANDWIDTH_WIDE = 0,
 	BANDWIDTH_NARROW

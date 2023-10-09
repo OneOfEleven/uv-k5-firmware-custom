@@ -747,7 +747,7 @@ static void USER_NextChannel(void)
 #ifdef ENABLE_NOAA
 	static void NOAA_IncreaseChannel(void)
 	{
-		if (++g_noaa_channel > 9)
+		if (++g_noaa_channel >= ARRAY_SIZE(NoaaFrequencyTable))
 			g_noaa_channel = 0;
 	}
 #endif

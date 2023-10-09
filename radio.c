@@ -178,7 +178,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 
 		if (Channel <= USER_CHANNEL_LAST)
 		{
-			Channel = RADIO_FindNextChannel(Channel, RADIO_CHANNEL_UP, false, VFO);
+			Channel = RADIO_FindNextChannel(Channel, SCAN_FWD, false, VFO);
 			if (Channel == 0xFF)
 			{
 				Channel                      = g_eeprom.freq_channel[VFO];

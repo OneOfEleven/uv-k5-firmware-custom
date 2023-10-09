@@ -30,7 +30,7 @@
 
 void UI_DisplayScanner(void)
 {
-	char String[16];
+	char String[17];
 	bool text_centered = false;
 
 	if (g_screen_to_display != DISPLAY_SCANNER)
@@ -41,6 +41,9 @@ void UI_DisplayScanner(void)
 
 	// ***********************************
 	// frequency text line
+
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
 	switch (g_scan_css_state)
 	{
@@ -65,6 +68,8 @@ void UI_DisplayScanner(void)
 			strcpy(String, "FREQ not found");
 			break;
 	}
+
+	#pragma GCC diagnostic pop
 
 	UI_PrintString(String, 2, 0, 1, 8);
 
@@ -120,6 +125,9 @@ void UI_DisplayScanner(void)
 		default:
 		case SCAN_EDIT_STATE_NONE:
 
+			#pragma GCC diagnostic push
+			#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+
 			switch (g_scan_css_state)
 			{
 				default:
@@ -148,6 +156,9 @@ void UI_DisplayScanner(void)
 					text_centered = true;
 					break;
 			}
+
+			#pragma GCC diagnostic pop
+
 			break;
 
 		case SCAN_EDIT_STATE_BUSY:

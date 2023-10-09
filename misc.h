@@ -32,12 +32,14 @@
 	#define MIN(a, b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
 #endif
 
-#define IS_USER_CHANNEL(x)     ((x) >= USER_CHANNEL_FIRST   && (x) <= USER_CHANNEL_LAST)
+//#define IS_USER_CHANNEL(x)     ((x) >= USER_CHANNEL_FIRST   && (x) <= USER_CHANNEL_LAST)
+#define IS_USER_CHANNEL(x)     ((x) <= USER_CHANNEL_LAST)
 #define IS_FREQ_CHANNEL(x)     ((x) >= FREQ_CHANNEL_FIRST && (x) <= FREQ_CHANNEL_LAST)
 #define IS_VALID_CHANNEL(x)    ((x) < LAST_CHANNEL)
 
 #define IS_NOAA_CHANNEL(x)     ((x) >= NOAA_CHANNEL_FIRST && (x) <= NOAA_CHANNEL_LAST)
-#define IS_NOT_NOAA_CHANNEL(x) ((x) >= USER_CHANNEL_FIRST   && (x) <= FREQ_CHANNEL_LAST)
+//#define IS_NOT_NOAA_CHANNEL(x) ((x) >= USER_CHANNEL_FIRST   && (x) <= FREQ_CHANNEL_LAST)
+#define IS_NOT_NOAA_CHANNEL(x) ((x) <= FREQ_CHANNEL_LAST)
 
 // PTT key-up/key-down audio tone freq's used in NASA's apollo rides to the moon
 #define APOLLO_TONE_MS         200     // slightly shorter tone length

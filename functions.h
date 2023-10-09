@@ -21,7 +21,7 @@
 
 enum function_type_e
 {
-	FUNCTION_FOREGROUND = 0,  // ???
+	FUNCTION_FOREGROUND = 0,  // idle (not in power save)
 	FUNCTION_TRANSMIT,        // transmitting
 	FUNCTION_MONITOR,         // receiving with squelch forced open
 	FUNCTION_INCOMING,        // receiving a signal (squelch is open)
@@ -31,7 +31,7 @@ enum function_type_e
 };
 typedef enum function_type_e function_type_t;
 
-extern function_type_t       g_current_function;
+extern function_type_t g_current_function;
 
 void FUNCTION_Init(void);
 void FUNCTION_Select(function_type_t Function);

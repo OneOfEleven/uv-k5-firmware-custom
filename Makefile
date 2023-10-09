@@ -200,6 +200,7 @@ ifeq ($(ENABLE_OVERLAY),1)
 endif
 
 CFLAGS =
+
 ifeq ($(ENABLE_CLANG),0)
 	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c99 -MMD
@@ -207,7 +208,8 @@ ifeq ($(ENABLE_CLANG),0)
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=gnu11 -MMD
 else
 	# Oz needed to make it fit on flash
-	CFLAGS += -Oz -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
+	#CFLAGS += -Oz -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
+	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -std=c11 -MMD
 endif
 
 ifeq ($(ENABLE_LTO),1)
@@ -221,7 +223,8 @@ endif
 #CFLAGS += -Wpadded
 
 # catch any and all warnings
-#CFLAGS += -Wextra
+# better to bust than add new bugs
+CFLAGS += -Wextra
 
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
