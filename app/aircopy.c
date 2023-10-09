@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#ifdef ENABLE_AIRCOPY
-
 #include "app/aircopy.h"
 #include "audio.h"
 #include "driver/bk4819.h"
@@ -71,7 +69,9 @@ void AIRCOPY_StorePacket(void)
 
 	g_fsk_wite_index = 0;
 	g_update_display = true;
-	Status           = BK4819_ReadRegister(BK4819_REG_0B);
+
+	Status = BK4819_ReadRegister(BK4819_REG_0B);
+
 	BK4819_PrepareFSKReceive();
 
 	// Doc says bit 4 should be 1 = CRC OK, 0 = CRC FAIL, but original firmware checks for FAIL.
@@ -85,12 +85,11 @@ void AIRCOPY_StorePacket(void)
 			g_fsk_buffer[i + 1] ^= Obfuscation[i % 8];
 
 		CRC = CRC_Calculate(&g_fsk_buffer[1], 2 + 64);
+
 		if (g_fsk_buffer[34] == CRC)
 		{
 			const uint16_t *pData;
-			uint16_t        Offset;
-
-			Offset = g_fsk_buffer[1];
+			uint16_t        Offset = g_fsk_buffer[1];
 			if (Offset < 0x1E00)
 			{
 				pData = &g_fsk_buffer[2];
@@ -110,6 +109,7 @@ void AIRCOPY_StorePacket(void)
 			}
 		}
 	}
+	
 	g_errors_during_air_copyy++;
 }
 
@@ -121,7 +121,9 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		unsigned int  i;
 
 		INPUTBOX_Append(Key);
+
 		g_request_display_screen = DISPLAY_AIRCOPY;
+
 		if (g_input_box_index < 6)
 		{
 			#ifdef ENABLE_VOICE
@@ -228,5 +230,3 @@ void AIRCOPY_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 			break;
 	}
 }
-
-#endif

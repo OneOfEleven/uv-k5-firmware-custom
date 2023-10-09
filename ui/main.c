@@ -27,6 +27,7 @@
 #endif
 #include "bitmaps.h"
 #include "board.h"
+#include "driver/backlight.h"
 #include "driver/bk4819.h"
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
@@ -393,8 +394,18 @@ void UI_DisplayMain(void)
 	// clear the screen
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
+	if (g_serial_config_count_down_500ms > 0)
+	{
+		backlight_turn_on();
+		UI_PrintString("UART", 0, LCD_WIDTH, 1, 8);
+		UI_PrintString("CONFIG COMMS", 0, LCD_WIDTH, 3, 8);
+		ST7565_BlitFullScreen();
+		return;
+	}
+	
 	if (g_eeprom.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
+		backlight_turn_on();
 		UI_PrintString("Long press #", 0, LCD_WIDTH, 1, 8);
 		UI_PrintString("to unlock",    0, LCD_WIDTH, 3, 8);
 		ST7565_BlitFullScreen();

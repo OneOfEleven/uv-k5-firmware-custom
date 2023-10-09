@@ -74,7 +74,7 @@ const t_menu_item g_menu_list[] =
 #ifdef ENABLE_VOICE
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE         },
 #endif
-	{"SC REV", VOICE_ID_INVALID,                       MENU_SC_REV        },
+	{"S RESU", VOICE_ID_INVALID,                       MENU_SC_REV        }, // was "SC_REV"
 	{"KEYLOC", VOICE_ID_INVALID,                       MENU_AUTOLK        }, // was "AUTOLk"
 	{"S ADD1", VOICE_ID_INVALID,                       MENU_S_ADD1        },
 	{"S ADD2", VOICE_ID_INVALID,                       MENU_S_ADD2        },
@@ -90,7 +90,7 @@ const t_menu_item g_menu_list[] =
 	{"SLIST1", VOICE_ID_INVALID,                       MENU_SLIST1        },
 	{"SLIST2", VOICE_ID_INVALID,                       MENU_SLIST2        },
 #ifdef ENABLE_ALARM
-	{"ALMODE", VOICE_ID_INVALID,                       MENU_AL_MOD        },
+	{"SOS AL", VOICE_ID_INVALID,                       MENU_AL_MOD        }, // was "ALMODE"
 #endif
 	{"ANI ID", VOICE_ID_ANI_CODE,                      MENU_ANI_ID        },
 	{"UPCODE", VOICE_ID_INVALID,                       MENU_UPCODE        },
@@ -126,7 +126,7 @@ const t_menu_item g_menu_list[] =
 	// hidden menu items from here on
 	// enabled by pressing both the PTT and upper side button at power-on
 
-	{"F LOCK", VOICE_ID_INVALID,                       MENU_F_LOCK        },
+	{"F LOCK", VOICE_ID_INVALID,                       MENU_F_LOCK        }, // country/area specific
 	{"Tx 200", VOICE_ID_INVALID,                       MENU_200TX         }, // was "200TX"
 	{"Tx 350", VOICE_ID_INVALID,                       MENU_350TX         }, // was "350TX"
 	{"Tx 500", VOICE_ID_INVALID,                       MENU_500TX         }, // was "500TX"
@@ -242,10 +242,10 @@ const char g_sub_menu_mdf[4][15] =
 
 const char g_sub_menu_D_RSP[4][11] =
 {
-	"DO\nNOTHING",
+	"NONE",
 	"RING",
 	"REPLY",
-	"BOTH"
+	"RING\nREPLY"
 };
 
 const char g_sub_menu_PTT_ID[5][15] =
@@ -323,6 +323,12 @@ const char g_sub_menu_BAT_TXT[3][8] =
 	"NONE",
 	"VOLTAGE",
 	"PERCENT"
+};
+
+const char g_sub_menu_DIS_EN[2][9] =
+{
+	"DISABLED",
+	"ENABLED"
 };
 
 const char g_sub_menu_SCRAMBLER[11][7] =
@@ -670,25 +676,48 @@ void UI_DisplayMenu(void)
 			case MENU_AM_FIX:
 		#endif
 		case MENU_BCL:
-		case MENU_BEEP:
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
 		case MENU_STE:
-		case MENU_D_ST:
 		case MENU_D_DCD:
 		case MENU_D_LIVE_DEC:
+			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
+			break;
+
+		case MENU_BEEP:
+			strcpy(String, "KEY BEEP\n");
+			strcat(String + strlen(String), g_sub_menu_off_on[g_sub_menu_selection]);
+			break;
+
+		case MENU_D_ST:
+			strcpy(String, "SIDETONE\n");
+			strcat(String, g_sub_menu_off_on[g_sub_menu_selection]);
+			break;
+
 		#ifdef ENABLE_NOAA
 			case MENU_NOAA_S:
+				strcpy(String, "SCAN\n");
+				strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+				break;
 		#endif
+
 		case MENU_350TX:
 		case MENU_200TX:
 		case MENU_500TX:
 		case MENU_350EN:
-		case MENU_SCREN:
-		case MENU_TX_EN:
-			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
 			break;
 
+		case MENU_SCREN:
+			strcpy(String, "SCRAMBLER\n");
+			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			break;
+
+		case MENU_TX_EN:
+			strcpy(String, "TX\n");
+			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			break;
+			
 		case MENU_MEM_CH:
 		case MENU_1_CALL:
 		case MENU_DEL_CH:
@@ -772,7 +801,8 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_SC_REV:
-			strcpy(String, g_sub_menu_sc_rev[g_sub_menu_selection]);
+			strcpy(String, "SCAN\nRESUME\n");
+			strcat(String, g_sub_menu_sc_rev[g_sub_menu_selection]);
 			break;
 
 		case MENU_MDF:
@@ -795,24 +825,29 @@ void UI_DisplayMenu(void)
 
 		#ifdef ENABLE_ALARM
 			case MENU_AL_MOD:
-				sprintf(String, g_sub_menu_AL_MOD[g_sub_menu_selection]);
+				strcpy(String, "TX ALARM\n");
+				sprintf(String + strlen(String), g_sub_menu_AL_MOD[g_sub_menu_selection]);
 				break;
 		#endif
 
 		case MENU_ANI_ID:
-			strcpy(String, g_eeprom.ani_dtmf_id);
+			strcpy(String, "YOUR ID\n");
+			strcat(String, g_eeprom.ani_dtmf_id);
 			break;
 
 		case MENU_UPCODE:
-			strcpy(String, g_eeprom.dtmf_up_code);
+			strcpy(String, "TX KEY-UP\n");
+			strcat(String, g_eeprom.dtmf_up_code);
 			break;
 
 		case MENU_DWCODE:
-			strcpy(String, g_eeprom.dtmf_down_code);
+			strcpy(String, "TX KEY-DN\n");
+			strcat(String, g_eeprom.dtmf_down_code);
 			break;
 
 		case MENU_D_RSP:
-			strcpy(String, g_sub_menu_D_RSP[g_sub_menu_selection]);
+			strcpy(String, "RESPONSE\n");
+			strcat(String, g_sub_menu_D_RSP[g_sub_menu_selection]);
 			break;
 
 		case MENU_D_HOLD:
@@ -843,7 +878,9 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_D_PRE:
-			sprintf(String, "%d*10ms", g_sub_menu_selection);
+			strcpy(String, "TX DELAY\n");
+//			sprintf(String + strlen(String), "%d*10ms", g_sub_menu_selection);
+			sprintf(String + strlen(String), "%dms", 10 * g_sub_menu_selection);
 			break;
 
 		case MENU_PTT_ID:
@@ -867,7 +904,8 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_ROGER:
-			strcpy(String, g_sub_menu_roger_mode[g_sub_menu_selection]);
+			strcpy(String, "TX KEY-DN\n");
+			strcpy(String + strlen(String), g_sub_menu_roger_mode[g_sub_menu_selection]);
 			break;
 
 		case MENU_VOL:

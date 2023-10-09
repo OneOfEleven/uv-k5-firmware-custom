@@ -1330,7 +1330,7 @@ void APP_CheckKeys(void)
 		g_ptt_debounce_counter = 0;
 
 	// *****************
-
+	
 	// scan the hardware keys
 	Key = KEYBOARD_Poll();
 
@@ -1345,6 +1345,12 @@ void APP_CheckKeys(void)
 
 	g_boot_counter_10ms = 0;   // cancel boot screen/beeps
 
+	if (g_serial_config_count_down_500ms > 0)
+	{
+		g_boot_counter_10ms    = 0;        // cancel the boot-up screen
+		return;                            // the PC is uploading/downloading config
+	}
+	
 	if (g_key_reading_0 != Key)
 	{	// new key pressed
 

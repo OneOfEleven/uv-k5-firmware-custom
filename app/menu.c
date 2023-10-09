@@ -237,6 +237,10 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		case MENU_D_DCD:
 		case MENU_D_LIVE_DEC:
 		case MENU_AM:
+			*pMin = 0;
+			*pMax = ARRAY_SIZE(g_sub_menu_off_on) - 1;
+			break;
+
 		#ifdef ENABLE_NOAA
 			case MENU_NOAA_S:
 		#endif
@@ -247,7 +251,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		case MENU_SCREN:
 		case MENU_TX_EN:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_off_on) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_DIS_EN) - 1;
 			break;
 
 		case MENU_SCR:
@@ -656,7 +660,14 @@ void MENU_AcceptSetting(void)
 
 		case MENU_PTT_ID:
 			g_tx_vfo->dtmf_ptt_id_tx_mode = g_sub_menu_selection;
-			g_request_save_channel        = 1;
+			g_request_save_channel = 1;
+			if (g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN ||
+			    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_BOTH    ||
+			    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+			{
+				g_eeprom.roger_mode = ROGER_MODE_OFF;
+				break;
+			}
 			return;
 
 		case MENU_BAT_TXT:
@@ -697,6 +708,16 @@ void MENU_AcceptSetting(void)
 
 		case MENU_ROGER:
 			g_eeprom.roger_mode = g_sub_menu_selection;
+			if (g_eeprom.roger_mode != ROGER_MODE_OFF)
+			{
+				if (g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN ||
+				    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_BOTH    ||
+				    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+				{
+					g_tx_vfo->dtmf_ptt_id_tx_mode = PTT_ID_OFF;  // // disable PTT ID tail
+					g_request_save_channel = 1;
+				}
+			}
 			break;
 
 		case MENU_AM:
