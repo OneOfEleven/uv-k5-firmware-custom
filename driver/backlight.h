@@ -19,9 +19,9 @@
 
 #include <stdint.h>
 
-extern uint16_t gBacklightCountdown;
+extern uint16_t g_backlight_count_down;
 
-void BACKLIGHT_TurnOn(void);
+void backlight_turn_on(void);
 
 #endif
 

@@ -23,15 +23,15 @@
 #define LCD_WIDTH       128
 #define LCD_HEIGHT       64
 
-extern uint8_t gStatusLine[128];
-extern uint8_t gFrameBuffer[7][128];
+extern uint8_t g_status_line[128];
+extern uint8_t g_frame_buffer[7][128];
 
 void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const unsigned int Size, const uint8_t *pBitmap);
 void ST7565_BlitFullScreen(void);
 void ST7565_BlitStatusLine(void);
 void ST7565_FillScreen(uint8_t Value);
-void ST7565_Init(void);
-void ST7565_Configure_GPIO_B11(void);
+void ST7565_Init(const bool full);
+void ST7565_HardwareReset(void);
 void ST7565_SelectColumnAndLine(uint8_t Column, uint8_t Line);
 void ST7565_WriteByte(uint8_t Value);
 

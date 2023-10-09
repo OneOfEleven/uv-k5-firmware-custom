@@ -21,18 +21,18 @@
 #include "ui/menu.h"
 #include "ui/ui.h"
 
-uint16_t          gBatteryCalibration[6];
-uint16_t          gBatteryCurrentVoltage;
-uint16_t          gBatteryCurrent;
-uint16_t          gBatteryVoltages[4];
-uint16_t          gBatteryVoltageAverage;
-uint8_t           gBatteryDisplayLevel;
-bool              gChargingWithTypeC;
-bool              gLowBattery;
-bool              gLowBatteryBlink;
-uint16_t          gBatteryCheckCounter;
+uint16_t          g_battery_calibration[6];
+uint16_t          g_battery_current_voltage;
+uint16_t          g_battery_current;
+uint16_t          g_battery_voltages[4];
+uint16_t          g_battery_voltage_average;
+uint8_t           g_battery_display_level;
+bool              g_charging_with_type_c;
+bool              g_low_battery;
+bool              g_low_battery_blink;
+uint16_t          g_battery_check_counter;
 
-volatile uint16_t gPowerSave_10ms;
+volatile uint16_t g_power_save_10ms;
 
 /*
 Based on real measurement
@@ -81,70 +81,70 @@ unsigned int BATTERY_VoltsToPercent(const unsigned int voltage_10mV)
 
 void BATTERY_GetReadings(const bool bDisplayBatteryLevel)
 {
-	const uint8_t  PreviousBatteryLevel = gBatteryDisplayLevel;
-	const uint16_t Voltage              = (gBatteryVoltages[0] + gBatteryVoltages[1] + gBatteryVoltages[2] + gBatteryVoltages[3]) / 4;
+	const uint8_t  PreviousBatteryLevel = g_battery_display_level;
+	const uint16_t Voltage              = (g_battery_voltages[0] + g_battery_voltages[1] + g_battery_voltages[2] + g_battery_voltages[3]) / 4;
 
-	gBatteryDisplayLevel = 0;
+	g_battery_display_level = 0;
 
-	if (gBatteryCalibration[5] < Voltage)
-		gBatteryDisplayLevel = 6;
+	if (g_battery_calibration[5] < Voltage)
+		g_battery_display_level = 6;
 	else
-	if (gBatteryCalibration[4] < Voltage)
-		gBatteryDisplayLevel = 5;
+	if (g_battery_calibration[4] < Voltage)
+		g_battery_display_level = 5;
 	else
-	if (gBatteryCalibration[3] < Voltage)
-		gBatteryDisplayLevel = 4;
+	if (g_battery_calibration[3] < Voltage)
+		g_battery_display_level = 4;
 	else
-	if (gBatteryCalibration[2] < Voltage)
-		gBatteryDisplayLevel = 3;
+	if (g_battery_calibration[2] < Voltage)
+		g_battery_display_level = 3;
 	else
-	if (gBatteryCalibration[1] < Voltage)
-		gBatteryDisplayLevel = 2;
+	if (g_battery_calibration[1] < Voltage)
+		g_battery_display_level = 2;
 	else
-	if (gBatteryCalibration[0] < Voltage)
-		gBatteryDisplayLevel = 1;
+	if (g_battery_calibration[0] < Voltage)
+		g_battery_display_level = 1;
 
-	gBatteryVoltageAverage = (Voltage * 760) / gBatteryCalibration[3];
+	g_battery_voltage_average = (Voltage * 760) / g_battery_calibration[3];
 
-	if ((gScreenToDisplay == DISPLAY_MENU) && gMenuCursor == MENU_VOL)
-		gUpdateDisplay = true;
+	if ((g_screen_to_display == DISPLAY_MENU) && g_menu_cursor == MENU_VOL)
+		g_update_display = true;
 
-	if (gBatteryCurrent < 501)
+	if (g_battery_current < 501)
 	{
-		if (gChargingWithTypeC)
+		if (g_charging_with_type_c)
 		{
-			gUpdateStatus  = true;
-			gUpdateDisplay = true;
+			g_update_status  = true;
+			g_update_display = true;
 		}
 
-		gChargingWithTypeC = false;
+		g_charging_with_type_c = false;
 	}
 	else
 	{
-		if (!gChargingWithTypeC)
+		if (!g_charging_with_type_c)
 		{
-			gUpdateStatus  = true;
-			gUpdateDisplay = true;
-			BACKLIGHT_TurnOn();
+			g_update_status  = true;
+			g_update_display = true;
+			backlight_turn_on();
 		}
 
-		gChargingWithTypeC = true;
+		g_charging_with_type_c = true;
 	}
 
-	if (PreviousBatteryLevel != gBatteryDisplayLevel)
+	if (PreviousBatteryLevel != g_battery_display_level)
 	{
-		if (gBatteryDisplayLevel < 2)
+		if (g_battery_display_level < 2)
 		{
-			gLowBattery = true;
+			g_low_battery = true;
 		}
 		else
 		{
-			gLowBattery = false;
+			g_low_battery = false;
 
 			if (bDisplayBatteryLevel)
-				UI_DisplayBattery(gBatteryDisplayLevel, gLowBatteryBlink);
+				UI_DisplayBattery(g_battery_display_level, g_low_battery_blink);
 		}
 
-		gLowBatteryCountdown = 0;
+		g_low_batteryCountdown = 0;
 	}
 }

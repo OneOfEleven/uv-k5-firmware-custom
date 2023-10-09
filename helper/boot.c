@@ -34,7 +34,7 @@
 BOOT_Mode_t BOOT_GetMode(void)
 {
 	unsigned int i;
-	KEY_Code_t   Keys[2];
+	key_code_t   Keys[2];
 
 	for (i = 0; i < 2; i++)
 	{
@@ -46,10 +46,10 @@ BOOT_Mode_t BOOT_GetMode(void)
 
 	if (Keys[0] == Keys[1])
 	{
-		gKeyReading0 = Keys[0];
-		gKeyReading1 = Keys[0];
+		g_key_reading_0 = Keys[0];
+		g_key_reading_1 = Keys[0];
 
-		gDebounceCounter = 2;
+		g_debounce_counter = 2;
 
 		if (Keys[0] == KEY_SIDE1)
 			return BOOT_MODE_F_LOCK;
@@ -73,30 +73,32 @@ void BOOT_ProcessMode(BOOT_Mode_t Mode)
 		else
 		if (Mode == BOOT_MODE_AIRCOPY)
 		{
-			gEeprom.DUAL_WATCH               = DUAL_WATCH_OFF;
-			gEeprom.BATTERY_SAVE             = 0;
-			gEeprom.VOX_SWITCH               = false;
-			gEeprom.CROSS_BAND_RX_TX         = CROSS_BAND_OFF;
-			gEeprom.AUTO_KEYPAD_LOCK         = false;
-			gEeprom.KEY_1_SHORT_PRESS_ACTION = ACTION_OPT_NONE;
-			gEeprom.KEY_1_LONG_PRESS_ACTION  = ACTION_OPT_NONE;
-			gEeprom.KEY_2_SHORT_PRESS_ACTION = ACTION_OPT_NONE;
-			gEeprom.KEY_2_LONG_PRESS_ACTION  = ACTION_OPT_NONE;
+			g_eeprom.dual_watch               = DUAL_WATCH_OFF;
+			g_eeprom.battery_save             = 0;
+			#ifdef ENABLE_VOX
+				g_eeprom.vox_switch           = false;
+			#endif
+			g_eeprom.cross_vfo_rx_tx          = CROSS_BAND_OFF;
+			g_eeprom.auto_keypad_lock         = false;
+			g_eeprom.key1_short_press_action  = ACTION_OPT_NONE;
+			g_eeprom.key1_long_press_action   = ACTION_OPT_NONE;
+			g_eeprom.key2_short_press_action  = ACTION_OPT_NONE;
+			g_eeprom.key2_long_press_action   = ACTION_OPT_NONE;
 
-			RADIO_InitInfo(gRxVfo, FREQ_CHANNEL_LAST - 1, 41002500);
+			RADIO_InitInfo(g_rx_vfo, FREQ_CHANNEL_LAST - 1, 41002500);
 
-			gRxVfo->CHANNEL_BANDWIDTH        = BANDWIDTH_WIDE;
-			gRxVfo->OUTPUT_POWER             = OUTPUT_POWER_LOW;
+			g_rx_vfo->channel_bandwidth        = BANDWIDTH_WIDE;
+			g_rx_vfo->output_power             = OUTPUT_POWER_LOW;
 
-			RADIO_ConfigureSquelchAndOutputPower(gRxVfo);
+			RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
 
-			gCurrentVfo = gRxVfo;
+			g_current_vfo = g_rx_vfo;
 
 			RADIO_SetupRegisters(true);
 			BK4819_SetupAircopy();
 			BK4819_ResetFSK();
 
-			gAircopyState = AIRCOPY_READY;
+			g_aircopy_state = AIRCOPY_READY;
 
 			GUI_SelectNextDisplay(DISPLAY_AIRCOPY);
 		}

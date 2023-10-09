@@ -21,25 +21,24 @@
 
 #include "driver/keyboard.h"
 
-enum AIRCOPY_State_t
+enum aircopy_state_e
 {
 	AIRCOPY_READY = 0,
 	AIRCOPY_TRANSFER,
 	AIRCOPY_COMPLETE
 };
+typedef enum aircopy_state_e aircopy_state_t;
 
-typedef enum AIRCOPY_State_t AIRCOPY_State_t;
+extern aircopy_state_t g_aircopy_state;
+extern uint16_t        g_air_copy_block_number;
+extern uint16_t        g_errors_during_air_copyy;
+extern uint8_t         g_air_copy_is_send_mode;
 
-extern AIRCOPY_State_t gAircopyState;
-extern uint16_t        gAirCopyBlockNumber;
-extern uint16_t        gErrorsDuringAirCopy;
-extern uint8_t         gAirCopyIsSendMode;
-
-extern uint16_t        g_FSK_Buffer[36];
+extern uint16_t        g_fsk_buffer[36];
 
 void AIRCOPY_SendMessage(void);
 void AIRCOPY_StorePacket(void);
-void AIRCOPY_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+void AIRCOPY_ProcessKeys(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
 
 #endif
 

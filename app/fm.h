@@ -28,19 +28,19 @@ enum {
 	FM_SCAN_OFF = 0U,
 };
 
-extern uint16_t          gFM_Channels[20];
-extern bool              gFmRadioMode;
-extern uint8_t           gFmRadioCountdown_500ms;
-extern volatile uint16_t gFmPlayCountdown_10ms;
-extern volatile int8_t   gFM_ScanState;
-extern bool              gFM_AutoScan;
-extern uint8_t           gFM_ChannelPosition;
+extern uint16_t          g_fm_channels[20];
+extern bool              g_fm_radio_mode;
+extern uint8_t           g_fm_radio_count_down_500ms;
+extern volatile uint16_t g_fm_play_count_down_10ms;
+extern volatile int8_t   g_fm_scan_state;
+extern bool              g_fm_auto_scan;
+extern uint8_t           g_fm_channel_position;
 // Doubts about          whether this should be signed or not
-extern uint16_t          gFM_FrequencyDeviation;
-extern bool              gFM_FoundFrequency;
-extern bool              gFM_AutoScan;
-extern uint8_t           gFM_ResumeCountdown_500ms;
-extern uint16_t          gFM_RestoreCountdown_10ms;
+extern uint16_t          g_fm_frequency_deviation;
+extern bool              g_fm_found_frequency;
+extern bool              g_fm_auto_scan;
+extern uint8_t           g_fm_resume_count_down_500ms;
+extern uint16_t          g_fm_restore_count_down_10ms;
 
 bool    FM_CheckValidChannel(uint8_t Channel);
 uint8_t FM_FindNextChannel(uint8_t Channel, uint8_t Direction);
@@ -52,7 +52,7 @@ void    FM_Tune(uint16_t Frequency, int8_t Step, bool bFlag);
 void    FM_PlayAndUpdate(void);
 int     FM_CheckFrequencyLock(uint16_t Frequency, uint16_t LowerLimit);
 
-void    FM_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+void    FM_ProcessKeys(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
 
 void    FM_Play(void);
 void    FM_Start(void);

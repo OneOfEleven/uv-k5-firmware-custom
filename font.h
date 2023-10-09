@@ -19,13 +19,13 @@
 
 #include <stdint.h>
 
-//extern const uint8_t gFontBig[95][16];
-extern const uint8_t gFontBig[95][15];
-extern const uint8_t gFontBigDigits[11][26];
-//extern const uint8_t gFontSmallDigits[11][7];
-extern const uint8_t gFontSmall[95][6];
+//extern const uint8_t   g_font_big[95][16];
+extern const uint8_t     g_font_big[95][15];
+extern const uint8_t     g_font_big_digits[11][26];
+//extern const uint8_t   g_font_small_digits[11][7];
+extern const uint8_t     g_font_small[95][6];
 #ifdef ENABLE_SMALL_BOLD
-	extern const uint8_t gFontSmallBold[95][6];
+	extern const uint8_t g_font_small_bold[95][6];
 #endif
 
 #endif

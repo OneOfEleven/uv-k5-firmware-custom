@@ -25,8 +25,8 @@
 #include "driver/system.h"
 #include "misc.h"
 
-uint8_t gStatusLine[128];
-uint8_t gFrameBuffer[7][128];
+uint8_t g_status_line[128];
+uint8_t g_frame_buffer[7][128];
 
 void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const unsigned int Size, const uint8_t *pBitmap)
 {
@@ -68,24 +68,24 @@ void ST7565_BlitFullScreen(void)
 
 	ST7565_WriteByte(0x40);
 
-	for (Line = 0; Line < ARRAY_SIZE(gFrameBuffer); Line++)
+	for (Line = 0; Line < ARRAY_SIZE(g_frame_buffer); Line++)
 	{
 		unsigned int Column;
 		ST7565_SelectColumnAndLine(4, Line + 1);
 		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-		for (Column = 0; Column < ARRAY_SIZE(gFrameBuffer[0]); Column++)
+		for (Column = 0; Column < ARRAY_SIZE(g_frame_buffer[0]); Column++)
 		{
 			while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-			SPI0->WDR = gFrameBuffer[Line][Column];
+			SPI0->WDR = g_frame_buffer[Line][Column];
 		}
 		SPI_WaitForUndocumentedTxFifoStatusBit();
 	}
 
 	#if 0
-		// whats the delay for I wonder ?  .. it slows down scanning :(
+		// whats the delay for I wonder, it holds things up :(
 		SYSTEM_DelayMs(20);
 	#else
-		SYSTEM_DelayMs(1);
+//		SYSTEM_DelayMs(1);
 	#endif
 
 	SPI_ToggleMasterMode(&SPI0->CR, true);
@@ -104,10 +104,10 @@ void ST7565_BlitStatusLine(void)
 
 	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
 
-	for (i = 0; i < ARRAY_SIZE(gStatusLine); i++)
+	for (i = 0; i < ARRAY_SIZE(g_status_line); i++)
 	{
 		while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-		SPI0->WDR = gStatusLine[i];
+		SPI0->WDR = g_status_line[i];
 	}
 
 	SPI_WaitForUndocumentedTxFifoStatusBit();
@@ -119,7 +119,11 @@ void ST7565_FillScreen(uint8_t Value)
 {
 	unsigned int i;
 
+	// reset some of the displays settings to try and overcome the radios hardware problem - RF corrupting the display
+	ST7565_Init(false);
+	
 	SPI_ToggleMasterMode(&SPI0->CR, false);
+
 	for (i = 0; i < 8; i++)
 	{
 		unsigned int j;
@@ -132,21 +136,27 @@ void ST7565_FillScreen(uint8_t Value)
 		}
 		SPI_WaitForUndocumentedTxFifoStatusBit();
 	}
+
 	SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
-void ST7565_Init(void)
+void ST7565_Init(const bool full)
 {
-	SPI0_Init();
-
-	ST7565_Configure_GPIO_B11();
-
-	SPI_ToggleMasterMode(&SPI0->CR, false);
-
-	ST7565_WriteByte(0xE2);   // internal reset
-
-	SYSTEM_DelayMs(120);
-
+	if (full)
+	{
+		SPI0_Init();
+	
+		ST7565_HardwareReset();
+	
+		SPI_ToggleMasterMode(&SPI0->CR, false);
+	
+		ST7565_WriteByte(0xE2);   // internal reset
+	
+		SYSTEM_DelayMs(120);
+	}
+	else
+		SPI_ToggleMasterMode(&SPI0->CR, false);
+	
 	ST7565_WriteByte(0xA2);   // bias 9
 	ST7565_WriteByte(0xC0);   // com normal
 	ST7565_WriteByte(0xA1);   // reverse ?
@@ -157,33 +167,39 @@ void ST7565_Init(void)
 	ST7565_WriteByte(0xA4);   // all points normal
 	ST7565_WriteByte(0x24);   //
 	ST7565_WriteByte(0x81);   // volume first ?
+
 	ST7565_WriteByte(0x1f);   // contrast ?
-	ST7565_WriteByte(0x2B);   // power control ?
 
-	SYSTEM_DelayMs(1);
-
-	ST7565_WriteByte(0x2E);   // power control ?
-
-	SYSTEM_DelayMs(1);
-
-	ST7565_WriteByte(0x2F);   //
-	ST7565_WriteByte(0x2F);   //
-	ST7565_WriteByte(0x2F);   //
-	ST7565_WriteByte(0x2F);   //
-
-	SYSTEM_DelayMs(40);
-
+	if (full)
+	{
+		ST7565_WriteByte(0x2B);   // power control ?
+	
+		SYSTEM_DelayMs(1);
+	
+		ST7565_WriteByte(0x2E);   // power control ?
+	
+		SYSTEM_DelayMs(1);
+	
+		ST7565_WriteByte(0x2F);   //
+		ST7565_WriteByte(0x2F);   //
+		ST7565_WriteByte(0x2F);   //
+		ST7565_WriteByte(0x2F);   //
+	
+		SYSTEM_DelayMs(40);
+	}
+	
 	ST7565_WriteByte(0x40);   // start line ?
 	ST7565_WriteByte(0xAF);   // display on ?
-
+	
 	SPI_WaitForUndocumentedTxFifoStatusBit();
 
 	SPI_ToggleMasterMode(&SPI0->CR, true);
 
-	ST7565_FillScreen(0x00);
+	if (full)
+		ST7565_FillScreen(0x00);
 }
 
-void ST7565_Configure_GPIO_B11(void)
+void ST7565_HardwareReset(void)
 {
 	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_RES);
 	SYSTEM_DelayMs(1);

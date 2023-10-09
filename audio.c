@@ -59,18 +59,18 @@
 		0x41, 0x32, 0x3C, 0x37,
 	};
 	
-	VOICE_ID_t        gVoiceID[8];
-	uint8_t           gVoiceReadIndex;
-	uint8_t           gVoiceWriteIndex;
-	volatile uint16_t gCountdownToPlayNextVoice_10ms;
-	volatile bool     gFlagPlayQueuedVoice;
-	VOICE_ID_t        gAnotherVoiceID = VOICE_ID_INVALID;
+	voice_id_t        g_voice_id[8];
+	uint8_t           g_voice_read_index;
+	uint8_t           g_voice_write_index;
+	volatile uint16_t g_count_down_to_play_next_voice_10ms;
+	volatile bool     g_flag_play_queued_voice;
+	voice_id_t        g_another_voice_id = VOICE_ID_INVALID;
 	
 #endif
 
-BEEP_Type_t gBeepToPlay = BEEP_NONE;
+beep_type_t g_beep_to_play = BEEP_NONE;
 
-void AUDIO_PlayBeep(BEEP_Type_t Beep)
+void AUDIO_PlayBeep(beep_type_t Beep)
 {
 	uint16_t ToneConfig;
 	uint16_t ToneFrequency;
@@ -81,29 +81,29 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	    Beep != BEEP_440HZ_500MS &&
 	    Beep != BEEP_880HZ_200MS &&
 	    Beep != BEEP_880HZ_500MS &&
-	   !gEeprom.BEEP_CONTROL)
+	   !g_eeprom.beep_control)
 		return;
 
 	#ifdef ENABLE_AIRCOPY
-		if (gScreenToDisplay == DISPLAY_AIRCOPY)
+		if (g_screen_to_display == DISPLAY_AIRCOPY)
 			return;
 	#endif
 	
-	if (gCurrentFunction == FUNCTION_RECEIVE)
+	if (g_current_function == FUNCTION_RECEIVE)
 		return;
 
-	if (gCurrentFunction == FUNCTION_MONITOR)
+	if (g_current_function == FUNCTION_MONITOR)
 		return;
 
 	ToneConfig = BK4819_ReadRegister(BK4819_REG_71);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
-	if (gCurrentFunction == FUNCTION_POWER_SAVE && gRxIdleMode)
+	if (g_current_function == FUNCTION_POWER_SAVE && g_rx_idle_mode)
 		BK4819_RX_TurnOn();
 
 	#ifdef ENABLE_FMRADIO
-		if (gFmRadioMode)
+		if (g_fm_radio_mode)
 			BK1080_Mute(true);
 	#endif
 	
@@ -141,6 +141,9 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
 	SYSTEM_DelayMs(60);
+
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
 	switch (Beep)
 	{
@@ -181,28 +184,32 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 			break;
 	}
 
+	#pragma GCC diagnostic pop
+
 	SYSTEM_DelayMs(Duration);
 	BK4819_EnterTxMute();
 	SYSTEM_DelayMs(20);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
-	gVoxResumeCountdown = 80;
+	#ifdef ENABLE_VOX
+		g_vox_resume_count_down = 80;
+	#endif
 
 	SYSTEM_DelayMs(5);
 	BK4819_TurnsOffTones_TurnsOnRX();
 	SYSTEM_DelayMs(5);
 	BK4819_WriteRegister(BK4819_REG_71, ToneConfig);
 
-	if (gEnableSpeaker)
+	if (g_enable_speaker)
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
 	#ifdef ENABLE_FMRADIO
-		if (gFmRadioMode)
+		if (g_fm_radio_mode)
 			BK1080_Mute(false);
 	#endif
 	
-	if (gCurrentFunction == FUNCTION_POWER_SAVE && gRxIdleMode)
+	if (g_current_function == FUNCTION_POWER_SAVE && g_rx_idle_mode)
 		BK4819_Sleep();
 }
 
@@ -232,16 +239,16 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 		}
 	}
 	
-	void AUDIO_PlaySingleVoice(bool bFlag)
+	void AUDIO_PlaySingleVoice(bool flag)
 	{
 		uint8_t VoiceID;
 		uint8_t Delay;
 	
-		VoiceID = gVoiceID[0];
+		VoiceID = g_voice_id[0];
 	
-		if (gEeprom.VOICE_PROMPT != VOICE_PROMPT_OFF && gVoiceWriteIndex > 0)
+		if (g_eeprom.voice_prompt != VOICE_PROMPT_OFF && g_voice_write_index > 0)
 		{
-			if (gEeprom.VOICE_PROMPT == VOICE_PROMPT_CHINESE)
+			if (g_eeprom.voice_prompt == VOICE_PROMPT_CHINESE)
 			{	// Chinese
 				if (VoiceID >= ARRAY_SIZE(VoiceClipLengthChinese))
 					goto Bailout;
@@ -258,73 +265,81 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 				VoiceID += VOICE_ID_ENG_BASE;
 			}
 	
-			if (gCurrentFunction == FUNCTION_RECEIVE ||
-			    gCurrentFunction == FUNCTION_MONITOR ||
-			    gCurrentFunction == FUNCTION_INCOMING)   // 1of11
+			if (g_current_function == FUNCTION_RECEIVE ||
+			    g_current_function == FUNCTION_MONITOR ||
+			    g_current_function == FUNCTION_INCOMING)   // 1of11
 				BK4819_SetAF(BK4819_AF_MUTE);
 	
 			#ifdef ENABLE_FMRADIO
-				if (gFmRadioMode)
+				if (g_fm_radio_mode)
 					BK1080_Mute(true);
 			#endif
 			
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-			gVoxResumeCountdown = 2000;
+
+			#ifdef ENABLE_VOX
+				g_vox_resume_count_down = 2000;
+			#endif
+			
 			SYSTEM_DelayMs(5);
 			AUDIO_PlayVoice(VoiceID);
 	
-			if (gVoiceWriteIndex == 1)
+			if (g_voice_write_index == 1)
 				Delay += 3;
 	
-			if (bFlag)
+			if (flag)
 			{
 				SYSTEM_DelayMs(Delay * 10);
 	
-				if (gCurrentFunction == FUNCTION_RECEIVE ||
-				    gCurrentFunction == FUNCTION_MONITOR ||
-					gCurrentFunction == FUNCTION_INCOMING)	// 1of11
-					BK4819_SetAF(gRxVfo->AM_mode ? BK4819_AF_AM : BK4819_AF_OPEN);
+				if (g_current_function == FUNCTION_RECEIVE ||
+				    g_current_function == FUNCTION_MONITOR ||
+					g_current_function == FUNCTION_INCOMING)	// 1of11
+					BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	
 				#ifdef ENABLE_FMRADIO
-					if (gFmRadioMode)
+					if (g_fm_radio_mode)
 						BK1080_Mute(false);
 				#endif
 				
-				if (!gEnableSpeaker)
+				if (!g_enable_speaker)
 					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 	
-				gVoiceWriteIndex    = 0;
-				gVoiceReadIndex     = 0;
-				gVoxResumeCountdown = 80;
+				g_voice_write_index    = 0;
+				g_voice_read_index     = 0;
+	
+				#ifdef ENABLE_VOX
+					g_vox_resume_count_down = 80;
+				#endif
+					
 				return;
 			}
 	
-			gVoiceReadIndex                = 1;
-			gCountdownToPlayNextVoice_10ms = Delay;
-			gFlagPlayQueuedVoice           = false;
+			g_voice_read_index                = 1;
+			g_count_down_to_play_next_voice_10ms = Delay;
+			g_flag_play_queued_voice           = false;
 	
 			return;
 		}
 	
 	Bailout:
-		gVoiceReadIndex  = 0;
-		gVoiceWriteIndex = 0;
+		g_voice_read_index  = 0;
+		g_voice_write_index = 0;
 	}
 	
-	void AUDIO_SetVoiceID(uint8_t Index, VOICE_ID_t VoiceID)
+	void AUDIO_SetVoiceID(uint8_t Index, voice_id_t VoiceID)
 	{
-		if (Index >= ARRAY_SIZE(gVoiceID))
+		if (Index >= ARRAY_SIZE(g_voice_id))
 			return;
 	
 		if (Index == 0)
 		{
-			gVoiceWriteIndex = 0;
-			gVoiceReadIndex  = 0;
+			g_voice_write_index = 0;
+			g_voice_read_index  = 0;
 		}
 	
-		gVoiceID[Index] = VoiceID;
+		g_voice_id[Index] = VoiceID;
 	
-		gVoiceWriteIndex++;
+		g_voice_write_index++;
 	}
 	
 	uint8_t AUDIO_SetDigitVoice(uint8_t Index, uint16_t Value)
@@ -335,8 +350,8 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	
 		if (Index == 0)
 		{
-			gVoiceWriteIndex = 0;
-			gVoiceReadIndex  = 0;
+			g_voice_write_index = 0;
+			g_voice_read_index  = 0;
 		}
 	
 		Count     = 0;
@@ -350,17 +365,17 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 		else
 		{
 			Result = Remainder / 100U;
-			gVoiceID[gVoiceWriteIndex++] = (VOICE_ID_t)Result;
+			g_voice_id[g_voice_write_index++] = (voice_id_t)Result;
 			Count++;
 			Remainder -= Result * 100U;
 		}
 		Result = Remainder / 10U;
-		gVoiceID[gVoiceWriteIndex++] = (VOICE_ID_t)Result;
+		g_voice_id[g_voice_write_index++] = (voice_id_t)Result;
 		Count++;
 		Remainder -= Result * 10U;
 	
 	Skip:
-		gVoiceID[gVoiceWriteIndex++] = (VOICE_ID_t)Remainder;
+		g_voice_id[g_voice_write_index++] = (voice_id_t)Remainder;
 	
 		return Count + 1U;
 	}
@@ -373,10 +388,10 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 	
 		Skip = false;
 	
-		if (gVoiceReadIndex != gVoiceWriteIndex && gEeprom.VOICE_PROMPT != VOICE_PROMPT_OFF)
+		if (g_voice_read_index != g_voice_write_index && g_eeprom.voice_prompt != VOICE_PROMPT_OFF)
 		{
-			VoiceID = gVoiceID[gVoiceReadIndex];
-			if (gEeprom.VOICE_PROMPT == VOICE_PROMPT_CHINESE)
+			VoiceID = g_voice_id[g_voice_read_index];
+			if (g_eeprom.voice_prompt == VOICE_PROMPT_CHINESE)
 			{
 				if (VoiceID < ARRAY_SIZE(VoiceClipLengthChinese))
 				{
@@ -397,39 +412,45 @@ void AUDIO_PlayBeep(BEEP_Type_t Beep)
 					Skip = true;
 			}
 	
-			gVoiceReadIndex++;
+			g_voice_read_index++;
 	
 			if (!Skip)
 			{
-				if (gVoiceReadIndex == gVoiceWriteIndex)
+				if (g_voice_read_index == g_voice_write_index)
 					Delay += 3;
 	
 				AUDIO_PlayVoice(VoiceID);
 				
-				gCountdownToPlayNextVoice_10ms = Delay;
-				gFlagPlayQueuedVoice           = false;
-				gVoxResumeCountdown            = 2000;
+				g_count_down_to_play_next_voice_10ms = Delay;
+				g_flag_play_queued_voice           = false;
+
+				#ifdef ENABLE_VOX
+					g_vox_resume_count_down = 2000;
+				#endif
 	
 				return;
 			}
 		}
 	
-		if (gCurrentFunction == FUNCTION_RECEIVE ||
-		    gCurrentFunction == FUNCTION_MONITOR ||
-		    gCurrentFunction == FUNCTION_INCOMING)    // 1of11
-			BK4819_SetAF(gRxVfo->AM_mode ? BK4819_AF_AM : BK4819_AF_OPEN);
+		if (g_current_function == FUNCTION_RECEIVE ||
+		    g_current_function == FUNCTION_MONITOR ||
+		    g_current_function == FUNCTION_INCOMING)    // 1of11
+			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	
 		#ifdef ENABLE_FMRADIO
-			if (gFmRadioMode)
+			if (g_fm_radio_mode)
 				BK1080_Mute(false);
 		#endif
 		
-		if (!gEnableSpeaker)
+		if (!g_enable_speaker)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 	
-		gVoxResumeCountdown = 80;
-		gVoiceWriteIndex    = 0;
-		gVoiceReadIndex     = 0;
+		#ifdef ENABLE_VOX
+			g_vox_resume_count_down = 80;
+		#endif
+		
+		g_voice_write_index    = 0;
+		g_voice_read_index     = 0;
 	}
 
 #endif

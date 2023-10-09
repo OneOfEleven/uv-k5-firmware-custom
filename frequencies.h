@@ -19,8 +19,6 @@
 
 #include <stdint.h>
 
-#define ENABLE_12_5KHZ_STEP
-
 typedef struct {
 	const uint32_t lower;
 	const uint32_t upper;
@@ -29,7 +27,7 @@ typedef struct {
 extern const freq_band_table_t BX4819_band1;
 extern const freq_band_table_t BX4819_band2;
 
-extern const freq_band_table_t frequencyBandTable[7];
+extern const freq_band_table_t FREQ_BAND_TABLE[7];
 
 enum FREQUENCY_Band_t {
 	BAND_NONE   = -1,
@@ -43,9 +41,20 @@ enum FREQUENCY_Band_t {
 };
 typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
 
-#ifndef ENABLE_12_5KHZ_STEP
+#ifdef ENABLE_1250HZ_STEP
+	// includes 1.25kHz step
+	enum step_setting_t {
+		STEP_1_25kHz = 0,
+		STEP_2_5kHz,
+		STEP_6_25kHz,
+		STEP_10_0kHz,
+		STEP_12_5kHz,
+		STEP_25_0kHz,
+		STEP_8_33kHz
+};
+#else
 	// QS steps
-	enum STEP_Setting_t {
+	enum step_setting_t {
 		STEP_2_5kHz = 0,
 		STEP_5_0kHz,
 		STEP_6_25kHz,
@@ -54,21 +63,10 @@ typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
 		STEP_25_0kHz,
 		STEP_8_33kHz
 	};
-#else
-	// includes 1.25kHz step
-	enum STEP_Setting_t {
-		STEP_1_25kHz = 0,
-		STEP_2_5kHz,
-		STEP_6_25kHz,
-		STEP_10_0kHz,
-		STEP_12_5kHz,
-		STEP_25_0kHz,
-		STEP_8_33kHz
-	};
 #endif
-typedef enum STEP_Setting_t STEP_Setting_t;
+typedef enum step_setting_t step_setting_t;
 
-extern const uint16_t     StepFrequencyTable[7];
+extern const uint16_t     STEP_FREQ_TABLE[7];
 
 #ifdef ENABLE_NOAA
 	extern const uint32_t NoaaFrequencyTable[10];

@@ -34,11 +34,51 @@
 #include "settings.h"
 #include "ui/inputbox.h"
 #include "ui/ui.h"
+#ifdef ENABLE_SPECTRUM
+//	#include "app/spectrum.h"
+#endif
 
-static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
+void toggle_chan_scanlist(void)
+{	// toggle the selected channels scanlist setting
+
+	if (g_screen_to_display == DISPLAY_SCANNER || !IS_USER_CHANNEL(g_tx_vfo->channel_save))
+		return;
+
+	if (g_tx_vfo->scanlist_1_participation)
+	{
+		if (g_tx_vfo->scanlist_2_participation)
+			g_tx_vfo->scanlist_1_participation = 0;
+		else
+			g_tx_vfo->scanlist_2_participation = 1;
+	}
+	else
+	{
+		if (g_tx_vfo->scanlist_2_participation)
+			g_tx_vfo->scanlist_2_participation = 0;
+		else
+			g_tx_vfo->scanlist_1_participation = 1;
+	}
+
+	SETTINGS_UpdateChannel(g_tx_vfo->channel_save, g_tx_vfo, true);
+
+	g_vfo_configure_mode = VFO_CONFIGURE;
+	g_flag_reset_vfos    = true;
+}
+
+static void processFKeyFunction(const key_code_t Key, const bool beep)
 {
 	uint8_t Band;
-	uint8_t Vfo = gEeprom.TX_CHANNEL;
+	uint8_t Vfo = g_eeprom.tx_vfo;
+
+	if (g_screen_to_display == DISPLAY_MENU)
+	{
+//		if (beep)
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		return;
+	}
+
+//	if (beep)
+		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 	switch (Key)
 	{
@@ -48,160 +88,145 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
 			#else
 
 
-				// TODO: do something useful with the key
+				// TODO: make use of this function key
 
 
 			#endif
 			break;
 
 		case KEY_1:
-			if (!IS_FREQ_CHANNEL(gTxVfo->CHANNEL_SAVE))
+			if (!IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
 			{
-				gWasFKeyPressed = false;
-				gUpdateStatus   = true;
-				gBeepToPlay     = BEEP_1KHZ_60MS_OPTIONAL;
+				g_f_key_was_pressed = false;
+				g_update_status   = true;
+				g_beep_to_play     = BEEP_1KHZ_60MS_OPTIONAL;
 				return;
 			}
 
-			Band = gTxVfo->Band + 1;
-			if (gSetting_350EN || Band != BAND5_350MHz)
+			Band = g_tx_vfo->band + 1;
+			if (g_setting_350_enable || Band != BAND5_350MHz)
 			{
 				if (Band > BAND7_470MHz)
 					Band = BAND1_50MHz;
 			}
 			else
 				Band = BAND6_400MHz;
-			gTxVfo->Band = Band;
+			g_tx_vfo->band = Band;
 
-			gEeprom.ScreenChannel[Vfo] = FREQ_CHANNEL_FIRST + Band;
-			gEeprom.FreqChannel[Vfo]   = FREQ_CHANNEL_FIRST + Band;
+			g_eeprom.screen_channel[Vfo] = FREQ_CHANNEL_FIRST + Band;
+			g_eeprom.freq_channel[Vfo]   = FREQ_CHANNEL_FIRST + Band;
 
-			gRequestSaveVFO            = true;
-			gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
+			g_request_save_vfo            = true;
+			g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
 
-			gRequestDisplayScreen      = DISPLAY_MAIN;
+			g_request_display_screen      = DISPLAY_MAIN;
 
 			if (beep)
-				gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 			break;
 
 		case KEY_2:
-			if (gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_CHAN_A)
-				gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_CHAN_B;
+			if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_A)
+				g_eeprom.cross_vfo_rx_tx = CROSS_BAND_CHAN_B;
 			else
-			if (gEeprom.CROSS_BAND_RX_TX == CROSS_BAND_CHAN_B)
-				gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_CHAN_A;
+			if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_B)
+				g_eeprom.cross_vfo_rx_tx = CROSS_BAND_CHAN_A;
 			else
-			if (gEeprom.DUAL_WATCH == DUAL_WATCH_CHAN_A)
-				gEeprom.DUAL_WATCH = DUAL_WATCH_CHAN_B;
+			if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_A)
+				g_eeprom.dual_watch = DUAL_WATCH_CHAN_B;
 			else
-			if (gEeprom.DUAL_WATCH == DUAL_WATCH_CHAN_B)
-				gEeprom.DUAL_WATCH = DUAL_WATCH_CHAN_A;
+			if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_B)
+				g_eeprom.dual_watch = DUAL_WATCH_CHAN_A;
 			else
-				gEeprom.TX_CHANNEL = (Vfo + 1) & 1u;
+				g_eeprom.tx_vfo = (Vfo + 1) & 1u;
 
-			gRequestSaveSettings  = 1;
-			gFlagReconfigureVfos  = true;
+			g_request_save_settings  = 1;
+			g_flag_reconfigure_vfos  = true;
 
-			gRequestDisplayScreen = DISPLAY_MAIN;
+			g_request_display_screen = DISPLAY_MAIN;
 
 			if (beep)
-				gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 			break;
 
 		case KEY_3:
 			#ifdef ENABLE_NOAA
-				if (gEeprom.VFO_OPEN && IS_NOT_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
+				if (g_eeprom.vfo_open && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 			#else
-				if (gEeprom.VFO_OPEN)
+				if (g_eeprom.vfo_open)
 			#endif
 			{
 				uint8_t Channel;
 
-				if (IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE))
+				if (IS_USER_CHANNEL(g_tx_vfo->channel_save))
 				{	// swap to frequency mode
-					gEeprom.ScreenChannel[Vfo] = gEeprom.FreqChannel[gEeprom.TX_CHANNEL];
+					g_eeprom.screen_channel[Vfo] = g_eeprom.freq_channel[g_eeprom.tx_vfo];
 					#ifdef ENABLE_VOICE
-						gAnotherVoiceID        = VOICE_ID_FREQUENCY_MODE;
+						g_another_voice_id        = VOICE_ID_FREQUENCY_MODE;
 					#endif
-					gRequestSaveVFO            = true;
-					gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
+					g_request_save_vfo            = true;
+					g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
 					break;
 				}
 
-				Channel = RADIO_FindNextChannel(gEeprom.MrChannel[gEeprom.TX_CHANNEL], 1, false, 0);
+				Channel = RADIO_FindNextChannel(g_eeprom.user_channel[g_eeprom.tx_vfo], 1, false, 0);
 				if (Channel != 0xFF)
 				{	// swap to channel mode
-					gEeprom.ScreenChannel[Vfo] = Channel;
+					g_eeprom.screen_channel[Vfo] = Channel;
 					#ifdef ENABLE_VOICE
 						AUDIO_SetVoiceID(0, VOICE_ID_CHANNEL_MODE);
 						AUDIO_SetDigitVoice(1, Channel + 1);
-						gAnotherVoiceID = (VOICE_ID_t)0xFE;
+						g_another_voice_id = (voice_id_t)0xFE;
 					#endif
-					gRequestSaveVFO     = true;
-					gVfoConfigureMode   = VFO_CONFIGURE_RELOAD;
+					g_request_save_vfo     = true;
+					g_vfo_configure_mode   = VFO_CONFIGURE_RELOAD;
 					break;
 				}
 			}
 
 			if (beep)
-				gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 
 			break;
 
 		case KEY_4:
-			gWasFKeyPressed          = false;
-			gFlagStartScan           = true;
-			gScanSingleFrequency     = false;
-			gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
-			gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
-			gUpdateStatus            = true;
+			g_f_key_was_pressed          = false;
+			g_flag_start_scan           = true;
+			g_scan_single_frequency     = false;
+			g_backup_cross_vfo_rx_tx = g_eeprom.cross_vfo_rx_tx;
+			g_eeprom.cross_vfo_rx_tx = CROSS_BAND_OFF;
+			g_update_status            = true;
 
-			if (beep)
-				gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+//			if (beep)
+//				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 			break;
 
 		case KEY_5:
 			#ifdef ENABLE_NOAA
-				if (IS_NOT_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
+
+				if (IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 				{
-					gEeprom.ScreenChannel[Vfo] = gEeprom.NoaaChannel[gEeprom.TX_CHANNEL];
+					g_eeprom.screen_channel[Vfo] = g_eeprom.noaa_channel[g_eeprom.tx_vfo];
 				}
 				else
 				{
-					gEeprom.ScreenChannel[Vfo] = gEeprom.FreqChannel[gEeprom.TX_CHANNEL];
+					g_eeprom.screen_channel[Vfo] = g_eeprom.freq_channel[g_eeprom.tx_vfo];
 					#ifdef ENABLE_VOICE
-						gAnotherVoiceID = VOICE_ID_FREQUENCY_MODE;
+						g_another_voice_id = VOICE_ID_FREQUENCY_MODE;
 					#endif
 				}
-				gRequestSaveVFO   = true;
-				gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
+				g_request_save_vfo   = true;
+				g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
+
 			#else
-				// toggle scanlist-1 and scanlist 2
-				if (gScreenToDisplay != DISPLAY_SCANNER)
-				{
-					if (gTxVfo->SCANLIST1_PARTICIPATION)
-					{
-						if (gTxVfo->SCANLIST2_PARTICIPATION)
-							gTxVfo->SCANLIST1_PARTICIPATION = 0;
-						else
-							gTxVfo->SCANLIST2_PARTICIPATION = 1;
-					}
-					else
-					{
-						if (gTxVfo->SCANLIST2_PARTICIPATION)
-							gTxVfo->SCANLIST2_PARTICIPATION = 0;
-						else
-							gTxVfo->SCANLIST1_PARTICIPATION = 1;
-					}
-					SETTINGS_UpdateChannel(gTxVfo->CHANNEL_SAVE, gTxVfo, true);
-					gVfoConfigureMode = VFO_CONFIGURE;
-					gFlagResetVfos    = true;
-				}
+				#ifdef ENABLE_VOX
+					toggle_chan_scanlist();
+				#endif
 			#endif
+
 			break;
 
 		case KEY_6:
@@ -209,155 +234,150 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
 			break;
 
 		case KEY_7:
-			ACTION_Vox();
+			#ifdef ENABLE_VOX
+				ACTION_Vox();
+			#else
+				toggle_chan_scanlist();
+			#endif
 			break;
 
 		case KEY_8:
-			gTxVfo->FrequencyReverse = gTxVfo->FrequencyReverse == false;
-			gRequestSaveChannel = 1;
+			g_tx_vfo->frequency_reverse = g_tx_vfo->frequency_reverse == false;
+			g_request_save_channel = 1;
 			break;
 
 		case KEY_9:
-			if (RADIO_CheckValidChannel(gEeprom.CHAN_1_CALL, false, 0))
+			if (RADIO_CheckValidChannel(g_eeprom.chan_1_call, false, 0))
 			{
-				gEeprom.MrChannel[Vfo]     = gEeprom.CHAN_1_CALL;
-				gEeprom.ScreenChannel[Vfo] = gEeprom.CHAN_1_CALL;
+				g_eeprom.user_channel[Vfo]     = g_eeprom.chan_1_call;
+				g_eeprom.screen_channel[Vfo] = g_eeprom.chan_1_call;
 				#ifdef ENABLE_VOICE
 					AUDIO_SetVoiceID(0, VOICE_ID_CHANNEL_MODE);
-					AUDIO_SetDigitVoice(1, gEeprom.CHAN_1_CALL + 1);
-					gAnotherVoiceID        = (VOICE_ID_t)0xFE;
+					AUDIO_SetDigitVoice(1, g_eeprom.chan_1_call + 1);
+					g_another_voice_id        = (voice_id_t)0xFE;
 				#endif
-				gRequestSaveVFO            = true;
-				gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
+				g_request_save_vfo            = true;
+				g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
 				break;
 			}
 
 			if (beep)
-				gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			break;
 
 		default:
-			gUpdateStatus   = true;
-			gWasFKeyPressed = false;
+			g_update_status   = true;
+			g_f_key_was_pressed = false;
 
 			if (beep)
-				gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 	}
 }
 
-static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 {
-	if (bKeyHeld)
+	if (key_held)
 	{	// key held down
 
-		#ifdef ENABLE_MAIN_KEY_HOLD
-			if (bKeyPressed)
+		if (key_pressed)
+		{
+			if (g_screen_to_display == DISPLAY_MAIN)
 			{
-				if (gScreenToDisplay == DISPLAY_MAIN)
-				{
-					if (gInputBoxIndex > 0)
-					{	// delete any inputted chars
-						gInputBoxIndex        = 0;
-						gRequestDisplayScreen = DISPLAY_MAIN;
-					}
-
-					gWasFKeyPressed = false;
-					gUpdateStatus   = true;
-
-					processFKeyFunction(Key, false);
+				if (g_input_box_index > 0)
+				{	// delete any inputted chars
+					g_input_box_index        = 0;
+					g_request_display_screen = DISPLAY_MAIN;
 				}
+
+				g_f_key_was_pressed = false;
+				g_update_status   = true;
+
+				processFKeyFunction(Key, false);
 			}
-		#endif
+		}
 
 		return;
 	}
 
-	#ifdef ENABLE_MAIN_KEY_HOLD
-		if (bKeyPressed)
-		{	// key is pressed
-			gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;  // beep when key is pressed
-			return;                                 // don't use the key till it's released
-		}
-	#else
-		if (!bKeyPressed)
-			return;
+	if (key_pressed)
+	{	// key is pressed
+		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;  // beep when key is pressed
+		return;                                 // don't use the key till it's released
+	}
 
-		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-	#endif
-
-	if (!gWasFKeyPressed)
+	if (!g_f_key_was_pressed)
 	{	// F-key wasn't pressed
 
-		const uint8_t Vfo = gEeprom.TX_CHANNEL;
+		const uint8_t Vfo = g_eeprom.tx_vfo;
 
-		gKeyInputCountdown = key_input_timeout_500ms;
+		g_key_input_count_down = key_input_timeout_500ms;
 
 		INPUTBOX_Append(Key);
 
-		gRequestDisplayScreen = DISPLAY_MAIN;
+		g_request_display_screen = DISPLAY_MAIN;
 
-		if (IS_MR_CHANNEL(gTxVfo->CHANNEL_SAVE))
+		if (IS_USER_CHANNEL(g_tx_vfo->channel_save))
 		{	// user is entering channel number
 
 			uint16_t Channel;
 
-			if (gInputBoxIndex != 3)
+			if (g_input_box_index != 3)
 			{
 				#ifdef ENABLE_VOICE
-					gAnotherVoiceID   = (VOICE_ID_t)Key;
+					g_another_voice_id   = (voice_id_t)Key;
 				#endif
-				gRequestDisplayScreen = DISPLAY_MAIN;
+				g_request_display_screen = DISPLAY_MAIN;
 				return;
 			}
 
-			gInputBoxIndex = 0;
+			g_input_box_index = 0;
 
-			Channel = ((gInputBox[0] * 100) + (gInputBox[1] * 10) + gInputBox[2]) - 1;
+			Channel = ((g_input_box[0] * 100) + (g_input_box[1] * 10) + g_input_box[2]) - 1;
 
 			if (!RADIO_CheckValidChannel(Channel, false, 0))
 			{
-				gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 				return;
 			}
 
 			#ifdef ENABLE_VOICE
-				gAnotherVoiceID        = (VOICE_ID_t)Key;
+				g_another_voice_id        = (voice_id_t)Key;
 			#endif
 
-			gEeprom.MrChannel[Vfo]     = (uint8_t)Channel;
-			gEeprom.ScreenChannel[Vfo] = (uint8_t)Channel;
-			gRequestSaveVFO            = true;
-			gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
+			g_eeprom.user_channel[Vfo]     = (uint8_t)Channel;
+			g_eeprom.screen_channel[Vfo] = (uint8_t)Channel;
+			g_request_save_vfo            = true;
+			g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
 
 			return;
 		}
 
 //		#ifdef ENABLE_NOAA
-//			if (IS_NOT_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
+//			if (IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 //		#endif
-		if (IS_FREQ_CHANNEL(gTxVfo->CHANNEL_SAVE))
-		{	// user is entering frequency
+		if (IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
+		{	// user is entering a frequency
 
 			uint32_t Frequency;
 
-			if (gInputBoxIndex < 6)
+			if (g_input_box_index < 6)
 			{
 				#ifdef ENABLE_VOICE
-					gAnotherVoiceID = (VOICE_ID_t)Key;
+					g_another_voice_id = (voice_id_t)Key;
 				#endif
 
 				return;
 			}
 
-			gInputBoxIndex = 0;
+			g_input_box_index = 0;
 
-			NUMBER_Get(gInputBox, &Frequency);
+			NUMBER_Get(g_input_box, &Frequency);
 
 			// clamp the frequency entered to some valid value
-			if (Frequency < frequencyBandTable[0].lower)
+			if (Frequency < FREQ_BAND_TABLE[0].lower)
 			{
-				Frequency = frequencyBandTable[0].lower;
+				Frequency = FREQ_BAND_TABLE[0].lower;
 			}
 			else
 			if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
@@ -366,23 +386,23 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 				Frequency = (Frequency < center) ? BX4819_band1.upper : BX4819_band2.lower;
 			}
 			else
-			if (Frequency > frequencyBandTable[ARRAY_SIZE(frequencyBandTable) - 1].upper)
+			if (Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
 			{
-				Frequency = frequencyBandTable[ARRAY_SIZE(frequencyBandTable) - 1].upper;
+				Frequency = FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper;
 			}
 
 			{
 				const FREQUENCY_Band_t band = FREQUENCY_GetBand(Frequency);
 
 				#ifdef ENABLE_VOICE
-					gAnotherVoiceID = (VOICE_ID_t)Key;
+					g_another_voice_id = (voice_id_t)Key;
 				#endif
 
-				if (gTxVfo->Band != band)
+				if (g_tx_vfo->band != band)
 				{
-					gTxVfo->Band               = band;
-					gEeprom.ScreenChannel[Vfo] = band + FREQ_CHANNEL_FIRST;
-					gEeprom.FreqChannel[Vfo]   = band + FREQ_CHANNEL_FIRST;
+					g_tx_vfo->band               = band;
+					g_eeprom.screen_channel[Vfo] = band + FREQ_CHANNEL_FIRST;
+					g_eeprom.freq_channel[Vfo]   = band + FREQ_CHANNEL_FIRST;
 
 					SETTINGS_SaveVfoIndices();
 
@@ -390,97 +410,97 @@ static void MAIN_Key_DIGITS(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 				}
 
 //				Frequency += 75;                        // is this meant to be rounding ?
-				Frequency += gTxVfo->StepFrequency / 2; // no idea, but this is
+				Frequency += g_tx_vfo->step_freq / 2; // no idea, but this is
 
-				Frequency = FREQUENCY_FloorToStep(Frequency, gTxVfo->StepFrequency, frequencyBandTable[gTxVfo->Band].lower);
+				Frequency = FREQUENCY_FloorToStep(Frequency, g_tx_vfo->step_freq, FREQ_BAND_TABLE[g_tx_vfo->band].lower);
 
 				if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
 				{	// clamp the frequency to the limit
 					const uint32_t center = (BX4819_band1.upper + BX4819_band2.lower) / 2;
-					Frequency = (Frequency < center) ? BX4819_band1.upper - gTxVfo->StepFrequency : BX4819_band2.lower;
+					Frequency = (Frequency < center) ? BX4819_band1.upper - g_tx_vfo->step_freq : BX4819_band2.lower;
 				}
 
-				gTxVfo->freq_config_RX.Frequency = Frequency;
+				g_tx_vfo->freq_config_rx.frequency = Frequency;
 
-				gRequestSaveChannel = 1;
+				g_request_save_channel = 1;
 				return;
 			}
 
 		}
 		#ifdef ENABLE_NOAA
 			else
-			if (IS_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
+			if (IS_NOAA_CHANNEL(g_tx_vfo->channel_save))
 			{	// user is entering NOAA channel
 
 				uint8_t Channel;
 
-				if (gInputBoxIndex != 2)
+				if (g_input_box_index != 2)
 				{
 					#ifdef ENABLE_VOICE
-						gAnotherVoiceID   = (VOICE_ID_t)Key;
+						g_another_voice_id   = (voice_id_t)Key;
 					#endif
-					gRequestDisplayScreen = DISPLAY_MAIN;
+					g_request_display_screen = DISPLAY_MAIN;
 					return;
 				}
 
-				gInputBoxIndex = 0;
+				g_input_box_index = 0;
 
-				Channel = (gInputBox[0] * 10) + gInputBox[1];
+				Channel = (g_input_box[0] * 10) + g_input_box[1];
 				if (Channel >= 1 && Channel <= ARRAY_SIZE(NoaaFrequencyTable))
 				{
 					Channel                   += NOAA_CHANNEL_FIRST;
 					#ifdef ENABLE_VOICE
-						gAnotherVoiceID        = (VOICE_ID_t)Key;
+						g_another_voice_id        = (voice_id_t)Key;
 					#endif
-					gEeprom.NoaaChannel[Vfo]   = Channel;
-					gEeprom.ScreenChannel[Vfo] = Channel;
-					gRequestSaveVFO            = true;
-					gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
+					g_eeprom.noaa_channel[Vfo]   = Channel;
+					g_eeprom.screen_channel[Vfo] = Channel;
+					g_request_save_vfo            = true;
+					g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
 					return;
 				}
 			}
 		#endif
 
-		gRequestDisplayScreen = DISPLAY_MAIN;
-		gBeepToPlay           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		g_request_display_screen = DISPLAY_MAIN;
+		g_beep_to_play           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
 
-	gWasFKeyPressed = false;
-	gUpdateStatus   = true;
+	g_f_key_was_pressed = false;
+	g_update_status   = true;
 
 	processFKeyFunction(Key, true);
 }
 
-static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
+static void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 {
-	if (!bKeyHeld && bKeyPressed)
+	if (!key_held && key_pressed)
 	{	// exit key pressed
 
-		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
-		if (gDTMF_CallState != DTMF_CALL_STATE_NONE && gCurrentFunction != FUNCTION_TRANSMIT)
+		if (g_dtmf_call_state != DTMF_CALL_STATE_NONE && g_current_function != FUNCTION_TRANSMIT)
 		{	// clear CALL mode being displayed
-			gDTMF_CallState = DTMF_CALL_STATE_NONE;
-			gUpdateDisplay  = true;
+			g_dtmf_call_state = DTMF_CALL_STATE_NONE;
+			g_update_display  = true;
 			return;
 		}
 
 		#ifdef ENABLE_FMRADIO
-			if (!gFmRadioMode)
+			if (!g_fm_radio_mode)
 		#endif
 		{
-			if (gScanState == SCAN_OFF)
+			if (g_scan_state_dir == SCAN_OFF)
 			{
-				if (gInputBoxIndex == 0)
+				if (g_input_box_index == 0)
 					return;
-				gInputBox[--gInputBoxIndex] = 10;
+				g_input_box[--g_input_box_index] = 10;
 
-				gKeyInputCountdown = key_input_timeout_500ms;
+				g_key_input_count_down = key_input_timeout_500ms;
 
 				#ifdef ENABLE_VOICE
-					if (gInputBoxIndex == 0)
-						gAnotherVoiceID = VOICE_ID_CANCEL;
+					if (g_input_box_index == 0)
+						g_another_voice_id = VOICE_ID_CANCEL;
 				#endif
 			}
 			else
@@ -488,11 +508,11 @@ static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 				SCANNER_Stop();
 
 				#ifdef ENABLE_VOICE
-					gAnotherVoiceID = VOICE_ID_SCANNING_STOP;
+					g_another_voice_id = VOICE_ID_SCANNING_STOP;
 				#endif
 			}
 
-			gRequestDisplayScreen = DISPLAY_MAIN;
+			g_request_display_screen = DISPLAY_MAIN;
 			return;
 		}
 
@@ -503,219 +523,213 @@ static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
 		return;
 	}
 
-	if (bKeyHeld && bKeyPressed)
+	if (key_held && key_pressed)
 	{	// exit key held down
 
-		if (gInputBoxIndex > 0)
+		if (g_input_box_index > 0 || g_dtmf_input_box_index > 0 || g_dtmf_input_mode)
 		{	// cancel key input mode (channel/frequency entry)
-			gDTMF_InputMode       = false;
-			gDTMF_InputIndex      = 0;
-			memset(gDTMF_String, 0, sizeof(gDTMF_String));
-			gInputBoxIndex        = 0;
-			gRequestDisplayScreen = DISPLAY_MAIN;
-			gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
+			g_dtmf_input_mode       = false;
+			g_dtmf_input_box_index  = 0;
+			memset(g_dtmf_string, 0, sizeof(g_dtmf_string));
+			g_input_box_index        = 0;
+			g_request_display_screen = DISPLAY_MAIN;
+			g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
 		}
 	}
 }
 
-static void MAIN_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
+static void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 {
-	if (bKeyHeld)
+	if (key_pressed && !key_held)
+		// menu key pressed
+		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+
+	if (key_held)
 	{	// menu key held down (long press)
 
-		if (bKeyPressed)
+		if (key_pressed)
 		{	// long press MENU key
 
-			if (gScreenToDisplay == DISPLAY_MAIN)
+			g_f_key_was_pressed = false;
+
+			if (g_screen_to_display == DISPLAY_MAIN)
 			{
-				if (gInputBoxIndex > 0)
+				if (g_input_box_index > 0)
 				{	// delete any inputted chars
-					gInputBoxIndex        = 0;
-					gRequestDisplayScreen = DISPLAY_MAIN;
+					g_input_box_index        = 0;
+					g_request_display_screen = DISPLAY_MAIN;
 				}
 
-				gWasFKeyPressed = false;
-				gUpdateStatus   = true;
+				g_f_key_was_pressed = false;
+				g_update_status   = true;
 
 				#ifdef ENABLE_COPY_CHAN_TO_VFO
-				if (gEeprom.VFO_OPEN &&
-				    gEeprom.DUAL_WATCH == DUAL_WATCH_OFF &&
-				    gScanState == SCAN_OFF &&
-				    gCssScanMode == CSS_SCAN_MODE_OFF)
-				{	// copy channel to VFO
 
-					int channel  = -1;
-					int vfo      = -1;
-
-					if (IS_FREQ_CHANNEL(gEeprom.ScreenChannel[0]) &&
-						IS_MR_CHANNEL(gEeprom.ScreenChannel[1]))
+					if (g_eeprom.vfo_open && g_css_scan_mode == CSS_SCAN_MODE_OFF)
 					{
-						channel = gEeprom.ScreenChannel[1];
-						vfo     = 0;
+
+						if (g_scan_state_dir != SCAN_OFF)
+						{
+							if (g_current_function != FUNCTION_INCOMING ||
+							    g_rx_reception_mode == RX_MODE_NONE      ||
+								g_scan_pause_delay_in_10ms == 0)
+							{	// scan is running (not paused)
+								return;
+							}
+						}
+
+						const unsigned int vfo = get_RX_VFO();
+
+						if (IS_USER_CHANNEL(g_eeprom.screen_channel[vfo]))
+						{	// copy channel to VFO, then swap to the VFO
+
+							const unsigned int channel = FREQ_CHANNEL_FIRST + g_eeprom.vfo_info[vfo].band;
+
+							g_eeprom.screen_channel[vfo] = channel;
+							g_eeprom.vfo_info[vfo].channel_save = channel;
+							g_eeprom.tx_vfo = vfo;
+
+							RADIO_SelectVfos();
+							RADIO_ApplyOffset(g_rx_vfo);
+							RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
+							RADIO_SetupRegisters(true);
+
+							g_request_save_vfo = true;
+
+							g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+
+							g_update_status  = true;
+							g_update_display = true;
+						}
 					}
 					else
-					if (IS_FREQ_CHANNEL(gEeprom.ScreenChannel[1]) &&
-						IS_MR_CHANNEL(gEeprom.ScreenChannel[0]))
 					{
-						channel = gEeprom.ScreenChannel[0];
-						vfo     = 1;
+						g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 					}
 
-					if (channel >= 0 && vfo >= 0)
-					{	// copy the channel into the VFO
-
-						gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-
-						gEeprom.MrChannel[vfo]     = channel;
-						gEeprom.ScreenChannel[vfo] = channel;
-						RADIO_ConfigureChannel(vfo, VFO_CONFIGURE_RELOAD);
-
-						channel = FREQ_CHANNEL_FIRST + gEeprom.VfoInfo[vfo].Band;
-						gEeprom.MrChannel[vfo]     = channel;
-						gEeprom.ScreenChannel[vfo] = channel;
-						gEeprom.VfoInfo[vfo].CHANNEL_SAVE = channel;
-
-						// swap to the VFO
-						gEeprom.TX_CHANNEL = vfo;
-						gEeprom.RX_CHANNEL = vfo;
-						RADIO_SelectVfos();
-
-						RADIO_ApplyOffset(gRxVfo);
-						RADIO_ConfigureSquelchAndOutputPower(gRxVfo);
-
-						RADIO_SetupRegisters(true);
-
-//						SETTINGS_SaveChannel(gRxVfo->CHANNEL_SAVE, gEeprom.RX_CHANNEL, gRxVfo, 1);
-
-						gUpdateStatus  = true;
-						gUpdateDisplay = true;
-					}
-				}
 				#endif
-
 			}
 		}
 
 		return;
 	}
 
-	if (!bKeyPressed && !gDTMF_InputMode)
+	if (!key_pressed && !g_dtmf_input_mode)
 	{	// menu key released
-		const bool bFlag = (gInputBoxIndex == 0);
-		gInputBoxIndex   = 0;
+		const bool flag = (g_input_box_index == 0);
+		g_input_box_index   = 0;
 
-		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-
-		if (bFlag)
+		if (flag)
 		{
-			gFlagRefreshSetting = true;
-
-			gRequestDisplayScreen = DISPLAY_MENU;
-
+			g_flag_refresh_menu = true;
+			g_request_display_screen = DISPLAY_MENU;
 			#ifdef ENABLE_VOICE
-				gAnotherVoiceID   = VOICE_ID_MENU;
+				g_another_voice_id   = VOICE_ID_MENU;
 			#endif
 		}
 		else
 		{
-			gRequestDisplayScreen = DISPLAY_MAIN;
+			g_request_display_screen = DISPLAY_MAIN;
 		}
 	}
 }
 
-static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
+static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 {
-	if (gInputBoxIndex)
-	{
-		if (!bKeyHeld && bKeyPressed)
-			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+	if (g_current_function == FUNCTION_TRANSMIT)
+		return;
+
+	if (g_input_box_index > 0)
+	{	// entering a frequency or DTMF string
+		if (!key_held && key_pressed)
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
 
-	if (bKeyHeld || !bKeyPressed)
-	{
-		if (bKeyHeld || bKeyPressed)
-		{
-			if (!bKeyHeld)
-				return;
+	if (key_held && !g_f_key_was_pressed)
+	{	// long press .. toggle scanning
+		if (!key_pressed)
+			return; // released
 
-			if (!bKeyPressed)
-				return;
+		ACTION_Scan(false);
 
-			ACTION_Scan(false);
-			return;
-		}
+		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+		return;
+	}
+
+	if (key_pressed)
+	{	// just pressed
+//		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+		g_beep_to_play = BEEP_880HZ_40MS_OPTIONAL;
+		return;
+	}
+
+	// just released
+
+	if (!g_f_key_was_pressed)
+	{	// pressed without the F-key
 
 		#ifdef ENABLE_NOAA
-			if (gScanState == SCAN_OFF && IS_NOT_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
+			if (g_scan_state_dir == SCAN_OFF && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 		#else
-			if (gScanState == SCAN_OFF)
+			if (g_scan_state_dir == SCAN_OFF)
 		#endif
-		{
-			gKeyInputCountdown    = key_input_timeout_500ms;
-			gDTMF_InputMode       = true;
-			memmove(gDTMF_InputBox, gDTMF_String, sizeof(gDTMF_InputBox));
-			gDTMF_InputIndex      = 0;
+		{	// start entering a DTMF string
 
-			gRequestDisplayScreen = DISPLAY_MAIN;
-			return;
+			memmove(g_dtmf_input_box, g_dtmf_string, MIN(sizeof(g_dtmf_input_box), sizeof(g_dtmf_string) - 1));
+			g_dtmf_input_box_index  = 0;
+			g_dtmf_input_mode       = true;
+
+			g_key_input_count_down    = key_input_timeout_500ms;
+
+			g_request_display_screen = DISPLAY_MAIN;
 		}
 	}
 	else
-	{
-		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-		if (!gWasFKeyPressed)
-		{
-			gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-			return;
-		}
-
-		gWasFKeyPressed = false;
-		gUpdateStatus   = true;
+	{	// with the F-key
+		g_f_key_was_pressed = false;
 
 		#ifdef ENABLE_NOAA
-			if (IS_NOT_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE))
+			if (IS_NOAA_CHANNEL(g_tx_vfo->channel_save))
 			{
-				gFlagStartScan           = true;
-				gScanSingleFrequency     = true;
-				gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
-				gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
+				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+				return;
 			}
-			else
-			{
-				gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-			}
-		#else
-			gFlagStartScan           = true;
-			gScanSingleFrequency     = true;
-			gBackupCROSS_BAND_RX_TX  = gEeprom.CROSS_BAND_RX_TX;
-			gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
 		#endif
 
-		gPttWasReleased = true;
+		// scan the CTCSS/DCS code
+		g_flag_start_scan        = true;
+		g_scan_single_frequency  = true;
+		g_backup_cross_vfo_rx_tx = g_eeprom.cross_vfo_rx_tx;
+		g_eeprom.cross_vfo_rx_tx = CROSS_BAND_OFF;
 	}
+
+	g_ptt_was_released = true;
+
+	g_update_status   = true;
 }
 
-static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
+static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 {
-	uint8_t Channel = gEeprom.ScreenChannel[gEeprom.TX_CHANNEL];
+	uint8_t Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
 
-	if (bKeyHeld || !bKeyPressed)
-	{
-		if (gInputBoxIndex > 0)
+	if (key_held || !key_pressed)
+	{	// long press
+
+		if (g_input_box_index > 0)
 			return;
 
-		if (!bKeyPressed)
+		if (!key_pressed)
 		{
-			if (!bKeyHeld)
+			if (!key_held)
 				return;
 
 			if (IS_FREQ_CHANNEL(Channel))
 				return;
 
 			#ifdef ENABLE_VOICE
-				AUDIO_SetDigitVoice(0, gTxVfo->CHANNEL_SAVE + 1);
-				gAnotherVoiceID = (VOICE_ID_t)0xFE;
+				AUDIO_SetDigitVoice(0, g_tx_vfo->channel_save + 1);
+				g_another_voice_id = (voice_id_t)0xFE;
 			#endif
 
 			return;
@@ -723,16 +737,16 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 	}
 	else
 	{
-		if (gInputBoxIndex > 0)
+		if (g_input_box_index > 0)
 		{
-			gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
 		}
 
-		gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 	}
 
-	if (gScanState == SCAN_OFF)
+	if (g_scan_state_dir == SCAN_OFF)
 	{
 		#ifdef ENABLE_NOAA
 			if (IS_NOT_NOAA_CHANNEL(Channel))
@@ -742,17 +756,17 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 
 			if (IS_FREQ_CHANNEL(Channel))
 			{	// step/down in frequency
-				const uint32_t frequency = APP_SetFrequencyByStep(gTxVfo, Direction);
+				const uint32_t frequency = APP_SetFrequencyByStep(g_tx_vfo, Direction);
 
 				if (RX_freq_check(frequency) < 0)
 				{	// frequency not allowed
-					gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+					g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 					return;
 				}
 
-				gTxVfo->freq_config_RX.Frequency = frequency;
+				g_tx_vfo->freq_config_rx.frequency = frequency;
 
-				gRequestSaveChannel = 1;
+				g_request_save_channel = 1;
 				return;
 			}
 
@@ -763,72 +777,69 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 			if (Channel == Next)
 				return;
 
-			gEeprom.MrChannel[gEeprom.TX_CHANNEL]     = Next;
-			gEeprom.ScreenChannel[gEeprom.TX_CHANNEL] = Next;
+			g_eeprom.user_channel[g_eeprom.tx_vfo]   = Next;
+			g_eeprom.screen_channel[g_eeprom.tx_vfo] = Next;
 
-			if (!bKeyHeld)
+			if (!key_held)
 			{
 				#ifdef ENABLE_VOICE
 					AUDIO_SetDigitVoice(0, Next + 1);
-					gAnotherVoiceID = (VOICE_ID_t)0xFE;
+					g_another_voice_id = (voice_id_t)0xFE;
 				#endif
 			}
 		}
 		#ifdef ENABLE_NOAA
 			else
 			{
-				Channel = NOAA_CHANNEL_FIRST + NUMBER_AddWithWraparound(gEeprom.ScreenChannel[gEeprom.TX_CHANNEL] - NOAA_CHANNEL_FIRST, Direction, 0, 9);
-				gEeprom.NoaaChannel[gEeprom.TX_CHANNEL]   = Channel;
-				gEeprom.ScreenChannel[gEeprom.TX_CHANNEL] = Channel;
+				Channel = NOAA_CHANNEL_FIRST + NUMBER_AddWithWraparound(g_eeprom.screen_channel[g_eeprom.tx_vfo] - NOAA_CHANNEL_FIRST, Direction, 0, 9);
+				g_eeprom.noaa_channel[g_eeprom.tx_vfo]   = Channel;
+				g_eeprom.screen_channel[g_eeprom.tx_vfo] = Channel;
 			}
 		#endif
 
-		gRequestSaveVFO   = true;
-		gVfoConfigureMode = VFO_CONFIGURE_RELOAD;
+		g_request_save_vfo   = true;
+		g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 		return;
 	}
 
+	// jump to the next channel
 	CHANNEL_Next(false, Direction);
+	g_scan_pause_delay_in_10ms = 1;
+	g_schedule_scan_listen    = false;
 
-	gPttWasReleased = true;
+	g_ptt_was_released = true;
 }
 
-void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
+void MAIN_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 {
 	#ifdef ENABLE_FMRADIO
-		if (gFmRadioMode && Key != KEY_PTT && Key != KEY_EXIT)
+		if (g_fm_radio_mode && Key != KEY_PTT && Key != KEY_EXIT)
 		{
-			if (!bKeyHeld && bKeyPressed)
-				gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			if (!key_held && key_pressed)
+				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
 		}
 	#endif
 
-	if (gDTMF_InputMode && bKeyPressed)
+	if (g_dtmf_input_mode && key_pressed && !key_held)
 	{
-		if (!bKeyHeld)
-		{
-			const char Character = DTMF_GetCharacter(Key);
-			if (Character != 0xFF)
-			{	// add key to DTMF string
-				DTMF_Append(Character);
-
-				gKeyInputCountdown    = key_input_timeout_500ms;
-
-				gRequestDisplayScreen = DISPLAY_MAIN;
-
-				gPttWasReleased       = true;
-				gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
-				return;
-			}
+		const char Character = DTMF_GetCharacter(Key);
+		if (Character != 0xFF)
+		{	// add key to DTMF string
+			DTMF_Append(Character);
+			g_key_input_count_down   = key_input_timeout_500ms;
+			g_request_display_screen = DISPLAY_MAIN;
+			g_ptt_was_released       = true;
+			g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
+			return;
 		}
 	}
 
 	// TODO: ???
-	if (Key > KEY_PTT)
-	{
-		Key = KEY_SIDE2;
-	}
+//	if (Key > KEY_PTT)
+//	{
+//		Key = KEY_SIDE2;      // what's this doing ???
+//	}
 
 	switch (Key)
 	{
@@ -842,32 +853,32 @@ void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 		case KEY_7:
 		case KEY_8:
 		case KEY_9:
-			MAIN_Key_DIGITS(Key, bKeyPressed, bKeyHeld);
+			MAIN_Key_DIGITS(Key, key_pressed, key_held);
 			break;
 		case KEY_MENU:
-			MAIN_Key_MENU(bKeyPressed, bKeyHeld);
+			MAIN_Key_MENU(key_pressed, key_held);
 			break;
 		case KEY_UP:
-			MAIN_Key_UP_DOWN(bKeyPressed, bKeyHeld, 1);
+			MAIN_Key_UP_DOWN(key_pressed, key_held, 1);
 			break;
 		case KEY_DOWN:
-			MAIN_Key_UP_DOWN(bKeyPressed, bKeyHeld, -1);
+			MAIN_Key_UP_DOWN(key_pressed, key_held, -1);
 			break;
 		case KEY_EXIT:
-			MAIN_Key_EXIT(bKeyPressed, bKeyHeld);
+			MAIN_Key_EXIT(key_pressed, key_held);
 			break;
 		case KEY_STAR:
-			MAIN_Key_STAR(bKeyPressed, bKeyHeld);
+			MAIN_Key_STAR(key_pressed, key_held);
 			break;
 		case KEY_F:
-			GENERIC_Key_F(bKeyPressed, bKeyHeld);
+			GENERIC_Key_F(key_pressed, key_held);
 			break;
 		case KEY_PTT:
-			GENERIC_Key_PTT(bKeyPressed);
+			GENERIC_Key_PTT(key_pressed);
 			break;
 		default:
-			if (!bKeyHeld && bKeyPressed)
-				gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			if (!key_held && key_pressed)
+				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			break;
 	}
 }

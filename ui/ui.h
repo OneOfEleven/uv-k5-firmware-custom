@@ -20,27 +20,25 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-enum GUI_DisplayType_t
+enum gui_display_type_e
 {
 	DISPLAY_MAIN = 0,
 	DISPLAY_FM,
 	DISPLAY_MENU,
 	DISPLAY_SCANNER,
 	DISPLAY_AIRCOPY,
-	DISPLAY_INVALID = 0xFFu
+	DISPLAY_INVALID     // 0xff
 };
+typedef enum gui_display_type_e gui_display_type_t;
 
-typedef enum GUI_DisplayType_t GUI_DisplayType_t;
-
-extern GUI_DisplayType_t gScreenToDisplay;
-extern GUI_DisplayType_t gRequestDisplayScreen;
-
-extern uint8_t           gAskForConfirmation;
-extern bool              gAskToSave;
-extern bool              gAskToDelete;
+extern gui_display_type_t g_screen_to_display;
+extern gui_display_type_t g_request_display_screen;
+extern uint8_t            g_ask_for_confirmation;
+extern bool               g_ask_to_save;
+extern bool               g_ask_to_delete;
 
 void GUI_DisplayScreen(void);
-void GUI_SelectNextDisplay(GUI_DisplayType_t Display);
+void GUI_SelectNextDisplay(gui_display_type_t Display);
 
 #endif
 

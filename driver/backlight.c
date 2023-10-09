@@ -20,41 +20,41 @@
 #include "settings.h"
 
 // this is decremented once every 500ms
-uint16_t gBacklightCountdown = 0;
+uint16_t g_backlight_count_down = 0;
 
-void BACKLIGHT_TurnOn(void)
+void backlight_turn_on(void)
 {
-	if (gEeprom.BACKLIGHT == 0)
+	if (g_eeprom.backlight == 0)
 		return;
 
 	// turn the backlight ON
 	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 		
-	switch (gEeprom.BACKLIGHT)
+	switch (g_eeprom.backlight)
 	{
 		default:
 		case 1:	// 5 sec
-			gBacklightCountdown = 5;
+			g_backlight_count_down = 5;
 			break;
 		case 2:	// 10 sec
-			gBacklightCountdown = 10;
+			g_backlight_count_down = 10;
 			break;
 		case 3:	// 20 sec
-			gBacklightCountdown = 20;
+			g_backlight_count_down = 20;
 			break;
 		case 4:	// 1 min
-			gBacklightCountdown = 60;
+			g_backlight_count_down = 60;
 			break;
 		case 5:	// 2 min
-			gBacklightCountdown = 60 * 2;
+			g_backlight_count_down = 60 * 2;
 			break;
 		case 6:	// 4 min
-			gBacklightCountdown = 60 * 4;
+			g_backlight_count_down = 60 * 4;
 			break;
 		case 7:	// always on
-			gBacklightCountdown = 0;
+			g_backlight_count_down = 0;
 			break;
 	}
 
-	gBacklightCountdown *= 2;
+	g_backlight_count_down *= 2;
 }

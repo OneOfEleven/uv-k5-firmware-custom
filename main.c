@@ -67,20 +67,22 @@ void Main(void)
 	BOARD_Init();
 	UART_Init();
 
-	boot_counter_10ms = 250;   // 2.5 sec
+	g_boot_counter_10ms = 250;   // 2.5 sec
 
-	UART_Send(UART_Version, strlen(UART_Version));
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_SendText(UART_Version);
+	#endif
 
 	// Not implementing authentic device checks
 
-	memset(&gEeprom, 0, sizeof(gEeprom));
+	memset(&g_eeprom, 0, sizeof(g_eeprom));
 
-	memset(gDTMF_String, '-', sizeof(gDTMF_String));
-	gDTMF_String[sizeof(gDTMF_String) - 1] = 0;
+	memset(g_dtmf_string, '-', sizeof(g_dtmf_string));
+	g_dtmf_string[sizeof(g_dtmf_string) - 1] = 0;
 
 	BK4819_Init();
 
-	BOARD_ADC_GetBatteryInfo(&gBatteryCurrentVoltage, &gBatteryCurrent);
+	BOARD_ADC_GetBatteryInfo(&g_battery_current_voltage, &g_battery_current);
 
 	BOARD_EEPROM_Init();
 
@@ -93,8 +95,8 @@ void Main(void)
 
 	RADIO_SetupRegisters(true);
 
-	for (i = 0; i < ARRAY_SIZE(gBatteryVoltages); i++)
-		BOARD_ADC_GetBatteryInfo(&gBatteryVoltages[i], &gBatteryCurrent);
+	for (i = 0; i < ARRAY_SIZE(g_battery_voltages); i++)
+		BOARD_ADC_GetBatteryInfo(&g_battery_voltages[i], &g_battery_current);
 
 	BATTERY_GetReadings(false);
 
@@ -104,24 +106,15 @@ void Main(void)
 
 	BootMode = BOOT_GetMode();
 
-	// count the number of menu items
-	gMenuListCount = 0;
-	while (MenuList[gMenuListCount].name[0] != '\0')
-		gMenuListCount++;
-	
-	if (BootMode == BOOT_MODE_F_LOCK)
-	{
-		gF_LOCK = true;            // flag to say include the hidden menu items
-	}
-	else
-	{	// hide the hidden menu items
+	g_f_lock = (BootMode == BOOT_MODE_F_LOCK); // flag to say include the hidden menu items
 
-		gMenuListCount -= 9;
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		if (g_f_lock)
+			UART_SendText("boot_f_lock\r\n");
+	#endif
 
-		#ifndef ENABLE_F_CAL_MENU
-			gMenuListCount++;
-		#endif
-	}
+	// sort the menu list
+	UI_SortMenu(!g_f_lock);
 	
 	// wait for user to release all butts before moving on
 	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||
@@ -129,63 +122,65 @@ void Main(void)
 		 BootMode != BOOT_MODE_NORMAL)
 	{	// keys are pressed
 		UI_DisplayReleaseKeys();
-		BACKLIGHT_TurnOn();
+		backlight_turn_on();
 		i = 0;
 		while (i < 50)  // 500ms
 		{
 			i = (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) && KEYBOARD_Poll() == KEY_INVALID) ? i + 1 : 0;
 			SYSTEM_DelayMs(10);
 		}
-		gKeyReading0 = KEY_INVALID;
-		gKeyReading1 = KEY_INVALID;
-		gDebounceCounter = 0;
+		g_key_reading_0 = KEY_INVALID;
+		g_key_reading_1 = KEY_INVALID;
+		g_debounce_counter = 0;
 	}
 
-	if (!gChargingWithTypeC && gBatteryDisplayLevel == 0)
+	if (!g_charging_with_type_c && g_battery_display_level == 0)
 	{
 		FUNCTION_Select(FUNCTION_POWER_SAVE);
 
-		if (gEeprom.BACKLIGHT < (ARRAY_SIZE(gSubMenu_BACKLIGHT) - 1))
+		if (g_eeprom.backlight < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
 			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
 		else
 			GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  	// turn the backlight ON
 
-		gReducedService = true;
+		g_reduced_service = true;
 	}
 	else
 	{
 		UI_DisplayWelcome();
 
-		BACKLIGHT_TurnOn();
+		backlight_turn_on();
 
-		if (gEeprom.POWER_ON_DISPLAY_MODE != POWER_ON_DISPLAY_MODE_NONE)
+		if (g_eeprom.pwr_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
 		{	// 2.55 second boot-up screen
-			while (boot_counter_10ms > 0)
+			while (g_boot_counter_10ms > 0)
 			{
 				if (KEYBOARD_Poll() != KEY_INVALID)
 				{	// halt boot beeps
-					boot_counter_10ms = 0;
+					g_boot_counter_10ms = 0;
 					break;
 				}
 				#ifdef ENABLE_BOOT_BEEPS
-					if ((boot_counter_10ms % 25) == 0)
+					if ((g_boot_counter_10ms % 25) == 0)
 						AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
 				#endif
 			}
 		}
 
-		if (gEeprom.POWER_ON_PASSWORD < 1000000)
-		{
-			bIsInLockScreen = true;
-			UI_DisplayLock();
-			bIsInLockScreen = false;
-		}
+		#ifdef ENABLE_PWRON_PASSWORD
+			if (g_eeprom.power_on_password < 1000000)
+			{
+				g_is_in_lock_screen = true;
+				UI_DisplayLock();
+				g_is_in_lock_screen = false;
+			}
+		#endif
 
 		BOOT_ProcessMode(BootMode);
 
 		GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_VOICE_0);
 
-		gUpdateStatus = true;
+		g_update_status = true;
 
 		#ifdef ENABLE_VOICE
 		{
@@ -193,8 +188,8 @@ void Main(void)
 
 			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
 
-			Channel = gEeprom.ScreenChannel[gEeprom.TX_CHANNEL];
-			if (IS_MR_CHANNEL(Channel))
+			Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
+			if (IS_USER_CHANNEL(Channel))
 			{
 				AUDIO_SetVoiceID(1, VOICE_ID_CHANNEL_MODE);
 				AUDIO_SetDigitVoice(2, Channel + 1);
@@ -218,16 +213,16 @@ void Main(void)
 	{
 		APP_Update();
 
-		if (gNextTimeslice)
+		if (g_next_time_slice)
 		{
 			APP_TimeSlice10ms();
-			gNextTimeslice = false;
+			g_next_time_slice = false;
 		}
 
-		if (gNextTimeslice_500ms)
+		if (g_next_time_slice_500ms)
 		{
 			APP_TimeSlice500ms();
-			gNextTimeslice_500ms = false;
+			g_next_time_slice_500ms = false;
 		}
 	}
 }

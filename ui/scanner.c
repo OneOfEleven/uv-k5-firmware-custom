@@ -16,70 +16,80 @@
 
 #include <stdbool.h>
 #include <string.h>
+
 #include "app/scanner.h"
 #include "dcs.h"
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
+#include "frequencies.h"
 #include "misc.h"
+#include "radio.h"
 #include "ui/helper.h"
 #include "ui/scanner.h"
 
 void UI_DisplayScanner(void)
 {
 	char    String[16];
-	bool    bCentered;
-	uint8_t Start;
+	bool    text_centered = false;
 
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	memset(String, 0, sizeof(String));
-	if (gScanSingleFrequency || (gScanCssState != SCAN_CSS_STATE_OFF && gScanCssState != SCAN_CSS_STATE_FAILED))
-		sprintf(String, "FREQ:%u.%05u", gScanFrequency / 100000, gScanFrequency % 100000);
+	if (g_scan_single_frequency || (gScanCssState != SCAN_CSS_STATE_OFF && gScanCssState != SCAN_CSS_STATE_FAILED))
+	{
+		const uint32_t freq = gScanFrequency;
+		sprintf(String, "FREQ %u.%05u", freq / 100000, freq % 100000);
+	}
 	else
-		strcpy(String, "FREQ:**.*****");
+	{
+		strcpy(String, "FREQ scanning");
+	}
 	UI_PrintString(String, 2, 0, 1, 8);
 
 	memset(String, 0, sizeof(String));
 	if (gScanCssState < SCAN_CSS_STATE_FOUND || !gScanUseCssResult)
-		strcpy(String, "CTC:******");
+		strcpy(String, "CODE scanning");
 	else
 	if (gScanCssResultType == CODE_TYPE_CONTINUOUS_TONE)
-		sprintf(String, "CTC:%u.%uHz", CTCSS_Options[gScanCssResultCode] / 10, CTCSS_Options[gScanCssResultCode] % 10);
+		sprintf(String, " CTC %u.%uHz", CTCSS_OPTIONS[gScanCssResultCode] / 10, CTCSS_OPTIONS[gScanCssResultCode] % 10);
 	else
-		sprintf(String, "DCS:D%03oN", DCS_Options[gScanCssResultCode]);
+		sprintf(String, " DCS D%03oN", DCS_OPTIONS[gScanCssResultCode]);
 	UI_PrintString(String, 2, 0, 3, 8);
 
 	memset(String, 0, sizeof(String));
-	if (gScannerEditState == 2)
+	switch (gScannerEditState)
 	{
-		strcpy(String, "SAVE?");
+		default:
+		case SCAN_EDIT_STATE_NONE:
+			if (gScanCssState < SCAN_CSS_STATE_FOUND)
+			{	// rolling indicator
+				memset(String, 0, sizeof(String));
+				memset(String, '.', 15);
+				String[gScanProgressIndicator % 15] = '#';
+			}
+			else
+			if (gScanCssState == SCAN_CSS_STATE_FOUND)
+			{
+				strcpy(String, "* repeat  M save");
+				text_centered = true;
+			}
+			else
+			{
+				strcpy(String, "SCAN FAIL");
+			}
+			break;
 
-		Start     = 0;
-		bCentered = 1;
-	}
-	else
-	{
-		if (gScannerEditState == 1)
-		{
-			strcpy(String, "SAVE:");
-			UI_GenerateChannelStringEx(String + 5, gShowChPrefix, gScanChannel);
-		}
-		else
-		if (gScanCssState < SCAN_CSS_STATE_FOUND)
-		{
-			strcpy(String, "SCAN");
-			memset(String + 4, '.', (gScanProgressIndicator & 7) + 1);
-		}
-		else
-		if (gScanCssState == SCAN_CSS_STATE_FOUND)
-			strcpy(String, "SCAN CMP.");
-		else
-			strcpy(String, "SCAN FAIL.");
+		case SCAN_EDIT_STATE_BUSY:
+			strcpy(String, "SAVE ");
+			UI_GenerateChannelStringEx(String + 5, g_show_chan_prefix, gScanChannel);
+			break;
 
-		Start     = 2;
-		bCentered = 0;
+		case SCAN_EDIT_STATE_DONE:
+			text_centered = true;
+			strcpy(String, "SAVE ?");
+			break;
 	}
-	UI_PrintString(String, Start, bCentered ? 127 : 0, 5, 8);
+	UI_PrintString(String, text_centered ? 0 : 2, text_centered ? 127 : 0, 5, 8);
 	
 	ST7565_BlitFullScreen();
 }

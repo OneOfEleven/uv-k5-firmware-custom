@@ -14,14 +14,17 @@
  *     limitations under the License.
  */
 
+#include <string.h>
 #include <stdbool.h>
+
 #include "bsp/dp32g030/dma.h"
 #include "bsp/dp32g030/syscon.h"
 #include "bsp/dp32g030/uart.h"
 #include "driver/uart.h"
+#include "external/printf/printf.h"
 
 static bool UART_IsLogEnabled;
-uint8_t UART_DMA_Buffer[256];
+uint8_t     UART_DMA_Buffer[256];
 
 void UART_Init(void)
 {
@@ -33,11 +36,7 @@ void UART_Init(void)
 	Delta = SYSCON_RC_FREQ_DELTA;
 	Positive = (Delta & SYSCON_RC_FREQ_DELTA_RCHF_SIG_MASK) >> SYSCON_RC_FREQ_DELTA_RCHF_SIG_SHIFT;
 	Frequency = (Delta & SYSCON_RC_FREQ_DELTA_RCHF_DELTA_MASK) >> SYSCON_RC_FREQ_DELTA_RCHF_DELTA_SHIFT;
-	if (Positive) {
-		Frequency += 48000000U;
-	} else {
-		Frequency = 48000000U - Frequency;
-	}
+	Frequency  = Positive ? Frequency + 48000000U : 48000000U - Frequency;
 
 	UART1->BAUD = Frequency / 39053U;
 	UART1->CTRL = UART_CTRL_RXEN_BITS_ENABLE | UART_CTRL_TXEN_BITS_ENABLE | UART_CTRL_RXDMAEN_BITS_ENABLE;
@@ -89,16 +88,43 @@ void UART_Send(const void *pBuffer, uint32_t Size)
 	const uint8_t *pData = (const uint8_t *)pBuffer;
 	uint32_t i;
 
-	for (i = 0; i < Size; i++) {
+	for (i = 0; i < Size; i++)
+	{
 		UART1->TDR = pData[i];
-		while ((UART1->IF & UART_IF_TXFIFO_FULL_MASK) != UART_IF_TXFIFO_FULL_BITS_NOT_SET) {
-		}
+		while ((UART1->IF & UART_IF_TXFIFO_FULL_MASK) != UART_IF_TXFIFO_FULL_BITS_NOT_SET) {}
 	}
+}
+
+void UART_SendText(const void *str)
+{
+	if (str)
+		UART_Send(str, strlen(str));
 }
 
 void UART_LogSend(const void *pBuffer, uint32_t Size)
 {
-	if (UART_IsLogEnabled) {
+	if (UART_IsLogEnabled)
 		UART_Send(pBuffer, Size);
-	}
 }
+
+void UART_LogSendText(const void *str)
+{
+	if (UART_IsLogEnabled && str)
+		UART_Send(str, strlen(str));
+}
+
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	void UART_printf(const char *str, ...)
+	{
+		char text[256];
+		int  len;
+		
+		va_list va;
+		va_start(va, str);
+			len = vsnprintf(text, sizeof(text), str, va);
+		va_end(va);
+	
+		UART_Send(text, len);
+		//UART_Send(text, strlen(text));
+	}
+#endif

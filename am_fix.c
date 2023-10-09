@@ -223,7 +223,7 @@
 
 	#ifdef ENABLE_AM_FIX_TEST1
 		// user manually sets the table index .. used to calibrate the desired dB gain table
-		unsigned int gain_table_index[2] = {1 + gSetting_AM_fix_test1, 1 + gSetting_AM_fix_test1};
+		unsigned int gain_table_index[2] = {1 + g_setting_am_fix_test1, 1 + g_setting_am_fix_test1};
 	#else
 		unsigned int gain_table_index[2] = {original_index, original_index};
 	#endif
@@ -256,7 +256,7 @@
 		for (i = 0; i < 2; i++)
 		{
 			#ifdef ENABLE_AM_FIX_TEST1
-				gain_table_index[i] = 1 + gSetting_AM_fix_test1;
+				gain_table_index[i] = 1 + g_setting_am_fix_test1;
 			#else
 				gain_table_index[i] = original_index;  // re-start with original QS setting
 			#endif
@@ -293,7 +293,7 @@
 		rssi_gain_diff[vfo] = 0;
 
 		#ifdef ENABLE_AM_FIX_TEST1
-//			gain_table_index[vfo] = 1 + gSetting_AM_fix_test1;
+//			gain_table_index[vfo] = 1 + g_setting_am_fix_test1;
 		#else
 //			gain_table_index[vfo] = original_index;  // re-start with original QS setting
 		#endif
@@ -313,7 +313,7 @@
 		int16_t diff_dB;
 		int16_t rssi;
 
-		switch (gCurrentFunction)
+		switch (g_current_function)
 		{
 			case FUNCTION_TRANSMIT:
 			case FUNCTION_BAND_SCOPE:
@@ -337,7 +337,7 @@
 				if (++counter >= display_update_rate)
 				{	// trigger a display update
 					counter        = 0;
-					gUpdateDisplay = true;
+					g_update_display = true;
 				}
 			}
 		#endif
@@ -353,26 +353,26 @@
 		#ifdef ENABLE_AM_FIX_SHOW_DATA
 		{
 			const int16_t new_rssi = rssi - rssi_gain_diff[vfo];
-			if (gCurrentRSSI[vfo] != new_rssi)
+			if (g_current_rssi[vfo] != new_rssi)
 			{
-				gCurrentRSSI[vfo] = new_rssi;
+				g_current_rssi[vfo] = new_rssi;
 		
 				if (counter == 0)
 				{	// trigger a display update
 					counter        = 1;
-					gUpdateDisplay = true;
+					g_update_display = true;
 				}
 			}
 		}
 		#else
-			gCurrentRSSI[vfo] = rssi - rssi_gain_diff[vfo];
+			g_current_rssi[vfo] = rssi - rssi_gain_diff[vfo];
 		#endif
 
 #ifdef ENABLE_AM_FIX_TEST1
 		// user is manually adjusting a gain register - don't do anything automatically
 
 		{
-			int i = 1 + (int)gSetting_AM_fix_test1;
+			int i = 1 + (int)g_setting_am_fix_test1;
 			i = (i < 1) ? 1 : (i > ((int)ARRAY_SIZE(gain_table) - 1) ? ARRAY_SIZE(gain_table) - 1 : i;
 
 			if (gain_table_index[vfo] == i)
@@ -460,13 +460,13 @@
 		}
 
 		// save the corrected RSSI level
-		gCurrentRSSI[vfo] = rssi - rssi_gain_diff[vfo];
+		g_current_rssi[vfo] = rssi - rssi_gain_diff[vfo];
 
 		#ifdef ENABLE_AM_FIX_SHOW_DATA
 			if (counter == 0)
 			{
 				counter        = 1;
-				gUpdateDisplay = true;
+				g_update_display = true;
 			}
 		#endif
 	}
@@ -475,7 +475,7 @@
 
 		void AM_fix_print_data(const int vfo, char *s)
 		{
-			if (s != NULL && vfo >= 0 && vfo < ARRAY_SIZE(gain_table_index))
+			if (s != NULL && vfo >= 0 && vfo < (int)ARRAY_SIZE(gain_table_index))
 			{
 				const unsigned int index = gain_table_index[vfo];
 //				sprintf(s, "%2u.%u %4ddB %3u", index, ARRAY_SIZE(gain_table) - 1, gain_table[index].gain_dB, prev_rssi[vfo]);

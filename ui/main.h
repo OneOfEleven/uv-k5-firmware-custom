@@ -17,8 +17,29 @@
 #ifndef UI_MAIN_H
 #define UI_MAIN_H
 
-void UI_DisplayAudioBar(void);
-void UI_UpdateRSSI(const int16_t rssi, const int vfo);
+enum center_line_e {
+	CENTER_LINE_NONE = 0,
+	CENTER_LINE_IN_USE,
+	CENTER_LINE_TX_TIMEOUT,
+	CENTER_LINE_AUDIO_BAR,
+	CENTER_LINE_RSSI,
+	CENTER_LINE_AM_FIX_DATA,
+	CENTER_LINE_DTMF_DEC,
+	CENTER_LINE_CHARGE_DATA
+};
+typedef enum center_line_e center_line_t;
+
+extern center_line_t center_line;
+
+#ifdef ENABLE_SHOW_TX_TIMEOUT
+	bool UI_DisplayTXCountdown(const bool now);
+#endif
+#ifdef ENABLE_AUDIO_BAR
+	void UI_DisplayAudioBar(void);
+#endif
+#ifdef ENABLE_RSSI_BAR
+	void UI_UpdateRSSI(const int16_t rssi, const int vfo);
+#endif
 void UI_DisplayMain(void);
 
 #endif

@@ -14,6 +14,8 @@
  *     limitations under the License.
  */
 
+#ifdef ENABLE_PWRON_PASSWORD
+
 #include <string.h>
 
 #include "ARMCM0.h"
@@ -32,13 +34,13 @@ static void Render(void)
 	unsigned int i;
 	char         String[7];
 
-	memset(gStatusLine,  0, sizeof(gStatusLine));
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_status_line,  0, sizeof(g_status_line));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	strcpy(String, "LOCK");
 	UI_PrintString(String, 0, 127, 1, 10);
 	for (i = 0; i < 6; i++)
-		String[i] = (gInputBox[i] == 10) ? '-' : '*';
+		String[i] = (g_input_box[i] == 10) ? '-' : '*';
 	String[6] = 0;
 	UI_PrintString(String, 0, 127, 3, 12);
 
@@ -48,34 +50,34 @@ static void Render(void)
 
 void UI_DisplayLock(void)
 {
-	KEY_Code_t  Key;
-	BEEP_Type_t Beep;
+	key_code_t  Key;
+	beep_type_t Beep;
 
-	gUpdateDisplay = true;
+	g_update_display = true;
 
-	memset(gInputBox, 10, sizeof(gInputBox));
+	memset(g_input_box, 10, sizeof(g_input_box));
 
 	while (1)
 	{
-		while (!gNextTimeslice) {}
+		while (!g_next_time_slice) {}
 
 		// TODO: Original code doesn't do the below, but is needed for proper key debounce
 
-		gNextTimeslice = false;
+		g_next_time_slice = false;
 
 		Key = KEYBOARD_Poll();
 
-		if (gKeyReading0 == Key)
+		if (g_key_reading_0 == Key)
 		{
-			if (++gDebounceCounter == key_debounce_10ms)
+			if (++g_debounce_counter == key_debounce_10ms)
 			{
 				if (Key == KEY_INVALID)
 				{
-					gKeyReading1 = KEY_INVALID;
+					g_key_reading_1 = KEY_INVALID;
 				}
 				else
 				{
-					gKeyReading1 = Key;
+					g_key_reading_1 = Key;
 
 					switch (Key)
 					{
@@ -91,7 +93,7 @@ void UI_DisplayLock(void)
 						case KEY_9:
 							INPUTBOX_Append(Key - KEY_0);
 
-							if (gInputBoxIndex < 6)   // 6 frequency digits
+							if (g_input_box_index < 6)   // 6 frequency digits
 							{
 								Beep = BEEP_1KHZ_60MS_OPTIONAL;
 							}
@@ -99,31 +101,31 @@ void UI_DisplayLock(void)
 							{
 								uint32_t Password;
 
-								gInputBoxIndex = 0;
+								g_input_box_index = 0;
 
-								NUMBER_Get(gInputBox, &Password);
+								NUMBER_Get(g_input_box, &Password);
 
-								if ((gEeprom.POWER_ON_PASSWORD * 100) == Password)
+								if ((g_eeprom.power_on_password * 100) == Password)
 								{
 									AUDIO_PlayBeep(BEEP_1KHZ_60MS_OPTIONAL);
 									return;
 								}
 
-								memset(gInputBox, 10, sizeof(gInputBox));
+								memset(g_input_box, 10, sizeof(g_input_box));
 
 								Beep = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 							}
 
 							AUDIO_PlayBeep(Beep);
 
-							gUpdateDisplay = true;
+							g_update_display = true;
 							break;
 
 						case KEY_EXIT:
-							if (gInputBoxIndex > 0)
+							if (g_input_box_index > 0)
 							{
-								gInputBox[--gInputBoxIndex] = 10;
-								gUpdateDisplay = true;
+								g_input_box[--g_input_box_index] = 10;
+								g_update_display = true;
 							}
 
 							AUDIO_PlayBeep(BEEP_1KHZ_60MS_OPTIONAL);
@@ -133,13 +135,13 @@ void UI_DisplayLock(void)
 					}
 				}
 
-				gKeyBeingHeld = false;
+				g_key_being_held = false;
 			}
 		}
 		else
 		{
-			gDebounceCounter = 0;
-			gKeyReading0     = Key;
+			g_debounce_counter = 0;
+			g_key_reading_0     = Key;
 		}
 
 		if (UART_IsCommandAvailable())
@@ -149,10 +151,12 @@ void UI_DisplayLock(void)
 			__enable_irq();
 		}
 
-		if (gUpdateDisplay)
+		if (g_update_display)
 		{
 			Render();
-			gUpdateDisplay = false;
+			g_update_display = false;
 		}
 	}
 }
+
+#endif

@@ -29,8 +29,8 @@
 
 void UI_DisplayReleaseKeys(void)
 {
-	memset(gStatusLine,  0, sizeof(gStatusLine));
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_status_line,  0, sizeof(g_status_line));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	UI_PrintString("RELEASE", 0, 127, 1, 10);
 	UI_PrintString("ALL KEYS", 0, 127, 3, 10);
@@ -45,15 +45,15 @@ void UI_DisplayWelcome(void)
 	char WelcomeString1[16];
 	char WelcomeString2[16];
 	
-	memset(gStatusLine,  0, sizeof(gStatusLine));
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_status_line,  0, sizeof(g_status_line));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
-	if (gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_NONE)
+	if (g_eeprom.pwr_on_display_mode == PWR_ON_DISPLAY_MODE_NONE)
 	{
 		ST7565_FillScreen(0xFF);
 	}
 	else
-	if (gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_FULL_SCREEN)
+	if (g_eeprom.pwr_on_display_mode == PWR_ON_DISPLAY_MODE_FULL_SCREEN)
 	{
 		ST7565_FillScreen(0xFF);
 	}
@@ -63,16 +63,16 @@ void UI_DisplayWelcome(void)
 		memset(WelcomeString1, 0, sizeof(WelcomeString1));
 		memset(WelcomeString2, 0, sizeof(WelcomeString2));
 
-		if (gEeprom.POWER_ON_DISPLAY_MODE == POWER_ON_DISPLAY_MODE_VOLTAGE)
+		if (g_eeprom.pwr_on_display_mode == PWR_ON_DISPLAY_MODE_VOLTAGE)
 		{
 			strcpy(WelcomeString0, "VOLTAGE");
 			sprintf(WelcomeString1, "%u.%02uV %u%%",
-				gBatteryVoltageAverage / 100,
-				gBatteryVoltageAverage % 100,
-				BATTERY_VoltsToPercent(gBatteryVoltageAverage));
+				g_battery_voltage_average / 100,
+				g_battery_voltage_average % 100,
+				BATTERY_VoltsToPercent(g_battery_voltage_average));
 
 			#if 0
-				sprintf(WelcomeString2, "Current %u", gBatteryCurrent);  // needs scaling into mA
+				sprintf(WelcomeString2, "Current %u", g_battery_current);  // needs scaling into mA
 			#endif
 		}
 		else

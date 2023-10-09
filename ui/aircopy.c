@@ -31,32 +31,32 @@ void UI_DisplayAircopy(void)
 {
 	char String[16];
 
-	memset(gFrameBuffer, 0, sizeof(gFrameBuffer));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
-	if (gAircopyState == AIRCOPY_READY)
+	if (g_aircopy_state == AIRCOPY_READY)
 		strcpy(String, "AIR COPY(RDY)");
 	else
-	if (gAircopyState == AIRCOPY_TRANSFER)
+	if (g_aircopy_state == AIRCOPY_TRANSFER)
 		strcpy(String, "AIR COPY");
 	else
 		strcpy(String, "AIR COPY(CMP)");
 	UI_PrintString(String, 2, 127, 0, 8);
 
-	if (gInputBoxIndex == 0)
+	if (g_input_box_index == 0)
 	{
-		NUMBER_ToDigits(gRxVfo->freq_config_RX.Frequency, String);
+		NUMBER_ToDigits(g_rx_vfo->freq_config_rx.frequency, String);
 		UI_DisplayFrequency(String, 16, 2, 0, 0);
-		UI_DisplaySmallDigits(2, String + 6, 97, 3, true);
+		UI_Displaysmall_digits(2, String + 6, 97, 3, true);
 	}
 	else
-		UI_DisplayFrequency(gInputBox, 16, 2, 1, 0);
+		UI_DisplayFrequency(g_input_box, 16, 2, 1, 0);
 
 	memset(String, 0, sizeof(String));
-	if (gAirCopyIsSendMode == 0)
-		sprintf(String, "RCV:%u E:%u", gAirCopyBlockNumber, gErrorsDuringAirCopy);
+	if (g_air_copy_is_send_mode == 0)
+		sprintf(String, "RCV:%u E:%u", g_air_copy_block_number, g_errors_during_air_copyy);
 	else
-	if (gAirCopyIsSendMode == 1)
-		sprintf(String, "SND:%u", gAirCopyBlockNumber);
+	if (g_air_copy_is_send_mode == 1)
+		sprintf(String, "SND:%u", g_air_copy_block_number);
 	UI_PrintString(String, 2, 127, 4, 8);
 
 	ST7565_BlitFullScreen();

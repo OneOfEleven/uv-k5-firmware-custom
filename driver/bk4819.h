@@ -22,47 +22,44 @@
 
 #include "driver/bk4819-regs.h"
 
-enum BK4819_AF_Type_t
+enum BK4819_af_type_e
 {
-	BK4819_AF_MUTE     =  0u,
-	BK4819_AF_OPEN     =  1u,
-	BK4819_AF_ALAM     =  2u,
-	BK4819_AF_BEEP     =  3u,
-	BK4819_AF_UNKNOWN1 =  4u,
-	BK4819_AF_UNKNOWN2 =  5u,
-	BK4819_AF_CTCO     =  6u,
-	BK4819_AF_AM       =  7u,
-	BK4819_AF_FSKO     =  8u,
-	BK4819_AF_UNKNOWN3 =  9u,
-	BK4819_AF_UNKNOWN4 = 10u,
-	BK4819_AF_UNKNOWN5 = 11u,
-	BK4819_AF_UNKNOWN6 = 12u,
-	BK4819_AF_UNKNOWN7 = 13u,
-	BK4819_AF_UNKNOWN8 = 14u,
-	BK4819_AF_UNKNOWN9 = 15u
+	BK4819_AF_MUTE      =  0u,  //
+	BK4819_AF_FM        =  1u,  // FM
+	BK4819_AF_ALAM      =  2u,  //
+	BK4819_AF_BEEP      =  3u,  //
+	BK4819_AF_BASEBAND1 =  4u,  // SSB
+	BK4819_AF_BASEBAND2 =  5u,  // SSB
+	BK4819_AF_CTCO      =  6u,  // strange LF audio .. maybe the CTCSS LF line ?
+	BK4819_AF_AM        =  7u,  // AM
+	BK4819_AF_FSKO      =  8u,  // nothing
+	BK4819_AF_UNKNOWN3  =  9u,  // distorted
+	BK4819_AF_UNKNOWN4  = 10u,  // nothing at all
+	BK4819_AF_UNKNOWN5  = 11u,  // distorted
+	BK4819_AF_UNKNOWN6  = 12u,  // distorted
+	BK4819_AF_UNKNOWN7  = 13u,  // interesting
+	BK4819_AF_UNKNOWN8  = 14u,  // interesting
+	BK4819_AF_UNKNOWN9  = 15u   // not a lot
 };
+typedef enum BK4819_af_type_e BK4819_af_type_t;
 
-typedef enum BK4819_AF_Type_t BK4819_AF_Type_t;
-
-enum BK4819_FilterBandwidth_t
+enum BK4819_filter_bandwidth_e
 {
 	BK4819_FILTER_BW_WIDE = 0,
 	BK4819_FILTER_BW_NARROW,
 	BK4819_FILTER_BW_NARROWER
 };
+typedef enum BK4819_filter_bandwidth_e BK4819_filter_bandwidth_t;
 
-typedef enum BK4819_FilterBandwidth_t BK4819_FilterBandwidth_t;
-
-enum BK4819_CssScanResult_t
+enum BK4819_CSS_scan_result_e
 {
 	BK4819_CSS_RESULT_NOT_FOUND = 0,
 	BK4819_CSS_RESULT_CTCSS,
 	BK4819_CSS_RESULT_CDCSS
 };
+typedef enum BK4819_CSS_scan_result_e BK4819_CSS_scan_result_t;
 
-typedef enum BK4819_CssScanResult_t BK4819_CssScanResult_t;
-
-extern bool gRxIdleMode;
+extern bool g_rx_idle_mode;
 
 void     BK4819_Init(void);
 uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register);
@@ -78,7 +75,7 @@ void     BK4819_SetCDCSSCodeWord(uint32_t CodeWord);
 void     BK4819_SetCTCSSFrequency(uint32_t BaudRate);
 void     BK4819_SetTailDetection(const uint32_t freq_10Hz);
 void     BK4819_EnableVox(uint16_t Vox1Threshold, uint16_t Vox0Threshold);
-void     BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const bool weak_no_different);
+void     BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const bool weak_no_different);
 void     BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency);
 void     BK4819_SetFrequency(uint32_t Frequency);
 void     BK4819_SetupSquelch(
@@ -89,7 +86,7 @@ void     BK4819_SetupSquelch(
 			uint8_t SquelchCloseGlitchThresh,
 			uint8_t SquelchOpenGlitchThresh);
 
-void     BK4819_SetAF(BK4819_AF_Type_t AF);
+void     BK4819_SetAF(BK4819_af_type_t AF);
 void     BK4819_RX_TurnOn(void);
 void     BK4819_PickRXFilterPathBasedOnFrequency(uint32_t Frequency);
 void     BK4819_DisableScramble(void);
@@ -102,6 +99,7 @@ void     BK4819_DisableVox(void);
 void     BK4819_DisableDTMF(void);
 void     BK4819_EnableDTMF(void);
 void     BK4819_PlayTone(uint16_t Frequency, bool bTuningGainSwitch);
+void     BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level, const bool play_speaker);
 void     BK4819_EnterTxMute(void);
 void     BK4819_ExitTxMute(void);
 void     BK4819_Sleep(void);
@@ -138,7 +136,7 @@ uint16_t BK4819_GetVoiceAmplitudeOut(void);
 uint8_t  BK4819_GetAfTxRx(void);
 
 bool     BK4819_GetFrequencyScanResult(uint32_t *pFrequency);
-BK4819_CssScanResult_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t *pCtcssFreq);
+BK4819_CSS_scan_result_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t *pCtcssFreq);
 void     BK4819_DisableFrequencyScan(void);
 void     BK4819_EnableFrequencyScan(void);
 void     BK4819_SetScanFrequency(uint32_t Frequency);
@@ -149,22 +147,21 @@ void     BK4819_StopScan(void);
 
 uint8_t  BK4819_GetDTMF_5TONE_Code(void);
 
-uint8_t  BK4819_GetCDCSSCodeType(void);
+uint8_t  BK4819_get_CDCSS_code_type(void);
 uint8_t  BK4819_GetCTCShift(void);
 uint8_t  BK4819_GetCTCType(void);
 
 void     BK4819_SendFSKData(uint16_t *pData);
 void     BK4819_PrepareFSKReceive(void);
-	    
+
 void     BK4819_PlayRoger(void);
 void     BK4819_PlaySingleTone(uint32_t tone_Hz, uint32_t delay, bool end);
 void     BK4819_PlayRogerMDC(void);
-	    
+
 void     BK4819_Enable_AfDac_DiscMode_TxDsp(void);
-	    
+
 void     BK4819_GetVoxAmp(uint16_t *pResult);
 void     BK4819_SetScrambleFrequencyControlWord(uint32_t Frequency);
 void     BK4819_PlayDTMFEx(bool bLocalLoopback, char Code);
 
 #endif
-

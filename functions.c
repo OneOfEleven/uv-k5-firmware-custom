@@ -22,6 +22,7 @@
 #endif
 #include "bsp/dp32g030/gpio.h"
 #include "dcs.h"
+#include "driver/backlight.h"
 #if defined(ENABLE_FMRADIO)
 	#include "driver/bk1080.h"
 #endif
@@ -37,115 +38,122 @@
 #include "ui/status.h"
 #include "ui/ui.h"
 
-FUNCTION_Type_t gCurrentFunction;
+function_type_t g_current_function;
 
 void FUNCTION_Init(void)
 {
 	#ifdef ENABLE_NOAA
-		if (IS_NOT_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
+		if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 	#endif
 	{
-		gCurrentCodeType = gSelectedCodeType;
-		if (gCssScanMode == CSS_SCAN_MODE_OFF)
-			gCurrentCodeType = gRxVfo->AM_mode ? CODE_TYPE_OFF : gRxVfo->pRX->CodeType;
+		g_current_code_type = g_selected_code_type;
+		if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
+			g_current_code_type = g_rx_vfo->am_mode ? CODE_TYPE_OFF : g_rx_vfo->pRX->code_type;
 	}
 	#ifdef ENABLE_NOAA
 		else
-			gCurrentCodeType = CODE_TYPE_CONTINUOUS_TONE;
+			g_current_code_type = CODE_TYPE_CONTINUOUS_TONE;
 	#endif
 
 	DTMF_clear_RX();
-	
-	g_CxCSS_TAIL_Found = false;
-	g_CDCSS_Lost       = false;
-	g_CTCSS_Lost       = false;
-					  
-	g_VOX_Lost         = false;
-	g_SquelchLost      = false;
 
-	gFlagTailNoteEliminationComplete   = false;
-	gTailNoteEliminationCountdown_10ms = 0;
-	gFoundCTCSS                        = false;
-	gFoundCDCSS                        = false;
-	gFoundCTCSSCountdown_10ms          = 0;
-	gFoundCDCSSCountdown_10ms          = 0;
-	gEndOfRxDetectedMaybe              = false;
+	g_CxCSS_tail_found = false;
+	g_CDCSS_lost       = false;
+	g_CTCSS_lost       = false;
 
-	#ifdef ENABLE_NOAA
-		gNOAACountdown_10ms = 0;
+	#ifdef ENABLE_VOX
+		g_vox_lost     = false;
 	#endif
 
-	gUpdateStatus = true;
+	g_squelch_lost     = false;
+
+	g_flag_tail_tone_elimination_complete   = false;
+	g_tail_tone_elimination_count_down_10ms = 0;
+	g_found_CTCSS                           = false;
+	g_found_CDCSS                           = false;
+	g_found_CTCSS_count_down_10ms           = 0;
+	g_found_CDCSS_count_down_10ms           = 0;
+	g_end_of_rx_detected_maybe              = false;
+
+	#ifdef ENABLE_NOAA
+		g_noaa_count_down_10ms = 0;
+	#endif
+
+	g_update_status = true;
 }
 
-void FUNCTION_Select(FUNCTION_Type_t Function)
+void FUNCTION_Select(function_type_t Function)
 {
-	const FUNCTION_Type_t PreviousFunction = gCurrentFunction;
+	const function_type_t PreviousFunction = g_current_function;
 	const bool            bWasPowerSave    = (PreviousFunction == FUNCTION_POWER_SAVE);
 
-	gCurrentFunction = Function;
+	g_current_function = Function;
 
 	if (bWasPowerSave && Function != FUNCTION_POWER_SAVE)
 	{
 		BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
-		gRxIdleMode = false;
+		g_rx_idle_mode = false;
 		UI_DisplayStatus(false);
 	}
 
 	switch (Function)
 	{
 		case FUNCTION_FOREGROUND:
-			if (gDTMF_ReplyState != DTMF_REPLY_NONE)
+			if (g_dtmf_reply_state != DTMF_REPLY_NONE)
 				RADIO_PrepareCssTX();
 
 			if (PreviousFunction == FUNCTION_TRANSMIT)
 			{
-				gVFO_RSSI_bar_level[0] = 0;
-				gVFO_RSSI_bar_level[1] = 0;
+				g_vfo_rssi_bar_level[0] = 0;
+				g_vfo_rssi_bar_level[1] = 0;
 			}
 			else
 			if (PreviousFunction != FUNCTION_RECEIVE)
 				break;
 
 			#if defined(ENABLE_FMRADIO)
-				if (gFmRadioMode)
-					gFM_RestoreCountdown_10ms = fm_restore_countdown_10ms;
+				if (g_fm_radio_mode)
+					g_fm_restore_count_down_10ms = fm_restore_countdown_10ms;
 			#endif
 
-			if (gDTMF_CallState == DTMF_CALL_STATE_CALL_OUT || gDTMF_CallState == DTMF_CALL_STATE_RECEIVED)
-				gDTMF_AUTO_RESET_TIME = 1 + (gEeprom.DTMF_AUTO_RESET_TIME * 2);
+			if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT ||
+			    g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED ||
+				g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
+			{
+				g_dtmf_auto_reset_time_500ms = g_eeprom.dtmf_auto_reset_time * 2;
+			}
 
-			gUpdateStatus = true;
+			g_update_status = true;
 			return;
-	
+
 		case FUNCTION_MONITOR:
-			gMonitor = true;
+			g_monitor_enabled = true;
 			break;
-			
+
 		case FUNCTION_INCOMING:
 		case FUNCTION_RECEIVE:
 			break;
-	
+
 		case FUNCTION_POWER_SAVE:
-			gPowerSave_10ms            = gEeprom.BATTERY_SAVE * 10;
-			gPowerSaveCountdownExpired = false;
+			g_power_save_10ms               = g_eeprom.battery_save * 10;
+			g_power_save_count_down_expired = false;
 
-			gRxIdleMode = true;
-			
-			gMonitor = false;
+			g_rx_idle_mode = true;
 
-			BK4819_DisableVox();
+			g_monitor_enabled = false;
+
+			BK4819_DisableVox();			
 			BK4819_Sleep();
-			
+
 			BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, false);
 
-			gUpdateStatus = true;
+			g_update_status = true;
 
-			if (gScreenToDisplay != DISPLAY_MENU)     // 1of11 .. don't close the menu
+			if (g_screen_to_display != DISPLAY_MENU)     // 1of11 .. don't close the menu
 				GUI_SelectNextDisplay(DISPLAY_MAIN);
-				
+
 			return;
-	
+
 		case FUNCTION_TRANSMIT:
 
 			// if DTMF is enabled when TX'ing, it changes the TX audio filtering !! .. 1of11
@@ -155,19 +163,19 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			DTMF_clear_RX();
 
 			// clear the DTMF RX live decoder buffer
-			gDTMF_RX_live_timeout = 0;
-			gDTMF_RX_live_timeout = 0;
-			memset(gDTMF_RX_live, 0, sizeof(gDTMF_RX_live));
-			
+			g_dtmf_rx_live_timeout = 0;
+			g_dtmf_rx_live_timeout = 0;
+			memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
+
 			#if defined(ENABLE_FMRADIO)
-				if (gFmRadioMode)
+				if (g_fm_radio_mode)
 					BK1080_Init(0, false);
 			#endif
 
 			#ifdef ENABLE_ALARM
-				if (gAlarmState == ALARM_STATE_TXALARM && gEeprom.ALARM_MODE != ALARM_MODE_TONE)
+				if (g_alarm_state == ALARM_STATE_TXALARM && g_eeprom.alarm_mode != ALARM_MODE_TONE)
 				{
-					gAlarmState = ALARM_STATE_ALARM;
+					g_alarm_state = ALARM_STATE_ALARM;
 
 					GUI_DisplayScreen();
 
@@ -179,17 +187,17 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
-					gEnableSpeaker = true;
+					g_enable_speaker = true;
 
 					SYSTEM_DelayMs(60);
 					BK4819_ExitTxMute();
 
-					gAlarmToneCounter = 0;
+					g_alarm_tone_counter = 0;
 					break;
 				}
 			#endif
-			
-			gUpdateStatus = true;
+
+			g_update_status = true;
 
 			GUI_DisplayScreen();
 
@@ -197,26 +205,29 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 
 			// turn the RED LED on
 			BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_RED, true);
-	
+
 			DTMF_Reply();
-	
+
+			if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+				BK4819_PlaySingleTone(2525, 250, 0, g_eeprom.dtmf_side_tone);
+
 			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
-				if (gAlarmState != ALARM_STATE_OFF)
+				if (g_alarm_state != ALARM_STATE_OFF)
 				{
 					#ifdef ENABLE_TX1750
-						if (gAlarmState == ALARM_STATE_TX1750)
+						if (g_alarm_state == ALARM_STATE_TX1750)
 							BK4819_TransmitTone(true, 1750);
 					#endif
 					#ifdef ENABLE_ALARM
-						if (gAlarmState == ALARM_STATE_TXALARM)
+						if (g_alarm_state == ALARM_STATE_TXALARM)
 							BK4819_TransmitTone(true, 500);
 					#endif
 					SYSTEM_DelayMs(2);
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 					#ifdef ENABLE_ALARM
-						gAlarmToneCounter = 0;
+						g_alarm_tone_counter = 0;
 					#endif
-					gEnableSpeaker = true;
+					g_enable_speaker = true;
 					break;
 				}
 			#endif
@@ -226,10 +237,13 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 				RADIO_SetTxParameters();
 			#endif
 		
-			if (gCurrentVfo->SCRAMBLING_TYPE > 0 && gSetting_ScrambleEnable)
-				BK4819_EnableScramble(gCurrentVfo->SCRAMBLING_TYPE - 1);
+			if (g_current_vfo->scrambling_type > 0 && g_setting_scramble_enable)
+				BK4819_EnableScramble(g_current_vfo->scrambling_type - 1);
 			else
 				BK4819_DisableScramble();
+
+			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
+				backlight_turn_on();
 
 			break;
 
@@ -237,10 +251,10 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 			break;
 	}
 
-	gBatterySaveCountdown_10ms = battery_save_count_10ms;
-	gSchedulePowerSave         = false;
+	g_battery_save_count_down_10ms = battery_save_count_10ms;
+	g_schedule_power_save         = false;
 
 	#if defined(ENABLE_FMRADIO)
-		gFM_RestoreCountdown_10ms = 0;
+		g_fm_restore_count_down_10ms = 0;
 	#endif
 }
