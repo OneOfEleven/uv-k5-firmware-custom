@@ -25,6 +25,7 @@
 #include "app/scanner.h"
 #include "audio.h"
 #include "driver/keyboard.h"
+#include "driver/uart.h"
 #include "dtmf.h"
 #include "external/printf/printf.h"
 #include "functions.h"
@@ -158,6 +159,10 @@ void GENERIC_Key_PTT(bool key_pressed)
 	}
 
 	// PTT pressed
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("gene key 1 %u\r\n", key_pressed);
+	#endif
 
 	if (g_scan_state_dir != SCAN_OFF ||             // frequency/channel scanning
 	    g_screen_to_display == DISPLAY_SCANNER ||   // CTCSS/CDCSS scanning

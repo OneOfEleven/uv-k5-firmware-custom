@@ -823,21 +823,19 @@ void MAIN_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 
 	if (g_dtmf_input_mode)
 	{
-		if (key_pressed && !key_held)
-		{
-			const char Character = DTMF_GetCharacter(Key);
-			if (Character != 0xFF)
-			{	// add key to DTMF string
-	
+		const char Character = DTMF_GetCharacter(Key);
+		if (Character != 0xFF)
+		{	// add key to DTMF string
+			if (key_pressed && !key_held)
+			{
 				DTMF_Append(Character);
-	
 				g_key_input_count_down   = key_input_timeout_500ms;
-//				g_ptt_was_released       = true;  // why is this being set ?
+				//g_ptt_was_released     = true;  // why is this being set ?
 				g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
 				g_request_display_screen = DISPLAY_MAIN;
 			}
+			return;
 		}
-		return;
 	}
 
 	switch (Key)

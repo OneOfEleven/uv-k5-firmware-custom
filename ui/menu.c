@@ -539,7 +539,7 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_STEP:
-			sprintf(String, "%d.%02ukHz", STEP_FREQ_TABLE[g_sub_menu_selection] / 100, abs(STEP_FREQ_TABLE[g_sub_menu_selection]) % 100);
+			sprintf(String, "%d.%02ukHz", STEP_FREQ_TABLE[g_sub_menu_selection] / 100, STEP_FREQ_TABLE[g_sub_menu_selection] % 100);
 			break;
 
 		case MENU_TXP:

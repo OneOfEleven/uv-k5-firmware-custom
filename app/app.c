@@ -1792,9 +1792,8 @@ void cancelUserInputModes(void)
 	{
 		DTMF_clear_input_box();
 		g_beep_to_play           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-
 		g_request_display_screen = DISPLAY_MAIN;
-		g_update_display        = true;
+		g_update_display         = true;
 	}
 
 	if (g_fkey_pressed || g_key_input_count_down > 0 || g_input_box_index > 0)
@@ -1802,7 +1801,6 @@ void cancelUserInputModes(void)
 		g_fkey_pressed         = false;
 		g_input_box_index      = 0;
 		g_key_input_count_down = 0;
-
 		g_beep_to_play         = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		g_update_status        = true;
 		g_update_display       = true;
@@ -2331,7 +2329,6 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	if (Key == KEY_PTT && g_ptt_was_pressed)
 	{
 		flag = key_held;
-
 		if (!key_pressed)
 		{
 			flag = true;
@@ -2345,7 +2342,6 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	{
 		if (key_held)
 			flag = true;
-
 //		if (!key_pressed)
 		if (key_pressed)	// I now use key released for button press detections
 		{
