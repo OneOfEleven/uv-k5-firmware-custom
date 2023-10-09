@@ -126,7 +126,7 @@ const t_menu_item g_menu_list[] =
 	// hidden menu items from here on
 	// enabled by pressing both the PTT and upper side button at power-on
 
-	{"F LOCK", VOICE_ID_INVALID,                       MENU_F_LOCK        },
+	{"F LOCK", VOICE_ID_INVALID,                       MENU_F_LOCK        }, // country/area specific
 	{"Tx 200", VOICE_ID_INVALID,                       MENU_200TX         }, // was "200TX"
 	{"Tx 350", VOICE_ID_INVALID,                       MENU_350TX         }, // was "350TX"
 	{"Tx 500", VOICE_ID_INVALID,                       MENU_500TX         }, // was "500TX"
@@ -323,6 +323,12 @@ const char g_sub_menu_BAT_TXT[3][8] =
 	"NONE",
 	"VOLTAGE",
 	"PERCENT"
+};
+
+const char g_sub_menu_DIS_EN[2][9] =
+{
+	"DISABLED",
+	"ENABLED"
 };
 
 const char g_sub_menu_SCRAMBLER[11][7] =
@@ -677,18 +683,33 @@ void UI_DisplayMenu(void)
 		case MENU_D_ST:
 		case MENU_D_DCD:
 		case MENU_D_LIVE_DEC:
+			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
+			break;
+
 		#ifdef ENABLE_NOAA
 			case MENU_NOAA_S:
+				strcpy(String, "SCAN\n");
+				strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+				break;
 		#endif
+
 		case MENU_350TX:
 		case MENU_200TX:
 		case MENU_500TX:
 		case MENU_350EN:
-		case MENU_SCREN:
-		case MENU_TX_EN:
-			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
 			break;
 
+		case MENU_SCREN:
+			strcpy(String, "SCRAMBLER\n");
+			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			break;
+
+		case MENU_TX_EN:
+			strcpy(String, "TX\n");
+			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			break;
+			
 		case MENU_MEM_CH:
 		case MENU_1_CALL:
 		case MENU_DEL_CH:
