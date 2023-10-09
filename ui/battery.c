@@ -24,34 +24,41 @@
 
 void UI_DrawBattery(uint8_t *bitmap, const unsigned int level, const unsigned int blink)
 {
-	memmove(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
-
-	if (level >= 1)
+	if (blink == 0) {
+		memset(bitmap, 0, sizeof(BITMAP_BATTERY_LEVEL));
+	}
+	else 
 	{
-		unsigned int i;
-		unsigned int bars = (level > 0) ? level - 1 : 0;
-		if (bars > 4)
-			bars = 4;
-		for (i = 0; i < bars; i++)
+		memmove(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
+		if (level > 1)
 		{
-			#ifdef ENABLE_REVERSE_BAT_SYMBOL
-				bitmap[3 + (i * 3) + 0] = 0b01011101;
-				bitmap[3 + (i * 3) + 1] = 0b01011101;
-			#else
-				bitmap[sizeof(bitmap) - 3 - (i * 3) - 0] = 0b01011101;
-				bitmap[sizeof(bitmap) - 3 - (i * 3) - 1] = 0b01011101;
-			#endif
+			unsigned int i;
+			unsigned int bars = level - 1;
+			if (bars > 4)
+				bars = 4;
+			for (i = 0; i < bars; i++)
+			{
+				#ifdef ENABLE_REVERSE_BAT_SYMBOL
+					bitmap[3 + (i * 3) + 0] = 0b01011101;
+					bitmap[3 + (i * 3) + 1] = 0b01011101;
+				#else
+					bitmap[sizeof(BITMAP_BATTERY_LEVEL) - 3 - (i * 3) - 0] = 0b01011101;
+					bitmap[sizeof(BITMAP_BATTERY_LEVEL) - 3 - (i * 3) - 1] = 0b01011101;
+				#endif
+			}
 		}
 	}
+<<<<<<< HEAD
 	else
 	if (blink == 0)
 		memset(bitmap, 0, sizeof(BITMAP_BATTERY_LEVEL));
+=======
+>>>>>>> 6819aca561858ec310a18cf21769411a69cd01d7
 }
 
 void UI_DisplayBattery(const unsigned int level, const unsigned int blink)
 {
 	uint8_t bitmap[sizeof(BITMAP_BATTERY_LEVEL)];
 	UI_DrawBattery(bitmap, level, blink);
-	memmove(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
 	ST7565_DrawLine(LCD_WIDTH - sizeof(bitmap), 0, sizeof(bitmap), bitmap);
 }
