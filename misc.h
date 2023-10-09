@@ -39,6 +39,12 @@
 #define IS_NOAA_CHANNEL(x)     ((x) >= NOAA_CHANNEL_FIRST && (x) <= NOAA_CHANNEL_LAST)
 #define IS_NOT_NOAA_CHANNEL(x) ((x) >= USER_CHANNEL_FIRST   && (x) <= FREQ_CHANNEL_LAST)
 
+// PTT key-up/key-down audio tone freq's used in NASA's apollo rides to the moon
+#define APOLLO_TONE_MS         200     // slightly shorter tone length
+//#define APOLLO_TONE_MS         250   // NASA tone length
+#define APOLLO_TONE1_HZ        2525
+#define APOLLO_TONE2_HZ        2475
+
 enum {
 	USER_CHANNEL_FIRST = 0,
 	USER_CHANNEL_LAST  = 199u,
@@ -115,6 +121,7 @@ extern const uint16_t        key_repeat_delay_10ms;
 extern const uint16_t        key_repeat_10ms;
 extern const uint16_t        key_debounce_10ms;
 
+extern const uint16_t        scan_freq_css_timeout_10ms;
 extern const uint8_t         scan_freq_css_delay_10ms;
 
 extern const uint16_t        battery_save_count_10ms;

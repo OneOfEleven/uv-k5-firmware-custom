@@ -42,6 +42,7 @@ const uint16_t        key_repeat_delay_10ms            =   400 / 10;   // 400ms
 const uint16_t        key_repeat_10ms                  =    80 / 10;   // 80ms .. MUST be less than 'key_repeat_delay'
 const uint16_t        key_debounce_10ms                =    20 / 10;   // 20ms
 
+const uint16_t        scan_freq_css_timeout_10ms       = 10000 / 10;   // 10 seconds
 const uint8_t         scan_freq_css_delay_10ms         =   210 / 10;   // 210ms .. don't reduce this
 
 const uint16_t        dual_watch_count_after_tx_10ms   =  3600 / 10;   // 3.6 sec after TX ends

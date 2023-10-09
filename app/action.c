@@ -92,7 +92,7 @@ void ACTION_Monitor(void)
 	{
 		g_scan_pause_delay_in_10ms = scan_pause_delay_in_1_10ms;
 		g_schedule_scan_listen    = false;
-		gScanPauseMode         = true;
+		g_scan_pause_mode         = true;
 	}
 
 	#ifdef ENABLE_NOAA

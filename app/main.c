@@ -709,7 +709,7 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 	g_update_status   = true;
 }
 
-static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
+static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Direction)
 {
 	uint8_t Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
 

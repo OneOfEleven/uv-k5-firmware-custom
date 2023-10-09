@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "app/scanner.h"
 #include "dcs.h"
 #include "frequencies.h"
 
@@ -128,7 +129,7 @@ extern step_setting_t  g_step_setting;
 extern vfo_state_t     g_vfo_state[2];
 
 bool     RADIO_CheckValidChannel(uint16_t ChNum, bool bCheckScanList, uint8_t RadioNum);
-uint8_t  RADIO_FindNextChannel(uint8_t ChNum, int8_t Direction, bool bCheckScanList, uint8_t RadioNum);
+uint8_t  RADIO_FindNextChannel(uint8_t ChNum, scan_state_dir_t Direction, bool bCheckScanList, uint8_t RadioNum);
 void     RADIO_InitInfo(vfo_info_t *pInfo, const uint8_t ChannelSave, const uint32_t Frequency);
 void     RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure);
 void     RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *pInfo);

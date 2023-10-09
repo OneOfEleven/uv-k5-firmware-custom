@@ -20,45 +20,48 @@
 #include "dcs.h"
 #include "driver/keyboard.h"
 
-enum SCAN_CssState_e
+enum scan_css_state_e
 {
 	SCAN_CSS_STATE_OFF = 0,
+//	SCAN_CSS_STATE_FREQ_SCANNING,
 	SCAN_CSS_STATE_SCANNING,
 	SCAN_CSS_STATE_FOUND,
-	SCAN_CSS_STATE_FAILED
+	SCAN_CSS_STATE_FAILED,
+	SCAN_CSS_STATE_FREQ_FAILED
 };
-typedef enum SCAN_CssState_e SCAN_CssState_t;
+typedef enum scan_css_state_e scan_css_state_t;
 
-enum {
+enum scan_state_dir_e {
 	SCAN_REV = -1,
 	SCAN_OFF =  0,
 	SCAN_FWD = +1
 };
+typedef enum scan_state_dir_e scan_state_dir_t;
 
-enum SCAN_edit_state_e {
+enum scan_edit_state_e {
 	SCAN_EDIT_STATE_NONE = 0,
 	SCAN_EDIT_STATE_BUSY,
 	SCAN_EDIT_STATE_DONE
 };
-typedef enum SCAN_edit_state_e SCAN_edit_state_t;
+typedef enum scan_edit_state_e scan_edit_state_t;
 
-extern dcs_code_type_t    gScanCssResultType;
-extern uint8_t           gScanCssResultCode;
+extern dcs_code_type_t   g_scan_css_result_type;
+extern uint8_t           g_scan_css_result_code;
 extern bool              g_flag_start_scan;
 extern bool              g_flag_stop_scan;
 extern bool              g_scan_single_frequency;
-extern SCAN_edit_state_t gScannerEditState;
-extern uint8_t           gScanChannel;
-extern uint32_t          gScanFrequency;
-extern bool              gScanPauseMode;
-extern SCAN_CssState_t   gScanCssState;
+extern scan_edit_state_t g_scanner_edit_state;
+extern uint8_t           g_scan_channel;
+extern uint32_t          g_scan_frequency;
+extern bool              g_scan_pause_mode;
+extern scan_css_state_t  g_scan_css_state;
 extern volatile bool     g_schedule_scan_listen;
 extern volatile uint16_t g_scan_pause_delay_in_10ms;
-extern uint8_t           gScanProgressIndicator;
-extern uint8_t           gScanHitCount;
-extern bool              gScanUseCssResult;
-extern int8_t            g_scan_state_dir;
-extern bool              bScanKeepFrequency;
+extern uint16_t          g_scan_freq_css_timer_10ms;
+extern uint8_t           g_scan_hit_count;
+extern bool              g_scan_use_css_result;
+extern scan_state_dir_t  g_scan_state_dir;
+extern bool              g_scan_keep_frequency;
 
 void SCANNER_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held);
 void SCANNER_Start(void);

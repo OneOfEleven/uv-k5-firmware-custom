@@ -209,7 +209,7 @@ void FUNCTION_Select(function_type_t Function)
 			DTMF_Reply();
 
 			if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
-				BK4819_PlaySingleTone(2525, 250, 0, g_eeprom.dtmf_side_tone);
+				BK4819_PlaySingleTone(APOLLO_TONE1_HZ, APOLLO_TONE_MS, 0, g_eeprom.dtmf_side_tone);
 
 			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 				if (g_alarm_state != ALARM_STATE_OFF)

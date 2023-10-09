@@ -93,7 +93,7 @@ bool RADIO_CheckValidChannel(uint16_t Channel, bool bCheckScanList, uint8_t VFO)
 	return true;
 }
 
-uint8_t RADIO_FindNextChannel(uint8_t Channel, int8_t Direction, bool bCheckScanList, uint8_t VFO)
+uint8_t RADIO_FindNextChannel(uint8_t Channel, scan_state_dir_t Direction, bool bCheckScanList, uint8_t VFO)
 {
 	unsigned int i;
 
@@ -1090,7 +1090,7 @@ void RADIO_SendEndOfTransmission(void)
 		BK4819_PlayRogerMDC();
 
 	if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
-		BK4819_PlaySingleTone(2475, 250, 28, g_eeprom.dtmf_side_tone);
+		BK4819_PlaySingleTone(APOLLO_TONE2_HZ, APOLLO_TONE_MS, 28, g_eeprom.dtmf_side_tone);
 
 	if (g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
 	   (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN || g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_BOTH))

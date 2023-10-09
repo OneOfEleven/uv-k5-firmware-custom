@@ -495,11 +495,11 @@ void APP_StartListening(function_type_t Function, const bool reset_am_fix)
 		switch (g_eeprom.scan_resume_mode)
 		{
 			case SCAN_RESUME_TO:
-				if (!gScanPauseMode)
+				if (!g_scan_pause_mode)
 				{
 					g_scan_pause_delay_in_10ms = scan_pause_delay_in_1_10ms;
 					g_schedule_scan_listen    = false;
-					gScanPauseMode         = true;
+					g_scan_pause_mode         = true;
 				}
 				break;
 
@@ -510,7 +510,7 @@ void APP_StartListening(function_type_t Function, const bool reset_am_fix)
 				break;
 		}
 
-		bScanKeepFrequency = true;
+		g_scan_keep_frequency = true;
 	}
 
 	#ifdef ENABLE_NOAA
@@ -637,7 +637,7 @@ static void FREQ_NextChannel(void)
 		g_scan_pause_delay_in_10ms = scan_pause_delay_in_6_10ms;
 	#endif
 
-	bScanKeepFrequency = false;
+	g_scan_keep_frequency = false;
 	g_update_display     = true;
 }
 
@@ -737,7 +737,7 @@ static void USER_NextChannel(void)
 		g_scan_pause_delay_in_10ms = scan_pause_delay_in_3_10ms;
 	#endif
 
-	bScanKeepFrequency = false;
+	g_scan_keep_frequency = false;
 
 	if (enabled)
 		if (++g_current_scan_list >= SCAN_NEXT_NUM)
@@ -1094,7 +1094,7 @@ void APP_Update(void)
 				USER_NextChannel();    // switch to next channel
 		}
 
-		gScanPauseMode      = false;
+		g_scan_pause_mode      = false;
 		g_rx_reception_mode    = RX_MODE_NONE;
 		g_schedule_scan_listen = false;
 	}
@@ -1149,7 +1149,7 @@ void APP_Update(void)
 						GUI_SelectNextDisplay(DISPLAY_MAIN);
 
 					g_rx_vfo_is_active     = false;
-					gScanPauseMode     = false;
+					g_scan_pause_mode     = false;
 					g_rx_reception_mode   = RX_MODE_NONE;
 					g_schedule_dual_watch = false;
 				}
@@ -1330,7 +1330,7 @@ void APP_CheckKeys(void)
 		g_ptt_debounce_counter = 0;
 
 	// *****************
-	
+
 	// scan the hardware keys
 	Key = KEYBOARD_Poll();
 
@@ -1350,7 +1350,7 @@ void APP_CheckKeys(void)
 		g_boot_counter_10ms    = 0;        // cancel the boot-up screen
 		return;                            // the PC is uploading/downloading config
 	}
-	
+
 	if (g_key_reading_0 != Key)
 	{	// new key pressed
 
@@ -1557,10 +1557,12 @@ void APP_TimeSlice10ms(void)
 
 	if (g_screen_to_display == DISPLAY_SCANNER)
 	{
-		uint32_t               Result;
-		int32_t                Delta;
+		uint32_t                 Result;
+		int32_t                  Delta;
+		uint16_t                 CtcssFreq;
 		BK4819_CSS_scan_result_t ScanResult;
-		uint16_t               CtcssFreq;
+
+		g_scan_freq_css_timer_10ms++;
 
 		if (g_scan_delay_10ms > 0)
 		{
@@ -1571,58 +1573,95 @@ void APP_TimeSlice10ms(void)
 			}
 		}
 
-		if (gScannerEditState != SCAN_EDIT_STATE_NONE)
+		if (g_scanner_edit_state != SCAN_EDIT_STATE_NONE)
 		{
 			APP_CheckKeys();
 			return;
 		}
 
-		switch (gScanCssState)
+		g_update_display = true;
+		GUI_SelectNextDisplay(DISPLAY_SCANNER);
+
+		switch (g_scan_css_state)
 		{
 			case SCAN_CSS_STATE_OFF:
 
+				if (g_scan_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
+				{	// freq/css scan timeout
+					#ifdef ENABLE_CODE_SCAN_TIMEOUT
+						BK4819_DisableFrequencyScan();
+						g_scan_css_state = SCAN_CSS_STATE_FREQ_FAILED;
+						g_update_status  = true;
+						g_update_display = true;
+						break;
+					#endif
+				}
+
 				if (!BK4819_GetFrequencyScanResult(&Result))
-					break;
+					break;   // still scanning
 
 				// accept only within 1kHz
-				Delta = Result - gScanFrequency;
-				gScanHitCount = (abs(Delta) < 100) ? gScanHitCount + 1 : 0;
+				Delta = Result - g_scan_frequency;
+				g_scan_hit_count = (abs(Delta) < 100) ? g_scan_hit_count + 1 : 0;
 
 				BK4819_DisableFrequencyScan();
 
 				#if 0
-					gScanFrequency = Result;
+					g_scan_frequency = Result;
 				#else
 				{	  // round to nearest step multiple
 					const uint32_t step = STEP_FREQ_TABLE[g_step_setting];
-					gScanFrequency = ((Result + (step / 2)) / step) * step;
+					g_scan_frequency = ((Result + (step / 2)) / step) * step;
 				}
 				#endif
 
-				if (gScanHitCount < 3)
+				if (g_scan_hit_count < 3)
 				{	// keep scanning for an RF carrier
 					BK4819_EnableFrequencyScan();
 				}
 				else
-				{	// RF carrier found .. stop RF scanning
-					BK4819_SetScanFrequency(gScanFrequency);
+				{	// RF carrier found
+					// stop RF the scan and move on too the CTCSS/CDCSS scan
 
-					// start CTCSS/CTDSS scanning
-					gScanCssResultCode     = 0xFF;
-					gScanCssResultType     = 0xFF;
-					gScanHitCount          = 0;
-					gScanUseCssResult      = false;
-					gScanProgressIndicator = 0;
-					gScanCssState          = SCAN_CSS_STATE_SCANNING;
+					BK4819_SetScanFrequency(g_scan_frequency);
+
+					g_scan_css_result_code     = 0xFF;
+					g_scan_css_result_type     = 0xFF;
+					g_scan_hit_count           = 0;
+					g_scan_use_css_result      = false;
+					g_scan_freq_css_timer_10ms = 0;
+					g_scan_css_state           = SCAN_CSS_STATE_SCANNING;
 
 					GUI_SelectNextDisplay(DISPLAY_SCANNER);
-					g_update_status = true;
+					g_update_status  = true;
+					g_update_display = true;
 				}
 
 				g_scan_delay_10ms = scan_freq_css_delay_10ms;
 				break;
 
 			case SCAN_CSS_STATE_SCANNING:
+
+				if (g_scan_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
+				{	// timeout
+					#if defined(ENABLE_CODE_SCAN_TIMEOUT)
+						BK4819_Disable();
+						g_scan_css_state = SCAN_CSS_STATE_FAILED;
+						g_update_status  = true;
+						g_update_display = true;
+						break;
+					#elif defined(ENABLE_FREQ_CODE_SCAN_TIMEOUT)
+						if (!g_scan_single_frequency)
+						{
+							BK4819_Disable();
+							g_scan_css_state = SCAN_CSS_STATE_FAILED;
+							g_update_status  = true;
+							g_update_display = true;
+							break;
+						}
+					#endif
+				}
+
 				ScanResult = BK4819_GetCxCSSScanResult(&Result, &CtcssFreq);
 				if (ScanResult == BK4819_CSS_RESULT_NOT_FOUND)
 					break;
@@ -1634,46 +1673,52 @@ void APP_TimeSlice10ms(void)
 					const uint8_t Code = DCS_GetCdcssCode(Result);
 					if (Code != 0xFF)
 					{
-						gScanCssResultCode = Code;
-						gScanCssResultType = CODE_TYPE_DIGITAL;
-						gScanCssState      = SCAN_CSS_STATE_FOUND;
-						gScanUseCssResult  = true;
-						g_update_status      = true;
+						g_scan_css_result_code = Code;
+						g_scan_css_result_type = CODE_TYPE_DIGITAL;
+						g_scan_css_state       = SCAN_CSS_STATE_FOUND;
+						g_scan_use_css_result  = true;
+						g_update_status        = true;
+						g_update_display       = true;
 					}
 				}
 				else
 				if (ScanResult == BK4819_CSS_RESULT_CTCSS)
 				{
-					const uint8_t Code = DCS_GetCtcssCode(CtcssFreq);
-					if (Code != 0xFF)
+					const uint8_t code = DCS_GetCtcssCode(CtcssFreq);
+					if (code != 0xFF)
 					{
-						if (Code == gScanCssResultCode && gScanCssResultType == CODE_TYPE_CONTINUOUS_TONE)
+						if (code == g_scan_css_result_code &&
+						    g_scan_css_result_type == CODE_TYPE_CONTINUOUS_TONE)
 						{
-							if (++gScanHitCount >= 2)
+							if (++g_scan_hit_count >= 2)
 							{
-								gScanCssState     = SCAN_CSS_STATE_FOUND;
-								gScanUseCssResult = true;
-								g_update_status     = true;
+								g_scan_css_state      = SCAN_CSS_STATE_FOUND;
+								g_scan_use_css_result = true;
+								g_update_status       = true;
+								g_update_display      = true;
 							}
 						}
 						else
-							gScanHitCount = 0;
+							g_scan_hit_count = 0;
 
-						gScanCssResultType = CODE_TYPE_CONTINUOUS_TONE;
-						gScanCssResultCode = Code;
+						g_scan_css_result_type = CODE_TYPE_CONTINUOUS_TONE;
+						g_scan_css_result_code = code;
 					}
 				}
 
-				if (gScanCssState == SCAN_CSS_STATE_OFF || gScanCssState == SCAN_CSS_STATE_SCANNING)
+				if (g_scan_css_state == SCAN_CSS_STATE_OFF ||
+				    g_scan_css_state == SCAN_CSS_STATE_SCANNING)
 				{	// re-start scan
-					BK4819_SetScanFrequency(gScanFrequency);
+					BK4819_SetScanFrequency(g_scan_frequency);
 					g_scan_delay_10ms = scan_freq_css_delay_10ms;
-					break;
 				}
 
 				GUI_SelectNextDisplay(DISPLAY_SCANNER);
 				break;
 
+			//case SCAN_CSS_STATE_FOUND:
+			//case SCAN_CSS_STATE_FAILED:
+			//case SCAN_CSS_STATE_FREQ_FAILED:
 			default:
 				break;
 		}
@@ -1835,75 +1880,80 @@ void APP_TimeSlice500ms(void)
 	#endif
 	{
 		#ifdef ENABLE_AIRCOPY
-			if (g_scan_state_dir == SCAN_OFF && g_screen_to_display != DISPLAY_AIRCOPY && (g_screen_to_display != DISPLAY_SCANNER || gScanCssState >= SCAN_CSS_STATE_FOUND))
-		#else
-			if (g_scan_state_dir == SCAN_OFF && (g_screen_to_display != DISPLAY_SCANNER || gScanCssState >= SCAN_CSS_STATE_FOUND))
+			if (g_screen_to_display != DISPLAY_AIRCOPY)
 		#endif
-		{
-			if (g_eeprom.auto_keypad_lock && g_key_lock_count_down > 0 && !g_dtmf_input_mode)
+		{				
+			if (g_scan_state_dir == SCAN_OFF &&
+		       (g_screen_to_display != DISPLAY_SCANNER ||
+			    g_scan_css_state == SCAN_CSS_STATE_FOUND ||
+	            g_scan_css_state == SCAN_CSS_STATE_FAILED || 
+			    g_scan_css_state == SCAN_CSS_STATE_FREQ_FAILED))
 			{
-				if (--g_key_lock_count_down == 0)
-					g_eeprom.key_lock = true;     // lock the keyboard
-				g_update_status = true;            // lock symbol needs showing
-			}
-
-			if (exit_menu)
-			{
-				g_menu_count_down = 0;
-
-				if (g_eeprom.backlight == 0)
+				if (g_eeprom.auto_keypad_lock && g_key_lock_count_down > 0 && !g_dtmf_input_mode)
 				{
-					g_backlight_count_down = 0;
-					GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
+					if (--g_key_lock_count_down == 0)
+						g_eeprom.key_lock = true;     // lock the keyboard
+					g_update_status = true;            // lock symbol needs showing
 				}
-
-				if (g_input_box_index > 0 || g_dtmf_input_mode)
-					AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
-/*
-				if (g_screen_to_display == DISPLAY_SCANNER)
+	
+				if (exit_menu)
 				{
-					BK4819_StopScan();
-
-					RADIO_ConfigureChannel(0, VFO_CONFIGURE_RELOAD);
-					RADIO_ConfigureChannel(1, VFO_CONFIGURE_RELOAD);
-
-					RADIO_SetupRegisters(true);
-				}
-*/
-				DTMF_clear_input_box();
-
-				g_f_key_was_pressed  = false;
-				g_input_box_index   = 0;
-
-				g_ask_to_save       = false;
-				g_ask_to_delete     = false;
-
-				g_update_status    = true;
-				g_update_display   = true;
-
-				{
-					gui_display_type_t disp = DISPLAY_INVALID;
-
-					#ifdef ENABLE_FMRADIO
-						if (g_fm_radio_mode &&
-							g_current_function != FUNCTION_RECEIVE &&
-							g_current_function != FUNCTION_MONITOR &&
-							g_current_function != FUNCTION_TRANSMIT)
-						{
-							disp = DISPLAY_FM;
-						}
-					#endif
-
-					if (disp == DISPLAY_INVALID)
+					g_menu_count_down = 0;
+	
+					if (g_eeprom.backlight == 0)
 					{
-						#ifndef ENABLE_CODE_SCAN_TIMEOUT
-							if (g_screen_to_display != DISPLAY_SCANNER)
-						#endif
-								disp = DISPLAY_MAIN;
+						g_backlight_count_down = 0;
+						GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
 					}
-
-					if (disp != DISPLAY_INVALID)
-						GUI_SelectNextDisplay(disp);
+	
+					if (g_input_box_index > 0 || g_dtmf_input_mode)
+						AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
+/*	
+					if (g_screen_to_display == DISPLAY_SCANNER)
+					{
+						BK4819_StopScan();
+	
+						RADIO_ConfigureChannel(0, VFO_CONFIGURE_RELOAD);
+						RADIO_ConfigureChannel(1, VFO_CONFIGURE_RELOAD);
+	
+						RADIO_SetupRegisters(true);
+					}
+*/	
+					DTMF_clear_input_box();
+	
+					g_f_key_was_pressed  = false;
+					g_input_box_index   = 0;
+	
+					g_ask_to_save       = false;
+					g_ask_to_delete     = false;
+	
+					g_update_status    = true;
+					g_update_display   = true;
+	
+					{
+						gui_display_type_t disp = DISPLAY_INVALID;
+	
+						#ifdef ENABLE_FMRADIO
+							if (g_fm_radio_mode &&
+								g_current_function != FUNCTION_RECEIVE &&
+								g_current_function != FUNCTION_MONITOR &&
+								g_current_function != FUNCTION_TRANSMIT)
+							{
+								disp = DISPLAY_FM;
+							}
+						#endif
+	
+						if (disp == DISPLAY_INVALID)
+						{
+							#ifndef ENABLE_CODE_SCAN_TIMEOUT
+								if (g_screen_to_display != DISPLAY_SCANNER)
+							#endif
+									disp = DISPLAY_MAIN;
+						}
+	
+						if (disp != DISPLAY_INVALID)
+							GUI_SelectNextDisplay(disp);
+					}
 				}
 			}
 		}
@@ -1983,27 +2033,6 @@ void APP_TimeSlice500ms(void)
 		}
 	}
 
-	if (g_screen_to_display == DISPLAY_SCANNER &&
-	    gScannerEditState == SCAN_EDIT_STATE_NONE &&
-	    gScanCssState < SCAN_CSS_STATE_FOUND)
-	{
-		gScanProgressIndicator++;
-
-		#ifdef ENABLE_CODE_SCAN_TIMEOUT
-			if (gScanProgressIndicator > 32)
-			{
-				if (gScanCssState == SCAN_CSS_STATE_SCANNING && !g_scan_single_frequency)
-					gScanCssState = SCAN_CSS_STATE_FOUND;
-				else
-					gScanCssState = SCAN_CSS_STATE_FAILED;
-
-				g_update_status = true;
-			}
-		#endif
-
-		g_update_display = true;
-	}
-
 	if (g_current_function != FUNCTION_TRANSMIT)
 	{
 		if (g_dtmf_decode_ring_count_down_500ms > 0)
@@ -2080,7 +2109,7 @@ void APP_TimeSlice500ms(void)
 	}
 #endif
 
-void CHANNEL_Next(const bool flag, const int8_t scan_direction)
+void CHANNEL_Next(const bool flag, const scan_state_dir_t scan_direction)
 {
 	RADIO_SelectVfos();
 
@@ -2104,8 +2133,8 @@ void CHANNEL_Next(const bool flag, const int8_t scan_direction)
 	g_scan_pause_delay_in_10ms = scan_pause_delay_in_2_10ms;
 	g_schedule_scan_listen    = false;
 	g_rx_reception_mode       = RX_MODE_NONE;
-	gScanPauseMode         = false;
-	bScanKeepFrequency     = false;
+	g_scan_pause_mode         = false;
+	g_scan_keep_frequency     = false;
 }
 
 static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const bool key_held)
