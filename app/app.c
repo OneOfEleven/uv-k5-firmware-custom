@@ -1931,27 +1931,33 @@ void APP_TimeSlice500ms(void)
 		#endif
 	}
 
-	#ifdef ENABLE_FMRADIO
-		if ((g_fm_scan_state == FM_SCAN_OFF || g_ask_to_save) && g_css_scan_mode == CSS_SCAN_MODE_OFF)
-	#else
-		if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
-	#endif
+#ifdef ENABLE_FMRADIO
+	if (g_fm_scan_state == FM_SCAN_OFF || g_ask_to_save)
+#endif
 	{
-		#ifdef ENABLE_AIRCOPY
-			if (g_screen_to_display != DISPLAY_AIRCOPY)
-		#endif
+	#ifdef ENABLE_AIRCOPY
+		if (g_screen_to_display != DISPLAY_AIRCOPY)
+	#endif
 		{
-			if (g_scan_state_dir == SCAN_OFF &&
-		       (g_screen_to_display != DISPLAY_SCANNER ||
-			    g_scan_css_state == SCAN_CSS_STATE_FOUND ||
-	            g_scan_css_state == SCAN_CSS_STATE_FAILED ||
-			    g_scan_css_state == SCAN_CSS_STATE_FREQ_FAILED))
+			if (g_css_scan_mode == CSS_SCAN_MODE_OFF &&
+			    g_scan_state_dir == SCAN_OFF         &&
+			   (g_screen_to_display != DISPLAY_SCANNER    ||
+				g_scan_css_state == SCAN_CSS_STATE_FOUND  ||
+				g_scan_css_state == SCAN_CSS_STATE_FAILED ||
+				g_scan_css_state == SCAN_CSS_STATE_FREQ_FAILED))
 			{
-				if (g_eeprom.auto_keypad_lock && g_key_lock_count_down_500ms > 0 && !g_dtmf_input_mode)
+
+				if (g_eeprom.auto_keypad_lock       &&
+				    g_key_lock_count_down_500ms > 0 &&
+				   !g_dtmf_input_mode               &&
+				    g_input_box_index == 0          &&
+				    g_screen_to_display != DISPLAY_MENU)
 				{
 					if (--g_key_lock_count_down_500ms == 0)
-						g_eeprom.key_lock = true;      // lock the keyboard
-					g_update_status = true;            // lock symbol needs showing
+					{	// lock the keyboard
+						g_eeprom.key_lock = true;
+						g_update_status   = true;
+					}
 				}
 
 				if (exit_menu)
@@ -2222,6 +2228,49 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	if (g_eeprom.auto_keypad_lock)
 		g_key_lock_count_down_500ms = key_lock_timeout_500ms;
 
+	if (g_eeprom.key_lock && g_current_function != FUNCTION_TRANSMIT && Key != KEY_PTT)
+	{	// keyboard is locked
+
+		if (Key == KEY_F)
+		{	// function/key-lock key
+
+			if (!key_pressed)
+				return;
+
+			if (key_held)
+			{	// unlock the keypad
+				g_eeprom.key_lock       = false;
+				g_request_save_settings = true;
+				g_update_status         = true;
+
+				#ifdef ENABLE_VOICE
+					g_another_voice_id = VOICE_ID_UNLOCK;
+				#endif
+
+				AUDIO_PlayBeep(BEEP_1KHZ_60MS_OPTIONAL);
+			}
+
+			return;
+		}
+
+		if (Key != KEY_SIDE1 && Key != KEY_SIDE2)
+		{
+			if (!key_pressed || key_held)
+				return;
+
+			backlight_turn_on();
+			
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
+
+			// keypad is locked, tell the user
+			g_keypad_locked  = 4;          // 2 second pop-up
+			g_update_display = true;
+
+			return;
+		}
+	}
+
 	if (!key_pressed)
 	{
 		if (g_flag_SaveVfo)
@@ -2255,7 +2304,8 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 			GUI_SelectNextDisplay(DISPLAY_MAIN);
 		}
 	}
-	else
+
+	if (key_pressed)
 	{
 		if (Key != KEY_PTT || g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
 			backlight_turn_on();
@@ -2289,37 +2339,6 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 //				g_ptt_was_released = true;   // why is this being set ?
 				return;
 			}
-		}
-	}
-
-	if (g_eeprom.key_lock && g_current_function != FUNCTION_TRANSMIT && Key != KEY_PTT)
-	{	// keyboard is locked
-
-		if (Key == KEY_F)
-		{	// function/key-lock key
-
-			if (!key_pressed)
-				return;
-
-			if (!key_held)
-			{	// keypad is locked, tell the user
-				AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
-				g_keypad_locked  = 4;      // 2 seconds
-				g_update_display = true;
-				return;
-			}
-		}
-		else
-		if (Key != KEY_SIDE1 && Key != KEY_SIDE2)
-		{
-			if (!key_pressed || key_held)
-				return;
-
-			// keypad is locked, tell the user
-			AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
-			g_keypad_locked  = 4;          // 2 seconds
-			g_update_display = true;
-			return;
 		}
 	}
 

@@ -36,6 +36,8 @@
 
 void GENERIC_Key_F(bool key_pressed, bool key_held)
 {
+	g_key_input_count_down = key_input_timeout_500ms;
+
 	if (g_input_box_index > 0)
 	{
 		if (!key_held && key_pressed)
@@ -43,80 +45,46 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 		return;
 	}
 
-	if (key_held || !key_pressed)
-	{
-		if (key_held || key_pressed)
-		{
-			if (!key_held)
-				return;
+	if (key_held)
+	{	// f-key held
 
-			if (!key_pressed)
-				return;
-
-		    #ifdef ENABLE_FMRADIO
-				if (!g_fm_radio_mode)
-		    #endif
-			{
-				if (g_screen_to_display != DISPLAY_MENU &&
-					g_screen_to_display != DISPLAY_FM &&
-					g_current_function != FUNCTION_TRANSMIT)
-				{	// toggle the keyboad lock
-
-					#ifdef ENABLE_VOICE
-						g_another_voice_id = g_eeprom.key_lock ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
-					#endif
-
-					g_eeprom.key_lock = !g_eeprom.key_lock;
-
-					g_request_save_settings = true;
-				}
-			}
-		}
-		else
-		{
-			#ifdef ENABLE_FMRADIO
-				if ((g_fm_radio_mode || g_screen_to_display != DISPLAY_MAIN) &&
-				   g_screen_to_display != DISPLAY_FM)
-					return;
-			#else
-				if (g_screen_to_display != DISPLAY_MAIN)
-					return;
-			#endif
-
-			// toggle the fkey on/off
-			g_fkey_pressed = !g_fkey_pressed;
-
-			if (g_fkey_pressed)
-				g_key_input_count_down = key_input_timeout_500ms;
+		if (key_pressed && g_screen_to_display != DISPLAY_MENU && g_current_function != FUNCTION_TRANSMIT)
+		{	// toggle the keyboad lock
 
 			#ifdef ENABLE_VOICE
-				if (!g_fkey_pressed)
-					g_another_voice_id = VOICE_ID_CANCEL;
+				g_another_voice_id = g_eeprom.key_lock ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
 			#endif
 
-			g_update_status = true;
+			g_eeprom.key_lock       = !g_eeprom.key_lock;
+			g_request_save_settings = true;
+			g_update_status         = true;
+
+			// keypad is locked, tell the user
+			g_keypad_locked  = 4;      // 2 second pop-up
+			g_update_display = true;
 		}
+		
+		return;
 	}
-	else
+
+	if (key_pressed)
 	{
-		if (g_screen_to_display != DISPLAY_FM)
-		{
-			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-			return;
-		}
-
-		#ifdef ENABLE_FMRADIO
-			if (g_fm_scan_state == FM_SCAN_OFF)
-			{
-				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-				return;
-			}
-		#endif
-
-		g_beep_to_play = BEEP_440HZ_500MS;
-
-//		g_ptt_was_released = true;   // why is this being set ???
+		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+		return;
 	}
+
+	if (g_current_function == FUNCTION_TRANSMIT)
+		return;
+	
+	// toggle the f-key flag
+	g_fkey_pressed = !g_fkey_pressed;
+
+	#ifdef ENABLE_VOICE
+		if (!g_fkey_pressed)
+			g_another_voice_id = VOICE_ID_CANCEL;
+	#endif
+
+	g_update_status = true;
 }
 
 void GENERIC_Key_PTT(bool key_pressed)

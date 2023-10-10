@@ -595,8 +595,8 @@ void MENU_AcceptSetting(void)
 			break;
 
 		case MENU_AUTOLK:
-			g_eeprom.auto_keypad_lock = g_sub_menu_selection;
-			g_key_lock_count_down_500ms     = 30;
+			g_eeprom.auto_keypad_lock   = g_sub_menu_selection;
+			g_key_lock_count_down_500ms = key_lock_timeout_500ms;
 			break;
 
 		case MENU_S_ADD1:

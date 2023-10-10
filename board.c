@@ -591,14 +591,14 @@ void BOARD_EEPROM_Init(void)
 
 	// 0E90..0E97
 	EEPROM_ReadBuffer(0x0E90, Data, 8);
-	g_eeprom.beep_control                 = (Data[0] < 2)              ? Data[0] : true;
-	g_eeprom.key1_short_press_action     = (Data[1] < ACTION_OPT_LEN) ? Data[1] : ACTION_OPT_MONITOR;
-	g_eeprom.key1_long_press_action      = (Data[2] < ACTION_OPT_LEN) ? Data[2] : ACTION_OPT_FLASHLIGHT;
-	g_eeprom.key2_short_press_action     = (Data[3] < ACTION_OPT_LEN) ? Data[3] : ACTION_OPT_SCAN;
-	g_eeprom.key2_long_press_action      = (Data[4] < ACTION_OPT_LEN) ? Data[4] : ACTION_OPT_NONE;
-	g_eeprom.scan_resume_mode             = (Data[5] < 3)              ? Data[5] : SCAN_RESUME_CO;
-	g_eeprom.auto_keypad_lock             = (Data[6] < 2)              ? Data[6] : false;
-	g_eeprom.pwr_on_display_mode        = (Data[7] < 4)              ? Data[7] : PWR_ON_DISPLAY_MODE_VOLTAGE;
+	g_eeprom.beep_control            = (Data[0] < 2)              ? Data[0] : true;
+	g_eeprom.key1_short_press_action = (Data[1] < ACTION_OPT_LEN) ? Data[1] : ACTION_OPT_MONITOR;
+	g_eeprom.key1_long_press_action  = (Data[2] < ACTION_OPT_LEN) ? Data[2] : ACTION_OPT_FLASHLIGHT;
+	g_eeprom.key2_short_press_action = (Data[3] < ACTION_OPT_LEN) ? Data[3] : ACTION_OPT_SCAN;
+	g_eeprom.key2_long_press_action  = (Data[4] < ACTION_OPT_LEN) ? Data[4] : ACTION_OPT_NONE;
+	g_eeprom.scan_resume_mode        = (Data[5] < 3)              ? Data[5] : SCAN_RESUME_CO;
+	g_eeprom.auto_keypad_lock        = (Data[6] < 2)              ? Data[6] : false;
+	g_eeprom.pwr_on_display_mode     = (Data[7] < 4)              ? Data[7] : PWR_ON_DISPLAY_MODE_VOLTAGE;
 
 	// 0E98..0E9F
 	EEPROM_ReadBuffer(0x0E98, Data, 8);
