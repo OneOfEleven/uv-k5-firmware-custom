@@ -72,7 +72,7 @@ void UI_DisplayWelcome(void)
 				BATTERY_VoltsToPercent(g_battery_voltage_average));
 
 			#if 0
-				sprintf(WelcomeString2, "Current %u", g_battery_current);  // needs scaling into mA
+				sprintf(WelcomeString2, "Current %u", g_usb_current);  // needs scaling into mA
 			#endif
 		}
 		else

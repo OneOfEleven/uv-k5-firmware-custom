@@ -21,8 +21,8 @@
 #include <stdint.h>
 
 extern uint16_t          g_battery_calibration[6];
-extern uint16_t          g_battery_current_voltage;
-extern uint16_t          g_battery_current;
+extern uint16_t          g_usb_current_voltage;
+extern uint16_t          g_usb_current;
 extern uint16_t          g_battery_voltages[4];
 extern uint16_t          g_battery_voltage_average;
 extern uint8_t           g_battery_display_level;

@@ -1894,9 +1894,9 @@ void APP_TimeSlice500ms(void)
 
 	if (g_reduced_service)
 	{
-		BOARD_ADC_GetBatteryInfo(&g_battery_current_voltage, &g_battery_current);
+		BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);
 
-		if (g_battery_current > 500 || g_battery_calibration[3] < g_battery_current_voltage)
+		if (g_usb_current > 500 || g_battery_calibration[3] < g_usb_current_voltage)
 		{
 			#ifdef ENABLE_OVERLAY
 				overlay_FLASH_RebootToBootloader();
@@ -1914,7 +1914,7 @@ void APP_TimeSlice500ms(void)
 
 	if ((g_battery_check_counter & 1) == 0)
 	{
-		BOARD_ADC_GetBatteryInfo(&g_battery_voltages[g_battery_voltage_index++], &g_battery_current);
+		BOARD_ADC_GetBatteryInfo(&g_battery_voltages[g_battery_voltage_index++], &g_usb_current);
 		if (g_battery_voltage_index > 3)
 			g_battery_voltage_index = 0;
 		BATTERY_GetReadings(true);

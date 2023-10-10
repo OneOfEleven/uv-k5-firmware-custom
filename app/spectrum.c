@@ -733,15 +733,15 @@ static void DrawSpectrum() {
 
 static void UpdateBatteryInfo() {
   for (int i = 0; i < 4; i++) {
-    BOARD_ADC_GetBatteryInfo(&gBatteryVoltages[i], &gBatteryCurrent);
+    BOARD_ADC_GetBatteryInfo(&g_battery_voltages[i], &g_usb_current);
   }
 
-  uint16_t voltage = Mid(gBatteryVoltages, ARRAY_SIZE(gBatteryVoltages));
-  gBatteryDisplayLevel = 0;
+  uint16_t voltage = Mid(g_battery_voltages, ARRAY_SIZE(g_battery_voltages));
+  g_battery_display_level = 0;
 
-  for (int i = ARRAY_SIZE(gBatteryCalibration) - 1; i >= 0; --i) {
-    if (gBatteryCalibration[i] < voltage) {
-      gBatteryDisplayLevel = i + 1;
+  for (int i = ARRAY_SIZE(g_battery_calibration) - 1; i >= 0; --i) {
+    if (g_battery_calibration[i] < voltage) {
+      g_battery_display_level = i + 1;
       break;
     }
   }
@@ -753,7 +753,7 @@ static void DrawStatus() {
   for (int i = 126; i >= 116; i--) {
     g_status_line[i] = 0b01000010;
   }
-  uint8_t v = gBatteryDisplayLevel;
+  uint8_t v = g_battery_display_level;
   v <<= 1;
   for (int i = 125; i >= 116; i--) {
     if (126 - i <= v) {
@@ -768,7 +768,7 @@ static void DrawF(uint32_t f) {
   sprintf(String, "%u.%05u", f / 100000, f % 100000);
 
   if (currentState == STILL && kbd.current == KEY_PTT) {
-    if (gBatteryDisplayLevel == 6) {
+    if (g_battery_display_level == 6) {
       sprintf(String, "VOLTAGE HIGH");
     } else if (!IsTXAllowed()) {
       sprintf(String, "DISABLED");
@@ -1021,7 +1021,7 @@ void OnKeyDownStill(key_code_t key) {
   case KEY_PTT:
     // start transmit
     UpdateBatteryInfo();
-    if (gBatteryDisplayLevel != 6 && IsTXAllowed()) {
+    if (g_battery_display_level != 6 && IsTXAllowed()) {
       ToggleTX(true);
     }
     redrawScreen = true;

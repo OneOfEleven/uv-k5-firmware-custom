@@ -22,8 +22,8 @@
 #include "ui/ui.h"
 
 uint16_t          g_battery_calibration[6];
-uint16_t          g_battery_current_voltage;
-uint16_t          g_battery_current;
+uint16_t          g_usb_current_voltage;
+uint16_t          g_usb_current;
 uint16_t          g_battery_voltages[4];
 uint16_t          g_battery_voltage_average;
 uint8_t           g_battery_display_level;
@@ -109,7 +109,7 @@ void BATTERY_GetReadings(const bool bDisplayBatteryLevel)
 	if ((g_screen_to_display == DISPLAY_MENU) && g_menu_cursor == MENU_VOL)
 		g_update_display = true;
 
-	if (g_battery_current < 501)
+	if (g_usb_current < 501)
 	{
 		if (g_charging_with_type_c)
 		{
