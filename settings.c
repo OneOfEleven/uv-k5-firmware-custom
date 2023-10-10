@@ -73,6 +73,7 @@ void SETTINGS_SaveVfoIndices(void)
 	EEPROM_WriteBuffer(0x0E80, State);
 }
 
+#if 0
 const uint8_t calib1[] =
 {	// my first radios calibration data
 	0x0A, 0x4B, 0x53, 0x56, 0x59, 0x5C, 0x5F, 0x62, 0x64, 0x66, 0xFF, 0xFF,
@@ -179,6 +180,7 @@ void SETTINGS_restore_calibration(void)
 		index += 8;
 	}
 }
+#endif
 
 void SETTINGS_SaveSettings(void)
 {

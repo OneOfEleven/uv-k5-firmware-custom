@@ -229,7 +229,7 @@ endif
 # better to bust than add new bugs
 #CFLAGS += -Wall
 #CFLAGS += -Wextra
-CFLAGS += -Wpedantic
+#CFLAGS += -Wpedantic
 
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
