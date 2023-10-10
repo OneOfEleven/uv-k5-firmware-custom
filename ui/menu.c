@@ -70,6 +70,7 @@ const t_menu_item g_menu_list[] =
 #endif
 	{"Bak LT", VOICE_ID_INVALID,                       MENU_ABR           }, // was "ABR"
 	{"BLTTRX", VOICE_ID_INVALID,                       MENU_ABR_ON_TX_RX  },
+	{"CTRAST", VOICE_ID_INVALID,                       MENU_CONTRAST      },
 	{"BEEP",   VOICE_ID_BEEP_PROMPT,                   MENU_BEEP          },
 #ifdef ENABLE_VOICE
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE         },
@@ -672,6 +673,13 @@ void UI_DisplayMenu(void)
 			strcpy(String, g_sub_menu_rx_tx[g_sub_menu_selection]);
 			break;
 
+		case MENU_CONTRAST:
+			sprintf(String, "%d", g_sub_menu_selection);
+			//g_setting_contrast = g_sub_menu_selection
+			ST7565_SetContrast(g_sub_menu_selection);
+			g_update_display = true;
+			break;
+			
 		#ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:
 		#endif

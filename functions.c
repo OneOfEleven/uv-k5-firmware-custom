@@ -29,6 +29,7 @@
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
 #include "driver/system.h"
+#include "driver/uart.h"
 #include "frequencies.h"
 #include "functions.h"
 #include "helper/battery.h"
@@ -84,31 +85,36 @@ void FUNCTION_Init(void)
 
 void FUNCTION_Select(function_type_t Function)
 {
-	const function_type_t PreviousFunction = g_current_function;
-	const bool            bWasPowerSave    = (PreviousFunction == FUNCTION_POWER_SAVE);
+	const function_type_t prev_func = g_current_function;
+	const bool was_power_save = (prev_func == FUNCTION_POWER_SAVE);
 
 	g_current_function = Function;
 
-	if (bWasPowerSave && Function != FUNCTION_POWER_SAVE)
-	{
+	if (was_power_save && Function != FUNCTION_POWER_SAVE)
+	{	// wake up
 		BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
 		g_rx_idle_mode = false;
+
 		UI_DisplayStatus(false);
 	}
 
 	switch (Function)
 	{
 		case FUNCTION_FOREGROUND:
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("func forground\r\n");
+			#endif
+
 			if (g_dtmf_reply_state != DTMF_REPLY_NONE)
 				RADIO_PrepareCssTX();
 
-			if (PreviousFunction == FUNCTION_TRANSMIT)
+			if (prev_func == FUNCTION_TRANSMIT)
 			{
 				g_vfo_rssi_bar_level[0] = 0;
 				g_vfo_rssi_bar_level[1] = 0;
 			}
 			else
-			if (PreviousFunction != FUNCTION_RECEIVE)
+			if (prev_func != FUNCTION_RECEIVE)
 				break;
 
 			#if defined(ENABLE_FMRADIO)
@@ -127,16 +133,32 @@ void FUNCTION_Select(function_type_t Function)
 			return;
 
 		case FUNCTION_MONITOR:
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("func monitor\r\n");
+			#endif
+
 			g_monitor_enabled = true;
 			break;
 
 		case FUNCTION_INCOMING:
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("func incoming\r\n");
+			#endif
+			break;
+			
 		case FUNCTION_RECEIVE:
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("func receive\r\n");
+			#endif
 			break;
 
 		case FUNCTION_POWER_SAVE:
-			g_power_save_10ms               = g_eeprom.battery_save * 10;
-			g_power_save_count_down_expired = false;
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("func power save\r\n");
+			#endif
+
+			g_power_save_10ms = g_eeprom.battery_save * 10;
+			g_power_save_expired = false;
 
 			g_rx_idle_mode = true;
 
@@ -155,6 +177,9 @@ void FUNCTION_Select(function_type_t Function)
 			return;
 
 		case FUNCTION_TRANSMIT:
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("func transmit\r\n");
+			#endif
 
 			// if DTMF is enabled when TX'ing, it changes the TX audio filtering !! .. 1of11
 			BK4819_DisableDTMF();
@@ -247,7 +272,7 @@ void FUNCTION_Select(function_type_t Function)
 	}
 
 	g_battery_save_count_down_10ms = battery_save_count_10ms;
-	g_schedule_power_save         = false;
+	g_schedule_power_save = false;
 
 	#if defined(ENABLE_FMRADIO)
 		g_fm_restore_count_down_10ms = 0;

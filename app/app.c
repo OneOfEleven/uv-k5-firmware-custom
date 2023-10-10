@@ -208,13 +208,13 @@ static void APP_HandleIncoming(void)
 		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_noaa_count_down_10ms > 0)
 		{
 			g_noaa_count_down_10ms = 0;
-			flag               = true;
+			flag = true;
 		}
 	#endif
 
 	if (g_CTCSS_lost && g_current_code_type == CODE_TYPE_CONTINUOUS_TONE)
 	{
-		flag       = true;
+		flag = true;
 		g_found_CTCSS = false;
 	}
 
@@ -322,7 +322,7 @@ static void APP_HandleReceive(void)
 					{
 						if (g_CxCSS_tail_found)
 						{
-							Mode               = END_OF_RX_MODE_TTE;
+							Mode = END_OF_RX_MODE_TTE;
 							g_CxCSS_tail_found = false;
 						}
 					}
@@ -336,13 +336,13 @@ static void APP_HandleReceive(void)
 					else
 					if (!g_found_CTCSS)
 					{
-						g_found_CTCSS               = true;
+						g_found_CTCSS = true;
 						g_found_CTCSS_count_down_10ms = 100;   // 1 sec
 					}
 
 					if (g_CxCSS_tail_found)
 					{
-						Mode               = END_OF_RX_MODE_TTE;
+						Mode = END_OF_RX_MODE_TTE;
 						g_CxCSS_tail_found = false;
 					}
 					break;
@@ -356,7 +356,7 @@ static void APP_HandleReceive(void)
 					else
 					if (!g_found_CDCSS)
 					{
-						g_found_CDCSS               = true;
+						g_found_CDCSS = true;
 						g_found_CDCSS_count_down_10ms = 100;   // 1 sec
 					}
 
@@ -375,15 +375,19 @@ static void APP_HandleReceive(void)
 	else
 		Mode = END_OF_RX_MODE_END;
 
-	if (!g_end_of_rx_detected_maybe         &&
-	     Mode == END_OF_RX_MODE_SKIP   &&
-	     g_next_time_slice_40ms            &&
+	if (!g_end_of_rx_detected_maybe &&
+	     Mode == END_OF_RX_MODE_SKIP &&
+	     g_next_time_slice_40ms &&
 	     g_eeprom.tail_note_elimination &&
 	    (g_current_code_type == CODE_TYPE_DIGITAL || g_current_code_type == CODE_TYPE_REVERSE_DIGITAL) &&
 	     BK4819_GetCTCType() == 1)
+	{
 		Mode = END_OF_RX_MODE_TTE;
+	}
 	else
+	{
 		g_next_time_slice_40ms = false;
+	}
 
 Skip:
 	switch (Mode)
@@ -520,7 +524,6 @@ void APP_StartListening(function_type_t Function, const bool reset_am_fix)
 			g_rx_vfo->pRX->frequency      = NoaaFrequencyTable[g_noaa_channel];
 			g_rx_vfo->pTX->frequency      = NoaaFrequencyTable[g_noaa_channel];
 			g_eeprom.screen_channel[chan] = g_rx_vfo->channel_save;
-
 			g_noaa_count_down_10ms        = 500;   // 5 sec
 			g_schedule_noaa               = false;
 		}
@@ -873,15 +876,15 @@ void APP_CheckRadioInterrupts(void)
 		#ifdef ENABLE_VOX
 			if (interrupt_status_bits & BK4819_REG_02_VOX_LOST)
 			{
-				g_vox_lost         = true;
+				g_vox_lost = true;
 				g_vox_pause_count_down = 10;
 
 				if (g_eeprom.vox_switch)
 				{
 					if (g_current_function == FUNCTION_POWER_SAVE && !g_rx_idle_mode)
 					{
-						g_power_save_10ms            = power_save2_10ms;
-						g_power_save_count_down_expired = 0;
+						g_power_save_10ms = power_save2_10ms;
+						g_power_save_expired = false;
 					}
 
 					if (g_eeprom.dual_watch != DUAL_WATCH_OFF && (g_schedule_dual_watch || g_dual_watch_count_down_10ms < dual_watch_count_after_vox_10ms))
@@ -1117,16 +1120,16 @@ void APP_Update(void)
 
 	#ifdef ENABLE_NOAA
 		#ifdef ENABLE_VOICE
-			if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_is_noaa_mode && g_schedule_noaa && g_voice_write_index == 0)
-		#else
-			if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_is_noaa_mode && g_schedule_noaa)
+			if (g_voice_write_index == 0)
 		#endif
 		{
-			NOAA_IncreaseChannel();
-			RADIO_SetupRegisters(false);
-
-			g_noaa_count_down_10ms = 7;      // 70ms
-			g_schedule_noaa        = false;
+			if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_is_noaa_mode && g_schedule_noaa)
+			{
+				NOAA_IncreaseChannel();
+				RADIO_SetupRegisters(false);
+				g_noaa_count_down_10ms = 7;      // 70ms
+				g_schedule_noaa        = false;
+			}
 		}
 	#endif
 
@@ -1187,7 +1190,7 @@ void APP_Update(void)
 		#ifdef ENABLE_NOAA
 			if (
 				#ifdef ENABLE_FMRADIO
-					g_fm_radio_mode                  ||
+					g_fm_radio_mode ||
 			    #endif
 				g_ptt_is_pressed                     ||
 			    g_key_held                           ||
@@ -1200,7 +1203,9 @@ void APP_Update(void)
 				g_battery_save_count_down_10ms   = battery_save_count_10ms;
 			}
 			else
-			if ((IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[0]) && IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[1])) || !g_is_noaa_mode)
+			if ((IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[0]) &&
+			     IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[1])) ||
+			     !g_is_noaa_mode)
 			{
 				FUNCTION_Select(FUNCTION_POWER_SAVE);
 			}
@@ -1211,7 +1216,7 @@ void APP_Update(void)
 		#else
 			if (
 				#ifdef ENABLE_FMRADIO
-					g_fm_radio_mode                  ||
+					g_fm_radio_mode ||
 			    #endif
 				g_ptt_is_pressed                     ||
 			    g_key_held                           ||
@@ -1227,69 +1232,76 @@ void APP_Update(void)
 			{
 				FUNCTION_Select(FUNCTION_POWER_SAVE);
 			}
-
-			g_schedule_power_save = false;
 		#endif
+
+		g_schedule_power_save = false;
 	}
 
-	#ifdef ENABLE_VOICE
-		if (g_power_save_count_down_expired && g_current_function == FUNCTION_POWER_SAVE && g_voice_write_index == 0)
-	#else
-		if (g_power_save_count_down_expired && g_current_function == FUNCTION_POWER_SAVE)
-	#endif
-	{	// wake up, enable RX then go back to sleep
+#ifdef ENABLE_VOICE
+	if (g_voice_write_index == 0)
+#endif
+	{
+		if (g_power_save_expired && g_current_function == FUNCTION_POWER_SAVE)
+		{	// wake up, enable RX then go back to sleep
+			if (g_rx_idle_mode)
+			{
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_SendText("ps wake up\r\n");
+				#endif
 
-		if (g_rx_idle_mode)
-		{
-			BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
+				BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
 
-			#ifdef ENABLE_VOX
-				if (g_eeprom.vox_switch)
-					BK4819_EnableVox(g_eeprom.vox1_threshold, g_eeprom.vox0_threshold);
-			#endif
+				#ifdef ENABLE_VOX
+					if (g_eeprom.vox_switch)
+						BK4819_EnableVox(g_eeprom.vox1_threshold, g_eeprom.vox0_threshold);
+				#endif
 
-			if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
-			    g_scan_state_dir == SCAN_OFF &&
-			    g_css_scan_mode == CSS_SCAN_MODE_OFF)
-			{	// dual watch mode, toggle between the two VFO's
+				if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
+					g_scan_state_dir == SCAN_OFF &&
+					g_css_scan_mode == CSS_SCAN_MODE_OFF)
+				{	// dual watch mode, toggle between the two VFO's
+					DUALWATCH_Alternate();
+
+					g_update_rssi = false;
+				}
+
+				FUNCTION_Init();
+
+				g_power_save_10ms = power_save1_10ms; // come back here in a bit
+				g_rx_idle_mode    = false;           // RX is awake
+			}
+			else
+			if (g_eeprom.dual_watch == DUAL_WATCH_OFF ||
+				g_scan_state_dir != SCAN_OFF ||
+				g_css_scan_mode != CSS_SCAN_MODE_OFF ||
+				g_update_rssi)
+			{	// dual watch mode, go back to sleep
+
+				updateRSSI(g_eeprom.rx_vfo);
+
+				// go back to sleep
+
+				g_power_save_10ms = g_eeprom.battery_save * 10;
+				g_rx_idle_mode    = true;
+
+				BK4819_DisableVox();
+				BK4819_Sleep();
+				BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, false);
+
+				// Authentic device checked removed
+
+			}
+			else
+			{
+				// toggle between the two VFO's
 				DUALWATCH_Alternate();
 
-				g_update_rssi = false;
+				g_update_rssi     = true;
+				g_power_save_10ms = power_save1_10ms;
 			}
 
-			FUNCTION_Init();
-
-			g_power_save_10ms = power_save1_10ms; // come back here in a bit
-			g_rx_idle_mode    = false;           // RX is awake
+			g_power_save_expired = false;
 		}
-		else
-		if (g_eeprom.dual_watch == DUAL_WATCH_OFF || g_scan_state_dir != SCAN_OFF || g_css_scan_mode != CSS_SCAN_MODE_OFF || g_update_rssi)
-		{	// dual watch mode, go back to sleep
-
-			updateRSSI(g_eeprom.rx_vfo);
-
-			// go back to sleep
-
-			g_power_save_10ms = g_eeprom.battery_save * 10;
-			g_rx_idle_mode    = true;
-
-			BK4819_DisableVox();
-			BK4819_Sleep();
-			BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, false);
-
-			// Authentic device checked removed
-
-		}
-		else
-		{
-			// toggle between the two VFO's
-			DUALWATCH_Alternate();
-
-			g_update_rssi     = true;
-			g_power_save_10ms = power_save1_10ms;
-		}
-
-		g_power_save_count_down_expired = false;
 	}
 }
 
@@ -2061,8 +2073,7 @@ void APP_TimeSlice500ms(void)
 
 						g_reduced_service = true;
 
-						//if (g_current_function != FUNCTION_POWER_SAVE)
-							FUNCTION_Select(FUNCTION_POWER_SAVE);
+						FUNCTION_Select(FUNCTION_POWER_SAVE);
 
 						ST7565_HardwareReset();
 

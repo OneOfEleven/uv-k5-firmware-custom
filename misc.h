@@ -183,6 +183,8 @@ extern uint8_t               g_setting_backlight_on_tx_rx;
 extern bool                  g_setting_live_dtmf_decoder;
 extern uint8_t               g_setting_battery_text;
 
+extern uint8_t               g_setting_contrast;
+
 extern uint8_t               g_setting_side1_short;
 extern uint8_t               g_setting_side1_long;
 extern uint8_t               g_setting_side2_short;
@@ -210,7 +212,7 @@ extern uint8_t               g_user_channel_attributes[207];
 
 extern volatile uint16_t     g_battery_save_count_down_10ms;
 
-extern volatile bool         g_power_save_count_down_expired;
+extern volatile bool         g_power_save_expired;
 extern volatile bool         g_schedule_power_save;
 
 extern volatile bool         g_schedule_dual_watch;

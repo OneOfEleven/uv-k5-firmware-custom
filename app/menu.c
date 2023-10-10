@@ -31,6 +31,7 @@
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/keyboard.h"
+#include "driver/st7565.h"
 #include "frequencies.h"
 #include "helper/battery.h"
 #include "misc.h"
@@ -212,6 +213,13 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		case MENU_ABR_ON_TX_RX:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_rx_tx) - 1;
+			break;
+
+		case MENU_CONTRAST:
+//			*pMin = 0;
+//			*pMax = 63;
+			*pMin = 26;
+			*pMax = 45;
 			break;
 
 		#ifdef ENABLE_AM_FIX_TEST1
@@ -535,6 +543,11 @@ void MENU_AcceptSetting(void)
 
 		case MENU_ABR_ON_TX_RX:
 			g_setting_backlight_on_tx_rx = g_sub_menu_selection;
+			break;
+
+		case MENU_CONTRAST:
+			g_setting_contrast = g_sub_menu_selection;
+			ST7565_SetContrast(g_setting_contrast);
 			break;
 
 		case MENU_TDR:
@@ -1001,6 +1014,10 @@ void MENU_ShowCurrentSetting(void)
 
 		case MENU_ABR_ON_TX_RX:
 			g_sub_menu_selection = g_setting_backlight_on_tx_rx;
+			break;
+
+		case MENU_CONTRAST:
+			g_sub_menu_selection = g_setting_contrast;
 			break;
 
 		case MENU_TDR:

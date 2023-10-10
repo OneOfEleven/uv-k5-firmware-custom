@@ -37,9 +37,7 @@ extern center_line_t center_line;
 #ifdef ENABLE_AUDIO_BAR
 	void UI_DisplayAudioBar(void);
 #endif
-#ifdef ENABLE_RSSI_BAR
-	void UI_UpdateRSSI(const int16_t rssi, const int vfo);
-#endif
+void UI_UpdateRSSI(const int16_t rssi, const int vfo);
 void UI_DisplayMain(void);
 
 #endif

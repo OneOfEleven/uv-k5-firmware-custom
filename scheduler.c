@@ -76,7 +76,7 @@ void SystickHandler(void)
 		DECREMENT_AND_TRIGGER(g_battery_save_count_down_10ms, g_schedule_power_save);
 
 	if (g_current_function == FUNCTION_POWER_SAVE)
-		DECREMENT_AND_TRIGGER(g_power_save_10ms, g_power_save_count_down_expired);
+		DECREMENT_AND_TRIGGER(g_power_save_10ms, g_power_save_expired);
 
 	if (g_scan_state_dir == SCAN_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch != DUAL_WATCH_OFF)
 		if (g_current_function != FUNCTION_MONITOR && g_current_function != FUNCTION_TRANSMIT && g_current_function != FUNCTION_RECEIVE)

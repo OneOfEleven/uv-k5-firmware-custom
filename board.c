@@ -540,6 +540,7 @@ void BOARD_EEPROM_Init(void)
 
 	// 0E78..0E7F
 	EEPROM_ReadBuffer(0x0E78, Data, 8);
+	g_setting_contrast             = (Data[0] > 45) ? 31 : (Data[0] < 26) ? 31 : Data[0];
 	g_eeprom.channel_display_mode  = (Data[1] < 4) ? Data[1] : MDF_FREQUENCY;    // 4 instead of 3 - extra display mode
 	g_eeprom.cross_vfo_rx_tx       = (Data[2] < 3) ? Data[2] : CROSS_BAND_OFF;
 	g_eeprom.battery_save          = (Data[3] < 5) ? Data[3] : 4;

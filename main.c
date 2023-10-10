@@ -29,6 +29,7 @@
 #include "driver/backlight.h"
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
+#include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/systick.h"
 #include "driver/uart.h"
@@ -116,6 +117,8 @@ void Main(void)
 	// sort the menu list
 	UI_SortMenu(!g_f_lock);
 	
+	ST7565_SetContrast(g_setting_contrast);
+
 	// wait for user to release all butts before moving on
 	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||
 	     KEYBOARD_Poll() != KEY_INVALID ||

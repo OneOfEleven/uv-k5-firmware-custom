@@ -96,7 +96,8 @@ void SETTINGS_SaveSettings(void)
 	State[7] = g_eeprom.mic_sensitivity;
 	EEPROM_WriteBuffer(0x0E70, State);
 
-	State[0] = 0xFF;
+	//State[0] = 0xFF;
+	State[0] = g_setting_contrast;
 	State[1] = g_eeprom.channel_display_mode;
 	State[2] = g_eeprom.cross_vfo_rx_tx;
 	State[3] = g_eeprom.battery_save;

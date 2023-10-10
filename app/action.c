@@ -77,7 +77,7 @@ void ACTION_Monitor(void)
 	if (g_current_function != FUNCTION_MONITOR)
 	{	// enable the monitor
 		RADIO_SelectVfos();
-		#ifdef ENABLE_NOAA
+		#ifdef g_power_save_expired
 			if (g_rx_vfo->channel_save >= NOAA_CHANNEL_FIRST && g_is_noaa_mode)
 				g_noaa_channel = g_rx_vfo->channel_save - NOAA_CHANNEL_FIRST;
 		#endif
@@ -95,7 +95,7 @@ void ACTION_Monitor(void)
 		g_scan_pause_mode         = true;
 	}
 
-	#ifdef ENABLE_NOAA
+	#ifdef g_power_save_expired
 		if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_is_noaa_mode)
 		{
 			g_noaa_count_down_10ms = noaa_count_down_10ms;
@@ -180,7 +180,7 @@ void ACTION_Scan(bool bRestart)
 
 		RADIO_SelectVfos();
 
-		#ifdef ENABLE_NOAA
+		#ifdef g_power_save_expired
 			if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 		#endif
 		{

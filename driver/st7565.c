@@ -27,6 +27,7 @@
 
 uint8_t g_status_line[128];
 uint8_t g_frame_buffer[7][128];
+uint8_t contrast = 31;  // 0 ~ 63
 
 void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const unsigned int Size, const uint8_t *pBitmap)
 {
@@ -64,6 +65,10 @@ void ST7565_BlitFullScreen(void)
 {
 	unsigned int Line;
 
+	// reset some of the displays settings to try and overcome the
+	// radios hardware problem - RF corrupting the display
+	ST7565_Init(false);
+
 	SPI_ToggleMasterMode(&SPI0->CR, false);
 
 	ST7565_WriteByte(0x40);
@@ -82,7 +87,7 @@ void ST7565_BlitFullScreen(void)
 	}
 
 	#if 0
-		// whats the delay for I wonder, it holds things up :(
+		// whats the delay for, it holds things up :(
 		SYSTEM_DelayMs(20);
 	#else
 //		SYSTEM_DelayMs(1);
@@ -115,13 +120,14 @@ void ST7565_BlitStatusLine(void)
 	SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
-void ST7565_FillScreen(uint8_t Value)
+void ST7565_FillScreen(const uint8_t Value)
 {
 	unsigned int i;
 
-	// reset some of the displays settings to try and overcome the radios hardware problem - RF corrupting the display
+	// reset some of the displays settings to try and overcome the
+	// radios hardware problem - RF corrupting the display
 	ST7565_Init(false);
-	
+
 	SPI_ToggleMasterMode(&SPI0->CR, false);
 
 	for (i = 0; i < 8; i++)
@@ -145,52 +151,52 @@ void ST7565_Init(const bool full)
 	if (full)
 	{
 		SPI0_Init();
-	
+
 		ST7565_HardwareReset();
-	
+
 		SPI_ToggleMasterMode(&SPI0->CR, false);
-	
+
 		ST7565_WriteByte(0xE2);   // internal reset
-	
+
 		SYSTEM_DelayMs(120);
 	}
 	else
 		SPI_ToggleMasterMode(&SPI0->CR, false);
-	
+
 	ST7565_WriteByte(0xA2);   // bias 9
 	ST7565_WriteByte(0xC0);   // com normal
 	ST7565_WriteByte(0xA1);   // reverse ?
-	
+
 	ST7565_WriteByte(0xA6);   // normal screen ?
 //	ST7565_WriteByte(0xA7);   // inverse screen ?
 
 	ST7565_WriteByte(0xA4);   // all points normal
 	ST7565_WriteByte(0x24);   //
-	ST7565_WriteByte(0x81);   // volume first ?
 
-	ST7565_WriteByte(0x1f);   // contrast ?
+	ST7565_WriteByte(0x81);       //
+	ST7565_WriteByte(contrast);   // contrast ?  0 ~ 63
 
 	if (full)
 	{
 		ST7565_WriteByte(0x2B);   // power control ?
-	
+
 		SYSTEM_DelayMs(1);
-	
+
 		ST7565_WriteByte(0x2E);   // power control ?
-	
+
 		SYSTEM_DelayMs(1);
-	
+
 		ST7565_WriteByte(0x2F);   //
 		ST7565_WriteByte(0x2F);   //
 		ST7565_WriteByte(0x2F);   //
 		ST7565_WriteByte(0x2F);   //
-	
+
 		SYSTEM_DelayMs(40);
 	}
-	
+
 	ST7565_WriteByte(0x40);   // start line ?
 	ST7565_WriteByte(0xAF);   // display on ?
-	
+
 	SPI_WaitForUndocumentedTxFifoStatusBit();
 
 	SPI_ToggleMasterMode(&SPI0->CR, true);
@@ -209,7 +215,7 @@ void ST7565_HardwareReset(void)
 	SYSTEM_DelayMs(120);
 }
 
-void ST7565_SelectColumnAndLine(uint8_t Column, uint8_t Line)
+void ST7565_SelectColumnAndLine(const uint8_t Column, const uint8_t Line)
 {
 	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
 	while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
@@ -221,9 +227,19 @@ void ST7565_SelectColumnAndLine(uint8_t Column, uint8_t Line)
 	SPI_WaitForUndocumentedTxFifoStatusBit();
 }
 
-void ST7565_WriteByte(uint8_t Value)
+void ST7565_WriteByte(const uint8_t Value)
 {
 	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
 	while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
 	SPI0->WDR = Value;
+}
+
+void ST7565_SetContrast(const uint8_t value)
+{
+	contrast = (value <= 63) ? value : 63;
+}
+
+uint8_t ST7565_GetContrast(void)
+{
+	return contrast;
 }

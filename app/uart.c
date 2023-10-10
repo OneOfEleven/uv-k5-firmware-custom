@@ -395,11 +395,11 @@ static void CMD_052F(const uint8_t *pBuffer)
 {
 	const CMD_052F_t *pCmd = (const CMD_052F_t *)pBuffer;
 
-	g_eeprom.dual_watch                      = DUAL_WATCH_OFF;
-	g_eeprom.cross_vfo_rx_tx                 = CROSS_BAND_OFF;
-	g_eeprom.rx_vfo                          = 0;
-	g_eeprom.dtmf_side_tone                  = false;
-	g_eeprom.vfo_info[0].frequency_reverse     = false;
+	g_eeprom.dual_watch                       = DUAL_WATCH_OFF;
+	g_eeprom.cross_vfo_rx_tx                  = CROSS_BAND_OFF;
+	g_eeprom.rx_vfo                           = 0;
+	g_eeprom.dtmf_side_tone                   = false;
+	g_eeprom.vfo_info[0].frequency_reverse    = false;
 	g_eeprom.vfo_info[0].pRX                  = &g_eeprom.vfo_info[0].freq_config_rx;
 	g_eeprom.vfo_info[0].pTX                  = &g_eeprom.vfo_info[0].freq_config_tx;
 	g_eeprom.vfo_info[0].tx_offset_freq_dir   = TX_OFFSET_FREQ_DIR_OFF;

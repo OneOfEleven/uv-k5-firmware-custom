@@ -107,6 +107,8 @@ uint8_t               g_setting_backlight_on_tx_rx;
 bool                  g_setting_live_dtmf_decoder;
 uint8_t               g_setting_battery_text;
 
+uint8_t               g_setting_contrast;
+
 uint8_t               g_setting_side1_short;
 uint8_t               g_setting_side1_long;
 uint8_t               g_setting_side2_short;
@@ -133,7 +135,7 @@ uint8_t               g_user_channel_attributes[FREQ_CHANNEL_LAST + 1];
 
 volatile uint16_t     g_battery_save_count_down_10ms = battery_save_count_10ms;
 
-volatile bool         g_power_save_count_down_expired;
+volatile bool         g_power_save_expired;
 volatile bool         g_schedule_power_save;
 
 volatile bool         g_schedule_dual_watch = true;
