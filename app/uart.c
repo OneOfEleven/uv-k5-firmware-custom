@@ -46,17 +46,17 @@
 typedef struct {
 	uint16_t ID;
 	uint16_t Size;
-} Header_t;
+} __attribute__((packed)) Header_t;
 
 typedef struct {
 	uint8_t  Padding[2];
 	uint16_t ID;
-} Footer_t;
+} __attribute__((packed)) Footer_t;
 
 typedef struct {
 	Header_t Header;
 	uint32_t Timestamp;
-} CMD_0514_t;
+} __attribute__((packed)) CMD_0514_t;
 
 typedef struct {
 	Header_t Header;
@@ -66,8 +66,8 @@ typedef struct {
 		bool     g_is_in_lock_screen;
 		uint8_t  Padding[2];
 		uint32_t Challenge[4];
-	} Data;
-} REPLY_0514_t;
+	} __attribute__((packed)) Data;
+} __attribute__((packed)) REPLY_0514_t;
 
 typedef struct {
 	Header_t Header;
@@ -75,7 +75,7 @@ typedef struct {
 	uint8_t  Size;
 	uint8_t  Padding;
 	uint32_t Timestamp;
-} CMD_051B_t;
+} __attribute__((packed)) CMD_051B_t;
 
 typedef struct {
 	Header_t Header;
@@ -84,8 +84,8 @@ typedef struct {
 		uint8_t  Size;
 		uint8_t  Padding;
 		uint8_t  Data[128];
-	} Data;
-} REPLY_051B_t;
+	} __attribute__((packed)) Data;
+} __attribute__((packed)) REPLY_051B_t;
 
 typedef struct {
 	Header_t Header;
@@ -93,15 +93,15 @@ typedef struct {
 	uint8_t  Size;
 	bool     bAllowPassword;
 	uint32_t Timestamp;
-	uint8_t  Data[0];
-} CMD_051D_t;
+//	uint8_t  Data[0];
+} __attribute__((packed)) CMD_051D_t;
 
 typedef struct {
 	Header_t Header;
 	struct {
 		uint16_t Offset;
-	} Data;
-} REPLY_051D_t;
+	} __attribute__((packed)) Data;
+} __attribute__((packed)) REPLY_051D_t;
 
 typedef struct {
 	Header_t Header;
@@ -109,34 +109,34 @@ typedef struct {
 		uint16_t RSSI;
 		uint8_t  ExNoiseIndicator;
 		uint8_t  GlitchIndicator;
-	} Data;
-} REPLY_0527_t;
+	} __attribute__((packed)) Data;
+} __attribute__((packed)) REPLY_0527_t;
 
 typedef struct {
 	Header_t Header;
 	struct {
 		uint16_t Voltage;
 		uint16_t Current;
-	} Data;
-} REPLY_0529_t;
+	} __attribute__((packed)) Data;
+} __attribute__((packed)) REPLY_0529_t;
 
 typedef struct {
 	Header_t Header;
 	uint32_t Response[4];
-} CMD_052D_t;
+} __attribute__((packed)) CMD_052D_t;
 
 typedef struct {
 	Header_t Header;
 	struct {
 		bool bIsLocked;
 		uint8_t Padding[3];
-	} Data;
-} REPLY_052D_t;
+	} __attribute__((packed)) Data;
+} __attribute__((packed)) REPLY_052D_t;
 
 typedef struct {
 	Header_t Header;
 	uint32_t Timestamp;
-} CMD_052F_t;
+} __attribute__((packed)) CMD_052F_t;
 
 static const uint8_t Obfuscation[16] =
 {
@@ -150,8 +150,8 @@ static union
 	{
 		Header_t Header;
 		uint8_t Data[252];
-	};
-} UART_Command;
+	} __attribute__((packed));
+} __attribute__((packed)) UART_Command;
 
 static uint32_t Timestamp;
 static uint16_t g_uart_write_index;
@@ -281,9 +281,9 @@ static void CMD_051B(const uint8_t *pBuffer)
 static void CMD_051D(const uint8_t *pBuffer)
 {
 	const CMD_051D_t *pCmd = (const CMD_051D_t *)pBuffer;
-	REPLY_051D_t Reply;
-	bool bReloadEeprom;
-	bool bIsLocked;
+	REPLY_051D_t      Reply;
+	bool              bReloadEeprom;
+	bool              bIsLocked;
 
 	if (pCmd->Timestamp != Timestamp)
 		return;
@@ -314,7 +314,7 @@ static void CMD_051D(const uint8_t *pBuffer)
 					bReloadEeprom = true;
 
 			if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !g_is_in_lock_screen || pCmd->bAllowPassword)
-				EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U]);
+				EEPROM_WriteBuffer(Offset, (uint8_t *)&pCmd + (i * 8));  // 1of11
 		}
 
 		if (bReloadEeprom)
@@ -339,22 +339,27 @@ static void CMD_0527(void)
 
 static void CMD_0529(void)
 {
+	uint16_t     voltage;
+	uint16_t     current;
 	REPLY_0529_t Reply;
 
 	Reply.Header.ID   = 0x52A;
 	Reply.Header.Size = sizeof(Reply.Data);
 
 	// Original doesn't actually send current!
-	BOARD_ADC_GetBatteryInfo(&Reply.Data.Voltage, &Reply.Data.Current);
+	BOARD_ADC_GetBatteryInfo(&voltage, &current);
+	Reply.Data.Voltage = voltage;
+	Reply.Data.Current = current;
 
 	SendReply(&Reply, sizeof(Reply));
 }
 
 static void CMD_052D(const uint8_t *pBuffer)
 {
-	const CMD_052D_t *pCmd = (const CMD_052D_t *)pBuffer;
-	REPLY_052D_t      Reply;
-	bool              bIsLocked;
+	CMD_052D_t  *pCmd = (CMD_052D_t *)pBuffer;
+	REPLY_052D_t Reply;
+	uint32_t     response[4];
+	bool         bIsLocked;
 
 	#ifdef ENABLE_FMRADIO
 		g_fm_radio_count_down_500ms = fm_radio_countdown_500ms;
@@ -365,11 +370,15 @@ static void CMD_052D(const uint8_t *pBuffer)
 	bIsLocked = g_has_custom_aes_key;
 
 	if (!bIsLocked)
-		bIsLocked = IsBadChallenge(g_custom_aes_key, g_challenge, pCmd->Response);
-
+	{
+		bIsLocked = IsBadChallenge(g_custom_aes_key, g_challenge, response);
+		memmove(pCmd->Response, response, sizeof(pCmd->Response));
+	}
+	
 	if (!bIsLocked)
 	{
-		bIsLocked = IsBadChallenge(g_default_aes_key, g_challenge, pCmd->Response);
+		bIsLocked = IsBadChallenge(g_default_aes_key, g_challenge, response);
+		memmove(pCmd->Response, response, sizeof(pCmd->Response));
 		if (bIsLocked)
 			g_try_count++;
 	}
@@ -385,7 +394,7 @@ static void CMD_052D(const uint8_t *pBuffer)
 		bIsLocked = true;
 	}
 	
-	g_is_locked            = bIsLocked;
+	g_is_locked          = bIsLocked;
 	Reply.Data.bIsLocked = bIsLocked;
 
 	SendReply(&Reply, sizeof(Reply));

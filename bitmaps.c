@@ -8,387 +8,387 @@ const uint8_t BITMAP_POWERSAVE[8] =
 {
 	#if 0
 		// "S"
-		0b00000000,
-		0b00100110,
-		0b01001001,
-		0b01001001,
-		0b01001001,
-		0b01001001,
-		0b01001001,
-		0b00110010
+		__extension__ 0b00000000,
+		__extension__ 0b00100110,
+		__extension__ 0b01001001,
+		__extension__ 0b01001001,
+		__extension__ 0b01001001,
+		__extension__ 0b01001001,
+		__extension__ 0b01001001,
+		__extension__ 0b00110010
 	#else
 		// "PS"
-		0b00000000,
-		0b01111111,
-		0b00010001,
-		0b00001110,
-		0b00000000,
-		0b01000110,
-		0b01001001,
-		0b00110001
+		__extension__ 0b00000000,
+		__extension__ 0b01111111,
+		__extension__ 0b00010001,
+		__extension__ 0b00001110,
+		__extension__ 0b00000000,
+		__extension__ 0b01000110,
+		__extension__ 0b01001001,
+		__extension__ 0b00110001
 	#endif
 };
 
 const uint8_t BITMAP_TX[8] =
 {	// "TX"
-	0b00000000,
-	0b00000001,
-	0b00000001,
-	0b01111111,
-	0b00000001,
-	0b00000001,
-	0b00000000,
-	0b00000000
+	__extension__ 0b00000000,
+	__extension__ 0b00000001,
+	__extension__ 0b00000001,
+	__extension__ 0b01111111,
+	__extension__ 0b00000001,
+	__extension__ 0b00000001,
+	__extension__ 0b00000000,
+	__extension__ 0b00000000
 };
 
 const uint8_t BITMAP_RX[8] =
 {	// "RX"
-	0b00000000,
-	0b01111111,
-	0b00001001,
-	0b00011001,
-	0b01100110,
-	0b00000000,
-	0b00000000,
-	0b00000000
+	__extension__ 0b00000000,
+	__extension__ 0b01111111,
+	__extension__ 0b00001001,
+	__extension__ 0b00011001,
+	__extension__ 0b01100110,
+	__extension__ 0b00000000,
+	__extension__ 0b00000000,
+	__extension__ 0b00000000
 };
 
 #ifndef ENABLE_REVERSE_BAT_SYMBOL
 	// Quansheng way (+ pole to the left)
 	const uint8_t BITMAP_BATTERY_LEVEL[17] =
 	{
-		0b00000000,
-		0b00111110,
-		0b00100010,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01111111
+		__extension__ 0b00000000,
+		__extension__ 0b00111110,
+		__extension__ 0b00100010,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01111111
 	};
 #else
 	// reversed (+ pole to the right)
 	const uint8_t BITMAP_BATTERY_LEVEL[17] =
 	{
-		0b00000000,
-		0b01111111,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b00100010,
-		0b00111110
+		__extension__ 0b00000000,
+		__extension__ 0b01111111,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b00100010,
+		__extension__ 0b00111110
 	};
 #endif
 
 const uint8_t BITMAP_USB_C[9] =
 {	// USB symbol
-	0b00000000,
-	0b00011100,
-	0b00100111,
-	0b01000100,
-	0b01000100,
-	0b01000100,
-	0b01000100,
-	0b00100111,
-	0b00011100
+	__extension__ 0b00000000,
+	__extension__ 0b00011100,
+	__extension__ 0b00100111,
+	__extension__ 0b01000100,
+	__extension__ 0b01000100,
+	__extension__ 0b01000100,
+	__extension__ 0b01000100,
+	__extension__ 0b00100111,
+	__extension__ 0b00011100
 };
 
 const uint8_t BITMAP_KEYLOCK[6] =
 {	// teeny padlock symbol
-	0b00000000,
-	0b01111100,
-	0b01000110,
-	0b01000101,
-	0b01000110,
-	0b01111100
+	__extension__ 0b00000000,
+	__extension__ 0b01111100,
+	__extension__ 0b01000110,
+	__extension__ 0b01000101,
+	__extension__ 0b01000110,
+	__extension__ 0b01111100
 };
 
 const uint8_t BITMAP_F_KEY[6] =
 {	// F-Key symbol
-	0b00000000,
-	0b01011111,
-	0b01000101,
-	0b01000101,
-	0b01000101,
-	0b01000001
+	__extension__ 0b00000000,
+	__extension__ 0b01011111,
+	__extension__ 0b01000101,
+	__extension__ 0b01000101,
+	__extension__ 0b01000101,
+	__extension__ 0b01000001
 };
 
 #ifdef ENABLE_VOX
 	const uint8_t BITMAP_VOX[18] =
 	{	// "VOX"
-		0b00000000,
-		0b00011111,
-		0b00100000,
-		0b01000000,
-		0b00100000,
-		0b00011111,
-		0b00000000,
-		0b00111110,
-		0b01000001,
-		0b01000001,
-		0b01000001,
-		0b00111110,
-		0b00000000,
-		0b01100011,
-		0b00010100,
-		0b00001000,
-		0b00010100,
-		0b01100011
+		__extension__ 0b00000000,
+		__extension__ 0b00011111,
+		__extension__ 0b00100000,
+		__extension__ 0b01000000,
+		__extension__ 0b00100000,
+		__extension__ 0b00011111,
+		__extension__ 0b00000000,
+		__extension__ 0b00111110,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b01000001,
+		__extension__ 0b00111110,
+		__extension__ 0b00000000,
+		__extension__ 0b01100011,
+		__extension__ 0b00010100,
+		__extension__ 0b00001000,
+		__extension__ 0b00010100,
+		__extension__ 0b01100011
 	};
 #endif
 
 #if 0
 	const uint8_t BITMAP_WX[12] =
 	{	// "WX"
-		0b00000000,
-		0b01111111,
-		0b00100000,
-		0b00011000,
-		0b00100000,
-		0b01111111,
-		0b00000000,
-		0b01100011,
-		0b00010100,
-		0b00001000,
-		0b00010100,
-		0b01100011
+		__extension__ 0b00000000,
+		__extension__ 0b01111111,
+		__extension__ 0b00100000,
+		__extension__ 0b00011000,
+		__extension__ 0b00100000,
+		__extension__ 0b01111111,
+		__extension__ 0b00000000,
+		__extension__ 0b01100011,
+		__extension__ 0b00010100,
+		__extension__ 0b00001000,
+		__extension__ 0b00010100,
+		__extension__ 0b01100011
 	};
 #else
 	// 'XB' (cross-band/cross-VFO)
 	const uint8_t BITMAP_XB[12] =
 	{	// "XB"
-		0b00000000,
-		0b01100011,
-		0b00010100,
-		0b00001000,
-		0b00010100,
-		0b01100011,
-		0b00000000,
-		0b01111111,
-		0b01001001,
-		0b01001001,
-		0b01001001,
-		0b00110110
+		__extension__ 0b00000000,
+		__extension__ 0b01100011,
+		__extension__ 0b00010100,
+		__extension__ 0b00001000,
+		__extension__ 0b00010100,
+		__extension__ 0b01100011,
+		__extension__ 0b00000000,
+		__extension__ 0b01111111,
+		__extension__ 0b01001001,
+		__extension__ 0b01001001,
+		__extension__ 0b01001001,
+		__extension__ 0b00110110
 	};
 #endif
 
 const uint8_t BITMAP_TDR1[12] =
 {	// "DW"
-	0b00000000,
-	0b01111111,
-	0b01000001,
-	0b01000001,
-	0b01000001,
-	0b00111110,
-	0b00000000,
-	0b01111111,
-	0b00100000,
-	0b00011000,
-	0b00100000,
-	0b01111111
+	__extension__ 0b00000000,
+	__extension__ 0b01111111,
+	__extension__ 0b01000001,
+	__extension__ 0b01000001,
+	__extension__ 0b01000001,
+	__extension__ 0b00111110,
+	__extension__ 0b00000000,
+	__extension__ 0b01111111,
+	__extension__ 0b00100000,
+	__extension__ 0b00011000,
+	__extension__ 0b00100000,
+	__extension__ 0b01111111
 };
 
 const uint8_t BITMAP_TDR2[12] =
 {	// "><" .. DW on hold
-	0b00000000,
-	0b00000000,
-	0b00100010,
-	0b00110110,
-	0b00011100,
-	0b00001000,
-	0b00000000,
-	0b00001000,
-	0b00011100,
-	0b00110110,
-	0b00100010,
-	0b00000000
+	__extension__ 0b00000000,
+	__extension__ 0b00000000,
+	__extension__ 0b00100010,
+	__extension__ 0b00110110,
+	__extension__ 0b00011100,
+	__extension__ 0b00001000,
+	__extension__ 0b00000000,
+	__extension__ 0b00001000,
+	__extension__ 0b00011100,
+	__extension__ 0b00110110,
+	__extension__ 0b00100010,
+	__extension__ 0b00000000
 };
 
 #ifdef ENABLE_VOICE
 	const uint8_t BITMAP_VOICE_PROMPT[9] =
 	{
-		0b00000000,
-		0b00011000,
-		0b00011000,
-		0b00100100,
-		0b00100100,
-		0b01000010,
-		0b01000010,
-		0b11111111,
-		0b00011000
+		__extension__ 0b00000000,
+		__extension__ 0b00011000,
+		__extension__ 0b00011000,
+		__extension__ 0b00100100,
+		__extension__ 0b00100100,
+		__extension__ 0b01000010,
+		__extension__ 0b01000010,
+		__extension__ 0b11111111,
+		__extension__ 0b00011000
 	};
 #endif
 
 #ifdef ENABLE_FMRADIO
 	const uint8_t BITMAP_FM[12] =
 	{	// "FM"
-		0b00000000,
-		0b01111111,
-		0b00001001,
-		0b00001001,
-		0b00001001,
-		0b00000001,
+		__extension__ 0b00000000,
+		__extension__ 0b01111111,
+		__extension__ 0b00001001,
+		__extension__ 0b00001001,
+		__extension__ 0b00001001,
+		__extension__ 0b00000001,
 
-		0b00000000,
-		0b01111111,
-		0b00000010,
-		0b00001100,
-		0b00000010,
-		0b01111111
+		__extension__ 0b00000000,
+		__extension__ 0b01111111,
+		__extension__ 0b00000010,
+		__extension__ 0b00001100,
+		__extension__ 0b00000010,
+		__extension__ 0b01111111
 	};
 #endif
 
 #ifdef ENABLE_NOAA
 	const uint8_t BITMAP_NOAA[12] =
 	{	// "NS"
-		0b00000000,
-		0b01111111,
-		0b00000100,
-		0b00001000,
-		0b00010000,
-		0b01111111,
+		__extension__ 0b00000000,
+		__extension__ 0b01111111,
+		__extension__ 0b00000100,
+		__extension__ 0b00001000,
+		__extension__ 0b00010000,
+		__extension__ 0b01111111,
 
-		0b00000000,
-		0b01000110,
-		0b01001001,
-		0b01001001,
-		0b01001001,
-		0b00110001
+		__extension__ 0b00000000,
+		__extension__ 0b01000110,
+		__extension__ 0b01001001,
+		__extension__ 0b01001001,
+		__extension__ 0b01001001,
+		__extension__ 0b00110001
 	};
 #endif
 
 const uint8_t BITMAP_ANTENNA[5] =
 {
-	0b00000011,
-	0b00000101,
-	0b01111111,
-	0b00000101,
-	0b00000011
+	__extension__ 0b00000011,
+	__extension__ 0b00000101,
+	__extension__ 0b01111111,
+	__extension__ 0b00000101,
+	__extension__ 0b00000011
 };
 
 const uint8_t BITMAP_ANTENNA_LEVEL1[3] =
 {
-	0b01100000,
-	0b01100000,
-	0b00000000
+	__extension__ 0b01100000,
+	__extension__ 0b01100000,
+	__extension__ 0b00000000
 };
 
 const uint8_t BITMAP_ANTENNA_LEVEL2[3] =
 {
-	0b01110000,
-	0b01110000,
-	0b00000000
+	__extension__ 0b01110000,
+	__extension__ 0b01110000,
+	__extension__ 0b00000000
 };
 
 const uint8_t BITMAP_ANTENNA_LEVEL3[3] =
 {
-	0b01111000,
-	0b01111000,
-	0b00000000
+	__extension__ 0b01111000,
+	__extension__ 0b01111000,
+	__extension__ 0b00000000
 };
 
 const uint8_t BITMAP_ANTENNA_LEVEL4[3] =
 {
-	0b01111100,
-	0b01111100,
-	0b00000000
+	__extension__ 0b01111100,
+	__extension__ 0b01111100,
+	__extension__ 0b00000000
 };
 
 const uint8_t BITMAP_ANTENNA_LEVEL5[3] =
 {
-	0b01111110,
-	0b01111110,
-	0b00000000
+	__extension__ 0b01111110,
+	__extension__ 0b01111110,
+	__extension__ 0b00000000
 };
 
 const uint8_t BITMAP_ANTENNA_LEVEL6[3] =
 {
-	0b01111111,
-	0b01111111,
-	0b00000000
+	__extension__ 0b01111111,
+	__extension__ 0b01111111,
+	__extension__ 0b00000000
 };
 
 const uint8_t BITMAP_MARKER[8] =
 {
-	0b11111111,
-	0b11111111,
-	0b01111110,
-	0b01111110,
-	0b00111100,
-	0b00111100,
-	0b00011000,
-	0b00011000
+	__extension__ 0b11111111,
+	__extension__ 0b11111111,
+	__extension__ 0b01111110,
+	__extension__ 0b01111110,
+	__extension__ 0b00111100,
+	__extension__ 0b00111100,
+	__extension__ 0b00011000,
+	__extension__ 0b00011000
 };
 
 const uint8_t BITMAP_VFO_DEFAULT[8] =
 {
-	0b00000000,
-	0b01111111,
-	0b01111111,
-	0b00111110,
-	0b00111110,
-	0b00011100,
-	0b00011100,
-	0b00001000
+	__extension__ 0b00000000,
+	__extension__ 0b01111111,
+	__extension__ 0b01111111,
+	__extension__ 0b00111110,
+	__extension__ 0b00111110,
+	__extension__ 0b00011100,
+	__extension__ 0b00011100,
+	__extension__ 0b00001000
 };
 
 const uint8_t BITMAP_VFO_NOT_DEFAULT[8] =
 {
-	0b00000000,
-	0b01000001,
-	0b01000001,
-	0b00100010,
-	0b00100010,
-	0b00010100,
-	0b00010100,
-	0b00001000
+	__extension__ 0b00000000,
+	__extension__ 0b01000001,
+	__extension__ 0b01000001,
+	__extension__ 0b00100010,
+	__extension__ 0b00100010,
+	__extension__ 0b00010100,
+	__extension__ 0b00010100,
+	__extension__ 0b00001000
 };
 
 const uint8_t BITMAP_SCANLIST1[6] =
 {	// 'I' symbol
-	0b00000000,
-	0b00000000,
-	0b01000010,
-	0b01111110,
-	0b01000010,
-	0b00000000
+	__extension__ 0b00000000,
+	__extension__ 0b00000000,
+	__extension__ 0b01000010,
+	__extension__ 0b01111110,
+	__extension__ 0b01000010,
+	__extension__ 0b00000000
 };
 
 const uint8_t BITMAP_SCANLIST2[6] =
 {	// 'II' symbol
-	0b00000000,
-	0b01000010,
-	0b01111110,
-	0b01000010,
-	0b01111110,
-	0b01000010
+	__extension__ 0b00000000,
+	__extension__ 0b01000010,
+	__extension__ 0b01111110,
+	__extension__ 0b01000010,
+	__extension__ 0b01111110,
+	__extension__ 0b01000010
 };
 
 const uint8_t BITMAP_COMPAND[6] =
 {
-	0b00000000,
-	0b00111100,
-	0b01000010,
-	0b01000010,
-	0b01000010,
-	0b00100100
+	__extension__ 0b00000000,
+	__extension__ 0b00111100,
+	__extension__ 0b01000010,
+	__extension__ 0b01000010,
+	__extension__ 0b01000010,
+	__extension__ 0b00100100
 };

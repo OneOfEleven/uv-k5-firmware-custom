@@ -40,11 +40,11 @@ void UI_DrawBattery(uint8_t *bitmap, const unsigned int level, const unsigned in
 			for (i = 0; i < bars; i++)
 			{
 				#ifdef ENABLE_REVERSE_BAT_SYMBOL
-					bitmap[3 + (i * 3) + 0] = 0b01011101;
-					bitmap[3 + (i * 3) + 1] = 0b01011101;
+					bitmap[3 + (i * 3) + 0] = __extension__ 0b01011101;
+					bitmap[3 + (i * 3) + 1] = __extension__ 0b01011101;
 				#else
-					bitmap[sizeof(BITMAP_BATTERY_LEVEL) - 3 - (i * 3) - 0] = 0b01011101;
-					bitmap[sizeof(BITMAP_BATTERY_LEVEL) - 3 - (i * 3) - 1] = 0b01011101;
+					bitmap[sizeof(BITMAP_BATTERY_LEVEL) - 3 - (i * 3) - 0] = __extension__ 0b01011101;
+					bitmap[sizeof(BITMAP_BATTERY_LEVEL) - 3 - (i * 3) - 1] = __extension__ 0b01011101;
 				#endif
 			}
 		}

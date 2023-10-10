@@ -676,7 +676,10 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 		#endif
 		{	// start entering a DTMF string
 
-			memmove(g_dtmf_input_box, g_dtmf_string, MIN(sizeof(g_dtmf_input_box), sizeof(g_dtmf_string) - 1));
+			memmove(
+				g_dtmf_input_box,
+				g_dtmf_string,
+				(sizeof(g_dtmf_input_box) <= (sizeof(g_dtmf_string) - 1)) ? sizeof(g_dtmf_input_box) : sizeof(g_dtmf_string) - 1);
 			g_dtmf_input_box_index  = 0;
 			g_dtmf_input_mode       = true;
 

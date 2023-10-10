@@ -54,7 +54,7 @@ void BK4819_Init(void)
 	BK4819_SetAGC(0);
 //	BK4819_SetAGC(1);
 
-	BK4819_WriteRegister(BK4819_REG_19, 0b0001000001000001);   // <15> MIC AGC  1 = disable  0 = enable
+	BK4819_WriteRegister(BK4819_REG_19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
 
 	BK4819_WriteRegister(BK4819_REG_7D, 0xE940);
 
@@ -837,7 +837,7 @@ void BK4819_RX_TurnOn(void)
 	// Disable TX DSP
 	// Enable  RX DSP
 	//
-	BK4819_WriteRegister(BK4819_REG_30, 0b1011111111110001); // 1 0 1111 1 1 1111 0 0 0 1
+	BK4819_WriteRegister(BK4819_REG_30, 0xbff1); // 1 0 1111 1 1 1111 0 0 0 1
 }
 
 void BK4819_PickRXFilterPathBasedOnFrequency(uint32_t Frequency)
@@ -1007,7 +1007,7 @@ void BK4819_PlayTone(uint16_t Frequency, bool bTuningGainSwitch)
 void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level, const bool play_speaker)
 {
 	BK4819_EnterTxMute();
-	
+
 	if (play_speaker)
 	{
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
@@ -1035,7 +1035,7 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 		BK4819_SetAF(BK4819_AF_MUTE);
 	}
-	
+
 	BK4819_WriteRegister(BK4819_REG_70, 0x0000);
 	BK4819_WriteRegister(BK4819_REG_30, 0xC1FE);
 	BK4819_ExitTxMute();

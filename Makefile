@@ -226,7 +226,9 @@ endif
 
 # catch any and all warnings
 # better to bust than add new bugs
-CFLAGS += -Wextra
+#CFLAGS += -Wall
+#CFLAGS += -Wextra
+CFLAGS += -Wpedantic
 
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
