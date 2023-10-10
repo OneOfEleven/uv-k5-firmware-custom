@@ -1065,7 +1065,7 @@ void APP_Update(void)
 		GUI_DisplayScreen();
 	}
 
-	if (g_reduced_service)
+	if (g_reduced_service || g_serial_config_count_down_500ms > 0)
 		return;
 
 	if (g_current_function != FUNCTION_TRANSMIT)
@@ -1487,19 +1487,28 @@ void APP_TimeSlice10ms(void)
 		__enable_irq();
 	}
 
+	if (g_serial_config_count_down_500ms > 0)
+	{	// config upload/download is running
+		if (g_update_display)
+			GUI_DisplayScreen();
+		if (g_update_status)
+			UI_DisplayStatus(false);
+		return;
+	}
+	
 	#ifdef ENABLE_BOOT_BEEPS
 		if (g_boot_counter_10ms > 0 && (g_boot_counter_10ms % 25) == 0)
 			AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
 	#endif
+
+	if (g_reduced_service)
+		return;
 
 	#ifdef ENABLE_AM_FIX
 //		if (g_eeprom.vfo_info[g_eeprom.rx_vfo].am_mode && g_setting_am_fix)
 		if (g_rx_vfo->am_mode && g_setting_am_fix)
 			AM_fix_10ms(g_eeprom.rx_vfo);
 	#endif
-
-	if (g_reduced_service)
-		return;
 
 	if (g_current_function != FUNCTION_POWER_SAVE || !g_rx_idle_mode)
 		APP_CheckRadioInterrupts();
@@ -1827,6 +1836,11 @@ void APP_TimeSlice500ms(void)
 
 	// Skipped authentic device check
 
+	if (g_serial_config_count_down_500ms > 0)
+	{	// config upload/download is running
+		return;
+	}
+	
 	if (g_keypad_locked > 0)
 		if (--g_keypad_locked == 0)
 			g_update_display = true;
@@ -1887,10 +1901,6 @@ void APP_TimeSlice500ms(void)
 			if (--g_backlight_count_down == 0)
 				if (g_eeprom.backlight < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
 					GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);   // turn backlight off
-
-	if (g_serial_config_count_down_500ms > 0)
-	{
-	}
 
 	if (g_reduced_service)
 	{
