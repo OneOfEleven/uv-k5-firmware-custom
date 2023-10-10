@@ -147,7 +147,7 @@ extern const char         g_sub_menu_txp[3][5];
 extern const char         g_sub_menu_shift_dir[3][4];
 extern const char         g_sub_menu_w_n[2][7];
 extern const char         g_sub_menu_off_on[2][4];
-extern const char         g_sub_menu_SAVE[5][4];
+extern const char         g_sub_menu_SAVE[5][9];
 extern const char         g_sub_menu_TOT[11][7];
 extern const char         g_sub_menu_tdr[3][10];
 extern const char         g_sub_menu_xb[3][10];
@@ -159,12 +159,12 @@ extern const char         g_sub_menu_mdf[4][15];
 #ifdef ENABLE_ALARM       
 	extern const char     g_sub_menu_AL_MOD[2][5];
 #endif                    
-extern const char         g_sub_menu_D_RSP[4][11];
+extern const char         g_sub_menu_D_RSP[4][9];
 extern const char         g_sub_menu_PTT_ID[5][15];
 extern const char         g_sub_menu_pwr_on_msg[4][8];
 extern const char         g_sub_menu_roger_mode[3][9];
 extern const char         g_sub_menu_RESET[2][4];
-extern const char         g_sub_menu_f_lock[6][4];
+extern const char         g_sub_menu_f_lock[6][8];
 extern const char         g_sub_menu_backlight[8][7];
 extern const char         g_sub_menu_rx_tx[4][6];
 #ifdef ENABLE_AM_FIX_TEST1

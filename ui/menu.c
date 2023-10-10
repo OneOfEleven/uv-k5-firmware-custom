@@ -59,7 +59,7 @@ const t_menu_item g_menu_list[] =
 	{"Tx VFO", VOICE_ID_INVALID,                       MENU_XB            }, // was "WX"
 	{"2nd RX", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           }, // was "TDR"
 	{"SCRAM",  VOICE_ID_SCRAMBLER_ON,                  MENU_SCR           }, // was "SCR"
-	{"BUSYCL", VOICE_ID_BUSY_LOCKOUT,                  MENU_BCL           }, // was "BCL"
+	{"BCL",    VOICE_ID_BUSY_LOCKOUT,                  MENU_BCL           },
 	{"CH SAV", VOICE_ID_MEMORY_CHANNEL,                MENU_MEM_CH        }, // was "MEM-CH"
 	{"CH NAM", VOICE_ID_INVALID,                       MENU_MEM_NAME      },
 	{"CH DEL", VOICE_ID_DELETE_CHANNEL,                MENU_DEL_CH        }, // was "DEL-CH"
@@ -68,14 +68,14 @@ const t_menu_item g_menu_list[] =
 #ifdef ENABLE_VOX
 	{"VOX",    VOICE_ID_VOX,                           MENU_VOX           },
 #endif
-	{"Bak LT", VOICE_ID_INVALID,                       MENU_ABR           }, // was "ABR"
+	{"BLT",    VOICE_ID_INVALID,                       MENU_ABR           }, // was "ABR"
 	{"BLTTRX", VOICE_ID_INVALID,                       MENU_ABR_ON_TX_RX  },
 	{"CTRAST", VOICE_ID_INVALID,                       MENU_CONTRAST      },
 	{"BEEP",   VOICE_ID_BEEP_PROMPT,                   MENU_BEEP          },
 #ifdef ENABLE_VOICE
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE         },
 #endif
-	{"S RESU", VOICE_ID_INVALID,                       MENU_SC_REV        }, // was "SC_REV"
+	{"SC REV", VOICE_ID_INVALID,                       MENU_SC_REV        }, // was "SC_REV"
 	{"KEYLOC", VOICE_ID_INVALID,                       MENU_AUTOLK        }, // was "AUTOLk"
 	{"S ADD1", VOICE_ID_INVALID,                       MENU_S_ADD1        },
 	{"S ADD2", VOICE_ID_INVALID,                       MENU_S_ADD2        },
@@ -171,13 +171,13 @@ const char g_sub_menu_off_on[2][4] =
 	"ON"
 };
 
-const char g_sub_menu_SAVE[5][4] =
+const char g_sub_menu_SAVE[5][9] =
 {
 	"OFF",
-	"1:1",
-	"1:2",
-	"1:3",
-	"1:4"
+	"1:1 50%",
+	"1:2 66%",
+	"1:3 75%",
+	"1:4 80%"
 };
 
 const char g_sub_menu_TOT[11][7] =
@@ -241,20 +241,20 @@ const char g_sub_menu_mdf[4][15] =
 	};
 #endif
 
-const char g_sub_menu_D_RSP[4][11] =
+const char g_sub_menu_D_RSP[4][9] =
 {
 	"NONE",
 	"RING",
 	"REPLY",
-	"RING\nREPLY"
+	"RNG RPLY"
 };
 
 const char g_sub_menu_PTT_ID[5][15] =
 {
 	"OFF",
-	"KEY\nUP",
-	"KEY\nDOWN",
-	"KEY\nUP+DOWN",
+	"BEGIN",
+	"END",
+	"BEGIN +\nEND",
 	"APOLLO\nQUINDAR"
 };
 
@@ -279,14 +279,14 @@ const char g_sub_menu_RESET[2][4] =
 	"ALL"
 };
 
-const char g_sub_menu_f_lock[6][4] =
+const char g_sub_menu_f_lock[6][8] =
 {
 	"OFF",
 	"FCC",
 	"CE",
 	"GB",
-	"430",
-	"438"
+	"430 MHz",
+	"438 MHz"
 };
 
 const char g_sub_menu_backlight[8][7] =
@@ -562,6 +562,7 @@ void UI_DisplayMenu(void)
 		case MENU_T_CTCS:
 		{
 			#if 1
+				// set CTCSS as the user adjusts it
 				unsigned int Code;
 				freq_config_t *pConfig = (g_menu_cursor == MENU_R_CTCS) ? &g_tx_vfo->freq_config_rx : &g_tx_vfo->freq_config_tx;
 				if (g_sub_menu_selection == 0)
@@ -631,7 +632,9 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_SCR:
-			strcpy(String, g_sub_menu_SCRAMBLER[g_sub_menu_selection]);
+			strcpy(String, "INVERT\n");
+			strcat(String, g_sub_menu_SCRAMBLER[g_sub_menu_selection]);
+			
 			#if 1
 				if (g_sub_menu_selection > 0 && g_setting_scramble_enable)
 					BK4819_EnableScramble(g_sub_menu_selection - 1);
@@ -650,7 +653,13 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_ABR:
-			strcpy(String, g_sub_menu_backlight[g_sub_menu_selection]);
+			strcpy(String, "BACKLITE\n");
+			strcat(String, g_sub_menu_backlight[g_sub_menu_selection]);
+			break;
+
+		case MENU_ABR_ON_TX_RX:
+			strcpy(String, "BACKLITE\n");
+			strcat(String, g_sub_menu_rx_tx[g_sub_menu_selection]);
 			break;
 
 		case MENU_AM:
@@ -669,11 +678,11 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_COMPAND:
-		case MENU_ABR_ON_TX_RX:
 			strcpy(String, g_sub_menu_rx_tx[g_sub_menu_selection]);
 			break;
 
 		case MENU_CONTRAST:
+			strcpy(String, "DISPLAY\nCONTRAST\n");
 			sprintf(String, "%d", g_sub_menu_selection);
 			//g_setting_contrast = g_sub_menu_selection
 			ST7565_SetContrast(g_sub_menu_selection);
@@ -683,13 +692,25 @@ void UI_DisplayMenu(void)
 		#ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:
 		#endif
-		case MENU_BCL:
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
-		case MENU_STE:
+			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
+			break;
+
+		case MENU_BCL:
+			strcpy(String, "BSY CH TX\nLOCKOUT\n");
+			strcat(String, g_sub_menu_off_on[g_sub_menu_selection]);
+			break;
+
 		case MENU_D_DCD:
 		case MENU_D_LIVE_DEC:
-			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
+			strcpy(String, "DTMF\nDECODE\n");
+			strcat(String, g_sub_menu_off_on[g_sub_menu_selection]);
+			break;
+
+		case MENU_STE:
+			strcpy(String, "SUB TAIL\nELIMIN\n");
+			strcat(String, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
 		case MENU_BEEP:
@@ -698,7 +719,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_D_ST:
-			strcpy(String, "SIDETONE\n");
+			strcpy(String, "DTMF\nSIDETONE\n");
 			strcat(String, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
@@ -730,28 +751,32 @@ void UI_DisplayMenu(void)
 		case MENU_1_CALL:
 		case MENU_DEL_CH:
 		{
+			char s[11];
 			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
 
 			UI_GenerateChannelStringEx(String, valid, g_sub_menu_selection);
-			UI_PrintString(String, menu_item_x1, menu_item_x2, 0, 8);
 
+			// channel name
+			BOARD_fetchChannelName(s, g_sub_menu_selection);
+			strcat(String, "\n");
+			strcat(String, (s[0] == 0) ? "--" : s);
+			
 			if (valid && !g_ask_for_confirmation)
 			{	// show the frequency so that the user knows the channels frequency
 				const uint32_t frequency = BOARD_fetchChannelFrequency(g_sub_menu_selection);
-				sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
-				UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
+				sprintf(String + strlen(String), "\n%u.%05u", frequency / 100000, frequency % 100000);
 			}
 
-			already_printed = true;
 			break;
 		}
 
 		case MENU_MEM_NAME:
 		{
 			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
+			const unsigned int y = (!g_is_in_sub_menu || g_edit_index < 0) ? 1 : 0;
 
 			UI_GenerateChannelStringEx(String, valid, g_sub_menu_selection);
-			UI_PrintString(String, menu_item_x1, menu_item_x2, 0, 8);
+			UI_PrintString(String, menu_item_x1, menu_item_x2, y, 8);
 
 			if (valid)
 			{
@@ -762,22 +787,22 @@ void UI_DisplayMenu(void)
 					BOARD_fetchChannelName(String, g_sub_menu_selection);
 					if (String[0] == 0)
 						strcpy(String, "--");
-					UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
+					UI_PrintString(String, menu_item_x1, menu_item_x2, y + 2, 8);
 				}
 				else
 				{	// show the channel name being edited
-					UI_PrintString(g_edit, menu_item_x1, 0, 2, 8);
+					UI_PrintString(g_edit, menu_item_x1, 0, y + 2, 8);
 					if (g_edit_index < 10)
-						UI_PrintString("^", menu_item_x1 + (8 * g_edit_index), 0, 4, 8);  // show the cursor
+						UI_PrintString("^", menu_item_x1 + (8 * g_edit_index), 0, y + 4, 8);  // show the cursor
 				}
 
 				if (!g_ask_for_confirmation)
 				{	// show the frequency so that the user knows the channels frequency
 					sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
 					if (!g_is_in_sub_menu || g_edit_index < 0)
-						UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
+						UI_PrintString(String, menu_item_x1, menu_item_x2, y + 4, 8);
 					else
-						UI_PrintString(String, menu_item_x1, menu_item_x2, 5, 8);
+						UI_PrintString(String, menu_item_x1, menu_item_x2, y + 5, 8);
 				}
 			}
 
@@ -844,17 +869,17 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_UPCODE:
-			strcpy(String, "TX KEY-UP\n");
+			strcpy(String, "PTT DTMF\nBEGIN\n");
 			strcat(String, g_eeprom.dtmf_up_code);
 			break;
 
 		case MENU_DWCODE:
-			strcpy(String, "TX KEY-DN\n");
+			strcpy(String, "PTT DTMF\nEND\n");
 			strcat(String, g_eeprom.dtmf_down_code);
 			break;
 
 		case MENU_D_RSP:
-			strcpy(String, "RESPONSE\n");
+			strcpy(String, "DTMF\nRESPONSE\n");
 			strcat(String, g_sub_menu_D_RSP[g_sub_menu_selection]);
 			break;
 
@@ -878,21 +903,23 @@ void UI_DisplayMenu(void)
 				case 61: g_sub_menu_selection =  5; break;
 			}
 
+			strcpy(String, "DTMF MSG\n");
 			if (g_sub_menu_selection < DTMF_HOLD_MAX)
-				sprintf(String, "%d sec", g_sub_menu_selection);
+				sprintf(String + strlen(String), "%d sec", g_sub_menu_selection);
 			else
-				strcpy(String, "STAY ON\nSCREEN");  // 60
+				strcat(String, "STAY ON\nSCREEN");  // 60
 
 			break;
 
 		case MENU_D_PRE:
-			strcpy(String, "TX DELAY\n");
+			strcpy(String, "TX DTMF\nDELAY\n");
 //			sprintf(String + strlen(String), "%d*10ms", g_sub_menu_selection);
 			sprintf(String + strlen(String), "%dms", 10 * g_sub_menu_selection);
 			break;
 
 		case MENU_PTT_ID:
-			strcpy(String, g_sub_menu_PTT_ID[g_sub_menu_selection]);
+			strcpy(String, "TX ID\n");
+			strcat(String, g_sub_menu_PTT_ID[g_sub_menu_selection]);
 			break;
 
 		case MENU_BAT_TXT:
@@ -901,10 +928,18 @@ void UI_DisplayMenu(void)
 
 		case MENU_D_LIST:
 			g_dtmf_is_contact_valid = DTMF_GetContact((int)g_sub_menu_selection - 1, Contact);
+			strcpy(String, "DTMF\n");
 			if (!g_dtmf_is_contact_valid)
-				strcpy(String, "NULL");
+			{
+				strcat(String, "NULL");
+			}
 			else
-				memmove(String, Contact, 8);
+			{
+				memmove(String + strlen(String), Contact, 8);
+				Contact[11] = 0;
+				memmove(&g_dtmf_id, Contact + 8, 4);
+				sprintf(String + strlen(String), "\nID:%s", Contact + 8);
+			}
 			break;
 
 		case MENU_PONMSG:
@@ -912,7 +947,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_ROGER:
-			strcpy(String, "TX KEY-DN\n");
+			strcpy(String, "TX END\n");
 			strcpy(String + strlen(String), g_sub_menu_roger_mode[g_sub_menu_selection]);
 			break;
 
@@ -1064,17 +1099,6 @@ void UI_DisplayMenu(void)
 		}
 	}
 
-	if (g_menu_cursor == MENU_MEM_CH   ||
-	    g_menu_cursor == MENU_DEL_CH   ||
-	    g_menu_cursor == MENU_1_CALL)
-	{	// display the channel name
-		char s[11];
-		BOARD_fetchChannelName(s, g_sub_menu_selection);
-		if (s[0] == 0)
-			strcpy(s, "--");
-		UI_PrintString(s, menu_item_x1, menu_item_x2, 2, 8);
-	}
-
 	if ((g_menu_cursor == MENU_R_CTCS || g_menu_cursor == MENU_R_DCS) && g_css_scan_mode != CSS_SCAN_MODE_OFF)
 		UI_PrintString("SCAN", menu_item_x1, menu_item_x2, 4, 8);
 
@@ -1085,14 +1109,6 @@ void UI_DisplayMenu(void)
 	if (g_menu_cursor == MENU_DWCODE)
 		if (strlen(g_eeprom.dtmf_down_code) > 8)
 			UI_PrintString(g_eeprom.dtmf_down_code + 8, menu_item_x1, menu_item_x2, 4, 8);
-
-	if (g_menu_cursor == MENU_D_LIST && g_dtmf_is_contact_valid)
-	{
-		Contact[11] = 0;
-		memmove(&g_dtmf_id, Contact + 8, 4);
-		sprintf(String, "ID:%s", Contact + 8);
-		UI_PrintString(String, menu_item_x1, menu_item_x2, 4, 8);
-	}
 
 	if (g_menu_cursor == MENU_R_CTCS ||
 	    g_menu_cursor == MENU_T_CTCS ||
