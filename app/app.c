@@ -1673,13 +1673,13 @@ void APP_TimeSlice10ms(void)
 
 				BK4819_DisableFrequencyScan();
 
-				#if 0
-					g_scan_frequency = Result;
-				#else
+				#ifdef ENABLE_FREQ_CODE_ROUNDING
 				{	  // round to nearest step multiple
 					const uint32_t step = STEP_FREQ_TABLE[g_step_setting];
 					g_scan_frequency = ((Result + (step / 2)) / step) * step;
 				}
+				#else
+					g_scan_frequency = Result;
 				#endif
 
 				if (g_scan_hit_count < 3)

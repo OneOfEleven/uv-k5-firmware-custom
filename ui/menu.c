@@ -674,7 +674,10 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_AUTOLK:
-			strcpy(String, (g_sub_menu_selection == 0) ? "OFF" : "AUTO");
+			if (g_sub_menu_selection == 0)
+				strcpy(String, "OFF");
+			else
+				sprintf(String, "%u secs", key_lock_timeout_500ms / 2);
 			break;
 
 		case MENU_COMPAND:

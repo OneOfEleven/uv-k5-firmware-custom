@@ -57,6 +57,7 @@ ENABLE_SHOW_CHARGE_LEVEL      := 0       show the charge level when the radio is
 ENABLE_REVERSE_BAT_SYMBOL     := 1       mirror the battery symbol on the status bar (+ pole on the right)
 ENABLE_CODE_SCAN_TIMEOUT      := 0       timeout if CTCSS/CDCSS is not found
 ENABLE_FREQ_CODE_SCAN_TIMEOUT := 1       timeout if CTCSS/CDCSS is not found after a successful frequency scan
+ENABLE_FREQ_CODE_ROUNDING     := 0       rounds the detected RF frequency to the nearest step size in use - F+4 scan mode
 ENABLE_AM_FIX                 := 1       dynamically adjust the front end gains when in AM mode to helo prevent AM demodulator saturation, ignore the on-screen RSSI level (for now)
 ENABLE_AM_FIX_SHOW_DATA       := 1       show debug data for the AM fix (still tweaking it)
 ENABLE_SQUELCH_MORE_SENSITIVE := 1       make squelch levels a little bit more sensitive - I plan to let user adjust the values themselves
