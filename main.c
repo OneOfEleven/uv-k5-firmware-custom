@@ -81,6 +81,10 @@ void Main(void)
 	memset(g_dtmf_string, '-', sizeof(g_dtmf_string));
 	g_dtmf_string[sizeof(g_dtmf_string) - 1] = 0;
 
+#if 0
+	SETTINGS_restore_calibration();
+#endif
+
 	BK4819_Init();
 
 	BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);
@@ -116,7 +120,7 @@ void Main(void)
 
 	// sort the menu list
 	UI_SortMenu(!g_f_lock);
-	
+
 	ST7565_SetContrast(g_setting_contrast);
 
 	// wait for user to release all butts before moving on

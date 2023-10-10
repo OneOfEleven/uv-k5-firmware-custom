@@ -226,6 +226,7 @@ extern eeprom_config_t g_eeprom;
 	void SETTINGS_SaveFM(void);
 #endif
 void SETTINGS_SaveVfoIndices(void);
+//void SETTINGS_restore_calibration(void);
 void SETTINGS_SaveSettings(void);
 void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, uint8_t Mode);
 void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep);
