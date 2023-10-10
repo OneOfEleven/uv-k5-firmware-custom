@@ -1429,6 +1429,7 @@ void APP_CheckKeys(void)
 					#endif
 
 					g_key_prev = key;
+
 					APP_ProcessKey(g_key_prev, true, g_key_held);
 
 					g_update_status  = true;
@@ -1487,7 +1488,7 @@ void APP_TimeSlice10ms(void)
 	}
 
 	#ifdef ENABLE_BOOT_BEEPS
-		if (g_boot_counter_10ms > 0 && ((g_boot_counter_10ms % 25) == 0)
+		if (g_boot_counter_10ms > 0 && (g_boot_counter_10ms % 25) == 0)
 			AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
 	#endif
 
