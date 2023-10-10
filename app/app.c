@@ -1246,7 +1246,7 @@ void APP_Update(void)
 			if (g_rx_idle_mode)
 			{
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					UART_SendText("ps wake up\r\n");
+					//UART_SendText("ps wake up\r\n");
 				#endif
 
 				BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();

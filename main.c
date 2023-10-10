@@ -151,12 +151,17 @@ void Main(void)
 
 		backlight_turn_on();
 
+		#ifdef ENABLE_VOICE
+			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
+			AUDIO_PlaySingleVoice(0);
+		#endif
+
 		if (g_eeprom.pwr_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
 		{	// 2.55 second boot-up screen
 			while (g_boot_counter_10ms > 0)
 			{
 				if (KEYBOARD_Poll() != KEY_INVALID)
-				{	// halt boot beeps
+				{	// halt boot beeps and cancel boot screen
 					g_boot_counter_10ms = 0;
 					break;
 				}
@@ -186,7 +191,7 @@ void Main(void)
 		{
 			uint8_t Channel;
 
-			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
+//			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
 
 			Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
 			if (IS_USER_CHANNEL(Channel))
@@ -197,8 +202,6 @@ void Main(void)
 			else
 			if (IS_FREQ_CHANNEL(Channel))
 				AUDIO_SetVoiceID(1, VOICE_ID_FREQUENCY_MODE);
-
-			AUDIO_PlaySingleVoice(0);
 		}
 		#endif
 

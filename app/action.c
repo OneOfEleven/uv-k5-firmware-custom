@@ -276,6 +276,8 @@ void ACTION_Scan(bool bRestart)
 	{
 		g_input_box_index = 0;
 
+		(void)b1750;  // stop unused compile warning
+		
 		#if defined(ENABLE_ALARM) && defined(ENABLE_TX1750)
 			g_alarm_state = b1750 ? ALARM_STATE_TX1750 : ALARM_STATE_TXALARM;
 			g_alarm_running_counter = 0;

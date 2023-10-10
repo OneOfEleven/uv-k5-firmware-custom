@@ -11,8 +11,8 @@ ENABLE_UART                   := 1
 ENABLE_UART_DEBUG             := 1
 ENABLE_AIRCOPY                := 1
 ENABLE_FMRADIO                := 1
-ENABLE_NOAA                   := 1
-ENABLE_VOICE                  := 0
+ENABLE_NOAA                   := 0
+ENABLE_VOICE                  := 1
 ENABLE_VOX                    := 1
 ENABLE_ALARM                  := 1
 ENABLE_TX1750                 := 1
@@ -25,7 +25,7 @@ ENABLE_1250HZ_STEP            := 1
 ENABLE_TX_WHEN_AM             := 0
 ENABLE_F_CAL_MENU             := 0
 ENABLE_CTCSS_TAIL_PHASE_SHIFT := 1
-ENABLE_BOOT_BEEPS             := 1
+ENABLE_BOOT_BEEPS             := 0
 ENABLE_SHOW_CHARGE_LEVEL      := 0
 ENABLE_REVERSE_BAT_SYMBOL     := 1
 ENABLE_CODE_SCAN_TIMEOUT      := 0
@@ -62,6 +62,11 @@ endif
 ifeq ($(ENABLE_SHOW_TX_TIMEOUT),1)
 	# can't have ENABLE_SHOW_TX_TIMEOUT and ENABLE_AUDIO_BAR enabled at same time
 	ENABLE_AUDIO_BAR := 0
+endif
+
+ifeq ($(ENABLE_VOICE),1)
+	# no need for beeps
+	ENABLE_BOOT_BEEPS := 0
 endif
 
 BSP_DEFINITIONS := $(wildcard hardware/*/*.def)
