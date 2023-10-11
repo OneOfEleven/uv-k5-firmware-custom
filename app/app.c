@@ -1817,7 +1817,6 @@ void cancelUserInputModes(void)
 	if (g_dtmf_input_mode || g_dtmf_input_box_index > 0)
 	{
 		DTMF_clear_input_box();
-//		g_beep_to_play           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		g_request_display_screen = DISPLAY_MAIN;
 		g_update_display         = true;
 	}
@@ -1827,7 +1826,6 @@ void cancelUserInputModes(void)
 		g_fkey_pressed         = false;
 		g_input_box_index      = 0;
 		g_key_input_count_down = 0;
-//		g_beep_to_play         = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		g_update_status        = true;
 		g_update_display       = true;
 	}
