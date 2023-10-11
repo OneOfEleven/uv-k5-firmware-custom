@@ -380,6 +380,8 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 static void FM_Key_STAR(bool key_pressed, bool key_held)
 {
+	g_key_input_count_down = key_input_timeout_500ms;
+
 	if (key_held && !key_pressed)
 		return;
 
@@ -392,6 +394,8 @@ static void FM_Key_STAR(bool key_pressed, bool key_held)
 
 static void FM_Key_EXIT(bool key_pressed, bool key_held)
 {
+	g_key_input_count_down = key_input_timeout_500ms;
+
 	if (key_held || key_pressed)
 		return;
 
@@ -450,6 +454,8 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 {
 	unsigned int i;
 	int channel = -1;
+
+	g_key_input_count_down = key_input_timeout_500ms;
 
 	if (key_held || key_pressed)
 		return;
@@ -518,6 +524,8 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 
 static void FM_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Step)
 {
+	g_key_input_count_down = key_input_timeout_500ms;
+
 	if (key_held || !key_pressed)
 	{
 		if (g_input_box_index > 0)

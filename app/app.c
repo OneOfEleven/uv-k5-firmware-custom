@@ -1814,10 +1814,28 @@ void APP_TimeSlice10ms(void)
 
 void cancelUserInputModes(void)
 {
+	if (g_ask_to_save)
+	{
+		g_ask_to_save  = false;
+		g_update_display = true;
+	}
+	if (g_ask_to_delete)
+	{
+		g_ask_to_delete  = false;
+		g_update_display = true;
+	}
+	
 	if (g_dtmf_input_mode || g_dtmf_input_box_index > 0)
 	{
 		DTMF_clear_input_box();
-		g_request_display_screen = DISPLAY_MAIN;
+		#ifdef ENABLE_FMRADIO
+			if (g_fm_radio_mode)
+				g_request_display_screen = DISPLAY_FM;
+			else
+				g_request_display_screen = DISPLAY_MAIN;
+		#else
+			g_request_display_screen = DISPLAY_MAIN;
+		#endif
 		g_update_display         = true;
 	}
 

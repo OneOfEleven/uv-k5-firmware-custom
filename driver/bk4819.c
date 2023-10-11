@@ -983,7 +983,8 @@ void BK4819_EnableDTMF(void)
 		(1u        << BK4819_REG_24_SHIFT_UNKNOWN_6)  |
 		              BK4819_REG_24_ENABLE            |
 		              BK4819_REG_24_SELECT_DTMF       |
-		(14u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
+//		(14u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
+		(15u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
 }
 
 void BK4819_PlayTone(uint16_t Frequency, bool bTuningGainSwitch)
