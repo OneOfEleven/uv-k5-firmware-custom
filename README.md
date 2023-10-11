@@ -148,6 +148,14 @@ You may need to edit the bat file (path to make.exe) depending on where you inst
 
 I've left some notes in the win_make.bat file to maybe help with stuff.
 
+## Building from browser
+
+To build the firmware without installing any software you can run a full featured IDE and compiler in your browser using GitHub Codespace.
+The environment is build using the Archlinux Dockerfile provided in the project.
+
+You just need to clic on the green button `<> Code` -> `Codespace` -> `Create Codespace on ...`  
+After the Codespace is initialized, you can open and edit any file and build the firmware typing `make` in the terminal panel.
+
 # Credits
 
 Many thanks to various people on Telegram for putting up with me during this effort and helping:
