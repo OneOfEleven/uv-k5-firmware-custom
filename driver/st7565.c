@@ -32,6 +32,8 @@ uint8_t g_frame_buffer[7][128];
 	uint8_t contrast = 31;  // 0 ~ 63
 #endif
 
+static void ST7565_WriteByte(uint8_t Value);
+
 static inline void ST7565_LowLevelWrite(uint8_t Value)
 {
         /* Wait for space in the fifo */
@@ -234,7 +236,7 @@ void ST7565_SelectColumnAndLine(const uint8_t Column, const uint8_t Line)
 	SPI_WaitForUndocumentedTxFifoStatusBit();
 }
 
-void ST7565_WriteByte(const uint8_t Value)
+static void ST7565_WriteByte(uint8_t Value)
 {
 	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
         ST7565_LowLevelWrite(Value);
