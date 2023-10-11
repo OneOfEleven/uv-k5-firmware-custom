@@ -226,28 +226,28 @@ Bail:
 static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 {
 
-	
+
 	// beeps cause bad audio clicks anf audio breaks :(
 	// so don't use them
-	
-	
+
+
 	g_key_input_count_down = key_input_timeout_500ms;
-	
+
 	if (key_held && !key_pressed)
 		return;  // key just released after long press
-	
+
 	if (!key_held && key_pressed)
 	{	// key just pressed
 		return;
 	}
-	
+
 	if (!g_fkey_pressed && !key_held)
 	{	// short key release
 		uint8_t State;
-	
+
 		if (g_ask_to_delete)
 			return;
-	
+
 		if (g_ask_to_save)
 		{
 			State = STATE_SAVE;
@@ -256,16 +256,17 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		{
 			if (g_fm_scan_state != FM_SCAN_OFF)
 				return;
-	
+
 			State = g_eeprom.fm_is_channel_mode ? STATE_USER_MODE : STATE_FREQ_MODE;
 		}
-	
+
 		INPUTBOX_Append(Key);
-	
+
 		g_request_display_screen = DISPLAY_FM;
-	
+
 		if (State == STATE_FREQ_MODE)
-		{
+		{	// frequency mode
+
 			if (g_input_box_index == 1)
 			{
 				if (g_input_box[0] > 1)
@@ -279,7 +280,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			if (g_input_box_index > 3)
 			{
 				uint32_t Frequency;
-	
+
 				g_input_box_index = 0;
 
 				NUMBER_Get(g_input_box, &Frequency);
@@ -291,13 +292,13 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 					g_request_display_screen = DISPLAY_FM;
 					return;
 				}
-	
+
 				g_eeprom.fm_selected_frequency = (uint16_t)Frequency;
-	
+
 				#ifdef ENABLE_VOICE
 					g_another_voice_id = (voice_id_t)Key;
 				#endif
-	
+
 				g_eeprom.fm_frequency_playing = g_eeprom.fm_selected_frequency;
 				BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 				g_request_save_fm = true;
@@ -307,12 +308,13 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		}
 		else
 		if (g_input_box_index == 2)
-		{
+		{	// channel mode
+
 			uint8_t Channel;
-	
+
 			g_input_box_index = 0;
 			Channel = ((g_input_box[0] * 10) + g_input_box[1]) - 1;
-	
+
 			if (State == STATE_USER_MODE)
 			{
 				if (FM_CheckValidChannel(Channel))
@@ -338,39 +340,39 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				g_fm_channel_position = Channel;
 				return;
 			}
-	
+
 			return;
 		}
-	
+
 		#ifdef ENABLE_VOICE
 			g_another_voice_id = (voice_id_t)Key;
 		#endif
-	
+
 		return;
 	}
 
 	// with f-key, or long press
-	
+
 	g_fkey_pressed           = false;
 	g_update_status          = true;
 	g_request_display_screen = DISPLAY_FM;
-	
+
 	switch (Key)
 	{
 		case KEY_0:
 			ACTION_FM();
 			break;
-	
+
 		case KEY_3:
 			g_eeprom.fm_is_channel_mode = !g_eeprom.fm_is_channel_mode;
-	
+
 			if (!FM_ConfigureChannelState())
 			{
 				BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 				g_request_save_fm = true;
 			}
 			break;
-	
+
 		default:
 			break;
 	}
@@ -448,7 +450,7 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 {
 	unsigned int i;
 	int channel = -1;
-	
+
 	if (key_held || key_pressed)
 		return;
 
@@ -456,7 +458,7 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 	for (i = 0; i < ARRAY_SIZE(g_fm_channels) && channel < 0; i++)
 		if (g_fm_channels[i] == g_eeprom.fm_frequency_playing)
 			channel = i;  // found it in the channel list
-	
+
 	g_request_display_screen = DISPLAY_FM;
 
 	if (g_fm_scan_state == FM_SCAN_OFF)
@@ -464,7 +466,7 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 
 		if (!g_eeprom.fm_is_channel_mode)
 		{	// frequency mode
-	
+
 			if (g_ask_to_save)
 			{
 				if (channel < 0)

@@ -168,7 +168,7 @@ void UI_DisplayScanner(void)
 				char s[11];
 				BOARD_fetchChannelName(s, g_scan_channel);
 				if (s[0] == 0)
-					UI_GenerateChannelStringEx(s, g_show_chan_prefix, g_scan_channel);
+					UI_GenerateChannelStringEx(s, g_show_chan_prefix ? "CH-" : "", g_scan_channel);
 				strcat(String, s);
 			}
 			break;

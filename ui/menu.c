@@ -760,7 +760,7 @@ void UI_DisplayMenu(void)
 			char s[11];
 			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
 
-			UI_GenerateChannelStringEx(String, valid, g_sub_menu_selection);
+			UI_GenerateChannelStringEx(String, valid ? "CH-" : "", g_sub_menu_selection);
 
 			// channel name
 			BOARD_fetchChannelName(s, g_sub_menu_selection);
@@ -781,7 +781,7 @@ void UI_DisplayMenu(void)
 			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
 			const unsigned int y = (!g_is_in_sub_menu || g_edit_index < 0) ? 1 : 0;
 
-			UI_GenerateChannelStringEx(String, valid, g_sub_menu_selection);
+			UI_GenerateChannelStringEx(String, valid ? "CH-" : "", g_sub_menu_selection);
 			UI_PrintString(String, menu_item_x1, menu_item_x2, y, 8);
 
 			if (valid)
@@ -1065,7 +1065,7 @@ void UI_DisplayMenu(void)
 		if (g_sub_menu_selection < 0)
 			strcpy(String, "NULL");
 		else
-			UI_GenerateChannelStringEx(String, true, g_sub_menu_selection);
+			UI_GenerateChannelStringEx(String, "CH-", g_sub_menu_selection);
 
 //		if (g_sub_menu_selection == 0xFF || !g_eeprom.scan_list_enabled[i])
 		if (g_sub_menu_selection < 0 || !g_eeprom.scan_list_enabled[i])

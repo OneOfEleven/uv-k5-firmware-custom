@@ -26,25 +26,31 @@
 	#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 #endif
 
-void UI_GenerateChannelString(char *pString, const uint8_t Channel)
+void UI_GenerateChannelString(char *pString, const uint8_t Channel, const char separating_char)
 {
 	unsigned int i;
 
+	if (pString == NULL)
+		return;
+	
 	if (g_input_box_index == 0)
 	{
-		sprintf(pString, "CH-%02u", Channel + 1);
+		sprintf(pString, "CH%c%02u", separating_char, Channel + 1);
 		return;
 	}
 
 	pString[0] = 'C';
 	pString[1] = 'H';
-	pString[2] = '-';
+	pString[2] = separating_char;
 	for (i = 0; i < 2; i++)
-		pString[i + 3] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
+		pString[i + 3] = (g_input_box[i] == 10) ? '_' : g_input_box[i] + '0';
 }
 
-void UI_GenerateChannelStringEx(char *pString, const bool bShowPrefix, const uint8_t ChannelNumber)
+void UI_GenerateChannelStringEx(char *pString, const char *prefix, const uint8_t ChannelNumber)
 {
+	if (pString == NULL)
+		return;
+	
 	if (g_input_box_index > 0)
 	{
 		unsigned int i;
@@ -53,13 +59,15 @@ void UI_GenerateChannelStringEx(char *pString, const bool bShowPrefix, const uin
 		return;
 	}
 
-	if (bShowPrefix)
-		sprintf(pString, "CH-%03u", ChannelNumber + 1);
-	else
+	pString[0] = 0;
+	
+	if (prefix)
+		strcpy(pString, prefix);
+	
 	if (ChannelNumber == 0xFF)
 		strcpy(pString, "NULL");
 	else
-		sprintf(pString, "%03u", ChannelNumber + 1);
+		sprintf(pString + strlen(prefix), "%03u", ChannelNumber + 1);
 }
 
 void UI_PrintString(const char *pString, uint8_t Start, uint8_t End, uint8_t Line, uint8_t Width)

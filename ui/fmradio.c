@@ -81,7 +81,7 @@ void UI_DisplayFM(void)
 					strcpy(String, "VFO");
 			}
 			else
-				sprintf(String, "CH %2u", g_eeprom.fm_selected_channel + 1);
+				sprintf(String, "CH %u", g_eeprom.fm_selected_channel + 1);
 		}
 		else
 		if (!g_fm_auto_scan)
@@ -97,8 +97,8 @@ void UI_DisplayFM(void)
 	memset(String, 0, sizeof(String));
 
 	if (g_ask_to_save || (g_eeprom.fm_is_channel_mode && g_input_box_index > 0))
-	{
-		UI_GenerateChannelString(String, g_fm_channel_position);
+	{	// user is entering a channel number
+		UI_GenerateChannelString(String, g_fm_channel_position, ' ');
 	}
 	else
 	if (!g_ask_to_delete)
@@ -109,15 +109,16 @@ void UI_DisplayFM(void)
 			UI_DisplayFrequency(String, 23, 4, false, true);
 		}
 		else
-		{
+		{	// user is entering a frequency
 			UI_DisplayFrequency(g_input_box, 23, 4, true, false);
 		}
 	}
 	else
 	{
-		sprintf(String, "CH %2u", g_eeprom.fm_selected_channel + 1);
-		UI_PrintString(String, 0, 127, 4, 10);
+		sprintf(String, "CH %u", g_eeprom.fm_selected_channel + 1);
 	}
+
+	UI_PrintString(String, 0, 127, 4, 10);
 	
 	// *************************************
 
