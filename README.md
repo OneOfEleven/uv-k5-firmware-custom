@@ -4,10 +4,14 @@ This repository is a cloned and customized version of DualTachyon's open firmwar
 
 https://github.com/DualTachyon/uv-k5-firmware .. a cool achievement !
 
-Use this firmware at your own risk (entirely). There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may even brick your radio(s), in which case, you'd need to buy another radio.
-Anyway, have fun.
+Use this firmware/code ENTIRELY at your own risk. This firmware is totally experimental, and at
+times will go completely tits up (ie, break your radio) - an entirely common occurance when playing
+around with experimental code.
 
-# Radio performance
+There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may
+even brick your radio(s), at which point, maybe find a quiet corner to sob your hert out in.
+
+## Radio performance
 
 Please note that the Quansheng UV-Kx radios are not professional quality transceivers, their
 performance is strictly limited. The RX front end has no track-tuned band pass filtering
@@ -147,14 +151,6 @@ Then you can run 'win_make.bat' from the directory you saved this source code to
 You may need to edit the bat file (path to make.exe) depending on where you installed the above two packages too.
 
 I've left some notes in the win_make.bat file to maybe help with stuff.
-
-## Building from browser
-
-To build the firmware without installing any software you can run a full featured IDE and compiler in your browser using GitHub Codespace.
-The environment is build using the Archlinux Dockerfile provided in the project.
-
-You just need to clic on the green button `<> Code` -> `Codespace` -> `Create Codespace on ...`  
-After the Codespace is initialized, you can open and edit any file and build the firmware typing `make` in the terminal panel.
 
 # Credits
 
