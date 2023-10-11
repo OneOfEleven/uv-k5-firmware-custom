@@ -137,17 +137,17 @@ int TX_freq_check(const uint32_t Frequency)
 	switch (g_setting_f_lock)
 	{
 		case F_LOCK_OFF:
-			if (Frequency >= 13600000 && Frequency < 17400000)
+			if (Frequency >= 13600000 && Frequency < 17400000) //Frequency Between 136-174 Mhz
 				return 0;
-			if (Frequency >= 17400000 && Frequency < 35000000)
+			if (Frequency >= 17400000 && Frequency < 35000000) //Frequency Between 174-350 Mhz + 200 TX Enabled
 				if (g_setting_200_tx_enable)
 					return 0;
-			if (Frequency >= 35000000 && Frequency < 40000000)
+			if (Frequency >= 35000000 && Frequency < 40000000) //Frequency Between 350-400 Mhz + 350 TX Enabled
 				if (g_setting_350_tx_enable && g_setting_350_enable)
 					return 0;
-			if (Frequency >= 40000000 && Frequency < 47000000)
+			if (Frequency >= 40000000 && Frequency < 47000000) //Frequency Between 400-470 Mhz
 				return 0;
-			if (Frequency >= 47000000 && Frequency <= 60000000)
+			if (Frequency >= 47000000 && Frequency <= 60000000) //Frequency Between 470-600 Mhz + 500 TX Enabled
 				if (g_setting_500_tx_enable)
 					return 0;
 			break;
