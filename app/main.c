@@ -65,20 +65,16 @@ void toggle_chan_scanlist(void)
 	g_flag_reset_vfos    = true;
 }
 
-static void processFKeyFunction(const key_code_t Key, const bool beep)
+static void processFKeyFunction(const key_code_t Key)
 {
 	uint8_t Band;
 	uint8_t Vfo = g_eeprom.tx_vfo;
 
 	if (g_screen_to_display == DISPLAY_MENU)
 	{
-//		if (beep)
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
-
-//	if (beep)
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 	switch (Key)
 	{
@@ -116,14 +112,12 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 			g_eeprom.screen_channel[Vfo] = FREQ_CHANNEL_FIRST + Band;
 			g_eeprom.freq_channel[Vfo]   = FREQ_CHANNEL_FIRST + Band;
 
-			g_request_save_vfo            = true;
-			g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
+			g_request_save_vfo   = true;
+			g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 
-			g_request_display_screen      = DISPLAY_MAIN;
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
-			if (beep)
-				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-
+			g_request_display_screen = DISPLAY_MAIN;
 			break;
 
 		case KEY_2:
@@ -141,14 +135,12 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 			else
 				g_eeprom.tx_vfo = (Vfo + 1) & 1u;
 
-			g_request_save_settings  = 1;
-			g_flag_reconfigure_vfos  = true;
+			g_request_save_settings = 1;
+			g_flag_reconfigure_vfos = true;
+
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 			g_request_display_screen = DISPLAY_MAIN;
-
-			if (beep)
-				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-
 			break;
 
 		case KEY_3:
@@ -163,11 +155,15 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 				if (IS_USER_CHANNEL(g_tx_vfo->channel_save))
 				{	// swap to frequency mode
 					g_eeprom.screen_channel[Vfo] = g_eeprom.freq_channel[g_eeprom.tx_vfo];
+
 					#ifdef ENABLE_VOICE
-						g_another_voice_id        = VOICE_ID_FREQUENCY_MODE;
+						g_another_voice_id = VOICE_ID_FREQUENCY_MODE;
 					#endif
-					g_request_save_vfo            = true;
-					g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
+
+					g_request_save_vfo   = true;
+					g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
+
+					g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 					break;
 				}
 
@@ -175,33 +171,34 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 				if (Channel != 0xFF)
 				{	// swap to channel mode
 					g_eeprom.screen_channel[Vfo] = Channel;
+
 					#ifdef ENABLE_VOICE
 						AUDIO_SetVoiceID(0, VOICE_ID_CHANNEL_MODE);
 						AUDIO_SetDigitVoice(1, Channel + 1);
 						g_another_voice_id = (voice_id_t)0xFE;
 					#endif
-					g_request_save_vfo     = true;
-					g_vfo_configure_mode   = VFO_CONFIGURE_RELOAD;
+
+					g_request_save_vfo   = true;
+					g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
+
+					g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 					break;
 				}
 			}
 
-			if (beep)
-				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 
 			break;
 
 		case KEY_4:
-			g_fkey_pressed          = false;
-			g_flag_start_scan           = true;
-			g_scan_single_frequency     = false;
+			g_fkey_pressed           = false;
+			g_flag_start_scan        = true;
+			g_scan_single_frequency  = false;
 			g_backup_cross_vfo_rx_tx = g_eeprom.cross_vfo_rx_tx;
 			g_eeprom.cross_vfo_rx_tx = CROSS_BAND_OFF;
-			g_update_status            = true;
+			g_update_status          = true;
 
-//			if (beep)
-//				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
 		case KEY_5:
@@ -227,10 +224,12 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 				#endif
 			#endif
 
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
 		case KEY_6:
 			ACTION_Power();
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
 		case KEY_7:
@@ -239,11 +238,13 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 			#else
 				toggle_chan_scanlist();
 			#endif
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
 		case KEY_8:
 			g_tx_vfo->frequency_reverse = g_tx_vfo->frequency_reverse == false;
 			g_request_save_channel = 1;
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
 		case KEY_9:
@@ -261,16 +262,17 @@ static void processFKeyFunction(const key_code_t Key, const bool beep)
 				break;
 			}
 
-			if (beep)
-				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			break;
 
 		default:
-			g_update_status   = true;
-			g_fkey_pressed = false;
+			g_update_status = true;
+			g_fkey_pressed  = false;
 
-			if (beep)
-				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+			#ifdef ENABLE_FMRADIO
+				if (!g_fm_radio_mode)
+			#endif
+					g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 	}
 }
@@ -293,7 +295,7 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				g_fkey_pressed = false;
 				g_update_status   = true;
 
-				processFKeyFunction(Key, false);
+				processFKeyFunction(Key);
 			}
 		}
 
@@ -469,7 +471,7 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 	g_fkey_pressed = false;
 	g_update_status   = true;
 
-	processFKeyFunction(Key, true);
+	processFKeyFunction(Key);
 }
 
 static void MAIN_Key_EXIT(bool key_pressed, bool key_held)

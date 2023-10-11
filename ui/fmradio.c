@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#ifdef ENABLE_FMRADIO
-
 #include <string.h>
 
 #include "app/fm.h"
@@ -55,12 +53,12 @@ void UI_DisplayFM(void)
 
 	if (g_ask_to_save)
 	{
-		strcpy(String, "SAVE?");
+		strcpy(String, "SAVE ?");
 	}
 	else
 	if (g_ask_to_delete)
 	{
-		strcpy(String, "DEL?");
+		strcpy(String, "DEL ?");
 	}
 	else
 	{
@@ -74,7 +72,7 @@ void UI_DisplayFM(void)
 				{
 					if (g_eeprom.fm_frequency_playing == g_fm_channels[i])
 					{
-						sprintf(String, "VFO(CH%02u)", i + 1);
+						sprintf(String, "VFO (CH %u)", i + 1);
 						break;
 					}
 				}
@@ -83,13 +81,13 @@ void UI_DisplayFM(void)
 					strcpy(String, "VFO");
 			}
 			else
-				sprintf(String, "MR(CH%02u)", g_eeprom.fm_selected_channel + 1);
+				sprintf(String, "CH %2u", g_eeprom.fm_selected_channel + 1);
 		}
 		else
 		if (!g_fm_auto_scan)
 			strcpy(String, "M-SCAN");
 		else
-			sprintf(String, "A-SCAN(%u)", g_fm_channel_position + 1);
+			sprintf(String, "A-SCAN %u", g_fm_channel_position + 1);
 	}
 
 	UI_PrintString(String, 0, 127, 2, 10);
@@ -117,7 +115,7 @@ void UI_DisplayFM(void)
 	}
 	else
 	{
-		sprintf(String, "CH-%02u", g_eeprom.fm_selected_channel + 1);
+		sprintf(String, "CH %2u", g_eeprom.fm_selected_channel + 1);
 		UI_PrintString(String, 0, 127, 4, 10);
 	}
 	
@@ -125,5 +123,3 @@ void UI_DisplayFM(void)
 
 	ST7565_BlitFullScreen();
 }
-
-#endif

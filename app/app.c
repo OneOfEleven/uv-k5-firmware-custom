@@ -2272,8 +2272,10 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 
 			backlight_turn_on();
 
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-//			AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
+			#ifdef ENABLE_FMRADIO
+				if (!g_fm_radio_mode)
+			#endif
+				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 
 			// keypad is locked, tell the user
 			g_keypad_locked  = 4;          // 2 second pop-up
@@ -2533,8 +2535,13 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 			ACTION_Handle(Key, key_pressed, key_held);
 		}
 		else
-		if (!key_held && key_pressed)
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		{
+			#ifdef ENABLE_FMRADIO
+				if (!g_fm_radio_mode)
+			#endif
+					if (!key_held && key_pressed)
+						g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		}
 	}
 
 Skip:

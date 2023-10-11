@@ -192,8 +192,6 @@ int FM_CheckFrequencyLock(uint16_t Frequency, uint16_t LowerLimit)
 			//if (Deviation > -281 && Deviation < 280)
 			if (Deviation < 280 || Deviation > 3815)
 			{
-				// not BLE(less than or equal)
-
 				if (Frequency > LowerLimit && (Frequency - BK1080_BaseFrequency) == 1)
 				{
 					if (BK1080_FrequencyDeviation & 0x800)
@@ -202,8 +200,6 @@ int FM_CheckFrequencyLock(uint16_t Frequency, uint16_t LowerLimit)
 					if (BK1080_FrequencyDeviation < 20)
 						goto Bail;
 				}
-
-				// not BLT(less than)
 
 				if (Frequency >= LowerLimit && (BK1080_BaseFrequency - Frequency) == 1)
 				{
@@ -285,9 +281,11 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				uint32_t Frequency;
 	
 				g_input_box_index = 0;
+
 				NUMBER_Get(g_input_box, &Frequency);
+
 				Frequency /= 10000;
-	
+
 				if (Frequency < g_eeprom.fm_lower_limit || g_eeprom.fm_upper_limit < Frequency)
 				{
 					g_request_display_screen = DISPLAY_FM;
