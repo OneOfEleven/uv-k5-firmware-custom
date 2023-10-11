@@ -1529,7 +1529,7 @@ void APP_TimeSlice10ms(void)
 	{	// transmitting
 		#ifdef ENABLE_AUDIO_BAR
 			if (g_setting_mic_bar && (g_flash_light_blink_counter % (150 / 10)) == 0) // once every 150ms
-				UI_DisplayAudioBar();
+				UI_DisplayAudioBar(true);
 		#endif
 	}
 

@@ -35,7 +35,7 @@ extern center_line_t center_line;
 	bool UI_DisplayTXCountdown(const bool now);
 #endif
 #ifdef ENABLE_AUDIO_BAR
-	void UI_DisplayAudioBar(void);
+	bool UI_DisplayAudioBar(const bool now);
 #endif
 void UI_UpdateRSSI(const int16_t rssi, const int vfo);
 void UI_DisplayMain(void);

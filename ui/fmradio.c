@@ -86,9 +86,9 @@ void UI_DisplayFM(void)
 		}
 		else
 		if (!g_fm_auto_scan)
-			strcpy(String, "M-SCAN");
+			strcpy(String, "FREQ SCAN");
 		else
-			sprintf(String, "A-SCAN %u", 1 + g_fm_channel_position);
+			sprintf(String, "A-SCAN %2u", 1 + g_fm_channel_position);
 	}
 
 	UI_PrintString(String, 0, 127, 2, 10);

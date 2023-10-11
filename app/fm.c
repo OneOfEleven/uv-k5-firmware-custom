@@ -24,6 +24,7 @@
 #include "driver/bk1080.h"
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
+#include "driver/uart.h"
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"
@@ -458,7 +459,7 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 	g_key_input_count_down = key_input_timeout_500ms;
 
 	if (key_held || key_pressed)
-		return;
+		return;   // key still pressed
 
 	// see if the frequency is already stored in a channel
 	for (i = 0; i < ARRAY_SIZE(g_fm_channels) && channel < 0; i++)
@@ -466,6 +467,10 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 			channel = i;  // found it in the channel list
 
 	g_request_display_screen = DISPLAY_FM;
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		//UART_SendText("fm menu 1\r\n");
+	#endif
 
 	if (g_fm_scan_state == FM_SCAN_OFF)
 	{	// not scanning
@@ -501,25 +506,40 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 			else
 				g_ask_to_delete = true;
 		}
+		
+		return;
 	}
-	else
-	{	// scanning
-		if (g_fm_auto_scan || !g_fm_found_frequency)
-		{
-			g_input_box_index = 0;
-			return;
-		}
 
-		if (g_ask_to_save)
-		{
-			g_fm_channels[g_fm_channel_position] = g_eeprom.fm_frequency_playing;
-			g_ask_to_save     = false;
-			g_request_save_fm = true;
-		}
-		else
-		if (channel < 0)
-			g_ask_to_save = true;
+	// scanning
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		//UART_SendText("fm menu 2\r\n");
+	#endif
+
+	if (g_fm_auto_scan || !g_fm_found_frequency)
+	{
+		g_input_box_index = 0;
+		return;
 	}
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		//UART_SendText("fm menu 3\r\n");
+	#endif
+
+	if (g_ask_to_save)
+	{
+		g_fm_channels[g_fm_channel_position] = g_eeprom.fm_frequency_playing;
+		g_ask_to_save     = false;
+		g_request_save_fm = true;
+		return;
+	}
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		//UART_SendText("fm menu 4\r\n");
+	#endif
+
+	if (channel < 0)
+		g_ask_to_save = true;
 }
 
 static void FM_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Step)
