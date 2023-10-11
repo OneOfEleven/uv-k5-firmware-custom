@@ -579,9 +579,15 @@ void APP_StartListening(function_type_t Function, const bool reset_am_fix)
 		(g_eeprom.dac_gain    << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
 
 	#ifdef ENABLE_VOICE
-		if (g_voice_write_index == 0)       // AM/FM RX mode will be set when the voice has finished
+		#ifdef MUTE_AUDIO_FOR_VOICE
+			if (g_voice_write_index == 0)
+				BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
+		#else
+			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
+		#endif
+	#else
+		BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	#endif
-			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);  // no need, set it now
 
 	FUNCTION_Select(Function);
 
@@ -887,14 +893,15 @@ void APP_CheckRadioInterrupts(void)
 						g_power_save_expired = false;
 					}
 
-					if (g_eeprom.dual_watch != DUAL_WATCH_OFF && (g_schedule_dual_watch || g_dual_watch_count_down_10ms < dual_watch_count_after_vox_10ms))
+					if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
+					   (g_schedule_dual_watch || g_dual_watch_count_down_10ms < dual_watch_count_after_vox_10ms))
 					{
 						g_dual_watch_count_down_10ms = dual_watch_count_after_vox_10ms;
 						g_schedule_dual_watch = false;
 
 						// let the user see DW is not active
 						g_dual_watch_active = false;
-						g_update_status    = true;
+						g_update_status     = true;
 					}
 				}
 			}
@@ -1127,6 +1134,7 @@ void APP_Update(void)
 			{
 				NOAA_IncreaseChannel();
 				RADIO_SetupRegisters(false);
+
 				g_noaa_count_down_10ms = 7;      // 70ms
 				g_schedule_noaa        = false;
 			}
@@ -1136,17 +1144,21 @@ void APP_Update(void)
 	// toggle between the VFO's if dual watch is enabled
 	if (g_screen_to_display != DISPLAY_SCANNER && g_eeprom.dual_watch != DUAL_WATCH_OFF)
 	{
-		#ifdef ENABLE_VOICE
-			if (g_voice_write_index == 0)
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			//UART_SendText("dual watch\r\n");
 		#endif
+			
+	#ifdef ENABLE_VOICE
+		if (g_voice_write_index == 0)
+	#endif
 		{
 			if (g_schedule_dual_watch)
 			{
 				if (g_scan_state_dir == SCAN_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
 				{
-					#ifdef ENABLE_FMRADIO
-						if (!g_fm_radio_mode)
-					#endif
+				#ifdef ENABLE_FMRADIO
+					if (!g_fm_radio_mode)
+				#endif
 					{
 						if (!g_ptt_is_pressed &&
 							g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
@@ -1168,30 +1180,30 @@ void APP_Update(void)
 		}
 	}
 
-	#ifdef ENABLE_FMRADIO
-		if (g_schedule_fm                          &&
-			g_fm_scan_state    != FM_SCAN_OFF      &&
-			g_current_function != FUNCTION_MONITOR &&
-			g_current_function != FUNCTION_RECEIVE &&
-			g_current_function != FUNCTION_TRANSMIT)
-		{	// switch to FM radio mode
-			FM_Play();
-			g_schedule_fm = false;
-		}
-	#endif
+#ifdef ENABLE_FMRADIO
+	if (g_schedule_fm                          &&
+		g_fm_scan_state    != FM_SCAN_OFF      &&
+		g_current_function != FUNCTION_MONITOR &&
+		g_current_function != FUNCTION_RECEIVE &&
+		g_current_function != FUNCTION_TRANSMIT)
+	{	// switch to FM radio mode
+		FM_Play();
+		g_schedule_fm = false;
+	}
+#endif
 
-	#ifdef ENABLE_VOX
-		if (g_eeprom.vox_switch)
-			APP_HandleVox();
-	#endif
+#ifdef ENABLE_VOX
+	if (g_eeprom.vox_switch)
+		APP_HandleVox();
+#endif
 
 	if (g_schedule_power_save)
 	{
 		#ifdef ENABLE_NOAA
 			if (
-				#ifdef ENABLE_FMRADIO
-					g_fm_radio_mode ||
-			    #endif
+			#ifdef ENABLE_FMRADIO
+			    g_fm_radio_mode ||
+			#endif
 				g_ptt_is_pressed                     ||
 			    g_key_held                           ||
 				g_eeprom.battery_save == 0           ||
@@ -1495,7 +1507,7 @@ void APP_TimeSlice10ms(void)
 			UI_DisplayStatus(false);
 		return;
 	}
-	
+
 	#ifdef ENABLE_BOOT_BEEPS
 		if (g_boot_counter_10ms > 0 && (g_boot_counter_10ms % 25) == 0)
 			AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
@@ -1641,7 +1653,7 @@ void APP_TimeSlice10ms(void)
 		}
 
 		if (g_scanner_edit_state != SCAN_EDIT_STATE_NONE)
-		{
+		{	// waiting for user input choice
 			APP_CheckKeys();
 			return;
 		}
@@ -1673,14 +1685,7 @@ void APP_TimeSlice10ms(void)
 
 				BK4819_DisableFrequencyScan();
 
-				#ifdef ENABLE_FREQ_CODE_ROUNDING
-				{	  // round to nearest step multiple
-					const uint32_t step = STEP_FREQ_TABLE[g_step_setting];
-					g_scan_frequency = ((Result + (step / 2)) / step) * step;
-				}
-				#else
-					g_scan_frequency = Result;
-				#endif
+				g_scan_frequency = Result;
 
 				if (g_scan_hit_count < 3)
 				{	// keep scanning for an RF carrier
@@ -1736,7 +1741,7 @@ void APP_TimeSlice10ms(void)
 				BK4819_Disable();
 
 				if (ScanResult == BK4819_CSS_RESULT_CDCSS)
-				{
+				{	// found a CDCSS code
 					const uint8_t Code = DCS_GetCdcssCode(Result);
 					if (Code != 0xFF)
 					{
@@ -1750,7 +1755,7 @@ void APP_TimeSlice10ms(void)
 				}
 				else
 				if (ScanResult == BK4819_CSS_RESULT_CTCSS)
-				{
+				{	// found a CTCSS tone
 					const uint8_t code = DCS_GetCtcssCode(CtcssFreq);
 					if (code != 0xFF)
 					{
@@ -1773,8 +1778,7 @@ void APP_TimeSlice10ms(void)
 					}
 				}
 
-				if (g_scan_css_state == SCAN_CSS_STATE_OFF ||
-				    g_scan_css_state == SCAN_CSS_STATE_SCANNING)
+				if (g_scan_css_state == SCAN_CSS_STATE_OFF || g_scan_css_state == SCAN_CSS_STATE_SCANNING)
 				{	// re-start scan
 					BK4819_SetScanFrequency(g_scan_frequency);
 					g_scan_delay_10ms = scan_freq_css_delay_10ms;
@@ -1840,7 +1844,7 @@ void APP_TimeSlice500ms(void)
 	{	// config upload/download is running
 		return;
 	}
-	
+
 	if (g_keypad_locked > 0)
 		if (--g_keypad_locked == 0)
 			g_update_display = true;
@@ -2269,7 +2273,7 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 				return;
 
 			backlight_turn_on();
-			
+
 			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 //			AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
 
@@ -2393,7 +2397,6 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 		#endif
-
 	}
 
 	if (g_fkey_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2))

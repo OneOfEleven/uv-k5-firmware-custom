@@ -792,7 +792,7 @@ void MENU_AcceptSetting(void)
 			break;
 
 		case MENU_F_LOCK:
-			g_setting_f_lock = g_sub_menu_selection;
+			g_setting_freq_lock = g_sub_menu_selection;
 			break;
 
 		case MENU_200TX:
@@ -1226,7 +1226,7 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_F_LOCK:
-			g_sub_menu_selection = g_setting_f_lock;
+			g_sub_menu_selection = g_setting_freq_lock;
 			break;
 
 		case MENU_200TX:

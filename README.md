@@ -36,14 +36,16 @@ ENABLE_OVERLAY                := 0       cpu FLASH stuff, not needed
 ENABLE_LTO                    := 0     **experimental, reduces size of compiled firmware but might break EEPROM reads (OVERLAY will be disabled if you enable this)
 ENABLE_UART                   := 1       without this you can't configure radio via PC
 ENABLE_UART_DEBUG             := 0       just for code debugging, it sends debug info along the USB serial connection (programming lead)
-ENABLE_AIRCOPY                := 0       easier to just enter frequency with butts
+ENABLE_AIRCOPY                := 1       clone radio-to-radio via RF
 ENABLE_FMRADIO                := 1       WBFM VHF broadcast band receiver
 ENABLE_NOAA                   := 1       everything NOAA (only of any use in the USA)
 ENABLE_VOICE                  := 0       want to hear voices ?
+ENABLE_MUTE_RADIO_FOR_VOICE   := 1       mute the radios audio when a voice is playing
 ENABLE_VOX                    := 1       voice operated transmission
 ENABLE_ALARM                  := 1       TX alarms
 ENABLE_1750HZ                 := 1       side key 1750Hz TX tone (older style repeater access)
-ENABLE_PWRON_PASSWORD         := 1       power-on password stuff
+ENABLE_PWRON_PASSWORD         := 0       '1' = allow power-on password
+ENABLE_RESET_AES_KEY          := 1       '1' = reset/clear the AES key stored in the eeprom
 ENABLE_BIG_FREQ               := 0       big font frequencies (like original QS firmware)
 ENABLE_SMALL_BOLD             := 1       bold channel name/no. (when name + freq channel display mode)
 ENABLE_KEEP_MEM_NAME          := 1       maintain channel name when (re)saving memory channel

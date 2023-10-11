@@ -13,10 +13,12 @@ ENABLE_AIRCOPY                := 1
 ENABLE_FMRADIO                := 1
 ENABLE_NOAA                   := 0
 ENABLE_VOICE                  := 1
+ENABLE_MUTE_RADIO_FOR_VOICE   := 0
 ENABLE_VOX                    := 1
 ENABLE_ALARM                  := 1
 ENABLE_TX1750                 := 1
 ENABLE_PWRON_PASSWORD         := 0
+ENABLE_RESET_AES_KEY          := 1
 ENABLE_BIG_FREQ               := 0
 ENABLE_SMALL_BOLD             := 1
 ENABLE_KEEP_MEM_NAME          := 1
@@ -30,7 +32,6 @@ ENABLE_SHOW_CHARGE_LEVEL      := 0
 ENABLE_REVERSE_BAT_SYMBOL     := 1
 ENABLE_CODE_SCAN_TIMEOUT      := 0
 ENABLE_FREQ_CODE_SCAN_TIMEOUT := 1
-ENABLE_FREQ_CODE_ROUNDING     := 0
 ENABLE_AM_FIX                 := 1
 ENABLE_AM_FIX_SHOW_DATA       := 1
 ENABLE_SQUELCH_MORE_SENSITIVE := 1
@@ -209,10 +210,10 @@ CFLAGS =
 
 ifeq ($(ENABLE_CLANG),0)
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
-	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -std=c11 -MMD
+	CFLAGS += -Os -Werror -mcpu=cortex-m0 -std=c11 -MMD
 else
 	# Oz needed to make it fit on flash
-	CFLAGS += -Oz -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
+	CFLAGS += -Oz -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
 endif
 
 ifeq ($(ENABLE_LTO),1)
@@ -227,9 +228,7 @@ endif
 
 # catch any and all warnings
 # better to bust than add new bugs
-#CFLAGS += -Wall
-#CFLAGS += -Wextra
-#CFLAGS += -Wpedantic
+CFLAGS += -Wall -Wextra -Wpedantic
 
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
@@ -263,6 +262,9 @@ endif
 ifeq ($(ENABLE_VOICE),1)
 	CFLAGS  += -DENABLE_VOICE
 endif
+ifeq ($(ENABLE_MUTE_RADIO_FOR_VOICE),1)
+	CFLAGS  += -DENABLE_MUTE_RADIO_FOR_VOICE
+endif
 ifeq ($(ENABLE_VOX),1)
 	CFLAGS  += -DENABLE_VOX
 endif
@@ -274,6 +276,9 @@ ifeq ($(ENABLE_TX1750),1)
 endif
 ifeq ($(ENABLE_PWRON_PASSWORD),1)
 	CFLAGS  += -DENABLE_PWRON_PASSWORD
+endif
+ifeq ($(ENABLE_RESET_AES_KEY),1)
+	CFLAGS  += -DENABLE_RESET_AES_KEY
 endif
 ifeq ($(ENABLE_KEEP_MEM_NAME),1)
 	CFLAGS  += -DENABLE_KEEP_MEM_NAME
@@ -307,9 +312,6 @@ ifeq ($(ENABLE_CODE_SCAN_TIMEOUT),1)
 endif
 ifeq ($(ENABLE_FREQ_CODE_SCAN_TIMEOUT),1)
 	CFLAGS  += -DENABLE_FREQ_CODE_SCAN_TIMEOUT
-endif
-ifeq ($(ENABLE_FREQ_CODE_ROUNDING),1)
-	CFLAGS  += -DENABLE_FREQ_CODE_ROUNDING
 endif
 ifeq ($(ENABLE_AM_FIX),1)
 	CFLAGS  += -DENABLE_AM_FIX

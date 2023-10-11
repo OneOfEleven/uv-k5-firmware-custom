@@ -31,7 +31,7 @@
 #include "ui/menu.h"
 #include "ui/ui.h"
 
-BOOT_Mode_t BOOT_GetMode(void)
+boot_mode_t BOOT_GetMode(void)
 {
 	unsigned int i;
 	key_code_t   Keys[2];
@@ -47,7 +47,7 @@ BOOT_Mode_t BOOT_GetMode(void)
 	if (Keys[0] == Keys[1])
 	{
 		if (Keys[0] == KEY_SIDE1)
-			return BOOT_MODE_F_LOCK;
+			return BOOT_MODE_UNHIDE_HIDDEN;
 
 		#ifdef ENABLE_AIRCOPY
 			if (Keys[0] == KEY_SIDE2)
@@ -58,9 +58,9 @@ BOOT_Mode_t BOOT_GetMode(void)
 	return BOOT_MODE_NORMAL;
 }
 
-void BOOT_ProcessMode(BOOT_Mode_t Mode)
+void BOOT_ProcessMode(boot_mode_t Mode)
 {
-	if (Mode == BOOT_MODE_F_LOCK)
+	if (Mode == BOOT_MODE_UNHIDE_HIDDEN)
 	{
 		GUI_SelectNextDisplay(DISPLAY_MENU);
 	}

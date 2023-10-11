@@ -40,7 +40,7 @@ typedef enum scan_state_dir_e scan_state_dir_t;
 
 enum scan_edit_state_e {
 	SCAN_EDIT_STATE_NONE = 0,
-	SCAN_EDIT_STATE_BUSY,
+	SCAN_EDIT_STATE_SAVE,
 	SCAN_EDIT_STATE_DONE
 };
 typedef enum scan_edit_state_e scan_edit_state_t;

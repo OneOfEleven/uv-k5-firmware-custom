@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "app/scanner.h"
+#include "board.h"
 #include "dcs.h"
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
@@ -161,14 +162,20 @@ void UI_DisplayScanner(void)
 
 			break;
 
-		case SCAN_EDIT_STATE_BUSY:
+		case SCAN_EDIT_STATE_SAVE:
 			strcpy(String, "SAVE ");
-			UI_GenerateChannelStringEx(String + strlen(String), g_show_chan_prefix, g_scan_channel);
+			{
+				char s[11];
+				BOARD_fetchChannelName(s, g_scan_channel);
+				if (s[0] == 0)
+					UI_GenerateChannelStringEx(s, g_show_chan_prefix, g_scan_channel);
+				strcat(String, s);
+			}
 			break;
 
 		case SCAN_EDIT_STATE_DONE:
+			strcpy(String, "* repeat  M save");
 			text_centered = true;
-			strcpy(String, "SAVE ?");
 			break;
 	}
 

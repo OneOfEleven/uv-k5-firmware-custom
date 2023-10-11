@@ -51,7 +51,7 @@ void _putchar(char c)
 void Main(void)
 {
 	unsigned int i;
-	BOOT_Mode_t  BootMode;
+	boot_mode_t  BootMode;
 
 	// Enable clock gating of blocks we need
 	SYSCON_DEV_CLK_GATE = 0
@@ -89,7 +89,7 @@ void Main(void)
 
 	BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);
 
-	BOARD_EEPROM_Init();
+	BOARD_EEPROM_load();
 
 	BOARD_EEPROM_LoadMoreSettings();
 
@@ -105,33 +105,33 @@ void Main(void)
 
 	BATTERY_GetReadings(false);
 
+	ST7565_SetContrast(g_setting_contrast);
+
 	#ifdef ENABLE_AM_FIX
 		AM_fix_init();
 	#endif
 
 	BootMode = BOOT_GetMode();
 
-	g_f_lock = (BootMode == BOOT_MODE_F_LOCK); // flag to say include the hidden menu items
+	g_unhide_hidden = (BootMode == BOOT_MODE_UNHIDE_HIDDEN); // flag to say include the hidden menu items
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		if (g_f_lock)
-			UART_SendText("boot_f_lock\r\n");
+		if (g_unhide_hidden)
+			UART_SendText("boot_unhide_hidden\r\n");
 	#endif
 
 	// sort the menu list
-	UI_SortMenu(!g_f_lock);
-
-	ST7565_SetContrast(g_setting_contrast);
+	UI_SortMenu(!g_unhide_hidden);
 
 	// wait for user to release all butts before moving on
 	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||
 	     KEYBOARD_Poll() != KEY_INVALID ||
 		 BootMode != BOOT_MODE_NORMAL)
-	{	// keys are pressed
-		UI_DisplayReleaseKeys();
+	{
 		backlight_turn_on();
+		UI_DisplayReleaseKeys();
 		i = 0;
-		while (i < 50)  // 500ms
+		while (i < (500 / 10))  // 500ms
 		{
 			i = (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) && KEYBOARD_Poll() == KEY_INVALID) ? i + 1 : 0;
 			SYSTEM_DelayMs(10);
@@ -156,8 +156,8 @@ void Main(void)
 		backlight_turn_on();
 
 		#ifdef ENABLE_VOICE
-			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
-			AUDIO_PlaySingleVoice(0);
+//			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
+//			AUDIO_PlaySingleVoice(0);
 		#endif
 
 		if (g_eeprom.pwr_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
@@ -179,9 +179,9 @@ void Main(void)
 		#ifdef ENABLE_PWRON_PASSWORD
 			if (g_eeprom.power_on_password < 1000000)
 			{
-				g_is_in_lock_screen = true;
+				g_password_locked = true;
 				UI_DisplayLock();
-				g_is_in_lock_screen = false;
+				g_password_locked = false;
 			}
 		#endif
 
@@ -192,12 +192,13 @@ void Main(void)
 		g_update_status = true;
 
 		#ifdef ENABLE_VOICE
+		if (g_eeprom.voice_prompt != VOICE_PROMPT_OFF)
 		{
-			uint8_t Channel;
+			const uint8_t Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
 
-//			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
+			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
+			AUDIO_PlaySingleVoice(0);
 
-			Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
 			if (IS_USER_CHANNEL(Channel))
 			{
 				AUDIO_SetVoiceID(1, VOICE_ID_CHANNEL_MODE);
@@ -212,8 +213,6 @@ void Main(void)
 		#ifdef ENABLE_NOAA
 			RADIO_ConfigureNOAA();
 		#endif
-
-		// ******************
 	}
 
 	while (1)

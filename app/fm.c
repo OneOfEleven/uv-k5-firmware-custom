@@ -388,6 +388,8 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 static void FM_Key_STAR(bool key_pressed, bool key_held)
 {
+	(void)key_held;   // stop compiler warning
+	
 //	if (key_held)
 //		return;
 

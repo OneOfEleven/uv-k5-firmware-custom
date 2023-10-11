@@ -134,7 +134,7 @@ int TX_freq_check(const uint32_t Frequency)
 	if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
 		return -1;  // BX chip does not work in this range
 
-	switch (g_setting_f_lock)
+	switch (g_setting_freq_lock)
 	{
 		case F_LOCK_OFF:
 			if (Frequency >= 13600000 && Frequency < 17400000)

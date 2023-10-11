@@ -90,7 +90,7 @@ bool                  g_setting_200_tx_enable;
 bool                  g_setting_500_tx_enable;
 bool                  g_setting_350_enable;
 bool                  g_setting_tx_enable;
-uint8_t               g_setting_f_lock;
+uint8_t               g_setting_freq_lock;
 bool                  g_setting_scramble_enable;
 
 uint8_t               g_setting_backlight_on_tx_rx;
@@ -119,7 +119,6 @@ bool                  g_monitor_enabled = false;           // true opens the squ
 uint32_t              g_custom_aes_key[4];
 bool                  g_has_custom_aes_key;
 uint32_t              g_challenge[4];
-uint8_t               g_try_count;
 
 uint8_t               g_eeprom_1EC0_0[8];
 uint8_t               g_eeprom_1EC0_1[8];
@@ -161,7 +160,7 @@ bool                  g_enable_speaker;
 uint8_t               g_key_input_count_down = 0;
 uint8_t               g_key_lock_count_down_500ms;
 uint8_t               g_rtte_count_down;
-bool                  g_is_in_lock_screen;
+bool                  g_password_locked;
 uint8_t               g_update_status;
 uint8_t               g_found_CTCSS;
 uint8_t               g_found_CDCSS;
@@ -240,7 +239,7 @@ uint8_t               g_fsk_wite_index;
 
 bool                  g_update_display;
 
-bool                  g_f_lock = false;
+bool                  g_unhide_hidden = false;
 
 uint8_t               g_show_chan_prefix;
 
@@ -263,8 +262,6 @@ volatile bool         g_flag_tail_tone_elimination_complete;
 volatile uint8_t      g_boot_counter_10ms;
 
 int16_t               g_current_rssi[2] = {0, 0};  // now one per VFO
-
-uint8_t               g_is_locked = 0xFF;
 
 unsigned int get_RX_VFO(void)
 {

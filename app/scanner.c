@@ -19,6 +19,7 @@
 #include "app/scanner.h"
 #include "audio.h"
 #include "driver/bk4819.h"
+#include "driver/uart.h"
 #include "frequencies.h"
 #include "misc.h"
 #include "radio.h"
@@ -46,10 +47,10 @@ bool              g_scan_keep_frequency;
 
 static void SCANNER_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 {
-	if (key_held || !key_pressed)
+	if (key_held || key_pressed)
 		return;
 
-	if (g_scanner_edit_state == SCAN_EDIT_STATE_BUSY)
+	if (g_scanner_edit_state == SCAN_EDIT_STATE_SAVE)
 	{
 		uint16_t Channel;
 
@@ -86,7 +87,7 @@ static void SCANNER_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 static void SCANNER_Key_EXIT(bool key_pressed, bool key_held)
 {
-	if (key_held || !key_pressed)
+	if (key_held || key_pressed)
 		return;
 
 	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
@@ -106,7 +107,7 @@ static void SCANNER_Key_EXIT(bool key_pressed, bool key_held)
 			#endif
 			break;
 
-		case SCAN_EDIT_STATE_BUSY:
+		case SCAN_EDIT_STATE_SAVE:
 			if (g_input_box_index > 0)
 			{
 				g_input_box[--g_input_box_index] = 10;
@@ -130,10 +131,7 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 {
 	uint8_t Channel;
 
-	if (key_held)
-		return;
-
-	if (!key_pressed)
+	if (key_held || key_pressed)
 		return;
 
 	if (g_scan_css_state == SCAN_CSS_STATE_OFF && !g_scan_single_frequency)
@@ -164,7 +162,6 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 		case SCAN_EDIT_STATE_NONE:
 			if (!g_scan_single_frequency)
 			{
-
 				#if 0
 					uint32_t Freq250 = FREQUENCY_FloorToStep(g_scan_frequency, 250, 0);
 					uint32_t Freq625 = FREQUENCY_FloorToStep(g_scan_frequency, 625, 0);
@@ -196,7 +193,7 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 						g_step_setting = STEP_2_5kHz;
 						g_scan_frequency = Freq250;
 					}
-				#else
+				#elif 0
 
 					#ifdef ENABLE_1250HZ_STEP
 						const step_setting_t small_step = STEP_1_25kHz;
@@ -239,18 +236,37 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 						g_step_setting   = big_step;
 						g_scan_frequency = freq_big_step;
 					}
+
+				#else
+					#ifdef ENABLE_1250HZ_STEP
+						g_step_setting = STEP_1_25kHz;
+					#else
+						g_step_setting = STEP_2_5kHz;
+					#endif
+					{	// round to the nearest step size
+						const uint32_t step = STEP_FREQ_TABLE[g_step_setting];
+						g_scan_frequency = ((g_scan_frequency + (step / 2)) / step) * step;
+					}
 				#endif
 			}
 
 			if (g_tx_vfo->channel_save <= USER_CHANNEL_LAST)
 			{
-				g_scanner_edit_state = SCAN_EDIT_STATE_BUSY;
-				g_scan_channel      = g_tx_vfo->channel_save;
-				g_show_chan_prefix     = RADIO_CheckValidChannel(g_tx_vfo->channel_save, false, 0);
+				g_scan_channel       = g_tx_vfo->channel_save;
+				g_show_chan_prefix   = RADIO_CheckValidChannel(g_tx_vfo->channel_save, false, 0);
+				g_scanner_edit_state = SCAN_EDIT_STATE_SAVE;
 			}
 			else
 			{
-				g_scanner_edit_state = SCAN_EDIT_STATE_DONE;
+				#if 0
+					// save the VFO
+					g_scanner_edit_state = SCAN_EDIT_STATE_DONE;
+				#else
+					// save to a desired channel
+					g_scan_channel       = RADIO_FindNextChannel(0, SCAN_FWD, false, g_eeprom.tx_vfo);
+					g_show_chan_prefix   = RADIO_CheckValidChannel(g_scan_channel, false, 0);
+					g_scanner_edit_state = SCAN_EDIT_STATE_SAVE;
+				#endif
 			}
 
 			g_scan_css_state = SCAN_CSS_STATE_FOUND;
@@ -263,7 +279,7 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 			g_update_status = true;
 			break;
 
-		case SCAN_EDIT_STATE_BUSY:
+		case SCAN_EDIT_STATE_SAVE:
 			if (g_input_box_index == 0)
 			{
 				g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
@@ -273,6 +289,10 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 			break;
 
 		case SCAN_EDIT_STATE_DONE:
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				//UART_SendText("edit done\r\n");
+			#endif
+
 			if (!g_scan_single_frequency)
 			{
 				RADIO_InitInfo(g_tx_vfo, g_tx_vfo->channel_save, g_scan_frequency);
@@ -280,7 +300,7 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 				if (g_scan_use_css_result)
 				{
 					g_tx_vfo->freq_config_rx.code_type = g_scan_css_result_type;
-					g_tx_vfo->freq_config_rx.code     = g_scan_css_result_code;
+					g_tx_vfo->freq_config_rx.code      = g_scan_css_result_code;
 				}
 
 				g_tx_vfo->freq_config_tx = g_tx_vfo->freq_config_rx;
@@ -292,9 +312,9 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 				RADIO_ConfigureChannel(1, VFO_CONFIGURE_RELOAD);
 
 				g_tx_vfo->freq_config_rx.code_type = g_scan_css_result_type;
-				g_tx_vfo->freq_config_rx.code     = g_scan_css_result_code;
+				g_tx_vfo->freq_config_rx.code      = g_scan_css_result_code;
 				g_tx_vfo->freq_config_tx.code_type = g_scan_css_result_type;
-				g_tx_vfo->freq_config_tx.code     = g_scan_css_result_code;
+				g_tx_vfo->freq_config_tx.code      = g_scan_css_result_code;
 			}
 
 			if (g_tx_vfo->channel_save <= USER_CHANNEL_LAST)
@@ -329,7 +349,7 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 
 static void SCANNER_Key_STAR(bool key_pressed, bool key_held)
 {
-	if (key_held || !key_pressed)
+	if (key_held || key_pressed)
 		return;
 
 	g_beep_to_play    = BEEP_1KHZ_60MS_OPTIONAL;
@@ -345,16 +365,16 @@ static void SCANNER_Key_UP_DOWN(bool key_pressed, bool pKeyHeld, int8_t Directio
 	}
 	else
 	{
-		if (!key_pressed)
+		if (key_pressed)
 			return;
 
 		g_input_box_index = 0;
 		g_beep_to_play    = BEEP_1KHZ_60MS_OPTIONAL;
 	}
 
-	if (g_scanner_edit_state == SCAN_EDIT_STATE_BUSY)
+	if (g_scanner_edit_state == SCAN_EDIT_STATE_SAVE)
 	{
-		g_scan_channel             = NUMBER_AddWithWraparound(g_scan_channel, Direction, 0, USER_CHANNEL_LAST);
+		g_scan_channel           = NUMBER_AddWithWraparound(g_scan_channel, Direction, 0, USER_CHANNEL_LAST);
 		g_show_chan_prefix       = RADIO_CheckValidChannel(g_scan_channel, false, 0);
 		g_request_display_screen = DISPLAY_SCANNER;
 	}
@@ -460,9 +480,9 @@ void SCANNER_Start(void)
 	g_CDCSS_lost               = false;
 	g_CDCSS_code_type          = 0;
 	g_CTCSS_lost               = false;
-	#ifdef ENABLE_VOX          
+	#ifdef ENABLE_VOX
 		g_vox_lost             = false;
-	#endif                     
+	#endif
 	g_squelch_lost             = false;
 	g_scanner_edit_state       = SCAN_EDIT_STATE_NONE;
 	g_scan_freq_css_timer_10ms = 0;

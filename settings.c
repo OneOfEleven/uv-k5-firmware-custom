@@ -283,7 +283,7 @@ void SETTINGS_SaveSettings(void)
 	EEPROM_WriteBuffer(0x0F18, State);
 
 	memset(State, 0xFF, sizeof(State));
-	State[0]  = g_setting_f_lock;
+	State[0]  = g_setting_freq_lock;
 	State[1]  = g_setting_350_tx_enable;
 	State[2]  = g_setting_killed;
 	State[3]  = g_setting_200_tx_enable;
