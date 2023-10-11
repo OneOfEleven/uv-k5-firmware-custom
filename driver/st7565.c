@@ -230,7 +230,7 @@ void ST7565_HardwareReset(void)
 void ST7565_SelectColumnAndLine(const uint8_t Column, const uint8_t Line)
 {
 	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-        ST7565_LowLevelWrite(Line + 176);
+        ST7565_LowLevelWrite(Line + 0xB0);
         ST7565_LowLevelWrite(((Column >> 4) & 0x0F) | 0x10);
         ST7565_LowLevelWrite((Column >> 0) & 0x0F);
 	SPI_WaitForUndocumentedTxFifoStatusBit();
