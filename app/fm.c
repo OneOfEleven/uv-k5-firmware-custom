@@ -230,27 +230,30 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 	#define STATE_USER_MODE 1
 	#define STATE_SAVE      2
 
-	if (key_held)
-	{
-		if (key_pressed)
-			return;
-		
-		return;  // no sofiticatedness here - yet
-	}
-
-	if (key_pressed)
-	{
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+	
+	
+	// beeps cause bad audio clicks anf audio breaks :(
+	// so don't use them
+	
+	
+	g_key_input_count_down = key_input_timeout_500ms;
+	
+	if (key_held && !key_pressed)
+		return;  // key just released after long press
+	
+	if (!key_held && key_pressed)
+	{	// key just pressed
+//		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
 	}
 	
-	if (!g_fkey_pressed)
-	{
+	if (!g_fkey_pressed && !key_held)
+	{	// short key release
 		uint8_t State;
 	
 		if (g_ask_to_delete)
 		{
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
 		}
 	
@@ -262,7 +265,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		{
 			if (g_fm_scan_state != FM_SCAN_OFF)
 			{
-				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 				return;
 			}
 	
@@ -295,7 +298,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 	
 				if (Frequency < g_eeprom.fm_lower_limit || g_eeprom.fm_upper_limit < Frequency)
 				{
-					g_beep_to_play           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//					g_beep_to_play           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 					g_request_display_screen = DISPLAY_FM;
 					return;
 				}
@@ -346,7 +349,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				return;
 			}
 	
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
 		}
 	
@@ -356,8 +359,11 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 	
 		return;
 	}
+
+	// with f-key, or long press
 	
-	g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
+//	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+
 	g_fkey_pressed           = false;
 	g_update_status          = true;
 	g_request_display_screen = DISPLAY_FM;
@@ -376,12 +382,12 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
 				g_request_save_fm = true;
 			}
-			else
-				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			else
+//				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			break;
 	
 		default:
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			break;
 	}
 }
@@ -390,28 +396,20 @@ static void FM_Key_STAR(bool key_pressed, bool key_held)
 {
 	(void)key_held;   // stop compiler warning
 	
-//	if (key_held)
-//		return;
-
-	if (key_pressed)
+	if (key_held || key_pressed)
 		return;
 
-	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 	ACTION_Scan(false);
 }
 
 static void FM_Key_EXIT(bool key_pressed, bool key_held)
 {
-	if (key_held)
-	{
-		return;
-	}
-	
-	if (key_pressed)
+	if (key_held || key_pressed)
 		return;
 
-	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 	if (g_fm_scan_state == FM_SCAN_OFF)
 	{
@@ -465,32 +463,41 @@ static void FM_Key_EXIT(bool key_pressed, bool key_held)
 
 static void FM_Key_MENU(bool key_pressed, bool key_held)
 {
-	if (key_held)
-	{
-		return;
-	}
+	unsigned int i;
+	int channel = -1;
 	
-	if (key_pressed)
+	if (key_held || key_pressed)
 		return;
 
+	// see if the frequency is already stored in a channel
+	for (i = 0; i < ARRAY_SIZE(g_fm_channels) && channel < 0; i++)
+		if (g_fm_channels[i] == g_eeprom.fm_frequency_playing)
+			channel = i;  // found it in the channel list
+	
 	g_request_display_screen = DISPLAY_FM;
-	g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
+//	g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
 
 	if (g_fm_scan_state == FM_SCAN_OFF)
-	{
+	{	// not scanning
+
 		if (!g_eeprom.fm_is_channel_mode)
-		{
+		{	// frequency mode
+	
 			if (g_ask_to_save)
 			{
-				g_fm_channels[g_fm_channel_position] = g_eeprom.fm_frequency_playing;
-				g_ask_to_save                        = false;
-				g_request_save_fm                    = true;
+				if (channel < 0)
+				{
+					g_fm_channels[g_fm_channel_position] = g_eeprom.fm_frequency_playing;
+					g_ask_to_save                        = false;
+					g_request_save_fm                    = true;
+				}
 			}
 			else
+			if (channel < 0)
 				g_ask_to_save = true;
 		}
 		else
-		{
+		{	// channel mode
 			if (g_ask_to_delete)
 			{
 				g_fm_channels[g_eeprom.fm_selected_channel] = 0xFFFF;
@@ -506,10 +513,10 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 		}
 	}
 	else
-	{
+	{	// scanning
 		if (g_fm_auto_scan || !g_fm_found_frequency)
 		{
-			g_beep_to_play    = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			g_beep_to_play    = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			g_input_box_index = 0;
 			return;
 		}
@@ -521,6 +528,7 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 			g_request_save_fm = true;
 		}
 		else
+		if (channel < 0)
 			g_ask_to_save = true;
 	}
 }
@@ -539,17 +547,17 @@ static void FM_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Step)
 	{
 		if (g_input_box_index)
 		{
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
 		}
 
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 	}
 
 	if (g_ask_to_save)
 	{
 		g_request_display_screen = DISPLAY_FM;
-		g_fm_channel_position   = NUMBER_AddWithWraparound(g_fm_channel_position, Step, 0, 19);
+		g_fm_channel_position    = NUMBER_AddWithWraparound(g_fm_channel_position, Step, 0, 19);
 		return;
 	}
 
@@ -557,7 +565,7 @@ static void FM_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Step)
 	{
 		if (g_fm_auto_scan)
 		{
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
 		}
 
@@ -634,8 +642,8 @@ void FM_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 			GENERIC_Key_PTT(key_pressed);
 			break;
 		default:
-			if (!key_held && key_pressed)
-				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			if (!key_held && key_pressed)
+//				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			break;
 	}
 }

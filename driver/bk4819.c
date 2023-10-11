@@ -804,7 +804,8 @@ void BK4819_SetAF(BK4819_af_type_t AF)
 	// AF Output Inverse Mode = Inverse
 	// Undocumented bits 0x2040
 	//
-	BK4819_WriteRegister(BK4819_REG_47, 0x6040 | (AF << 8));
+//	BK4819_WriteRegister(BK4819_REG_47, 0x6040 | (AF << 8));
+	BK4819_WriteRegister(BK4819_REG_47, (6u << 12) | (AF << 8) | (1u << 6));
 }
 
 void BK4819_RX_TurnOn(void)
@@ -823,7 +824,7 @@ void BK4819_RX_TurnOn(void)
 	// Enable  XTAL
 	// Enable  Band Gap
 	//
-	BK4819_WriteRegister(BK4819_REG_37, 0x1F0F);  // 0001111100001111
+	BK4819_WriteRegister(BK4819_REG_37, 0x1F0F);  // 0001 1111 0000 1111
 
 	// Turn off everything
 	BK4819_WriteRegister(BK4819_REG_30, 0);
@@ -1034,6 +1035,7 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
 	{
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 		BK4819_SetAF(BK4819_AF_MUTE);
+//		BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	}
 
 	BK4819_WriteRegister(BK4819_REG_70, 0x0000);
