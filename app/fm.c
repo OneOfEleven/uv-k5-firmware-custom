@@ -576,7 +576,7 @@ static void FM_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Step)
 	}
 
 	if (g_eeprom.fm_is_channel_mode)
-	{
+	{	// we're in channel mode
 		const uint8_t Channel = FM_FindNextChannel(g_eeprom.fm_selected_channel + Step, Step);
 		if (Channel == 0xFF || g_eeprom.fm_selected_channel == Channel)
 			goto Bail;
@@ -585,7 +585,7 @@ static void FM_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Step)
 		g_eeprom.fm_frequency_playing = g_fm_channels[Channel];
 	}
 	else
-	{
+	{	// no, frequency mode
 		uint16_t Frequency = g_eeprom.fm_selected_frequency + Step;
 		if (Frequency < g_eeprom.fm_lower_limit)
 			Frequency = g_eeprom.fm_upper_limit;
