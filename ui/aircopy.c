@@ -34,11 +34,12 @@ void UI_DisplayAircopy(void)
 	strcpy(String, "AIR COPY");
 	switch (g_aircopy_state)
 	{
-		case AIRCOPY_READY:    strcat(String, " READY"); break;
-		case AIRCOPY_RX:       strcat(String, " RX");    break;
-		case AIRCOPY_TX:       strcat(String, " TX");    break;
-		case AIRCOPY_COMPLETE: strcat(String, " DONE");  break;
-		default:               strcat(String, " ???");   break;
+		case AIRCOPY_READY:       strcat(String, " READY"); break;
+		case AIRCOPY_RX:          strcat(String, " RX");    break;
+		case AIRCOPY_TX:          strcat(String, " TX");    break;
+		case AIRCOPY_RX_COMPLETE: strcat(String, " DONE");  break;
+		case AIRCOPY_TX_COMPLETE: strcat(String, " DONE");  break;
+		default:                  strcat(String, " ???");   break;
 	}
 	UI_PrintString(String, 2, 127, 0, 8);
 
@@ -51,23 +52,26 @@ void UI_DisplayAircopy(void)
 	else
 		UI_DisplayFrequency(g_input_box, 16, 2, 1, 0);
 
-	memset(String, 0, sizeof(String));
-	if (g_aircopy_state == AIRCOPY_RX)
-		sprintf(String, "RCV %u  E %u", g_air_copy_block_number, g_errors_during_air_copy);
-	else
-	if (g_aircopy_state == AIRCOPY_TX)
-		sprintf(String, "SND %u", g_air_copy_block_number);
-	UI_PrintString(String, 2, 127, 4, 8);
-
 	switch (g_aircopy_state)
 	{
-		case AIRCOPY_READY:    strcpy(String, "EXIT rx    M tx"); break;
-		case AIRCOPY_RX:       strcpy(String, "receive mode");    break;
-		case AIRCOPY_TX:       strcpy(String, "transmit mode");   break;
-		case AIRCOPY_COMPLETE: strcpy(String, "finished");        break;
-		default:               strcpy(String, "???");             break;
+		case AIRCOPY_READY:
+			UI_PrintString("EXIT rx    M tx", 0, 127, 5, 7);
+			break;
+		case AIRCOPY_RX:
+		case AIRCOPY_RX_COMPLETE:
+			sprintf(String, "RCV %u  E %u", g_air_copy_block_number, g_errors_during_air_copy);
+			UI_PrintString(String, 0, 127, 5, 8);
+			break;
+		case AIRCOPY_TX:
+		case AIRCOPY_TX_COMPLETE:
+			sprintf(String, "SND %u", g_air_copy_block_number);
+			UI_PrintString(String, 0, 127, 5, 8);
+			break;
+		default:
+			strcpy(String, " ???");
+			UI_PrintString(String, 0, 127, 5, 8);
+			break;
 	}
-	UI_PrintStringSmall(String, 0, 127, 6);
 
 	ST7565_BlitFullScreen();
 }

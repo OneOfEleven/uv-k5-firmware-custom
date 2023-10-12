@@ -26,7 +26,8 @@ enum aircopy_state_e
 	AIRCOPY_READY = 0,
 	AIRCOPY_RX,
 	AIRCOPY_TX,
-	AIRCOPY_COMPLETE
+	AIRCOPY_RX_COMPLETE,
+	AIRCOPY_TX_COMPLETE
 };
 typedef enum aircopy_state_e aircopy_state_t;
 
