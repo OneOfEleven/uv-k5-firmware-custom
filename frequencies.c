@@ -18,6 +18,9 @@
 #include "misc.h"
 #include "settings.h"
 
+// the initial AIRCOPY frequency to use
+const uint32_t g_air_copy_freq = 41002500;
+
 // the BK4819 has 2 bands it covers, 18MHz ~ 630MHz and 760MHz ~ 1300MHz
 const freq_band_table_t BX4819_band1 = { 1800000,  63000000};
 const freq_band_table_t BX4819_band2 = {84000000, 130000000};
