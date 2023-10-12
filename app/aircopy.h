@@ -37,7 +37,7 @@ extern uint16_t         g_aircopy_fsk_buffer[36];
 extern uint8_t          g_aircopy_send_count_down_10ms;
 extern unsigned int     g_aircopy_fsk_write_index;
 
-void AIRCOPY_SendMessage(void);
+void AIRCOPY_SendMessage(const uint8_t request_packet);
 void AIRCOPY_StorePacket(void);
 void AIRCOPY_ProcessKeys(key_code_t key, bool key_pressed, bool key_held);
 

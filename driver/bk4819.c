@@ -347,7 +347,7 @@ void BK4819_SetAGC(uint8_t Value)
 	}
 }
 
-void BK4819_ToggleGpioOut(BK4819_GPIO_PIN_t Pin, bool bSet)
+void BK4819_set_GPIO_pin(BK4819_GPIO_PIN_t Pin, bool bSet)
 {
 	if (bSet)
 		gBK4819_GpioOutState |=  (0x40u >> Pin);
@@ -703,7 +703,7 @@ void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
 	//                                  280MHz       gain 1 = 1  gain 2 = 0  gain 1 = 4  gain 2 = 2
 	const uint8_t gain   = (frequency < 28000000) ? (1u << 3) | (0u << 0) : (4u << 3) | (2u << 0);
 	const uint8_t enable = 1;
-	BK4819_WriteRegister(BK4819_REG_36, (bias << 8) | (enable << 7) | (gain << 0));
+	BK4819_WriteRegister(BK4819_REG_36, ((uint16_t)bias << 8) | ((uint16_t)enable << 7) | ((uint16_t)gain << 0));
 }
 
 void BK4819_SetFrequency(uint32_t Frequency)
@@ -845,19 +845,19 @@ void BK4819_PickRXFilterPathBasedOnFrequency(uint32_t Frequency)
 {
 	if (Frequency < 28000000)
 	{
-		BK4819_ToggleGpioOut(BK4819_GPIO2_PIN30, true);
-		BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30, true);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31, false);
 	}
 	else
 	if (Frequency == 0xFFFFFFFF)
 	{
-		BK4819_ToggleGpioOut(BK4819_GPIO2_PIN30, false);
-		BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31, false);
 	}
 	else
 	{
-		BK4819_ToggleGpioOut(BK4819_GPIO2_PIN30, false);
-		BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31, true);
+		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31, true);
 	}
 }
 
@@ -1203,7 +1203,7 @@ void BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable(void)
 {
 	if (g_rx_idle_mode)
 	{
-		BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, true);
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, true);
 		BK4819_RX_TurnOn();
 	}
 }

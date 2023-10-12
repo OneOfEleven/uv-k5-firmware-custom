@@ -44,10 +44,13 @@ uint16_t         g_aircopy_fsk_buffer[36];
 uint8_t          g_aircopy_send_count_down_10ms;
 unsigned int     g_aircopy_fsk_write_index;
 
-void AIRCOPY_SendMessage(void)
+void AIRCOPY_SendMessage(const uint8_t request_packet)
 {
 	unsigned int   i;
 	const uint16_t eeprom_addr = (uint16_t)g_aircopy_block_number * 64;
+
+	// will be used to ask the TX/ing radio to resend a missing/corrupted packet
+	(void)request_packet;
 	
 	// *********
 
@@ -72,11 +75,12 @@ void AIRCOPY_SendMessage(void)
 	for (i = 0; i < 34; i++)
 		g_aircopy_fsk_buffer[1 + i] ^= Obfuscation[i % ARRAY_SIZE(Obfuscation)];
 
+	// TX the packet
 	RADIO_SetTxParameters();
-
+	BK4819_SetupPowerAmplifier(0, g_current_vfo->pTX->frequency); // VERY low TX power
 	BK4819_SendFSKData(g_aircopy_fsk_buffer);
 	BK4819_SetupPowerAmplifier(0, 0);
-	BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1, false);
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);
 
 	if (++g_aircopy_block_number >= g_aircopy_block_max)
 	{
@@ -250,11 +254,11 @@ static void AIRCOPY_Key_MENU(bool key_pressed, bool key_held)
 
 		g_aircopy_fsk_write_index = 0;
 		g_aircopy_block_number    = 0;
-		g_aircopy_fsk_buffer[0]   = AIRCOPY_MAGIC_START;
-		g_aircopy_fsk_buffer[1]   = 0;      // block number
-		g_aircopy_fsk_buffer[35]  = AIRCOPY_MAGIC_END;
 
-		AIRCOPY_SendMessage();
+		// send initial packet
+		//AIRCOPY_SendMessage(0xff);
+
+		g_aircopy_send_count_down_10ms = 30 / 10;   // 30ms
 	}
 }
 
