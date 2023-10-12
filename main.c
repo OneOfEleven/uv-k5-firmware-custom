@@ -71,7 +71,7 @@ void Main(void)
 	g_boot_counter_10ms = 250;   // 2.5 sec
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_SendText(UART_Version);
+		UART_SendText(UART_Version_str);
 	#endif
 
 	// Not implementing authentic device checks

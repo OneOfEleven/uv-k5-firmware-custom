@@ -41,9 +41,9 @@ void UI_DisplayReleaseKeys(void)
 
 void UI_DisplayWelcome(void)
 {
-	char WelcomeString0[16];
-	char WelcomeString1[16];
-	char WelcomeString2[16];
+	char str0[17];
+	char str1[17];
+	char str2[17];
 	
 	memset(g_status_line,  0, sizeof(g_status_line));
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
@@ -59,34 +59,38 @@ void UI_DisplayWelcome(void)
 	}
 	else
 	{
-		memset(WelcomeString0, 0, sizeof(WelcomeString0));
-		memset(WelcomeString1, 0, sizeof(WelcomeString1));
-		memset(WelcomeString2, 0, sizeof(WelcomeString2));
+		unsigned int slen = strlen(Version_str);
+		if (slen > (sizeof(str2) - 1))
+			slen = sizeof(str2) - 1;
+
+		memset(str0, 0, sizeof(str0));
+		memset(str1, 0, sizeof(str1));
+		memset(str2, 0, sizeof(str2));
 
 		if (g_eeprom.pwr_on_display_mode == PWR_ON_DISPLAY_MODE_VOLTAGE)
 		{
-			strcpy(WelcomeString0, "VOLTAGE");
-			sprintf(WelcomeString1, "%u.%02uV %u%%",
+			strcpy(str0, "VOLTAGE");
+			sprintf(str1, "%u.%02uV %u%%",
 				g_battery_voltage_average / 100,
 				g_battery_voltage_average % 100,
 				BATTERY_VoltsToPercent(g_battery_voltage_average));
-
-			#if 0
-				sprintf(WelcomeString2, "Current %u", g_usb_current);  // needs scaling into mA
-			#endif
 		}
 		else
 		{
-			EEPROM_ReadBuffer(0x0EB0, WelcomeString0, 16);
-			EEPROM_ReadBuffer(0x0EC0, WelcomeString1, 16);
+			EEPROM_ReadBuffer(0x0EB0, str0, 16);
+			EEPROM_ReadBuffer(0x0EC0, str1, 16);
 		}
 
-		UI_PrintString(WelcomeString0, 0, 127, 0, 10);
-		UI_PrintString(WelcomeString1, 0, 127, 2, 10);
-		#if 0
-			UI_PrintStringSmall(WelcomeString2, 0, 127, 4);
-		#endif
-		UI_PrintString(Version,        0, 127, 5, 10);
+		memmove(str2, Version_str, slen);
+		
+		UI_PrintString(str0, 0, 127, 0, 10);
+		UI_PrintString(str1, 0, 127, 2, 10);
+		
+		if (strlen(str2) <= 12)
+			UI_PrintString(str2, 0, 127, 5, 10);
+		else
+			UI_PrintStringSmallBold(str2, 0, 127, 5);
+
 
 		#if 1
 			ST7565_BlitStatusLine();  // blank status line

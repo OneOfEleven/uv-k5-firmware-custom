@@ -206,10 +206,14 @@ static void SendVersion(void)
 {
 	reply_0514_t reply;
 
+	unsigned int slen = strlen(Version_str);
+	if (slen > (sizeof(reply.Data.Version) - 1))
+		slen = sizeof(reply.Data.Version) - 1;
+	
 	memset(&reply, 0, sizeof(reply));
 	reply.Header.ID               = 0x0515;
 	reply.Header.Size             = sizeof(reply.Data);
-	strcpy(reply.Data.Version, Version);
+	memmove(reply.Data.Version, Version_str, slen);
 	reply.Data.has_custom_aes_key = g_has_custom_aes_key;
 	reply.Data.password_locked    = g_password_locked;
 	reply.Data.Challenge[0]       = g_challenge[0];
