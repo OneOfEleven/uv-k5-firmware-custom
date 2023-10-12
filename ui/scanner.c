@@ -97,7 +97,7 @@ void UI_DisplayScanner(void)
 			{
 				default:
 				case CODE_TYPE_OFF:
-					strcpy(String, "CODE ???");
+					strcpy(String, "CODE none");
 					break;
 				case CODE_TYPE_CONTINUOUS_TONE:
 					sprintf(String, "CTCSS %u.%uHz", CTCSS_OPTIONS[g_scan_css_result_code] / 10, CTCSS_OPTIONS[g_scan_css_result_code] % 10);
@@ -110,7 +110,7 @@ void UI_DisplayScanner(void)
 			break;
 
 		case SCAN_CSS_STATE_FAILED:
-			strcpy(String, "CODE not found");
+			strcpy(String, "CODE none");
 			break;
 	}
 
@@ -145,7 +145,7 @@ void UI_DisplayScanner(void)
 					break;
 
 				case SCAN_CSS_STATE_FAILED:
-					if (g_scan_single_frequency)
+					if (!g_scan_single_frequency)
 					{
 						strcpy(String, "* repeat  M save");
 						text_centered = true;
@@ -174,7 +174,8 @@ void UI_DisplayScanner(void)
 			break;
 
 		case SCAN_EDIT_STATE_DONE:
-			strcpy(String, "* repeat  M save");
+//			strcpy(String, "* repeat  M save");
+			strcpy(String, "* repeat");
 			text_centered = true;
 			break;
 	}

@@ -40,6 +40,6 @@ extern uint16_t         g_fsk_tx_timeout_10ms;
 void AIRCOPY_process_FSK_tx_10ms(void);
 void AIRCOPY_process_FSK_rx_10ms(const uint16_t interrupt_status_bits);
 void AIRCOPY_stop_FSK_tx(void);
-void AIRCOPY_ProcessKeys(key_code_t key, bool key_pressed, bool key_held);
+void AIRCOPY_ProcessKey(key_code_t key, bool key_pressed, bool key_held);
 
 #endif

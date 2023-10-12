@@ -111,7 +111,7 @@ static void SCANNER_Key_EXIT(bool key_pressed, bool key_held)
 			if (g_input_box_index > 0)
 			{
 				g_input_box[--g_input_box_index] = 10;
-				g_request_display_screen       = DISPLAY_SCANNER;
+				g_request_display_screen = DISPLAY_SCANNER;
 				break;
 			}
 
@@ -122,7 +122,8 @@ static void SCANNER_Key_EXIT(bool key_pressed, bool key_held)
 			#ifdef ENABLE_VOICE
 				g_another_voice_id   = VOICE_ID_CANCEL;
 			#endif
-			g_request_display_screen = DISPLAY_SCANNER;
+//			g_request_display_screen = DISPLAY_SCANNER;
+			g_request_display_screen = DISPLAY_MAIN;
 			break;
 	}
 }
@@ -149,7 +150,7 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 		}
 	}
 
-	if (g_scan_css_state == SCAN_CSS_STATE_FAILED)
+	if (g_scan_css_state == SCAN_CSS_STATE_FAILED && g_scan_single_frequency)
 	{
 		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
@@ -160,7 +161,7 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 	switch (g_scanner_edit_state)
 	{
 		case SCAN_EDIT_STATE_NONE:
-			if (!g_scan_single_frequency)
+/*			if (!g_scan_single_frequency)
 			{
 				#if 0
 					uint32_t Freq250 = FREQUENCY_FloorToStep(g_scan_frequency, 250, 0);
@@ -249,24 +250,26 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 					}
 				#endif
 			}
-
+*/
 			if (g_tx_vfo->channel_save <= USER_CHANNEL_LAST)
-			{
+			{	// save to channel
+				if (!g_scan_single_frequency)
+				{	// round to the nearest step size
+					const uint32_t step = g_tx_vfo->step_freq;
+					g_scan_frequency = ((g_scan_frequency + (step / 2)) / step) * step;
+				}
 				g_scan_channel       = g_tx_vfo->channel_save;
 				g_show_chan_prefix   = RADIO_CheckValidChannel(g_tx_vfo->channel_save, false, 0);
 				g_scanner_edit_state = SCAN_EDIT_STATE_SAVE;
 			}
 			else
-			{
-				#if 1
-					// save the VFO
-					g_scanner_edit_state = SCAN_EDIT_STATE_DONE;
-				#else
-					// save to a desired channel
-					g_scan_channel       = RADIO_FindNextChannel(0, SCAN_FWD, false, g_eeprom.tx_vfo);
-					g_show_chan_prefix   = RADIO_CheckValidChannel(g_scan_channel, false, 0);
-					g_scanner_edit_state = SCAN_EDIT_STATE_SAVE;
-				#endif
+			{	// save the VFO
+				if (!g_scan_single_frequency)
+				{	// round to the nearest step size
+					const uint32_t step = g_tx_vfo->step_freq;
+					g_scan_frequency = ((g_scan_frequency + (step / 2)) / step) * step;
+				}
+				g_scanner_edit_state = SCAN_EDIT_STATE_DONE;
 			}
 
 			g_scan_css_state = SCAN_CSS_STATE_FOUND;

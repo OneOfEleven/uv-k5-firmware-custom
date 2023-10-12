@@ -1324,14 +1324,6 @@ void APP_CheckKeys(void)
 	if (g_setting_killed)
 		return;
 
-	#ifdef ENABLE_AIRCOPY
-		if (g_screen_to_display == DISPLAY_AIRCOPY &&
-		   (g_aircopy_state == AIRCOPY_RX || g_aircopy_state == AIRCOPY_TX))
-		{	// AIRCOPY is busy RX/TX or we've been killed
-//			return;
-		}
-	#endif
-
 	// *****************
 	// PTT is treated completely separately from all the other buttons
 
@@ -1418,7 +1410,7 @@ void APP_CheckKeys(void)
 						if (g_screen_to_display != DISPLAY_AIRCOPY)
 							APP_ProcessKey(g_key_prev, false, g_key_held);
 						else
-							AIRCOPY_ProcessKeys(g_key_prev, false, g_key_held);
+							AIRCOPY_ProcessKey(g_key_prev, false, g_key_held);
 					#else
 						APP_ProcessKey(g_key_prev, false, g_key_held);
 					#endif
@@ -1458,7 +1450,7 @@ void APP_CheckKeys(void)
 						if (g_screen_to_display != DISPLAY_AIRCOPY)
 							APP_ProcessKey(g_key_prev, true, g_key_held);
 						else
-							AIRCOPY_ProcessKeys(g_key_prev, true, g_key_held);
+							AIRCOPY_ProcessKey(g_key_prev, true, g_key_held);
 					#else
 						APP_ProcessKey(g_key_prev, true, g_key_held);
 					#endif
@@ -1483,7 +1475,7 @@ void APP_CheckKeys(void)
 					if (g_screen_to_display != DISPLAY_AIRCOPY)
 						APP_ProcessKey(g_key_prev, true, g_key_held);
 					else
-						AIRCOPY_ProcessKeys(g_key_prev, true, g_key_held);
+						AIRCOPY_ProcessKey(g_key_prev, true, g_key_held);
 				#else
 					APP_ProcessKey(g_key_prev, true, g_key_held);
 				#endif
@@ -1507,7 +1499,7 @@ void APP_CheckKeys(void)
 					if (g_screen_to_display != DISPLAY_AIRCOPY)
 						APP_ProcessKey(g_key_prev, true, g_key_held);
 					else
-						AIRCOPY_ProcessKeys(g_key_prev, true, g_key_held);
+						AIRCOPY_ProcessKey(g_key_prev, true, g_key_held);
 				#else
 					APP_ProcessKey(g_key_prev, true, g_key_held);
 				#endif
@@ -2401,8 +2393,8 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	}
 
 	// key beep
-	if (Key != KEY_PTT && !key_held && key_pressed)
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//	if (Key != KEY_PTT && !key_held && key_pressed)
+//		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 	// ********************
 
@@ -2585,7 +2577,7 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 
 				#ifdef ENABLE_AIRCOPY
 					case DISPLAY_AIRCOPY:
-						AIRCOPY_ProcessKeys(Key, key_pressed, key_held);
+						AIRCOPY_ProcessKey(Key, key_pressed, key_held);
 						break;
 				#endif
 

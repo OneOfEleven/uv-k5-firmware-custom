@@ -455,7 +455,7 @@ static void AIRCOPY_Key_MENU(bool key_pressed, bool key_held)
 	}
 }
 
-void AIRCOPY_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
+void AIRCOPY_ProcessKey(key_code_t Key, bool key_pressed, bool key_held)
 {
 	switch (Key)
 	{
