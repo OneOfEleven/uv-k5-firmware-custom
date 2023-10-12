@@ -85,8 +85,7 @@ center_line_t center_line = CENTER_LINE_NONE;
 				memset(p_line, 0, LCD_WIDTH);
 
 			sprintf(s, "TX %u", secs);
-			UI_PrintStringSmallBold(s, 2, 0, line);
-
+			UI_PrintStringSmallBold(s, 2, 0, line);  // issue UI_PrintStringSmallBold  //UI_PrintStringSmall(s, 2, 0, line);
 			#if 1
 				// solid bar
 				for (i = 0; i < bar_width; i++)
