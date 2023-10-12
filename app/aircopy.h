@@ -17,8 +17,6 @@
 #ifndef APP_AIRCOPY_H
 #define APP_AIRCOPY_H
 
-#ifdef ENABLE_AIRCOPY
-
 #include "driver/keyboard.h"
 
 enum aircopy_state_e
@@ -31,17 +29,16 @@ enum aircopy_state_e
 };
 typedef enum aircopy_state_e aircopy_state_t;
 
-extern const uint8_t    g_air_copy_block_max;
-extern uint8_t          g_air_copy_block_number;
-extern uint8_t          g_errors_during_air_copy;
+extern const uint8_t    g_aircopy_block_max;
+extern uint8_t          g_aircopy_block_number;
+extern uint8_t          g_aircopy_rx_errors;
 extern aircopy_state_t  g_aircopy_state;
-extern uint16_t         g_fsk_buffer[36];
+extern uint16_t         g_aircopy_fsk_buffer[36];
+extern uint8_t          g_aircopy_send_count_down_10ms;
+extern unsigned int     g_aircopy_fsk_write_index;
 
 void AIRCOPY_SendMessage(void);
 void AIRCOPY_StorePacket(void);
-void AIRCOPY_ProcessKeys(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
+void AIRCOPY_ProcessKeys(key_code_t key, bool key_pressed, bool key_held);
 
 #endif
-
-#endif
-

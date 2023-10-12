@@ -227,10 +227,6 @@ bool                  g_rx_vfo_is_active;
 uint8_t               g_menu_list_count;
 uint8_t               g_backup_cross_vfo_rx_tx;
 uint8_t               g_scan_delay_10ms;
-#ifdef ENABLE_AIRCOPY
-	uint8_t           g_air_copy_send_count_down;
-#endif
-uint8_t               g_fsk_wite_index;
 
 #ifdef ENABLE_NOAA
 	bool              g_is_noaa_mode;

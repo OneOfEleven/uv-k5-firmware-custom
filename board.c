@@ -634,7 +634,7 @@ void BOARD_EEPROM_load(void)
 			{
 				if (array.air_copy_freq >= FREQ_BAND_TABLE[i].lower && array.air_copy_freq < FREQ_BAND_TABLE[i].upper)
 				{
-					g_air_copy_freq = array.air_copy_freq;
+					g_aircopy_freq = array.air_copy_freq;
 					break;
 				}
 			}	

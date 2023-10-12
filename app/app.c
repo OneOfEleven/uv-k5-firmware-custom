@@ -926,14 +926,15 @@ void APP_CheckRadioInterrupts(void)
 		}
 
 		#ifdef ENABLE_AIRCOPY
-			if (interrupt_status_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL &&
-			    g_screen_to_display == DISPLAY_AIRCOPY &&
-			    g_aircopy_state == AIRCOPY_RX)
+			if (interrupt_status_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL)
 			{
-				unsigned int i;
-				for (i = 0; i < 4; i++)
-					g_fsk_buffer[g_fsk_wite_index++] = BK4819_ReadRegister(BK4819_REG_5F);
-				AIRCOPY_StorePacket();
+				if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_RX)
+				{
+					unsigned int i;
+					for (i = 0; i < 4; i++)
+						g_aircopy_fsk_buffer[g_aircopy_fsk_write_index++] = BK4819_ReadRegister(BK4819_REG_5F);
+					AIRCOPY_StorePacket();
+				}
 			}
 		#endif
 	}
@@ -1324,7 +1325,8 @@ void APP_CheckKeys(void)
 	key_code_t key;
 
 	#ifdef ENABLE_AIRCOPY
-		if (g_setting_killed || (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state != AIRCOPY_READY))
+		if (g_setting_killed ||
+		   (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state != AIRCOPY_READY))
 			return;
 	#else
 		if (g_setting_killed)
@@ -1551,6 +1553,21 @@ void APP_TimeSlice10ms(void)
 
 	if (g_reduced_service)
 		return;
+
+
+	#ifdef ENABLE_AIRCOPY
+		if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_TX)
+		{
+			if (g_aircopy_send_count_down_10ms > 0)
+			{
+				if (--g_aircopy_send_count_down_10ms == 0)
+				{
+					AIRCOPY_SendMessage();
+					GUI_DisplayScreen();
+				}
+			}
+		}
+	#endif
 
 	#ifdef ENABLE_AM_FIX
 //		if (g_eeprom.vfo_info[g_eeprom.rx_vfo].am_mode && g_setting_am_fix)
@@ -1830,20 +1847,6 @@ void APP_TimeSlice10ms(void)
 				break;
 		}
 	}
-
-	#ifdef ENABLE_AIRCOPY
-		if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_TX)
-		{
-			if (g_air_copy_send_count_down > 0)
-			{
-				if (--g_air_copy_send_count_down == 0)
-				{
-					AIRCOPY_SendMessage();
-					GUI_DisplayScreen();
-				}
-			}
-		}
-	#endif
 
 	APP_CheckKeys();
 }

@@ -302,10 +302,6 @@ extern uint16_t              g_alarm_running_counter;
 extern uint8_t               g_menu_list_count;
 extern uint8_t               g_backup_cross_vfo_rx_tx;
 extern uint8_t               g_scan_delay_10ms;
-#ifdef ENABLE_AIRCOPY
-	extern uint8_t           g_air_copy_send_count_down;
-#endif
-extern uint8_t               g_fsk_wite_index;
 #ifdef ENABLE_NOAA
 	extern bool              g_is_noaa_mode;
 	extern uint8_t           g_noaa_channel;

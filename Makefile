@@ -8,7 +8,7 @@ ENABLE_SWD                    := 0
 ENABLE_OVERLAY                := 0
 ENABLE_LTO                    := 1
 ENABLE_UART                   := 1
-ENABLE_UART_DEBUG             := 1
+ENABLE_UART_DEBUG             := 0
 ENABLE_AIRCOPY                := 1
 ENABLE_AIRCOPY_FREQ           := 1
 ENABLE_FMRADIO                := 1
@@ -47,6 +47,14 @@ ENABLE_COPY_CHAN_TO_VFO       := 1
 #############################################################
 
 TARGET = firmware
+
+GIT_HASH_TMP := $(shell git rev-parse --short HEAD)
+ifeq ($(GIT_HASH_TMP),)
+	GIT_HASH := "NOGIT"
+else
+	GIT_HASH := $(GIT_HASH_TMP)
+endif
+$(info GIT_HASH = $(GIT_HASH))
 
 ifeq ($(ENABLE_UART), 0)
 	ENABLE_UART_DEBUG := 0
@@ -194,13 +202,6 @@ endif
 
 OBJCOPY = arm-none-eabi-objcopy
 SIZE = arm-none-eabi-size
-
-# the user might not have/want git installed
-# can set own version string here (max 7 chars)
-GIT_HASH := $(shell git rev-parse --short HEAD)
-#GIT_HASH := 230930b
-
-$(info GIT_HASH = $(GIT_HASH))
 
 ASFLAGS = -c -mcpu=cortex-m0
 ifeq ($(ENABLE_OVERLAY),1)

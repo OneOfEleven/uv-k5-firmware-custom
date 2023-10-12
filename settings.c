@@ -275,7 +275,7 @@ void SETTINGS_SaveSettings(void)
 		array.tx_vfo                         = g_eeprom.tx_vfo;
 		#ifdef ENABLE_AIRCOPY_FREQ
 			// remember the AIRCOPY frequency
-			array.air_copy_freq              = g_air_copy_freq;
+			array.air_copy_freq              = g_aircopy_freq;
 		#endif
 
 		EEPROM_WriteBuffer(0x0EA8, &array);
