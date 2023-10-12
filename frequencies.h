@@ -26,7 +26,7 @@ typedef struct {
 	const uint32_t upper;
 } freq_band_table_t;
 
-extern const uint32_t g_air_copy_freq;
+extern uint32_t g_air_copy_freq;
 
 extern const freq_band_table_t BX4819_band1;
 extern const freq_band_table_t BX4819_band2;

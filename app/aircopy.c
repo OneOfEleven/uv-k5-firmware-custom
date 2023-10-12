@@ -22,6 +22,7 @@
 #include "frequencies.h"
 #include "misc.h"
 #include "radio.h"
+#include "settings.h"
 #include "ui/helper.h"
 #include "ui/inputbox.h"
 #include "ui/ui.h"
@@ -30,9 +31,7 @@ static const uint16_t Obfuscation[8] = {0x6C16, 0xE614, 0x912E, 0x400D, 0x3521, 
 
 aircopy_state_t g_aircopy_state;
 uint16_t        g_air_copy_block_number;
-uint16_t        g_errors_during_air_copyy;
-uint8_t         g_air_copy_is_send_mode;
-
+uint16_t        g_errors_during_air_copy;
 uint16_t        g_fsk_buffer[36];
 
 void AIRCOPY_SendMessage(void)
@@ -49,7 +48,10 @@ void AIRCOPY_SendMessage(void)
 		g_fsk_buffer[i + 1] ^= Obfuscation[i % 8];
 
 	if (++g_air_copy_block_number >= 0x78)
-		g_aircopy_state = AIRCOPY_COMPLETE;
+	{
+		g_aircopy_state  = AIRCOPY_COMPLETE;
+		g_update_display = true;
+	}
 
 	RADIO_SetTxParameters();
 
@@ -101,7 +103,10 @@ void AIRCOPY_StorePacket(void)
 				}
 
 				if (Offset == 0x1E00)
-					g_aircopy_state = AIRCOPY_COMPLETE;
+				{
+					g_aircopy_state  = AIRCOPY_COMPLETE;
+					g_update_display = true;
+				}
 
 				g_air_copy_block_number++;
 
@@ -109,8 +114,8 @@ void AIRCOPY_StorePacket(void)
 			}
 		}
 	}
-	
-	g_errors_during_air_copyy++;
+
+	g_errors_during_air_copy++;
 }
 
 static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
@@ -141,18 +146,29 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			if (Frequency >= FREQ_BAND_TABLE[i].lower && Frequency < FREQ_BAND_TABLE[i].upper)
 			{
 				#ifdef ENABLE_VOICE
-					g_another_voice_id             = (voice_id_t)Key;
+					g_another_voice_id = (voice_id_t)Key;
 				#endif
-				g_rx_vfo->band                     = i;
-				Frequency                         += 75;
-				Frequency                          = FREQUENCY_FloorToStep(Frequency, g_rx_vfo->step_freq, 0);
+
+				g_rx_vfo->band = i;
+
+				// round the frequency to nearest step size
+				Frequency = ((Frequency + (g_rx_vfo->step_freq / 2)) / g_rx_vfo->step_freq) * g_rx_vfo->step_freq;
+
+				g_air_copy_freq = Frequency;
+				#ifdef ENABLE_AIRCOPY_FREQ
+					SETTINGS_SaveSettings();   // remeber the frequency for the next time
+				#endif
+
 				g_rx_vfo->freq_config_rx.frequency = Frequency;
 				g_rx_vfo->freq_config_tx.frequency = Frequency;
 				RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
-				g_current_vfo                      = g_rx_vfo;
+
+				g_current_vfo = g_rx_vfo;
+
 				RADIO_SetupRegisters(true);
 				BK4819_SetupAircopy();
 				BK4819_ResetFSK();
+
 				return;
 			}
 		}
@@ -165,20 +181,24 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 {
 	if (!key_held && key_pressed)
 	{
-		if (g_input_box_index == 0)
-		{
-			g_fsk_wite_index          = 0;
-			g_air_copy_block_number   = 0;
-			g_errors_during_air_copyy = 0;
-			g_input_box_index         = 0;
-			g_air_copy_is_send_mode   = 0;
-
-			BK4819_PrepareFSKReceive();
-
-			g_aircopy_state = AIRCOPY_TRANSFER;
+		if (g_input_box_index > 0)
+		{	// entering a new frequency to use
+			g_input_box[--g_input_box_index] = 10;
 		}
 		else
-			g_input_box[--g_input_box_index] = 10;
+		{	// enter RX mode
+
+			g_aircopy_state          = AIRCOPY_RX;
+			g_update_display         = true;
+			GUI_DisplayScreen();
+
+			g_fsk_wite_index         = 0;
+			g_air_copy_block_number  = 0;
+			g_errors_during_air_copy = 0;
+			g_input_box_index        = 0;
+
+			BK4819_PrepareFSKReceive();
+		}
 
 		g_request_display_screen = DISPLAY_AIRCOPY;
 	}
@@ -187,20 +207,20 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 static void AIRCOPY_Key_MENU(bool key_pressed, bool key_held)
 {
 	if (!key_held && key_pressed)
-	{
+	{	// enter TX mode
+
+		g_aircopy_state         = AIRCOPY_TX;
+		g_update_display        = true;
+		GUI_DisplayScreen();
+
 		g_fsk_wite_index        = 0;
 		g_air_copy_block_number = 0;
 		g_input_box_index       = 0;
-		g_air_copy_is_send_mode = 1;
 		g_fsk_buffer[0]         = 0xABCD;
 		g_fsk_buffer[1]         = 0;
 		g_fsk_buffer[35]        = 0xDCBA;
 
 		AIRCOPY_SendMessage();
-
-		GUI_DisplayScreen();
-
-		g_aircopy_state = AIRCOPY_TRANSFER;
 	}
 }
 

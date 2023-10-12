@@ -24,16 +24,15 @@
 enum aircopy_state_e
 {
 	AIRCOPY_READY = 0,
-	AIRCOPY_TRANSFER,
+	AIRCOPY_RX,
+	AIRCOPY_TX,
 	AIRCOPY_COMPLETE
 };
 typedef enum aircopy_state_e aircopy_state_t;
 
 extern aircopy_state_t g_aircopy_state;
 extern uint16_t        g_air_copy_block_number;
-extern uint16_t        g_errors_during_air_copyy;
-extern uint8_t         g_air_copy_is_send_mode;
-
+extern uint16_t        g_errors_during_air_copy;
 extern uint16_t        g_fsk_buffer[36];
 
 void AIRCOPY_SendMessage(void);

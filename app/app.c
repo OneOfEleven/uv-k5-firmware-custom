@@ -928,8 +928,7 @@ void APP_CheckRadioInterrupts(void)
 		#ifdef ENABLE_AIRCOPY
 			if (interrupt_status_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL &&
 			    g_screen_to_display == DISPLAY_AIRCOPY &&
-			    g_aircopy_state == AIRCOPY_TRANSFER &&
-			    g_air_copy_is_send_mode == 0)
+			    g_aircopy_state == AIRCOPY_RX)
 			{
 				unsigned int i;
 				for (i = 0; i < 4; i++)
@@ -1833,7 +1832,7 @@ void APP_TimeSlice10ms(void)
 	}
 
 	#ifdef ENABLE_AIRCOPY
-		if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_TRANSFER && g_air_copy_is_send_mode == 1)
+		if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_TX)
 		{
 			if (g_air_copy_send_count_down > 0)
 			{

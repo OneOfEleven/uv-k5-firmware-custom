@@ -610,15 +610,38 @@ void BOARD_EEPROM_load(void)
 		g_eeprom.voice_prompt = (Data[0] < 3) ? Data[0] : VOICE_PROMPT_ENGLISH;
 	#endif
 
-	// 0EA8..0EAF
-	EEPROM_ReadBuffer(0x0EA8, Data, 8);
-	#ifdef ENABLE_ALARM
-		g_eeprom.alarm_mode                 = (Data[0] <  2) ? Data[0] : true;
-	#endif
-	g_eeprom.roger_mode                          = (Data[1] <  3) ? Data[1] : ROGER_MODE_OFF;
-	g_eeprom.repeater_tail_tone_elimination = (Data[2] < 11) ? Data[2] : 0;
-	g_eeprom.tx_vfo                         = (Data[3] <  2) ? Data[3] : 0;
+	{	// 0EA8..0EAF
+		struct {
+			uint8_t  alarm_mode;
+			uint8_t  roger_mode;
+			uint8_t  repeater_tail_tone_elimination;
+			uint8_t  tx_vfo;
+			uint32_t air_copy_freq;
+		} __attribute__((packed)) array;
 
+		EEPROM_ReadBuffer(0x0EA8, &array, sizeof(array));
+
+		#ifdef ENABLE_ALARM
+			g_eeprom.alarm_mode                 = (array.alarm_mode < 2) ? array.alarm_mode : true;
+		#endif
+		g_eeprom.roger_mode                     = (array.roger_mode < 3) ? array.roger_mode : ROGER_MODE_OFF;
+		g_eeprom.repeater_tail_tone_elimination = (array.repeater_tail_tone_elimination < 11) ? array.repeater_tail_tone_elimination : 0;
+		g_eeprom.tx_vfo                         = (array.tx_vfo < 2) ? array.tx_vfo : 0;
+		#ifdef ENABLE_AIRCOPY_FREQ
+		{
+			unsigned int i;
+			for (i = 0; i < ARRAY_SIZE(FREQ_BAND_TABLE); i++)
+			{
+				if (array.air_copy_freq >= FREQ_BAND_TABLE[i].lower && array.air_copy_freq < FREQ_BAND_TABLE[i].upper)
+				{
+					g_air_copy_freq = array.air_copy_freq;
+					break;
+				}
+			}	
+		}
+		#endif
+	}
+	
 	// 0ED0..0ED7
 	EEPROM_ReadBuffer(0x0ED0, Data, 8);
 	g_eeprom.dtmf_side_tone               = (Data[0] < 2) ? Data[0] : true;
@@ -727,6 +750,8 @@ void BOARD_EEPROM_load(void)
 	// 0D60..0E27
 	EEPROM_ReadBuffer(0x0D60, g_user_channel_attributes, sizeof(g_user_channel_attributes));
 
+	// *****************************
+	
 	// 0F30..0F3F .. AES key
 	EEPROM_ReadBuffer(0x0F30, g_custom_aes_key, sizeof(g_custom_aes_key));
 	g_has_custom_aes_key = false;
@@ -740,6 +765,7 @@ void BOARD_EEPROM_load(void)
 	}
 	
 #if ENABLE_RESET_AES_KEY
+	// a fix to wipe the darned AES key
 	if (g_has_custom_aes_key)
 	{	// ugh :( .. wipe it
 		uint8_t *p_aes = (uint8_t*)&g_custom_aes_key;

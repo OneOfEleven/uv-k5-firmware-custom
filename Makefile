@@ -10,6 +10,7 @@ ENABLE_LTO                    := 1
 ENABLE_UART                   := 1
 ENABLE_UART_DEBUG             := 1
 ENABLE_AIRCOPY                := 1
+ENABLE_AIRCOPY_FREQ           := 1
 ENABLE_FMRADIO                := 1
 ENABLE_NOAA                   := 0
 ENABLE_VOICE                  := 0
@@ -240,6 +241,9 @@ ifeq ($(ENABLE_OVERLAY),1)
 endif
 ifeq ($(ENABLE_AIRCOPY),1)
 	CFLAGS += -DENABLE_AIRCOPY
+endif
+ifeq ($(ENABLE_AIRCOPY_FREQ),1)
+	CFLAGS += -DENABLE_AIRCOPY_FREQ
 endif
 ifeq ($(ENABLE_FMRADIO),1)
 	CFLAGS += -DENABLE_FMRADIO
