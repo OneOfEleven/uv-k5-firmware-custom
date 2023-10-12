@@ -31,7 +31,10 @@ void UI_DisplayAircopy(void)
 
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
+	// **********************************
+
 	strcpy(String, "AIR COPY");
+
 	switch (g_aircopy_state)
 	{
 		case AIRCOPY_READY:       strcat(String, " READY"); break;
@@ -41,7 +44,9 @@ void UI_DisplayAircopy(void)
 		case AIRCOPY_TX_COMPLETE: strcat(String, " DONE");  break;
 		default:                  strcat(String, " ???");   break;
 	}
-	UI_PrintString(String, 2, 127, 0, 8);
+	UI_PrintString(String, 0, LCD_WIDTH - 1, 0, 8);
+
+	// **********************************
 
 	if (g_input_box_index == 0)
 	{
@@ -52,26 +57,49 @@ void UI_DisplayAircopy(void)
 	else
 		UI_DisplayFrequency(g_input_box, 16, 2, 1, 0);
 
+	// **********************************
+	
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+
 	switch (g_aircopy_state)
 	{
 		case AIRCOPY_READY:
-			UI_PrintString("EXIT rx    M tx", 0, 127, 5, 7);
+			UI_PrintString("EXIT rx    M tx", 0, LCD_WIDTH - 1, 5, 7);
 			break;
-		case AIRCOPY_RX:
+
 		case AIRCOPY_RX_COMPLETE:
-			sprintf(String, "RCV %u  E %u", g_air_copy_block_number, g_errors_during_air_copy);
-			UI_PrintString(String, 0, 127, 5, 8);
+			if (g_errors_during_air_copy == 0)
+			{
+				UI_PrintString("RX COMPLETE", 0, LCD_WIDTH - 1, 5, 8);
+				break;
+			}
+
+		case AIRCOPY_RX:
+			sprintf(String, "RX %u.%u", g_air_copy_block_number, g_air_copy_block_max);
+			if (g_errors_during_air_copy > 0)
+				sprintf(String + strlen(String), " E %u", g_errors_during_air_copy);
+			UI_PrintString(String, 0, LCD_WIDTH - 1, 5, 7);
 			break;
-		case AIRCOPY_TX:
+
 		case AIRCOPY_TX_COMPLETE:
-			sprintf(String, "SND %u", g_air_copy_block_number);
-			UI_PrintString(String, 0, 127, 5, 8);
+			UI_PrintString("TX COMPLETE", 0, LCD_WIDTH - 1, 5, 8);
 			break;
+
+		case AIRCOPY_TX:
+			sprintf(String, "TX %u.%u", g_air_copy_block_number, g_air_copy_block_max);
+			UI_PrintString(String, 0, LCD_WIDTH - 1, 5, 7);
+			break;
+
 		default:
 			strcpy(String, " ???");
-			UI_PrintString(String, 0, 127, 5, 8);
+			UI_PrintString(String, 0, LCD_WIDTH - 1, 5, 7);
 			break;
 	}
+
+	#pragma GCC diagnostic pop
+
+	// **********************************
 
 	ST7565_BlitFullScreen();
 }

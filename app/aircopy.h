@@ -31,10 +31,11 @@ enum aircopy_state_e
 };
 typedef enum aircopy_state_e aircopy_state_t;
 
-extern aircopy_state_t g_aircopy_state;
-extern uint16_t        g_air_copy_block_number;
-extern uint16_t        g_errors_during_air_copy;
-extern uint16_t        g_fsk_buffer[36];
+extern const uint8_t    g_air_copy_block_max;
+extern uint8_t          g_air_copy_block_number;
+extern uint8_t          g_errors_during_air_copy;
+extern aircopy_state_t  g_aircopy_state;
+extern uint16_t         g_fsk_buffer[36];
 
 void AIRCOPY_SendMessage(void);
 void AIRCOPY_StorePacket(void);

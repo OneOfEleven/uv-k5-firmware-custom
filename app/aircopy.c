@@ -27,14 +27,13 @@
 #include "ui/inputbox.h"
 #include "ui/ui.h"
 
-#define AIR_COPY_MAX_BLOCK     120
-
 static const uint16_t Obfuscation[8] = {0x6C16, 0xE614, 0x912E, 0x400D, 0x3521, 0x40D5, 0x0313, 0x80E9};
 
-aircopy_state_t g_aircopy_state;
-uint16_t        g_air_copy_block_number;
-uint16_t        g_errors_during_air_copy;
-uint16_t        g_fsk_buffer[36];
+const uint8_t    g_air_copy_block_max = 120;
+uint8_t          g_air_copy_block_number;
+uint8_t          g_errors_during_air_copy;
+aircopy_state_t  g_aircopy_state;
+uint16_t         g_fsk_buffer[36];
 
 void AIRCOPY_SendMessage(void)
 {
@@ -49,7 +48,7 @@ void AIRCOPY_SendMessage(void)
 	for (i = 0; i < 34; i++)
 		g_fsk_buffer[i + 1] ^= Obfuscation[i % 8];
 
-	if (++g_air_copy_block_number >= AIR_COPY_MAX_BLOCK)
+	if (++g_air_copy_block_number >= g_air_copy_block_max)
 	{
 		g_aircopy_state  = AIRCOPY_TX_COMPLETE;
 		g_update_display = true;
