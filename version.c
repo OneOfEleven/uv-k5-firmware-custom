@@ -1,16 +1,12 @@
 
-#define ONE_OF_ELEVEN_VER
-
 #ifdef GIT_HASH
-	#define VER     GIT_HASH
+	#define __VER__     GIT_HASH
 #else
-	#define VER     "231012"
+	#define __VER__     "231012"
 #endif
 
-#ifndef ONE_OF_ELEVEN_VER
-	const char Version_str[]      = "OEFW-"VER;
-	const char UART_Version_str[] = "UV-K5 Firmware, Open Edition, OEFW-"VER"\r\n";
-#else
-	const char Version_str[]      = "1o11-"VER;
-	const char UART_Version_str[] = "UV-K5 Firmware, Open Edition, 1o11-"VER"\r\n";
-#endif
+//#define __VER_PREFIX__  "OEFW-"
+#define __VER_PREFIX__   "1o11-"
+
+const char Version_str[]      = __VER_PREFIX__ __VER__;
+const char UART_Version_str[] = "UV-K5 Firmware, Open Edition, " __VER_PREFIX__ __VER__ ", " __DATE__ " " __TIME__;

@@ -79,13 +79,14 @@ center_line_t center_line = CENTER_LINE_NONE;
 			const unsigned int len       = (level <= bar_width) ? level : bar_width;
 			uint8_t           *p_line    = g_frame_buffer[line];
 			unsigned int       i;
-			char               s[16];
+			char               s[17];
 
 			if (now)
 				memset(p_line, 0, LCD_WIDTH);
 
 			sprintf(s, "TX %u", secs);
 			UI_PrintStringSmallBold(s, 2, 0, line);  // issue UI_PrintStringSmallBold  //UI_PrintStringSmall(s, 2, 0, line);
+
 			#if 1
 				// solid bar
 				for (i = 0; i < bar_width; i++)
@@ -118,7 +119,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 		case 4: memmove(p + 11, BITMAP_ANTENNA_LEVEL3, sizeof(BITMAP_ANTENNA_LEVEL3));
 		case 3: memmove(p +  8, BITMAP_ANTENNA_LEVEL2, sizeof(BITMAP_ANTENNA_LEVEL2));
 		case 2: memmove(p +  5, BITMAP_ANTENNA_LEVEL1, sizeof(BITMAP_ANTENNA_LEVEL1));
-		case 1: memmove(p +  0, BITMAP_ANTENNA,       sizeof(BITMAP_ANTENNA));
+		case 1: memmove(p +  0, BITMAP_ANTENNA,        sizeof(BITMAP_ANTENNA));
 		case 0: break;
 	}
 
@@ -127,14 +128,14 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 #ifdef ENABLE_AUDIO_BAR
 
-	unsigned int sqrt16(unsigned int value)
+	uint32_t sqrt16(uint32_t value)
 	{	// return square root of 'value'
-		unsigned int shift = 16;         // number of bits supplied in 'value' .. 2 ~ 32
-		unsigned int bit   = 1u << --shift;
-		unsigned int sqrti = 0;
+		unsigned int shift = 16;         // this is the number of bits supplied in 'value' .. 2 ~ 32
+		uint32_t     bit   = 1u << --shift;
+		uint32_t     sqrti = 0;
 		while (bit)
 		{
-			const unsigned int temp = ((sqrti << 1) | bit) << shift--;
+			const uint32_t temp = ((sqrti << 1) | bit) << shift--;
 			if (value >= temp)
 			{
 				value -= temp;

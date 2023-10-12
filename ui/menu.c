@@ -35,6 +35,7 @@
 #include "ui/inputbox.h"
 #include "ui/menu.h"
 #include "ui/ui.h"
+#include "version.h"
 
 // ***************************************************************************************
 // NOTE. the oder of menu entries you on-screen is now solely determined by the enum list order in ui/menu.h
@@ -122,6 +123,7 @@ const t_menu_item g_menu_list[] =
 	{"SIDE1L", VOICE_ID_INVALID,                       MENU_SIDE1_LONG    },
 	{"SIDE2S", VOICE_ID_INVALID,                       MENU_SIDE2_SHORT   },
 	{"SIDE2L", VOICE_ID_INVALID,                       MENU_SIDE2_LONG    },
+	{"VER",    VOICE_ID_INVALID,                       MENU_VERSION       },
 	{"RESET",  VOICE_ID_INITIALISATION,                MENU_RESET         }, // might be better to move this to the hidden menu items ?
 
 	// hidden menu items from here on
@@ -970,6 +972,24 @@ void UI_DisplayMenu(void)
 			strcpy(String, g_sub_menu_SIDE_BUTT[g_sub_menu_selection]);
 			break;
 
+		case MENU_VERSION:
+		{	// show the version string on multiple lines - if need be
+			const unsigned int slen = strlen(Version_str);
+			unsigned int m = 0;
+			unsigned int k = 0;
+			i = 0;
+			while (i < (sizeof(String) - 1) && k < slen)
+			{
+				String[i++] = Version_str[k++];
+				if (++m >= 9 && k < slen && i < (sizeof(String) - 1))
+				{
+					m = 0;
+					String[i++] = '\n';
+				}
+			}
+			break;
+		}
+			
 		case MENU_RESET:
 			strcpy(String, g_sub_menu_RESET[g_sub_menu_selection]);
 			break;

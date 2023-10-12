@@ -89,7 +89,7 @@ void UI_DisplayWelcome(void)
 		if (strlen(str2) <= 12)
 			UI_PrintString(str2, 0, 127, 5, 10);
 		else
-			UI_PrintStringSmallBold(str2, 0, 127, 5);
+			UI_PrintStringSmall(str2, 0, 127, 5);
 
 
 		#if 1

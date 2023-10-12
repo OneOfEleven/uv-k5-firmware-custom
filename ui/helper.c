@@ -96,7 +96,7 @@ void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End, uint8_
 	size_t       i;
 
 	if (End > Start)
-		Start += (((End - Start) - (Length * 8)) + 1) / 2;
+		Start += (((End - Start) - (Length * 7)) + 1) / 2;
 
 	const unsigned int char_width   = ARRAY_SIZE(g_font_small[0]);
 	const unsigned int char_spacing = char_width + 1;
@@ -119,7 +119,7 @@ void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End, uint8_
 		size_t       i;
 	
 		if (End > Start)
-			Start += (((End - Start) - (Length * 8)) + 1) / 2;
+			Start += (((End - Start) - (Length * 7)) + 1) / 2;
 	
 		const unsigned int char_width   = ARRAY_SIZE(g_font_small_bold[0]);
 		const unsigned int char_spacing = char_width + 1;

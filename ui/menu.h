@@ -117,6 +117,7 @@ enum
 	MENU_SIDE1_LONG,
 	MENU_SIDE2_SHORT,
 	MENU_SIDE2_LONG,
+	MENU_VERSION,
 	MENU_RESET,
 
 	// ************************************
