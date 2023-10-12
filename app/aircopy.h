@@ -33,12 +33,13 @@ extern const uint8_t    g_aircopy_block_max;
 extern uint8_t          g_aircopy_block_number;
 extern uint8_t          g_aircopy_rx_errors;
 extern aircopy_state_t  g_aircopy_state;
-extern uint16_t         g_aircopy_fsk_buffer[36];
-extern uint8_t          g_aircopy_send_count_down_10ms;
-extern unsigned int     g_aircopy_fsk_write_index;
+extern uint16_t         g_fsk_buffer[36];
+extern unsigned int     g_fsk_write_index;
+extern uint16_t         g_fsk_tx_timeout_10ms;
 
-void AIRCOPY_SendMessage(const uint8_t request_packet);
-void AIRCOPY_StorePacket(void);
+void AIRCOPY_process_FSK_tx_10ms(void);
+void AIRCOPY_process_FSK_rx_10ms(const uint16_t interrupt_status_bits);
+void AIRCOPY_stop_FSK_tx(void);
 void AIRCOPY_ProcessKeys(key_code_t key, bool key_pressed, bool key_held);
 
 #endif

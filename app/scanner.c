@@ -258,7 +258,7 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 			}
 			else
 			{
-				#if 0
+				#if 1
 					// save the VFO
 					g_scanner_edit_state = SCAN_EDIT_STATE_DONE;
 				#else

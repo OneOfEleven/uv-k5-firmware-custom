@@ -151,7 +151,7 @@ uint8_t  BK4819_get_CDCSS_code_type(void);
 uint8_t  BK4819_GetCTCShift(void);
 uint8_t  BK4819_GetCTCType(void);
 
-void     BK4819_SendFSKData(uint16_t *pData);
+//void     BK4819_SendFSKData(uint16_t *pData);
 void     BK4819_PrepareFSKReceive(void);
 
 void     BK4819_PlayRoger(void);

@@ -41,8 +41,8 @@ void UI_DisplayAircopy(void)
 		case AIRCOPY_READY:       strcat(str, " READY"); break;
 		case AIRCOPY_RX:          strcat(str, " RX");    break;
 		case AIRCOPY_TX:          strcat(str, " TX");    break;
-		case AIRCOPY_RX_COMPLETE: strcat(str, " DONE");  break;
-		case AIRCOPY_TX_COMPLETE: strcat(str, " DONE");  break;
+		case AIRCOPY_RX_COMPLETE: strcat(str, " RDONE");  break;
+		case AIRCOPY_TX_COMPLETE: strcat(str, " TDONE");  break;
 		default:                  strcat(str, " ERR");   break;
 	}
 	UI_PrintString(str, 0, LCD_WIDTH - 1, 0, 8);
@@ -69,6 +69,10 @@ void UI_DisplayAircopy(void)
 
 	switch (g_aircopy_state)
 	{
+		case AIRCOPY_TX_COMPLETE:
+//			UI_PrintString("TX COMPLETE", 0, LCD_WIDTH - 1, 5, 8);
+//			break;
+
 		case AIRCOPY_READY:
 			UI_PrintString("EXIT rx    M tx", 0, LCD_WIDTH - 1, 5, 7);
 			break;
@@ -87,12 +91,9 @@ void UI_DisplayAircopy(void)
 			UI_PrintString(str, 0, LCD_WIDTH - 1, 5, 7);
 			break;
 
-		case AIRCOPY_TX_COMPLETE:
-			UI_PrintString("TX COMPLETE", 0, LCD_WIDTH - 1, 5, 8);
-			break;
-
 		case AIRCOPY_TX:
-			sprintf(str, "TX %u.%u", g_aircopy_block_number, g_aircopy_block_max);
+			strcpy(str, (g_fsk_tx_timeout_10ms > 0) ? "*" : " ");
+			sprintf(str + 1, " TX %u.%u", g_aircopy_block_number, g_aircopy_block_max);
 			UI_PrintString(str, 0, LCD_WIDTH - 1, 5, 7);
 			break;
 
