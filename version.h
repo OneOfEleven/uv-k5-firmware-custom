@@ -18,7 +18,9 @@
 #define VERSION_H
 
 extern const char Version_str[];
-extern const char UART_Version_str[];
+#if defined(ENABLE_UART)
+	extern const char UART_Version_str[];
+#endif
 
 #endif
 

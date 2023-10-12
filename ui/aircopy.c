@@ -32,12 +32,12 @@ void UI_DisplayAircopy(void)
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	if (g_aircopy_state == AIRCOPY_READY)
-		strcpy(String, "AIR COPY(RDY)");
+		strcpy(String, "AIR COPY (RDY)");
 	else
 	if (g_aircopy_state == AIRCOPY_TRANSFER)
 		strcpy(String, "AIR COPY");
 	else
-		strcpy(String, "AIR COPY(CMP)");
+		strcpy(String, "AIR COPY (CMP)");
 	UI_PrintString(String, 2, 127, 0, 8);
 
 	if (g_input_box_index == 0)
@@ -51,11 +51,13 @@ void UI_DisplayAircopy(void)
 
 	memset(String, 0, sizeof(String));
 	if (g_air_copy_is_send_mode == 0)
-		sprintf(String, "RCV:%u E:%u", g_air_copy_block_number, g_errors_during_air_copyy);
+		sprintf(String, "RCV %u  E %u", g_air_copy_block_number, g_errors_during_air_copyy);
 	else
 	if (g_air_copy_is_send_mode == 1)
-		sprintf(String, "SND:%u", g_air_copy_block_number);
+		sprintf(String, "SND %u", g_air_copy_block_number);
 	UI_PrintString(String, 2, 127, 4, 8);
+
+	UI_PrintStringSmall("EXIT rx    M tx", 0, 127, 6);
 
 	ST7565_BlitFullScreen();
 }
