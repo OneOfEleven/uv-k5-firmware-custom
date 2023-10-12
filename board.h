@@ -25,7 +25,7 @@ void     BOARD_PORTCON_Init(void);
 void     BOARD_ADC_Init(void);
 void     BOARD_ADC_GetBatteryInfo(uint16_t *pVoltage, uint16_t *pCurrent);
 void     BOARD_Init(void);
-void     BOARD_EEPROM_Init(void);
+void     BOARD_EEPROM_load(void);
 void     BOARD_EEPROM_LoadMoreSettings(void);
 uint32_t BOARD_fetchChannelFrequency(const int channel);
 void     BOARD_fetchChannelName(char *s, const int channel);

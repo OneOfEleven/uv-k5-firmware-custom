@@ -73,7 +73,10 @@ void SETTINGS_SaveVfoIndices(void)
 	EEPROM_WriteBuffer(0x0E80, State);
 }
 
+// *************************************************
+
 #if 0
+
 const uint8_t calib1[] =
 {	// my first radios calibration data
 	0x0A, 0x4B, 0x53, 0x56, 0x59, 0x5C, 0x5F, 0x62, 0x64, 0x66, 0xFF, 0xFF,
@@ -180,7 +183,10 @@ void SETTINGS_restore_calibration(void)
 		index += 8;
 	}
 }
+
 #endif
+
+// *************************************************
 
 void SETTINGS_SaveSettings(void)
 {
@@ -236,25 +242,44 @@ void SETTINGS_SaveSettings(void)
 		#ifdef ENABLE_PWRON_PASSWORD
 			array.password = g_eeprom.power_on_password;
 		#endif
-		
+
 		EEPROM_WriteBuffer(0x0E98, &array);
 	}
-	
+
 	#ifdef ENABLE_VOICE
 		memset(State, 0xFF, sizeof(State));
 		State[0] = g_eeprom.voice_prompt;
 		EEPROM_WriteBuffer(0x0EA0, State);
 	#endif
 
-	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
-		State[0] = g_eeprom.alarm_mode;
-	#else
-		State[0] = false;
-	#endif
-	State[1] = g_eeprom.roger_mode;
-	State[2] = g_eeprom.repeater_tail_tone_elimination;
-	State[3] = g_eeprom.tx_vfo;
-	EEPROM_WriteBuffer(0x0EA8, State);
+	// *****************************
+
+	{
+		struct {
+			uint8_t  alarm_mode;
+			uint8_t  roger_mode;
+			uint8_t  repeater_tail_tone_elimination;
+			uint8_t  tx_vfo;
+			uint32_t air_copy_freq;
+		} __attribute__((packed)) array;
+
+		memset(&array, 0xff, sizeof(array));
+
+		#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+			array.alarm_mode                 = g_eeprom.alarm_mode;
+		#else
+			array.alarm_mode                 = false;
+		#endif
+		array.roger_mode                     = g_eeprom.roger_mode;
+		array.repeater_tail_tone_elimination = g_eeprom.repeater_tail_tone_elimination;
+		array.tx_vfo                         = g_eeprom.tx_vfo;
+		#ifdef ENABLE_AIRCOPY_FREQ
+			// remember the AIRCOPY frequency
+			array.air_copy_freq              = g_aircopy_freq;
+		#endif
+
+		EEPROM_WriteBuffer(0x0EA8, &array);
+	}
 
 	State[0] = g_eeprom.dtmf_side_tone;
 	State[1] = g_eeprom.dtmf_separate_code;
@@ -283,7 +308,7 @@ void SETTINGS_SaveSettings(void)
 	EEPROM_WriteBuffer(0x0F18, State);
 
 	memset(State, 0xFF, sizeof(State));
-	State[0]  = g_setting_f_lock;
+	State[0]  = g_setting_freq_lock;
 	State[1]  = g_setting_350_tx_enable;
 	State[2]  = g_setting_killed;
 	State[3]  = g_setting_200_tx_enable;
@@ -300,7 +325,7 @@ void SETTINGS_SaveSettings(void)
 		if (!g_setting_am_fix)            State[7] &= ~(1u << 5);
 	#endif
 	State[7] = (State[7] & ~(3u << 6)) | ((g_setting_backlight_on_tx_rx & 3u) << 6);
-	 
+
 	EEPROM_WriteBuffer(0x0F40, State);
 }
 
@@ -320,7 +345,7 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, 
 		OffsetVFO  = (VFO == 0) ? 0x0C80 : 0x0C90;
 		OffsetVFO += (Channel - FREQ_CHANNEL_FIRST) * 32;
 	}
-	
+
 	if (Mode < 2 && Channel <= USER_CHANNEL_LAST)
 		return;
 
@@ -350,7 +375,7 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, 
 
 	if (Channel > USER_CHANNEL_LAST)
 		return;	// it's not a user channel
-	
+
 	#ifndef ENABLE_KEEP_MEM_NAME
 		// clear/reset the channel name
 		memset(&State, 0x00, sizeof(State));
@@ -378,28 +403,28 @@ void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep)
 		if (IS_NOAA_CHANNEL(Channel))
 			return;
 	#endif
-		
+
 	Attributes &= (uint8_t)(~USER_CH_COMPAND);  // default to '0' = compander disabled
-	
+
 	EEPROM_ReadBuffer(Offset, State, sizeof(State));
-	
+
 	if (keep)
 	{
 		Attributes = (pVFO->scanlist_1_participation << 7) | (pVFO->scanlist_2_participation << 6) | (pVFO->compander << 4) | (pVFO->band << 0);
 		if (State[Channel & 7u] == Attributes)
 			return; // no change in the attributes
 	}
-	
+
 	State[Channel & 7u] = Attributes;
-	
+
 	EEPROM_WriteBuffer(Offset, State);
-	
+
 	g_user_channel_attributes[Channel] = Attributes;
-	
+
 //	#ifndef ENABLE_KEEP_MEM_NAME
 		if (Channel <= USER_CHANNEL_LAST)
 		{	// it's a memory channel
-	
+
 			const uint16_t OffsetMR = Channel * 16;
 			if (!keep)
 			{	// clear/reset the channel name

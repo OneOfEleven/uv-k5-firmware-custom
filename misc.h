@@ -166,7 +166,7 @@ extern bool                  g_setting_200_tx_enable;
 extern bool                  g_setting_500_tx_enable;
 extern bool                  g_setting_350_enable;
 extern bool                  g_setting_tx_enable;
-extern uint8_t               g_setting_f_lock;
+extern uint8_t               g_setting_freq_lock;
 extern bool                  g_setting_scramble_enable;
 
 extern uint8_t               g_setting_backlight_on_tx_rx;
@@ -196,7 +196,6 @@ extern const uint32_t        g_default_aes_key[4];
 extern uint32_t              g_custom_aes_key[4];
 extern bool                  g_has_custom_aes_key;
 extern uint32_t              g_challenge[4];
-extern uint8_t               g_try_count;
 
 extern uint8_t               g_eeprom_1EC0_0[8];
 extern uint8_t               g_eeprom_1EC0_1[8];
@@ -240,7 +239,7 @@ extern bool                  g_enable_speaker;
 extern uint8_t               g_key_input_count_down;
 extern uint8_t               g_key_lock_count_down_500ms;
 extern uint8_t               g_rtte_count_down;
-extern bool                  g_is_in_lock_screen;
+extern bool                  g_password_locked;
 extern uint8_t               g_update_status;
 extern uint8_t               g_found_CTCSS;
 extern uint8_t               g_found_CDCSS;
@@ -303,17 +302,13 @@ extern uint16_t              g_alarm_running_counter;
 extern uint8_t               g_menu_list_count;
 extern uint8_t               g_backup_cross_vfo_rx_tx;
 extern uint8_t               g_scan_delay_10ms;
-#ifdef ENABLE_AIRCOPY
-	extern uint8_t           g_air_copy_send_count_down;
-#endif
-extern uint8_t               g_fsk_wite_index;
 #ifdef ENABLE_NOAA
 	extern bool              g_is_noaa_mode;
 	extern uint8_t           g_noaa_channel;
 #endif
 extern volatile bool         g_next_time_slice;
 extern bool                  g_update_display;
-extern bool                  g_f_lock;
+extern bool                  g_unhide_hidden;
 #ifdef ENABLE_FMRADIO
 	extern uint8_t           g_fm_channel_position;
 #endif
@@ -333,7 +328,6 @@ extern volatile bool         g_flag_tail_tone_elimination_complete;
 	extern volatile bool     g_schedule_fm;
 #endif
 extern int16_t               g_current_rssi[2];   // now one per VFO
-extern uint8_t               g_is_locked;
 extern volatile uint8_t      g_boot_counter_10ms;
 
 unsigned int get_TX_VFO(void);

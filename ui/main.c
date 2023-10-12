@@ -67,7 +67,7 @@ center_line_t center_line = CENTER_LINE_NONE;
 
 		if (timeout_secs == 0 || g_tx_timer_count_down_500ms == 0)
 			return false;
-		
+
 		{
 			const unsigned int line      = 3;
 			const unsigned int txt_width = 7 * 6;                 // 6 text chars
@@ -79,14 +79,18 @@ center_line_t center_line = CENTER_LINE_NONE;
 			const unsigned int len       = (level <= bar_width) ? level : bar_width;
 			uint8_t           *p_line    = g_frame_buffer[line];
 			unsigned int       i;
-			char               s[16];
-			
+			char               s[17];
+
 			if (now)
 				memset(p_line, 0, LCD_WIDTH);
 
 			sprintf(s, "TX %u", secs);
-			UI_PrintStringSmall(s, 2, 0, line);
-
+			#ifdef ENABLE_SMALL_BOLD
+				UI_PrintStringSmallBold(s, 2, 0, line);
+			#else
+				UI_PrintStringSmall(s, 2, 0, line);
+			#endif
+			
 			#if 1
 				// solid bar
 				for (i = 0; i < bar_width; i++)
@@ -100,7 +104,7 @@ center_line_t center_line = CENTER_LINE_NONE;
 			if (now)
 				ST7565_BlitFullScreen();
 		}
-		
+
 		return true;
 	}
 #endif
@@ -119,7 +123,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 		case 4: memmove(p + 11, BITMAP_ANTENNA_LEVEL3, sizeof(BITMAP_ANTENNA_LEVEL3));
 		case 3: memmove(p +  8, BITMAP_ANTENNA_LEVEL2, sizeof(BITMAP_ANTENNA_LEVEL2));
 		case 2: memmove(p +  5, BITMAP_ANTENNA_LEVEL1, sizeof(BITMAP_ANTENNA_LEVEL1));
-		case 1: memmove(p +  0, BITMAP_ANTENNA,       sizeof(BITMAP_ANTENNA));
+		case 1: memmove(p +  0, BITMAP_ANTENNA,        sizeof(BITMAP_ANTENNA));
 		case 0: break;
 	}
 
@@ -128,14 +132,14 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 #ifdef ENABLE_AUDIO_BAR
 
-	unsigned int sqrt16(unsigned int value)
+	uint32_t sqrt16(uint32_t value)
 	{	// return square root of 'value'
-		unsigned int shift = 16;         // number of bits supplied in 'value' .. 2 ~ 32
-		unsigned int bit   = 1u << --shift;
-		unsigned int sqrti = 0;
+		unsigned int shift = 16;         // this is the number of bits supplied in 'value' .. 2 ~ 32
+		uint32_t     bit   = 1u << --shift;
+		uint32_t     sqrti = 0;
 		while (bit)
 		{
-			const unsigned int temp = ((sqrti << 1) | bit) << shift--;
+			const uint32_t temp = ((sqrti << 1) | bit) << shift--;
 			if (value >= temp)
 			{
 				value -= temp;
@@ -146,55 +150,52 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 		return sqrti;
 	}
 
-	void UI_DisplayAudioBar(void)
+	bool UI_DisplayAudioBar(const bool now)
 	{
+		if (g_current_function != FUNCTION_TRANSMIT || g_screen_to_display != DISPLAY_MAIN)
+			return false;
+
+		if (center_line != CENTER_LINE_NONE && center_line != CENTER_LINE_AUDIO_BAR)
+			return false;
+
+		if (g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+			return false;
+
+		#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+			if (g_alarm_state != ALARM_STATE_OFF)
+				return false;
+		#endif
+
 		if (g_setting_mic_bar)
 		{
 			const unsigned int line      = 3;
-			const unsigned int bar_x     = 2;
-			const unsigned int bar_width = LCD_WIDTH - 2 - bar_x;
+			const unsigned int txt_width = 7 * 3;                 // 3 text chars
+			const unsigned int bar_x     = 2 + txt_width + 4;     // X coord of bar graph
+			const unsigned int bar_width = LCD_WIDTH - 1 - bar_x;
+			const unsigned int secs      = g_tx_timer_count_down_500ms / 2;
+			uint8_t           *p_line    = g_frame_buffer[line];
 			unsigned int       i;
+			char               s[16];
 
-			if (g_current_function != FUNCTION_TRANSMIT ||
-				g_screen_to_display != DISPLAY_MAIN      ||
-				g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-			{
-				return;  // screen is in use
-			}
-
-			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
-				if (g_alarm_state != ALARM_STATE_OFF)
-					return;
-			#endif
-
-			{
-				#if 1
-					// TX audio level
-
-					const unsigned int voice_amp  = BK4819_GetVoiceAmplitudeOut();  // 15:0
-
-//					const unsigned int max        = 65535;
-//					const unsigned int level      = ((voice_amp * bar_width) + (max / 2)) / max;            // with rounding
-//					const unsigned int len        = (level <= bar_width) ? level : bar_width;
-
-					// make non-linear to make more sensitive at low values
-					const unsigned int level      = voice_amp * 8;
-					const unsigned int sqrt_level = sqrt16((level < 65535) ? level : 65535);
-					const unsigned int len        = (sqrt_level <= bar_width) ? sqrt_level : bar_width;
-
-				#else
-					// TX/RX AF input level (dB)
-
-					const uint8_t      af_tx_rx   = BK4819_GetAfTxRx();             //  6:0
-					const unsigned int max        = 63;
-					const unsigned int level      = (((uint16_t)af_tx_rx * bar_width) + (max / 2)) / max;   // with rounding
-					const unsigned int len        = (level <= bar_width) ? level : bar_width;
-
-				#endif
-
-				uint8_t *p_line = g_frame_buffer[line];
-
+			if (now)
 				memset(p_line, 0, LCD_WIDTH);
+
+			// TX timeout seconds
+			sprintf(s, "%3u", secs);
+			UI_PrintStringSmallBold(s, 2, 0, line);
+
+			{	// TX audio level
+
+				const unsigned int voice_amp  = BK4819_GetVoiceAmplitudeOut();  // 15:0
+
+//				const unsigned int max        = 65535;
+//				const unsigned int level      = ((voice_amp * bar_width) + (max / 2)) / max;            // with rounding
+//				const unsigned int len        = (level <= bar_width) ? level : bar_width;
+
+				// make non-linear to make more sensitive at low values
+				const unsigned int level      = voice_amp * 8;
+				const unsigned int sqrt_level = sqrt16((level < 65535) ? level : 65535);
+				const unsigned int len        = (sqrt_level <= bar_width) ? sqrt_level : bar_width;
 
 				#if 1
 					// solid bar
@@ -206,10 +207,12 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 						p_line[bar_x + i] = (i <= len) ? 0x7f : 0x41;
 				#endif
 
-				if (g_current_function == FUNCTION_TRANSMIT)
+				if (now)
 					ST7565_BlitFullScreen();
 			}
 		}
+
+		return true;
 	}
 #endif
 
@@ -402,7 +405,7 @@ void UI_DisplayMain(void)
 		ST7565_BlitFullScreen();
 		return;
 	}
-	
+
 	if (g_eeprom.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
 		backlight_turn_on();
@@ -805,10 +808,9 @@ void UI_DisplayMain(void)
 
 		#ifdef ENABLE_AUDIO_BAR
 			// show the TX audio level
-			if (g_setting_mic_bar && g_current_function == FUNCTION_TRANSMIT)
+			if (UI_DisplayAudioBar(false))
 			{
 				center_line = CENTER_LINE_AUDIO_BAR;
-				UI_DisplayAudioBar();
 			}
 			else
 		#endif

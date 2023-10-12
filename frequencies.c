@@ -18,6 +18,9 @@
 #include "misc.h"
 #include "settings.h"
 
+// the initial AIRCOPY frequency to use
+uint32_t g_aircopy_freq = 41002500;
+
 // the BK4819 has 2 bands it covers, 18MHz ~ 630MHz and 760MHz ~ 1300MHz
 const freq_band_table_t BX4819_band1 = { 1800000,  63000000};
 const freq_band_table_t BX4819_band2 = {84000000, 130000000};
@@ -134,7 +137,7 @@ int TX_freq_check(const uint32_t Frequency)
 	if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
 		return -1;  // BX chip does not work in this range
 
-	switch (g_setting_f_lock)
+	switch (g_setting_freq_lock)
 	{
 		case F_LOCK_OFF:
 			if (Frequency >= 13600000 && Frequency < 17400000) //Frequency Between 136-174 Mhz

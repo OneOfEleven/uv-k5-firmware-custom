@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#ifdef ENABLE_FMRADIO
-
 #include <string.h>
 
 #include "app/fm.h"
@@ -36,8 +34,6 @@ void UI_DisplayFM(void)
 
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
-	// *************************************
-
 	if (g_eeprom.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
 		backlight_turn_on();
@@ -48,19 +44,22 @@ void UI_DisplayFM(void)
 	}
 
 	// *************************************
-
+	// upper text line
+	
 	UI_PrintString("FM", 0, 127, 0, 12);
 
 	// *************************************
-
+	// middle text line
+	
 	if (g_ask_to_save)
 	{
-		strcpy(String, "SAVE?");
+		const unsigned int freq = g_eeprom.fm_frequency_playing;
+		sprintf(String, "SAVE %u.%u ?", freq / 10, freq % 10);
 	}
 	else
 	if (g_ask_to_delete)
 	{
-		strcpy(String, "DEL?");
+		strcpy(String, "DELETE ?");
 	}
 	else
 	{
@@ -74,7 +73,7 @@ void UI_DisplayFM(void)
 				{
 					if (g_eeprom.fm_frequency_playing == g_fm_channels[i])
 					{
-						sprintf(String, "VFO(CH%02u)", i + 1);
+						sprintf(String, "VFO (CH %u)", 1 + i);
 						break;
 					}
 				}
@@ -83,47 +82,59 @@ void UI_DisplayFM(void)
 					strcpy(String, "VFO");
 			}
 			else
-				sprintf(String, "MR(CH%02u)", g_eeprom.fm_selected_channel + 1);
+				sprintf(String, "CH %u", 1 + g_eeprom.fm_selected_channel);
 		}
 		else
 		if (!g_fm_auto_scan)
-			strcpy(String, "M-SCAN");
+			strcpy(String, "FREQ SCAN");
 		else
-			sprintf(String, "A-SCAN(%u)", g_fm_channel_position + 1);
+			sprintf(String, "A-SCAN %2u", 1 + g_fm_channel_position);
 	}
 
 	UI_PrintString(String, 0, 127, 2, 10);
 
 	// *************************************
+	// lower text line
 	
 	memset(String, 0, sizeof(String));
 
-	if (g_ask_to_save || (g_eeprom.fm_is_channel_mode && g_input_box_index > 0))
-	{
-		UI_GenerateChannelString(String, g_fm_channel_position);
+	if (g_ask_to_save)
+	{	// channel mode
+		const unsigned int chan = g_fm_channel_position;
+		const uint32_t     freq = g_fm_channels[chan];
+		UI_GenerateChannelString(String, chan, ' ');
+		if (FM_CheckValidChannel(chan))
+			sprintf(String + strlen(String), " (%u.%u)", freq / 10, freq % 10);
+	}
+	else
+	if (g_eeprom.fm_is_channel_mode && g_input_box_index > 0)
+	{	// user is entering a channel number
+		UI_GenerateChannelString(String, g_fm_channel_position, ' ');
 	}
 	else
 	if (!g_ask_to_delete)
 	{
 		if (g_input_box_index == 0)
-		{
-			NUMBER_ToDigits(g_eeprom.fm_frequency_playing * 10000, String);
+		{	// frequency mode
+			const uint32_t freq = g_eeprom.fm_frequency_playing;
+			NUMBER_ToDigits(freq * 10000, String);
 			UI_DisplayFrequency(String, 23, 4, false, true);
 		}
 		else
-		{
+		{	// user is entering a frequency
 			UI_DisplayFrequency(g_input_box, 23, 4, true, false);
 		}
 	}
 	else
-	{
-		sprintf(String, "CH-%02u", g_eeprom.fm_selected_channel + 1);
-		UI_PrintString(String, 0, 127, 4, 10);
+	{	// delete channel
+		const uint32_t chan = g_eeprom.fm_selected_channel;
+		const uint32_t freq = g_fm_channels[chan];
+		sprintf(String, "CH %u (%u.%u)", 1 + chan, freq / 10, freq % 10);
 	}
+
+	UI_PrintString(String, 0, 127, 4, (strlen(String) >= 8) ? 8 : 10);
 	
 	// *************************************
 
 	ST7565_BlitFullScreen();
 }
-
-#endif

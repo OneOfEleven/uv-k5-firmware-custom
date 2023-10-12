@@ -347,7 +347,7 @@ void BK4819_SetAGC(uint8_t Value)
 	}
 }
 
-void BK4819_ToggleGpioOut(BK4819_GPIO_PIN_t Pin, bool bSet)
+void BK4819_set_GPIO_pin(BK4819_GPIO_PIN_t Pin, bool bSet)
 {
 	if (bSet)
 		gBK4819_GpioOutState |=  (0x40u >> Pin);
@@ -703,7 +703,7 @@ void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
 	//                                  280MHz       gain 1 = 1  gain 2 = 0  gain 1 = 4  gain 2 = 2
 	const uint8_t gain   = (frequency < 28000000) ? (1u << 3) | (0u << 0) : (4u << 3) | (2u << 0);
 	const uint8_t enable = 1;
-	BK4819_WriteRegister(BK4819_REG_36, (bias << 8) | (enable << 7) | (gain << 0));
+	BK4819_WriteRegister(BK4819_REG_36, ((uint16_t)bias << 8) | ((uint16_t)enable << 7) | ((uint16_t)gain << 0));
 }
 
 void BK4819_SetFrequency(uint32_t Frequency)
@@ -804,7 +804,8 @@ void BK4819_SetAF(BK4819_af_type_t AF)
 	// AF Output Inverse Mode = Inverse
 	// Undocumented bits 0x2040
 	//
-	BK4819_WriteRegister(BK4819_REG_47, 0x6040 | (AF << 8));
+//	BK4819_WriteRegister(BK4819_REG_47, 0x6040 | (AF << 8));
+	BK4819_WriteRegister(BK4819_REG_47, (6u << 12) | (AF << 8) | (1u << 6));
 }
 
 void BK4819_RX_TurnOn(void)
@@ -823,7 +824,7 @@ void BK4819_RX_TurnOn(void)
 	// Enable  XTAL
 	// Enable  Band Gap
 	//
-	BK4819_WriteRegister(BK4819_REG_37, 0x1F0F);  // 0001111100001111
+	BK4819_WriteRegister(BK4819_REG_37, 0x1F0F);  // 0001 1111 0000 1111
 
 	// Turn off everything
 	BK4819_WriteRegister(BK4819_REG_30, 0);
@@ -844,19 +845,19 @@ void BK4819_PickRXFilterPathBasedOnFrequency(uint32_t Frequency)
 {
 	if (Frequency < 28000000)
 	{
-		BK4819_ToggleGpioOut(BK4819_GPIO2_PIN30, true);
-		BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30, true);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31, false);
 	}
 	else
 	if (Frequency == 0xFFFFFFFF)
 	{
-		BK4819_ToggleGpioOut(BK4819_GPIO2_PIN30, false);
-		BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31, false);
 	}
 	else
 	{
-		BK4819_ToggleGpioOut(BK4819_GPIO2_PIN30, false);
-		BK4819_ToggleGpioOut(BK4819_GPIO3_PIN31, true);
+		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31, true);
 	}
 }
 
@@ -975,14 +976,16 @@ void BK4819_EnableDTMF(void)
 	// <3:0>  14 Max symbol number for SelCall detection
 	//
 //	const uint16_t threshold = 24;    // default, but doesn't decode non-QS radios
-	const uint16_t threshold = 160;   // but 128 ~ 247 does
+	const uint16_t threshold = 130;   // but 128 ~ 247 does
+//	const uint16_t threshold =  8;    // 0 ~ 63 ? .. doesn't work with A and B's :(
 	BK4819_WriteRegister(BK4819_REG_24,                      // 1 00011000 1 1 1 1110
 		(1u        << BK4819_REG_24_SHIFT_UNKNOWN_15) |
 		(threshold << BK4819_REG_24_SHIFT_THRESHOLD)  |      // 0 ~ 255
 		(1u        << BK4819_REG_24_SHIFT_UNKNOWN_6)  |
 		              BK4819_REG_24_ENABLE            |
 		              BK4819_REG_24_SELECT_DTMF       |
-		(14u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
+//		(14u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
+		(15u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
 }
 
 void BK4819_PlayTone(uint16_t Frequency, bool bTuningGainSwitch)
@@ -1034,6 +1037,7 @@ void BK4819_PlaySingleTone(const unsigned int tone_Hz, const unsigned int delay,
 	{
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 		BK4819_SetAF(BK4819_AF_MUTE);
+//		BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	}
 
 	BK4819_WriteRegister(BK4819_REG_70, 0x0000);
@@ -1199,7 +1203,7 @@ void BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable(void)
 {
 	if (g_rx_idle_mode)
 	{
-		BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, true);
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, true);
 		BK4819_RX_TurnOn();
 	}
 }

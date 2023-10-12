@@ -4,10 +4,14 @@ This repository is a cloned and customized version of DualTachyon's open firmwar
 
 https://github.com/DualTachyon/uv-k5-firmware .. a cool achievement !
 
-Use this firmware at your own risk (entirely). There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may even brick your radio(s), in which case, you'd need to buy another radio.
-Anyway, have fun.
+Use this firmware/code ENTIRELY at your own risk. This firmware is totally experimental, and at
+times will go completely tits up (ie, break your radio) - an entirely common occurance when playing
+around with experimental code.
 
-# Radio performance
+There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may
+even brick your radio(s), at which point, maybe find a quiet corner to sob your hert out in.
+
+## Radio performance
 
 Please note that the Quansheng UV-Kx radios are not professional quality transceivers, their
 performance is strictly limited. The RX front end has no track-tuned band pass filtering
@@ -36,14 +40,17 @@ ENABLE_OVERLAY                := 0       cpu FLASH stuff, not needed
 ENABLE_LTO                    := 0     **experimental, reduces size of compiled firmware but might break EEPROM reads (OVERLAY will be disabled if you enable this)
 ENABLE_UART                   := 1       without this you can't configure radio via PC
 ENABLE_UART_DEBUG             := 0       just for code debugging, it sends debug info along the USB serial connection (programming lead)
-ENABLE_AIRCOPY                := 0       easier to just enter frequency with butts
+ENABLE_AIRCOPY                := 1       clone radio-to-radio via RF
+ENABLE_AIRCOPY_FREQ           := 1       remember what you use for the aircopy frequency
 ENABLE_FMRADIO                := 1       WBFM VHF broadcast band receiver
 ENABLE_NOAA                   := 1       everything NOAA (only of any use in the USA)
 ENABLE_VOICE                  := 0       want to hear voices ?
+ENABLE_MUTE_RADIO_FOR_VOICE   := 1       mute the radios audio when a voice is playing
 ENABLE_VOX                    := 1       voice operated transmission
 ENABLE_ALARM                  := 1       TX alarms
 ENABLE_1750HZ                 := 1       side key 1750Hz TX tone (older style repeater access)
-ENABLE_PWRON_PASSWORD         := 1       power-on password stuff
+ENABLE_PWRON_PASSWORD         := 0       '1' = allow power-on password
+ENABLE_RESET_AES_KEY          := 1       '1' = reset/clear the AES key stored in the eeprom
 ENABLE_BIG_FREQ               := 0       big font frequencies (like original QS firmware)
 ENABLE_SMALL_BOLD             := 1       bold channel name/no. (when name + freq channel display mode)
 ENABLE_KEEP_MEM_NAME          := 1       maintain channel name when (re)saving memory channel
@@ -63,8 +70,8 @@ ENABLE_AM_FIX_SHOW_DATA       := 1       show debug data for the AM fix (still t
 ENABLE_SQUELCH_MORE_SENSITIVE := 1       make squelch levels a little bit more sensitive - I plan to let user adjust the values themselves
 ENABLE_FASTER_CHANNEL_SCAN    := 1       increases the channel scan speed, but the squelch is also made more twitchy
 ENABLE_RSSI_BAR               := 1       enable a dBm/Sn RSSI bar graph level inplace of the little antenna symbols
-ENABLE_AUDIO_BAR              := 0       experimental, display an audo bar level when TX'ing
-ENABLE_SHOW_TX_TIMEOUT        := 1       show the TX time left when transmitting
+ENABLE_SHOW_TX_TIMEOUT        := 0       show the remainng TX time
+ENABLE_AUDIO_BAR              := 1       experimental, display an audo bar level when TX'ing, includes remaining TX time (in seconds)
 ENABLE_COPY_CHAN_TO_VFO       := 1       copy current channel into the other VFO. Long press Menu key ('M')
 #ENABLE_BAND_SCOPE            := 0       not yet implemented - spectrum/pan-adapter
 #ENABLE_SINGLE_VFO_CHAN       := 0       not yet implemented - single VFO on display when possible

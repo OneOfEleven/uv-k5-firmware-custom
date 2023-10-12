@@ -516,7 +516,7 @@ void BOARD_Init(void)
 	CRC_Init();
 }
 
-void BOARD_EEPROM_Init(void)
+void BOARD_EEPROM_load(void)
 {
 	unsigned int i;
 	uint8_t      Data[16];
@@ -610,15 +610,38 @@ void BOARD_EEPROM_Init(void)
 		g_eeprom.voice_prompt = (Data[0] < 3) ? Data[0] : VOICE_PROMPT_ENGLISH;
 	#endif
 
-	// 0EA8..0EAF
-	EEPROM_ReadBuffer(0x0EA8, Data, 8);
-	#ifdef ENABLE_ALARM
-		g_eeprom.alarm_mode                 = (Data[0] <  2) ? Data[0] : true;
-	#endif
-	g_eeprom.roger_mode                          = (Data[1] <  3) ? Data[1] : ROGER_MODE_OFF;
-	g_eeprom.repeater_tail_tone_elimination = (Data[2] < 11) ? Data[2] : 0;
-	g_eeprom.tx_vfo                         = (Data[3] <  2) ? Data[3] : 0;
+	{	// 0EA8..0EAF
+		struct {
+			uint8_t  alarm_mode;
+			uint8_t  roger_mode;
+			uint8_t  repeater_tail_tone_elimination;
+			uint8_t  tx_vfo;
+			uint32_t air_copy_freq;
+		} __attribute__((packed)) array;
 
+		EEPROM_ReadBuffer(0x0EA8, &array, sizeof(array));
+
+		#ifdef ENABLE_ALARM
+			g_eeprom.alarm_mode                 = (array.alarm_mode < 2) ? array.alarm_mode : true;
+		#endif
+		g_eeprom.roger_mode                     = (array.roger_mode < 3) ? array.roger_mode : ROGER_MODE_OFF;
+		g_eeprom.repeater_tail_tone_elimination = (array.repeater_tail_tone_elimination < 11) ? array.repeater_tail_tone_elimination : 0;
+		g_eeprom.tx_vfo                         = (array.tx_vfo < 2) ? array.tx_vfo : 0;
+		#ifdef ENABLE_AIRCOPY_FREQ
+		{
+			unsigned int i;
+			for (i = 0; i < ARRAY_SIZE(FREQ_BAND_TABLE); i++)
+			{
+				if (array.air_copy_freq >= FREQ_BAND_TABLE[i].lower && array.air_copy_freq < FREQ_BAND_TABLE[i].upper)
+				{
+					g_aircopy_freq = array.air_copy_freq;
+					break;
+				}
+			}	
+		}
+		#endif
+	}
+	
 	// 0ED0..0ED7
 	EEPROM_ReadBuffer(0x0ED0, Data, 8);
 	g_eeprom.dtmf_side_tone               = (Data[0] < 2) ? Data[0] : true;
@@ -700,21 +723,21 @@ void BOARD_EEPROM_Init(void)
 
 	// 0F40..0F47
 	EEPROM_ReadBuffer(0x0F40, Data, 8);
-	g_setting_f_lock            = (Data[0] < 6) ? Data[0] : F_LOCK_OFF;
-	g_setting_350_tx_enable             = (Data[1] < 2) ? Data[1] : false;  // was true
-	g_setting_killed            = (Data[2] < 2) ? Data[2] : false;
-	g_setting_200_tx_enable             = (Data[3] < 2) ? Data[3] : false;
-	g_setting_500_tx_enable             = (Data[4] < 2) ? Data[4] : false;
-	g_setting_350_enable             = (Data[5] < 2) ? Data[5] : true;
+	g_setting_freq_lock          = (Data[0] < 6) ? Data[0] : F_LOCK_OFF;
+	g_setting_350_tx_enable      = (Data[1] < 2) ? Data[1] : false;  // was true
+	g_setting_killed             = (Data[2] < 2) ? Data[2] : false;
+	g_setting_200_tx_enable      = (Data[3] < 2) ? Data[3] : false;
+	g_setting_500_tx_enable      = (Data[4] < 2) ? Data[4] : false;
+	g_setting_350_enable         = (Data[5] < 2) ? Data[5] : true;
 	g_setting_scramble_enable    = (Data[6] < 2) ? Data[6] : true;
-	g_setting_tx_enable             = (Data[7] & (1u << 0)) ? true : false;
-	g_setting_live_dtmf_decoder = (Data[7] & (1u << 1)) ? true : false;
-	g_setting_battery_text      = (((Data[7] >> 2) & 3u) <= 2) ? (Data[7] >> 2) & 3 : 2;
+	g_setting_tx_enable          = (Data[7] & (1u << 0)) ? true : false;
+	g_setting_live_dtmf_decoder  = (Data[7] & (1u << 1)) ? true : false;
+	g_setting_battery_text       = (((Data[7] >> 2) & 3u) <= 2) ? (Data[7] >> 2) & 3 : 2;
 	#ifdef ENABLE_AUDIO_BAR
-		g_setting_mic_bar       = (Data[7] & (1u << 4)) ? true : false;
+		g_setting_mic_bar        = (Data[7] & (1u << 4)) ? true : false;
 	#endif
 	#ifdef ENABLE_AM_FIX
-		g_setting_am_fix        = (Data[7] & (1u << 5)) ? true : false;
+		g_setting_am_fix         = (Data[7] & (1u << 5)) ? true : false;
 	#endif
 	g_setting_backlight_on_tx_rx = (Data[7] >> 6) & 3u;
 
@@ -727,7 +750,9 @@ void BOARD_EEPROM_Init(void)
 	// 0D60..0E27
 	EEPROM_ReadBuffer(0x0D60, g_user_channel_attributes, sizeof(g_user_channel_attributes));
 
-	// 0F30..0F3F
+	// *****************************
+	
+	// 0F30..0F3F .. AES key
 	EEPROM_ReadBuffer(0x0F30, g_custom_aes_key, sizeof(g_custom_aes_key));
 	g_has_custom_aes_key = false;
 	for (i = 0; i < ARRAY_SIZE(g_custom_aes_key); i++)
@@ -735,9 +760,21 @@ void BOARD_EEPROM_Init(void)
 		if (g_custom_aes_key[i] != 0xFFFFFFFFu)
 		{
 			g_has_custom_aes_key = true;
-			return;
+			break;
 		}
 	}
+	
+#if ENABLE_RESET_AES_KEY
+	// a fix to wipe the darned AES key
+	if (g_has_custom_aes_key)
+	{	// ugh :( .. wipe it
+		uint8_t *p_aes = (uint8_t*)&g_custom_aes_key;
+		memset(p_aes, 0xff, sizeof(g_custom_aes_key));
+		for (i = 0; i < sizeof(g_custom_aes_key); i += 8)
+			EEPROM_WriteBuffer(0x0F30 + i, &p_aes[i]);
+		g_has_custom_aes_key = false;
+	}
+#endif
 }
 
 void BOARD_EEPROM_LoadMoreSettings(void)

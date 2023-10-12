@@ -579,9 +579,15 @@ void APP_StartListening(function_type_t Function, const bool reset_am_fix)
 		(g_eeprom.dac_gain    << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
 
 	#ifdef ENABLE_VOICE
-		if (g_voice_write_index == 0)       // AM/FM RX mode will be set when the voice has finished
+		#ifdef MUTE_AUDIO_FOR_VOICE
+			if (g_voice_write_index == 0)
+				BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
+		#else
+			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
+		#endif
+	#else
+		BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 	#endif
-			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);  // no need, set it now
 
 	FUNCTION_Select(Function);
 
@@ -887,14 +893,15 @@ void APP_CheckRadioInterrupts(void)
 						g_power_save_expired = false;
 					}
 
-					if (g_eeprom.dual_watch != DUAL_WATCH_OFF && (g_schedule_dual_watch || g_dual_watch_count_down_10ms < dual_watch_count_after_vox_10ms))
+					if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
+					   (g_schedule_dual_watch || g_dual_watch_count_down_10ms < dual_watch_count_after_vox_10ms))
 					{
 						g_dual_watch_count_down_10ms = dual_watch_count_after_vox_10ms;
 						g_schedule_dual_watch = false;
 
 						// let the user see DW is not active
 						g_dual_watch_active = false;
-						g_update_status    = true;
+						g_update_status     = true;
 					}
 				}
 			}
@@ -909,25 +916,25 @@ void APP_CheckRadioInterrupts(void)
 		if (interrupt_status_bits & BK4819_REG_02_SQUELCH_LOST)
 		{
 			g_squelch_lost = true;
-			BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, true);
+			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);
 		}
 
 		if (interrupt_status_bits & BK4819_REG_02_SQUELCH_FOUND)
 		{
 			g_squelch_lost = false;
-			BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, false);
+			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
 		}
 
 		#ifdef ENABLE_AIRCOPY
-			if (interrupt_status_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL &&
-			    g_screen_to_display == DISPLAY_AIRCOPY &&
-			    g_aircopy_state == AIRCOPY_TRANSFER &&
-			    g_air_copy_is_send_mode == 0)
+			if (interrupt_status_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL)
 			{
-				unsigned int i;
-				for (i = 0; i < 4; i++)
-					g_fsk_buffer[g_fsk_wite_index++] = BK4819_ReadRegister(BK4819_REG_5F);
-				AIRCOPY_StorePacket();
+				if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_RX)
+				{
+					unsigned int i;
+					for (i = 0; i < 4; i++)
+						g_aircopy_fsk_buffer[g_aircopy_fsk_write_index++] = BK4819_ReadRegister(BK4819_REG_5F);
+					AIRCOPY_StorePacket();
+				}
 			}
 		#endif
 	}
@@ -1127,6 +1134,7 @@ void APP_Update(void)
 			{
 				NOAA_IncreaseChannel();
 				RADIO_SetupRegisters(false);
+
 				g_noaa_count_down_10ms = 7;      // 70ms
 				g_schedule_noaa        = false;
 			}
@@ -1136,17 +1144,21 @@ void APP_Update(void)
 	// toggle between the VFO's if dual watch is enabled
 	if (g_screen_to_display != DISPLAY_SCANNER && g_eeprom.dual_watch != DUAL_WATCH_OFF)
 	{
-		#ifdef ENABLE_VOICE
-			if (g_voice_write_index == 0)
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			//UART_SendText("dual watch\r\n");
 		#endif
+
+	#ifdef ENABLE_VOICE
+		if (g_voice_write_index == 0)
+	#endif
 		{
 			if (g_schedule_dual_watch)
 			{
 				if (g_scan_state_dir == SCAN_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
 				{
-					#ifdef ENABLE_FMRADIO
-						if (!g_fm_radio_mode)
-					#endif
+				#ifdef ENABLE_FMRADIO
+					if (!g_fm_radio_mode)
+				#endif
 					{
 						if (!g_ptt_is_pressed &&
 							g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
@@ -1168,30 +1180,30 @@ void APP_Update(void)
 		}
 	}
 
-	#ifdef ENABLE_FMRADIO
-		if (g_schedule_fm                          &&
-			g_fm_scan_state    != FM_SCAN_OFF      &&
-			g_current_function != FUNCTION_MONITOR &&
-			g_current_function != FUNCTION_RECEIVE &&
-			g_current_function != FUNCTION_TRANSMIT)
-		{	// switch to FM radio mode
-			FM_Play();
-			g_schedule_fm = false;
-		}
-	#endif
+#ifdef ENABLE_FMRADIO
+	if (g_schedule_fm                          &&
+		g_fm_scan_state    != FM_SCAN_OFF      &&
+		g_current_function != FUNCTION_MONITOR &&
+		g_current_function != FUNCTION_RECEIVE &&
+		g_current_function != FUNCTION_TRANSMIT)
+	{	// switch to FM radio mode
+		FM_Play();
+		g_schedule_fm = false;
+	}
+#endif
 
-	#ifdef ENABLE_VOX
-		if (g_eeprom.vox_switch)
-			APP_HandleVox();
-	#endif
+#ifdef ENABLE_VOX
+	if (g_eeprom.vox_switch)
+		APP_HandleVox();
+#endif
 
 	if (g_schedule_power_save)
 	{
 		#ifdef ENABLE_NOAA
 			if (
-				#ifdef ENABLE_FMRADIO
-					g_fm_radio_mode ||
-			    #endif
+			#ifdef ENABLE_FMRADIO
+			    g_fm_radio_mode ||
+			#endif
 				g_ptt_is_pressed                     ||
 			    g_key_held                           ||
 				g_eeprom.battery_save == 0           ||
@@ -1286,7 +1298,7 @@ void APP_Update(void)
 
 				BK4819_DisableVox();
 				BK4819_Sleep();
-				BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, false);
+				BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, false);
 
 				// Authentic device checked removed
 
@@ -1313,7 +1325,8 @@ void APP_CheckKeys(void)
 	key_code_t key;
 
 	#ifdef ENABLE_AIRCOPY
-		if (g_setting_killed || (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state != AIRCOPY_READY))
+		if (g_setting_killed ||
+		   (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state != AIRCOPY_READY))
 			return;
 	#else
 		if (g_setting_killed)
@@ -1487,6 +1500,41 @@ void APP_TimeSlice10ms(void)
 		__enable_irq();
 	}
 
+	// ***********
+
+	if (g_flag_SaveVfo)
+	{
+		SETTINGS_SaveVfoIndices();
+		g_flag_SaveVfo = false;
+	}
+
+	if (g_flag_SaveSettings)
+	{
+		SETTINGS_SaveSettings();
+		g_flag_SaveSettings = false;
+	}
+
+	#ifdef ENABLE_FMRADIO
+		if (g_flag_SaveFM)
+		{
+			SETTINGS_SaveFM();
+			g_flag_SaveFM = false;
+		}
+	#endif
+
+	if (g_flag_save_channel)
+	{
+		SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_flag_save_channel);
+		g_flag_save_channel = false;
+
+		RADIO_ConfigureChannel(g_eeprom.tx_vfo, VFO_CONFIGURE);
+		RADIO_SetupRegisters(true);
+
+		GUI_SelectNextDisplay(DISPLAY_MAIN);
+	}
+
+	// ***********
+
 	if (g_serial_config_count_down_500ms > 0)
 	{	// config upload/download is running
 		if (g_update_display)
@@ -1495,7 +1543,9 @@ void APP_TimeSlice10ms(void)
 			UI_DisplayStatus(false);
 		return;
 	}
-	
+
+	// ***********
+
 	#ifdef ENABLE_BOOT_BEEPS
 		if (g_boot_counter_10ms > 0 && (g_boot_counter_10ms % 25) == 0)
 			AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
@@ -1503,6 +1553,21 @@ void APP_TimeSlice10ms(void)
 
 	if (g_reduced_service)
 		return;
+
+
+	#ifdef ENABLE_AIRCOPY
+		if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_TX)
+		{
+			if (g_aircopy_send_count_down_10ms > 0)
+			{
+				if (--g_aircopy_send_count_down_10ms == 0)
+				{
+					AIRCOPY_SendMessage(0xff);
+					GUI_DisplayScreen();
+				}
+			}
+		}
+	#endif
 
 	#ifdef ENABLE_AM_FIX
 //		if (g_eeprom.vfo_info[g_eeprom.rx_vfo].am_mode && g_setting_am_fix)
@@ -1517,7 +1582,7 @@ void APP_TimeSlice10ms(void)
 	{	// transmitting
 		#ifdef ENABLE_AUDIO_BAR
 			if (g_setting_mic_bar && (g_flash_light_blink_counter % (150 / 10)) == 0) // once every 150ms
-				UI_DisplayAudioBar();
+				UI_DisplayAudioBar(true);
 		#endif
 	}
 
@@ -1574,9 +1639,9 @@ void APP_TimeSlice10ms(void)
 
 						RADIO_EnableCxCSS();
 						BK4819_SetupPowerAmplifier(0, 0);
-						BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1, false);
+						BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);
 						BK4819_Enable_AfDac_DiscMode_TxDsp();
-						BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_RED, false);
+						BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);
 
 						GUI_DisplayScreen();
 					}
@@ -1586,7 +1651,7 @@ void APP_TimeSlice10ms(void)
 
 						GUI_DisplayScreen();
 
-						BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_RED, true);
+						BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, true);
 						RADIO_SetTxParameters();
 						BK4819_TransmitTone(true, 500);
 						SYSTEM_DelayMs(2);
@@ -1641,7 +1706,7 @@ void APP_TimeSlice10ms(void)
 		}
 
 		if (g_scanner_edit_state != SCAN_EDIT_STATE_NONE)
-		{
+		{	// waiting for user input choice
 			APP_CheckKeys();
 			return;
 		}
@@ -1673,14 +1738,7 @@ void APP_TimeSlice10ms(void)
 
 				BK4819_DisableFrequencyScan();
 
-				#ifdef ENABLE_FREQ_CODE_ROUNDING
-				{	  // round to nearest step multiple
-					const uint32_t step = STEP_FREQ_TABLE[g_step_setting];
-					g_scan_frequency = ((Result + (step / 2)) / step) * step;
-				}
-				#else
-					g_scan_frequency = Result;
-				#endif
+				g_scan_frequency = Result;
 
 				if (g_scan_hit_count < 3)
 				{	// keep scanning for an RF carrier
@@ -1736,7 +1794,7 @@ void APP_TimeSlice10ms(void)
 				BK4819_Disable();
 
 				if (ScanResult == BK4819_CSS_RESULT_CDCSS)
-				{
+				{	// found a CDCSS code
 					const uint8_t Code = DCS_GetCdcssCode(Result);
 					if (Code != 0xFF)
 					{
@@ -1750,7 +1808,7 @@ void APP_TimeSlice10ms(void)
 				}
 				else
 				if (ScanResult == BK4819_CSS_RESULT_CTCSS)
-				{
+				{	// found a CTCSS tone
 					const uint8_t code = DCS_GetCtcssCode(CtcssFreq);
 					if (code != 0xFF)
 					{
@@ -1773,8 +1831,7 @@ void APP_TimeSlice10ms(void)
 					}
 				}
 
-				if (g_scan_css_state == SCAN_CSS_STATE_OFF ||
-				    g_scan_css_state == SCAN_CSS_STATE_SCANNING)
+				if (g_scan_css_state == SCAN_CSS_STATE_OFF || g_scan_css_state == SCAN_CSS_STATE_SCANNING)
 				{	// re-start scan
 					BK4819_SetScanFrequency(g_scan_frequency);
 					g_scan_delay_10ms = scan_freq_css_delay_10ms;
@@ -1791,30 +1848,33 @@ void APP_TimeSlice10ms(void)
 		}
 	}
 
-	#ifdef ENABLE_AIRCOPY
-		if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_TRANSFER && g_air_copy_is_send_mode == 1)
-		{
-			if (g_air_copy_send_count_down > 0)
-			{
-				if (--g_air_copy_send_count_down == 0)
-				{
-					AIRCOPY_SendMessage();
-					GUI_DisplayScreen();
-				}
-			}
-		}
-	#endif
-
 	APP_CheckKeys();
 }
 
 void cancelUserInputModes(void)
 {
+	if (g_ask_to_save)
+	{
+		g_ask_to_save  = false;
+		g_update_display = true;
+	}
+	if (g_ask_to_delete)
+	{
+		g_ask_to_delete  = false;
+		g_update_display = true;
+	}
+
 	if (g_dtmf_input_mode || g_dtmf_input_box_index > 0)
 	{
 		DTMF_clear_input_box();
-		g_beep_to_play           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-		g_request_display_screen = DISPLAY_MAIN;
+		#ifdef ENABLE_FMRADIO
+			if (g_fm_radio_mode)
+				g_request_display_screen = DISPLAY_FM;
+			else
+				g_request_display_screen = DISPLAY_MAIN;
+		#else
+			g_request_display_screen = DISPLAY_MAIN;
+		#endif
 		g_update_display         = true;
 	}
 
@@ -1823,7 +1883,6 @@ void cancelUserInputModes(void)
 		g_fkey_pressed         = false;
 		g_input_box_index      = 0;
 		g_key_input_count_down = 0;
-		g_beep_to_play         = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		g_update_status        = true;
 		g_update_display       = true;
 	}
@@ -1840,7 +1899,7 @@ void APP_TimeSlice500ms(void)
 	{	// config upload/download is running
 		return;
 	}
-	
+
 	if (g_keypad_locked > 0)
 		if (--g_keypad_locked == 0)
 			g_update_display = true;
@@ -2220,7 +2279,8 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	// reset the state so as to remove it from the screen
 	if (Key != KEY_INVALID && Key != KEY_PTT)
 		RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
-
+/*
+	// remember the current backlight state (on / off)
 	const bool backlight_was_on = GPIO_CheckBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
 	if (Key == KEY_EXIT && !backlight_was_on && g_eeprom.backlight > 0)
@@ -2229,14 +2289,29 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 		g_beep_to_play = BEEP_NONE;
 		return;
 	}
+*/
+	// turn the backlight on
+	if (key_pressed)
+		if (Key != KEY_PTT || g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
+			backlight_turn_on();
 
 	if (g_current_function == FUNCTION_POWER_SAVE)
 		FUNCTION_Select(FUNCTION_FOREGROUND);
 
+	// stay awake - for now
 	g_battery_save_count_down_10ms = battery_save_count_10ms;
 
+	// keep the auto keylock at bay
 	if (g_eeprom.auto_keypad_lock)
 		g_key_lock_count_down_500ms = key_lock_timeout_500ms;
+
+	if (g_fkey_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2))
+	{	// cancel the F-key
+		g_fkey_pressed  = false;
+		g_update_status = true;
+	}
+
+	// ********************
 
 	if (g_eeprom.key_lock && g_current_function != FUNCTION_TRANSMIT && Key != KEY_PTT)
 	{	// keyboard is locked
@@ -2268,97 +2343,57 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 			if (!key_pressed || key_held)
 				return;
 
-			backlight_turn_on();
-			
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-//			AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
-
-			// keypad is locked, tell the user
+			// keypad is locked, let the user know
 			g_keypad_locked  = 4;          // 2 second pop-up
 			g_update_display = true;
+
+			#ifdef ENABLE_FMRADIO
+				if (!g_fm_radio_mode)  // don't beep when the FM radio is on, it cause bad gaps and loud clicks
+			#endif
+					g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 
 			return;
 		}
 	}
 
-	if (!key_pressed)
-	{
-		if (g_flag_SaveVfo)
+	// key beep
+	if (Key != KEY_PTT && !key_held && key_pressed)
+		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+
+	// ********************
+
+	if (Key == KEY_EXIT && key_held && key_pressed)
+	{	// exit key held pressed
+
+		// clear the live DTMF decoder
+		if (g_dtmf_rx_live[0] != 0)
 		{
-			SETTINGS_SaveVfoIndices();
-			g_flag_SaveVfo = false;
+			memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
+			g_dtmf_rx_live_timeout = 0;
+			g_update_display       = true;
 		}
 
-		if (g_flag_SaveSettings)
-		{
-			SETTINGS_SaveSettings();
-			g_flag_SaveSettings = false;
-		}
-
-		#ifdef ENABLE_FMRADIO
-			if (g_flag_SaveFM)
-			{
-				SETTINGS_SaveFM();
-				g_flag_SaveFM = false;
-			}
-		#endif
-
-		if (g_flag_save_channel)
-		{
-			SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_flag_save_channel);
-			g_flag_save_channel = false;
-
-			RADIO_ConfigureChannel(g_eeprom.tx_vfo, VFO_CONFIGURE);
-			RADIO_SetupRegisters(true);
-
-			GUI_SelectNextDisplay(DISPLAY_MAIN);
-		}
+		// cancel user input
+		cancelUserInputModes();
 	}
 
-	if (key_pressed)
-	{
-		if (Key != KEY_PTT || g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
-			backlight_turn_on();
+	if (key_pressed && g_screen_to_display == DISPLAY_MENU)
+		g_menu_count_down = menu_timeout_500ms;
 
-		if (Key == KEY_EXIT && key_held)
-		{	// exit key held pressed
+	// cancel the ringing
+	if (key_pressed && g_dtmf_decode_ring_count_down_500ms > 0)
+		g_dtmf_decode_ring_count_down_500ms = 0;
 
-			// clear the live DTMF decoder
-			if (g_dtmf_rx_live[0] != 0)
-			{
-				memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
-				g_dtmf_rx_live_timeout = 0;
-				g_update_display       = true;
-			}
-
-			// cancel user input
-			cancelUserInputModes();
-		}
-
-		if (g_screen_to_display == DISPLAY_MENU)       // 1of11
-			g_menu_count_down = menu_timeout_500ms;
-
-		if (g_dtmf_decode_ring_count_down_500ms > 0)
-		{	// cancel the ringing
-			g_dtmf_decode_ring_count_down_500ms = 0;
-
-			AUDIO_PlayBeep(BEEP_1KHZ_60MS_OPTIONAL);
-
-			if (Key != KEY_PTT)
-			{
-//				g_ptt_was_released = true;   // why is this being set ?
-				return;
-			}
-		}
-	}
+	// ********************
 
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wtype-limits"
 
-	if ((Key >= KEY_0 && Key <= KEY_9) || Key == KEY_F)
-	{
-		if (g_scan_state_dir != SCAN_OFF || g_css_scan_mode != CSS_SCAN_MODE_OFF)
-		{	// FREQ/CTCSS/DCS scanning
+	if (g_scan_state_dir != SCAN_OFF || g_css_scan_mode != CSS_SCAN_MODE_OFF)
+	{	// FREQ/CTCSS/CDCSS scanning
+
+		if ((Key >= KEY_0 && Key <= KEY_9) || Key == KEY_F)
+		{
 			if (key_pressed && !key_held)
 				AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
 			return;
@@ -2366,6 +2401,8 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	}
 
 	#pragma GCC diagnostic pop
+
+	// ********************
 
 	if (Key == KEY_PTT && g_ptt_was_pressed)
 	{
@@ -2378,12 +2415,11 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	}
 
 	// this bit of code has caused soooooo many problems due
-	// to this causing key releases to be totally ignored :( .. 1of11
+	// to this causing key releases to be ignored :( .. 1of11
 	if (Key != KEY_PTT && g_ptt_was_released)
 	{
 		if (key_held)
 			flag = true;
-//		if (!key_pressed)
 		if (key_pressed)	// I now use key released for button press detections
 		{
 			flag = true;
@@ -2393,20 +2429,13 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 		#endif
-
-	}
-
-	if (g_fkey_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2))
-	{	// cancel the F-key
-		g_fkey_pressed  = false;
-		g_update_status = true;
 	}
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 		UART_printf("proc key 2 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 	#endif
 
-	if (!flag)
+	if (!flag)  // this flag is responsible for keys being ignored :(
 	{
 		if (g_current_function == FUNCTION_TRANSMIT)
 		{	// transmitting
@@ -2494,7 +2523,6 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 			{
 				case DISPLAY_MAIN:
 					MAIN_ProcessKeys(Key, key_pressed, key_held);
-//					key_held = false;	// allow the channel setting to be saved
 					break;
 
 				#ifdef ENABLE_FMRADIO
@@ -2532,8 +2560,13 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 			ACTION_Handle(Key, key_pressed, key_held);
 		}
 		else
-		if (!key_held && key_pressed)
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		{
+			#ifdef ENABLE_FMRADIO
+				if (!g_fm_radio_mode)
+			#endif
+					if (!key_held && key_pressed)
+						g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		}
 	}
 
 Skip:

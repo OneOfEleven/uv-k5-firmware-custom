@@ -130,7 +130,8 @@ void ACTION_Scan(bool bRestart)
 				g_monitor_enabled = false;
 
 				if (g_fm_scan_state != FM_SCAN_OFF)
-				{
+				{	// already scanning
+
 					FM_PlayAndUpdate();
 
 					#ifdef ENABLE_VOICE
@@ -142,20 +143,22 @@ void ACTION_Scan(bool bRestart)
 					uint16_t Frequency;
 
 					if (bRestart)
-					{
+					{	// going to scan and auto store what we find
+						FM_EraseChannels();
+
 						g_fm_auto_scan        = true;
 						g_fm_channel_position = 0;
-						FM_EraseChannels();
-						Frequency           = g_eeprom.fm_lower_limit;
+						Frequency             = g_eeprom.fm_lower_limit;
 					}
 					else
 					{
 						g_fm_auto_scan        = false;
 						g_fm_channel_position = 0;
-						Frequency           = g_eeprom.fm_frequency_playing;
+						Frequency             = g_eeprom.fm_frequency_playing;
 					}
 
 					BK1080_GetFrequencyDeviation(Frequency);
+
 					FM_Tune(Frequency, 1, bRestart);
 
 					#ifdef ENABLE_VOICE
@@ -305,7 +308,7 @@ void ACTION_Scan(bool bRestart)
 			{
 				FM_TurnOff();
 
-				g_input_box_index        = 0;
+				g_input_box_index = 0;
 				#ifdef ENABLE_VOX
 					g_vox_resume_count_down = 80;
 				#endif

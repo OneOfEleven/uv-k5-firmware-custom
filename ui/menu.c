@@ -35,6 +35,7 @@
 #include "ui/inputbox.h"
 #include "ui/menu.h"
 #include "ui/ui.h"
+#include "version.h"
 
 // ***************************************************************************************
 // NOTE. the oder of menu entries you on-screen is now solely determined by the enum list order in ui/menu.h
@@ -50,14 +51,14 @@ const t_menu_item g_menu_list[] =
 	{"W/N",    VOICE_ID_CHANNEL_BANDWIDTH,             MENU_W_N           },
 	{"Tx PWR", VOICE_ID_POWER,                         MENU_TXP           }, // was "TXP"
 	{"Rx DCS", VOICE_ID_DCS,                           MENU_R_DCS         }, // was "R_DCS"
-	{"RxCTCS", VOICE_ID_CTCSS,                         MENU_R_CTCS        }, // was "R_CTCS"
+	{"Rx CTS", VOICE_ID_CTCSS,                         MENU_R_CTCS        }, // was "R_CTCS"
 	{"Tx DCS", VOICE_ID_DCS,                           MENU_T_DCS         }, // was "T_DCS"
-	{"TxCTCS", VOICE_ID_CTCSS,                         MENU_T_CTCS        }, // was "T_CTCS"
+	{"Tx CTS", VOICE_ID_CTCSS,                         MENU_T_CTCS        }, // was "T_CTCS"
 	{"Tx DIR", VOICE_ID_TX_OFFSET_FREQ_DIR,            MENU_SFT_D         }, // was "SFT_D"
-	{"TxOFFS", VOICE_ID_TX_OFFSET_FREQ,                MENU_OFFSET        }, // was "OFFSET"
+	{"Tx OFS", VOICE_ID_TX_OFFSET_FREQ,                MENU_OFFSET        }, // was "OFFSET"
 	{"Tx TO",  VOICE_ID_TRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
 	{"Tx VFO", VOICE_ID_INVALID,                       MENU_XB            }, // was "WX"
-	{"2nd RX", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           }, // was "TDR"
+	{"Dual W", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           }, // was "TDR"
 	{"SCRAM",  VOICE_ID_SCRAMBLER_ON,                  MENU_SCR           }, // was "SCR"
 	{"BCL",    VOICE_ID_BUSY_LOCKOUT,                  MENU_BCL           },
 	{"CH SAV", VOICE_ID_MEMORY_CHANNEL,                MENU_MEM_CH        }, // was "MEM-CH"
@@ -122,6 +123,7 @@ const t_menu_item g_menu_list[] =
 	{"SIDE1L", VOICE_ID_INVALID,                       MENU_SIDE1_LONG    },
 	{"SIDE2S", VOICE_ID_INVALID,                       MENU_SIDE2_SHORT   },
 	{"SIDE2L", VOICE_ID_INVALID,                       MENU_SIDE2_LONG    },
+	{"VER",    VOICE_ID_INVALID,                       MENU_VERSION       },
 	{"RESET",  VOICE_ID_INITIALISATION,                MENU_RESET         }, // might be better to move this to the hidden menu items ?
 
 	// hidden menu items from here on
@@ -266,11 +268,11 @@ const char g_sub_menu_pwr_on_msg[4][8] =
 	"NONE"
 };
 
-const char g_sub_menu_roger_mode[3][9] =
+const char g_sub_menu_roger_mode[3][16] =
 {
 	"OFF",
-	"ROGER",
-	"MDC\n1200"
+	"TX END\nROGER",
+	"TX END\nMDC\n1200"
 };
 
 const char g_sub_menu_RESET[2][4] =
@@ -549,28 +551,31 @@ void UI_DisplayMenu(void)
 
 		case MENU_R_DCS:
 		case MENU_T_DCS:
+			strcpy(String, "CDCSS\n");
 			if (g_sub_menu_selection == 0)
-				strcpy(String, "OFF");
+				strcat(String, "OFF");
 			else
 			if (g_sub_menu_selection < 105)
-				sprintf(String, "D%03oN", DCS_OPTIONS[g_sub_menu_selection -   1]);
+				sprintf(String + strlen(String), "D%03oN", DCS_OPTIONS[g_sub_menu_selection -   1]);
 			else
-				sprintf(String, "D%03oI", DCS_OPTIONS[g_sub_menu_selection - 105]);
+				sprintf(String + strlen(String), "D%03oI", DCS_OPTIONS[g_sub_menu_selection - 105]);
 			break;
 
 		case MENU_R_CTCS:
 		case MENU_T_CTCS:
 		{
+			strcpy(String, "CTCSS\n");
 			#if 1
 				// set CTCSS as the user adjusts it
 				unsigned int Code;
 				freq_config_t *pConfig = (g_menu_cursor == MENU_R_CTCS) ? &g_tx_vfo->freq_config_rx : &g_tx_vfo->freq_config_tx;
 				if (g_sub_menu_selection == 0)
 				{
-					strcpy(String, "OFF");
+					strcat(String, "OFF");
 
 					if (pConfig->code_type != CODE_TYPE_CONTINUOUS_TONE)
 						break;
+					
 					Code = 0;
 					pConfig->code_type = CODE_TYPE_OFF;
 					pConfig->code = Code;
@@ -579,7 +584,7 @@ void UI_DisplayMenu(void)
 				}
 				else
 				{
-					sprintf(String, "%u.%uHz", CTCSS_OPTIONS[g_sub_menu_selection - 1] / 10, CTCSS_OPTIONS[g_sub_menu_selection - 1] % 10);
+					sprintf(String + strlen(String), "%u.%uHz", CTCSS_OPTIONS[g_sub_menu_selection - 1] / 10, CTCSS_OPTIONS[g_sub_menu_selection - 1] % 10);
 
 					pConfig->code_type = CODE_TYPE_CONTINUOUS_TONE;
 					Code = g_sub_menu_selection - 1;
@@ -589,9 +594,9 @@ void UI_DisplayMenu(void)
 				}
 			#else
 				if (g_sub_menu_selection == 0)
-					strcpy(String, "OFF");
+					strcat(String, "OFF");
 				else
-					sprintf(String, "%u.%uHz", CTCSS_OPTIONS[g_sub_menu_selection - 1] / 10, CTCSS_OPTIONS[g_sub_menu_selection - 1] % 10);
+					sprintf(String + strlen(String), "%u.%uHz", CTCSS_OPTIONS[g_sub_menu_selection - 1] / 10, CTCSS_OPTIONS[g_sub_menu_selection - 1] % 10);
 			#endif
 
 			break;
@@ -757,7 +762,7 @@ void UI_DisplayMenu(void)
 			char s[11];
 			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
 
-			UI_GenerateChannelStringEx(String, valid, g_sub_menu_selection);
+			UI_GenerateChannelStringEx(String, valid ? "CH-" : "", g_sub_menu_selection);
 
 			// channel name
 			BOARD_fetchChannelName(s, g_sub_menu_selection);
@@ -778,7 +783,7 @@ void UI_DisplayMenu(void)
 			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
 			const unsigned int y = (!g_is_in_sub_menu || g_edit_index < 0) ? 1 : 0;
 
-			UI_GenerateChannelStringEx(String, valid, g_sub_menu_selection);
+			UI_GenerateChannelStringEx(String, valid ? "CH-" : "", g_sub_menu_selection);
 			UI_PrintString(String, menu_item_x1, menu_item_x2, y, 8);
 
 			if (valid)
@@ -921,7 +926,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_PTT_ID:
-			strcpy(String, "TX ID\n");
+			strcpy(String, (g_sub_menu_selection > 0) ? "TX ID\n" : "");
 			strcat(String, g_sub_menu_PTT_ID[g_sub_menu_selection]);
 			break;
 
@@ -950,8 +955,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_ROGER:
-			strcpy(String, "TX END\n");
-			strcpy(String + strlen(String), g_sub_menu_roger_mode[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_roger_mode[g_sub_menu_selection]);
 			break;
 
 		case MENU_VOL:
@@ -968,6 +972,24 @@ void UI_DisplayMenu(void)
 			strcpy(String, g_sub_menu_SIDE_BUTT[g_sub_menu_selection]);
 			break;
 
+		case MENU_VERSION:
+		{	// show the version string on multiple lines - if need be
+			const unsigned int slen = strlen(Version_str);
+			unsigned int m = 0;
+			unsigned int k = 0;
+			i = 0;
+			while (i < (sizeof(String) - 1) && k < slen)
+			{
+				String[i++] = Version_str[k++];
+				if (++m >= 9 && k < slen && i < (sizeof(String) - 1))
+				{
+					m = 0;
+					String[i++] = '\n';
+				}
+			}
+			break;
+		}
+			
 		case MENU_RESET:
 			strcpy(String, g_sub_menu_RESET[g_sub_menu_selection]);
 			break;
@@ -1063,7 +1085,7 @@ void UI_DisplayMenu(void)
 		if (g_sub_menu_selection < 0)
 			strcpy(String, "NULL");
 		else
-			UI_GenerateChannelStringEx(String, true, g_sub_menu_selection);
+			UI_GenerateChannelStringEx(String, "CH-", g_sub_menu_selection);
 
 //		if (g_sub_menu_selection == 0xFF || !g_eeprom.scan_list_enabled[i])
 		if (g_sub_menu_selection < 0 || !g_eeprom.scan_list_enabled[i])

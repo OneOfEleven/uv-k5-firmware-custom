@@ -589,7 +589,7 @@ void RADIO_SetupRegisters(bool bSwitchToFunction0)
 
 	g_enable_speaker = false;
 
-	BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, false);
+	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
 
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
@@ -611,11 +611,11 @@ void RADIO_SetupRegisters(bool bSwitchToFunction0)
 
 	#pragma GCC diagnostic pop
 
-	BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_RED, false);
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);
 
 	BK4819_SetupPowerAmplifier(0, 0);
 
-	BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1, false);
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);
 
 	while (1)
 	{
@@ -649,7 +649,7 @@ void RADIO_SetupRegisters(bool bSwitchToFunction0)
 	BK4819_PickRXFilterPathBasedOnFrequency(Frequency);
 
 	// what does this in do ?
-	BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, true);
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, true);
 
 	// AF RX Gain and DAC
 	BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);  // 1011 00 111010 1000
@@ -843,7 +843,7 @@ void RADIO_SetTxParameters(void)
 
 	g_enable_speaker = false;
 
-	BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, false);
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, false);
 
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
@@ -876,7 +876,7 @@ void RADIO_SetTxParameters(void)
 
 	BK4819_PickRXFilterPathBasedOnFrequency(g_current_vfo->pTX->frequency);
 
-	BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1, true);
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, true);
 
 	SYSTEM_DelayMs(5);
 

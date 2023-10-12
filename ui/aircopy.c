@@ -27,35 +27,84 @@
 
 void UI_DisplayAircopy(void)
 {
-	char String[16];
+	char str[17];
 
+	// clear screen/display buffer
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
-	if (g_aircopy_state == AIRCOPY_READY)
-		strcpy(String, "AIR COPY(RDY)");
-	else
-	if (g_aircopy_state == AIRCOPY_TRANSFER)
-		strcpy(String, "AIR COPY");
-	else
-		strcpy(String, "AIR COPY(CMP)");
-	UI_PrintString(String, 2, 127, 0, 8);
+	// **********************************
+	// upper text line
+
+	strcpy(str, "AIR COPY");
+	switch (g_aircopy_state)
+	{
+		case AIRCOPY_READY:       strcat(str, " READY"); break;
+		case AIRCOPY_RX:          strcat(str, " RX");    break;
+		case AIRCOPY_TX:          strcat(str, " TX");    break;
+		case AIRCOPY_RX_COMPLETE: strcat(str, " DONE");  break;
+		case AIRCOPY_TX_COMPLETE: strcat(str, " DONE");  break;
+		default:                  strcat(str, " ERR");   break;
+	}
+	UI_PrintString(str, 0, LCD_WIDTH - 1, 0, 8);
+
+	// **********************************
+	// center frequency text line
 
 	if (g_input_box_index == 0)
-	{
-		NUMBER_ToDigits(g_rx_vfo->freq_config_rx.frequency, String);
-		UI_DisplayFrequency(String, 16, 2, 0, 0);
-		UI_Displaysmall_digits(2, String + 6, 97, 3, true);
+	{	// show frequency
+		NUMBER_ToDigits(g_rx_vfo->freq_config_rx.frequency, str);
+		UI_DisplayFrequency(str, 16, 2, 0, 0);
+		UI_Displaysmall_digits(2, str + 6, 97, 3, true);
 	}
 	else
+	{	// user is entering a new frequency
 		UI_DisplayFrequency(g_input_box, 16, 2, 1, 0);
+	}
 
-	memset(String, 0, sizeof(String));
-	if (g_air_copy_is_send_mode == 0)
-		sprintf(String, "RCV:%u E:%u", g_air_copy_block_number, g_errors_during_air_copyy);
-	else
-	if (g_air_copy_is_send_mode == 1)
-		sprintf(String, "SND:%u", g_air_copy_block_number);
-	UI_PrintString(String, 2, 127, 4, 8);
+	// **********************************
+	// lower TX/RX status text line
+
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+
+	switch (g_aircopy_state)
+	{
+		case AIRCOPY_READY:
+			UI_PrintString("EXIT rx    M tx", 0, LCD_WIDTH - 1, 5, 7);
+			break;
+
+		case AIRCOPY_RX_COMPLETE:
+			if (g_aircopy_rx_errors == 0)
+			{
+				UI_PrintString("RX COMPLETE", 0, LCD_WIDTH - 1, 5, 8);
+				break;
+			}
+
+		case AIRCOPY_RX:
+			sprintf(str, "RX %u.%u", g_aircopy_block_number, g_aircopy_block_max);
+			if (g_aircopy_rx_errors > 0)
+				sprintf(str + strlen(str), " E %u", g_aircopy_rx_errors);
+			UI_PrintString(str, 0, LCD_WIDTH - 1, 5, 7);
+			break;
+
+		case AIRCOPY_TX_COMPLETE:
+			UI_PrintString("TX COMPLETE", 0, LCD_WIDTH - 1, 5, 8);
+			break;
+
+		case AIRCOPY_TX:
+			sprintf(str, "TX %u.%u", g_aircopy_block_number, g_aircopy_block_max);
+			UI_PrintString(str, 0, LCD_WIDTH - 1, 5, 7);
+			break;
+
+		default:
+			strcpy(str, "ERROR");
+			UI_PrintString(str, 0, LCD_WIDTH - 1, 5, 7);
+			break;
+	}
+
+	#pragma GCC diagnostic pop
+
+	// **********************************
 
 	ST7565_BlitFullScreen();
 }

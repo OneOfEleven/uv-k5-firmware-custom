@@ -9,14 +9,18 @@ ENABLE_OVERLAY                := 0
 ENABLE_LTO                    := 1
 ENABLE_UART                   := 1
 ENABLE_UART_DEBUG             := 0
+ENABLE_UART_DEBUG             := 0
 ENABLE_AIRCOPY                := 1
+ENABLE_AIRCOPY_FREQ           := 1
 ENABLE_FMRADIO                := 1
 ENABLE_NOAA                   := 1
 ENABLE_VOICE                  := 0
+ENABLE_MUTE_RADIO_FOR_VOICE   := 0
 ENABLE_VOX                    := 1
 ENABLE_ALARM                  := 0
 ENABLE_TX1750                 := 1
 ENABLE_PWRON_PASSWORD         := 0
+ENABLE_RESET_AES_KEY          := 1
 ENABLE_BIG_FREQ               := 1
 ENABLE_SMALL_BOLD             := 1
 ENABLE_KEEP_MEM_NAME          := 1
@@ -30,13 +34,12 @@ ENABLE_SHOW_CHARGE_LEVEL      := 1
 ENABLE_REVERSE_BAT_SYMBOL     := 1
 ENABLE_CODE_SCAN_TIMEOUT      := 0
 ENABLE_FREQ_CODE_SCAN_TIMEOUT := 1
-ENABLE_FREQ_CODE_ROUNDING     := 0
 ENABLE_AM_FIX                 := 1
 ENABLE_AM_FIX_SHOW_DATA       := 0
 ENABLE_SQUELCH_MORE_SENSITIVE := 1
 ENABLE_FASTER_CHANNEL_SCAN    := 1
 ENABLE_RSSI_BAR               := 1
-ENABLE_SHOW_TX_TIMEOUT        := 1
+ENABLE_SHOW_TX_TIMEOUT        := 0
 ENABLE_AUDIO_BAR              := 1
 ENABLE_COPY_CHAN_TO_VFO       := 1
 #ENABLE_PANADAPTER             := 0
@@ -45,6 +48,14 @@ ENABLE_COPY_CHAN_TO_VFO       := 1
 #############################################################
 
 TARGET = firmware
+
+GIT_HASH_TMP := $(shell git rev-parse --short HEAD)
+ifeq ($(GIT_HASH_TMP),)
+	GIT_HASH := "NOGIT"
+else
+	GIT_HASH := $(GIT_HASH_TMP)
+endif
+$(info GIT_HASH = $(GIT_HASH))
 
 ifeq ($(ENABLE_UART), 0)
 	ENABLE_UART_DEBUG := 0
@@ -193,13 +204,6 @@ endif
 OBJCOPY = arm-none-eabi-objcopy
 SIZE = arm-none-eabi-size
 
-# the user might not have/want git installed
-# can set own version string here (max 7 chars)
-GIT_HASH := $(shell git rev-parse --short HEAD)
-#GIT_HASH := 230930b
-
-$(info GIT_HASH = $(GIT_HASH))
-
 ASFLAGS = -c -mcpu=cortex-m0
 ifeq ($(ENABLE_OVERLAY),1)
 	ASFLAGS += -DENABLE_OVERLAY
@@ -209,10 +213,10 @@ CFLAGS =
 
 ifeq ($(ENABLE_CLANG),0)
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
-	CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -std=c11 -MMD
+	CFLAGS += -Os -Werror -mcpu=cortex-m0 -std=c11 -MMD
 else
 	# Oz needed to make it fit on flash
-	CFLAGS += -Oz -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
+	CFLAGS += -Oz -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
 endif
 
 ifeq ($(ENABLE_LTO),1)
@@ -227,9 +231,7 @@ endif
 
 # catch any and all warnings
 # better to bust than add new bugs
-#CFLAGS += -Wall
-#CFLAGS += -Wextra
-#CFLAGS += -Wpedantic
+CFLAGS += -Wall -Wextra -Wpedantic
 
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
@@ -241,6 +243,9 @@ ifeq ($(ENABLE_OVERLAY),1)
 endif
 ifeq ($(ENABLE_AIRCOPY),1)
 	CFLAGS += -DENABLE_AIRCOPY
+endif
+ifeq ($(ENABLE_AIRCOPY_FREQ),1)
+	CFLAGS += -DENABLE_AIRCOPY_FREQ
 endif
 ifeq ($(ENABLE_FMRADIO),1)
 	CFLAGS += -DENABLE_FMRADIO
@@ -263,6 +268,9 @@ endif
 ifeq ($(ENABLE_VOICE),1)
 	CFLAGS  += -DENABLE_VOICE
 endif
+ifeq ($(ENABLE_MUTE_RADIO_FOR_VOICE),1)
+	CFLAGS  += -DENABLE_MUTE_RADIO_FOR_VOICE
+endif
 ifeq ($(ENABLE_VOX),1)
 	CFLAGS  += -DENABLE_VOX
 endif
@@ -274,6 +282,9 @@ ifeq ($(ENABLE_TX1750),1)
 endif
 ifeq ($(ENABLE_PWRON_PASSWORD),1)
 	CFLAGS  += -DENABLE_PWRON_PASSWORD
+endif
+ifeq ($(ENABLE_RESET_AES_KEY),1)
+	CFLAGS  += -DENABLE_RESET_AES_KEY
 endif
 ifeq ($(ENABLE_KEEP_MEM_NAME),1)
 	CFLAGS  += -DENABLE_KEEP_MEM_NAME
@@ -307,9 +318,6 @@ ifeq ($(ENABLE_CODE_SCAN_TIMEOUT),1)
 endif
 ifeq ($(ENABLE_FREQ_CODE_SCAN_TIMEOUT),1)
 	CFLAGS  += -DENABLE_FREQ_CODE_SCAN_TIMEOUT
-endif
-ifeq ($(ENABLE_FREQ_CODE_ROUNDING),1)
-	CFLAGS  += -DENABLE_FREQ_CODE_ROUNDING
 endif
 ifeq ($(ENABLE_AM_FIX),1)
 	CFLAGS  += -DENABLE_AM_FIX

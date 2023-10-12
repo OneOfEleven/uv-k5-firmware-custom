@@ -40,8 +40,11 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 
 	if (g_input_box_index > 0)
 	{
-		if (!key_held && key_pressed)
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		#ifdef ENABLE_FMRADIO
+			if (!g_fm_radio_mode)
+		#endif
+				if (!key_held && key_pressed)
+					g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
 
@@ -69,7 +72,10 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 
 	if (key_pressed)
 	{
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+		#ifdef ENABLE_FMRADIO
+			if (!g_fm_radio_mode)
+		#endif
+				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
 	}
 

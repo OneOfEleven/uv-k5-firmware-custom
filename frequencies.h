@@ -19,10 +19,14 @@
 
 #include <stdint.h>
 
+#include "frequencies.h"
+
 typedef struct {
 	const uint32_t lower;
 	const uint32_t upper;
 } freq_band_table_t;
+
+extern uint32_t g_aircopy_freq;
 
 extern const freq_band_table_t BX4819_band1;
 extern const freq_band_table_t BX4819_band2;

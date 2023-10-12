@@ -364,7 +364,7 @@ static void ToggleRX(bool on) {
     ToggleTX(false);
   }
 
-  BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_GREEN, on);
+  BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, on);
   BK4819_RX_TurnOn();
 
   ToggleAudio(on);
@@ -399,7 +399,7 @@ static void ToggleTX(bool on) {
     ToggleRX(false);
   }
 
-  BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_RED, on);
+  BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, on);
 
   if (on) {
     ToggleAudio(false);
@@ -434,8 +434,8 @@ static void ToggleTX(bool on) {
 
     SetF(fMeasure);
   }
-  BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2, !on);
-  BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1, on);
+  BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, !on);
+  BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, on);
 }
 
 // Scan info

@@ -31,7 +31,7 @@
 #include "ui/menu.h"
 #include "ui/ui.h"
 
-BOOT_Mode_t BOOT_GetMode(void)
+boot_mode_t BOOT_GetMode(void)
 {
 	unsigned int i;
 	key_code_t   Keys[2];
@@ -47,7 +47,7 @@ BOOT_Mode_t BOOT_GetMode(void)
 	if (Keys[0] == Keys[1])
 	{
 		if (Keys[0] == KEY_SIDE1)
-			return BOOT_MODE_F_LOCK;
+			return BOOT_MODE_UNHIDE_HIDDEN;
 
 		#ifdef ENABLE_AIRCOPY
 			if (Keys[0] == KEY_SIDE2)
@@ -58,9 +58,9 @@ BOOT_Mode_t BOOT_GetMode(void)
 	return BOOT_MODE_NORMAL;
 }
 
-void BOOT_ProcessMode(BOOT_Mode_t Mode)
+void BOOT_ProcessMode(boot_mode_t Mode)
 {
-	if (Mode == BOOT_MODE_F_LOCK)
+	if (Mode == BOOT_MODE_UNHIDE_HIDDEN)
 	{
 		GUI_SelectNextDisplay(DISPLAY_MENU);
 	}
@@ -80,7 +80,7 @@ void BOOT_ProcessMode(BOOT_Mode_t Mode)
 			g_eeprom.key2_short_press_action  = ACTION_OPT_NONE;
 			g_eeprom.key2_long_press_action   = ACTION_OPT_NONE;
 
-			RADIO_InitInfo(g_rx_vfo, FREQ_CHANNEL_LAST - 1, 41002500);
+			RADIO_InitInfo(g_rx_vfo, FREQ_CHANNEL_LAST - 1, g_aircopy_freq);
 
 			g_rx_vfo->channel_bandwidth        = BANDWIDTH_WIDE;
 			g_rx_vfo->output_power             = OUTPUT_POWER_LOW;

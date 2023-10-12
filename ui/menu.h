@@ -117,6 +117,7 @@ enum
 	MENU_SIDE1_LONG,
 	MENU_SIDE2_SHORT,
 	MENU_SIDE2_LONG,
+	MENU_VERSION,
 	MENU_RESET,
 
 	// ************************************
@@ -162,7 +163,7 @@ extern const char         g_sub_menu_mdf[4][15];
 extern const char         g_sub_menu_D_RSP[4][9];
 extern const char         g_sub_menu_PTT_ID[5][15];
 extern const char         g_sub_menu_pwr_on_msg[4][8];
-extern const char         g_sub_menu_roger_mode[3][9];
+extern const char         g_sub_menu_roger_mode[3][16];
 extern const char         g_sub_menu_RESET[2][4];
 extern const char         g_sub_menu_f_lock[6][8];
 extern const char         g_sub_menu_backlight[8][7];
