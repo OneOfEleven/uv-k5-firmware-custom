@@ -140,7 +140,6 @@ int TX_freq_check(const uint32_t Frequency)
 	switch (g_setting_freq_lock)
 	{
 		case F_LOCK_OFF:
-			return 0; 											// Return 0 unconditionally
 			if (Frequency >= 13600000 && Frequency < 17400000) 	//Frequency Between 136-174 Mhz
 				return 0;
 			if (Frequency >= 17400000 && Frequency < 35000000) 	//Frequency Between 174-350 Mhz + 200 TX Enabled

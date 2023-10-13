@@ -214,7 +214,6 @@ void Main(void)
 		#ifdef ENABLE_NOAA
 			RADIO_ConfigureNOAA();
 		#endif
-
 	}
 
 	while (1)
