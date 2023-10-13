@@ -118,33 +118,37 @@ typedef enum mdf_display_mode_e mdf_display_mode_t;
 
 typedef struct {
 	// [0]
-	uint8_t  rx_ctcss_cdcss_code;
-	// [1]
-	uint8_t  tx_ctcss_cdcss_code;
-	// [2]
-	uint8_t  rx_code_type:4;
-	uint8_t  tx_code_type:4;
-	// [3]
-	uint8_t  tx_offset_dir:4;
-	uint8_t  unused1:4;
+	uint32_t frequency;              //
 	// [4]
-	uint8_t  frequency_reverse:1;
-	uint8_t  channel_bandwidth:1;
-	uint8_t  tx_power:2;
-	uint8_t  busy_channel_lockout:1;
-	uint8_t  unused2:3;
-	// [5]
-	uint8_t  dtmf_decoding_enable:1;
-	uint8_t  dtmf_ptt_id_tx_mode:3;
-	uint8_t  unused3:4;
-	// [6]
-	uint8_t  step_setting;
-	// [7]
-	uint8_t  scrambler;
+	uint32_t offset;                 //
 	// [8]
-	uint32_t frequency;
+	uint8_t  rx_ctcss_cdcss_code;    //
+	// [9]
+	uint8_t  tx_ctcss_cdcss_code;    //
+	// [10]
+	uint8_t  rx_ctcss_cdcss_type:4;  //
+	uint8_t  tx_ctcss_cdcss_type:4;  //
+	// [11]
+	uint8_t  tx_offset_dir:2;        //
+	uint8_t  unused1:2;
+	uint8_t  am_mode:1;              //
+	uint8_t  unused2:3;
 	// [12]
-	uint32_t offset;
+	uint8_t  frequency_reverse:1;    // reverse repeater
+	uint8_t  channel_bandwidth:1;    // wide/narrow
+	uint8_t  tx_power:2;             // 0, 1 or 2 .. L, M or H
+	uint8_t  busy_channel_lockout:1; //
+	uint8_t  unused3:3;
+	// [13]
+	uint8_t  dtmf_decoding_enable:1; //
+	uint8_t  dtmf_ptt_id_tx_mode:3;  //
+	uint8_t  unused4:4;
+	// [14]
+	uint8_t  step_setting:3;         //
+	uint8_t  unused5:5;
+	// [15]
+	uint8_t  scrambler:4;            //
+	uint8_t  unused6:4;
 } __attribute__((packed)) t_channel;
 
 // 512 bytes
@@ -219,8 +223,6 @@ typedef struct {
 	// 0x1F80
 	uint8_t  mic_gain_dB2[5];
 	uint8_t  unused4[3];
-
-	// 0x1F88
 	int16_t  bk4819_xtal_freq_low;
 	uint16_t unknown2;
 	uint16_t unknown3;
@@ -236,7 +238,7 @@ typedef struct {
 	// 0x0000
 	t_channel channel[200];
 
-	// 0xC80
+	// 0x0C80
 	t_channel vfo[14];
 
 	// 0x0D60
@@ -381,7 +383,7 @@ typedef struct {
 	uint8_t        dtmf_contact[16][16];
 
 	// 0x1D00
-	uint8_t        unused16[16 * 16];
+	uint8_t        unused16[256];
 
 	// 0x1E00
 	t_calibration  calibration;
