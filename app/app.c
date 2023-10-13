@@ -202,7 +202,7 @@ static void APP_HandleIncoming(void)
 		return;
 	}
 
-	flag = (g_scan_state_dir == SCAN_OFF && g_current_code_type == CODE_TYPE_OFF);
+	flag = (g_scan_state_dir == SCAN_OFF && g_current_code_type == CODE_TYPE_NONE);
 
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_noaa_count_down_10ms > 0)
@@ -282,7 +282,7 @@ static void APP_HandleReceive(void)
 	switch (g_current_code_type)
 	{
 		default:
-		case CODE_TYPE_OFF:
+		case CODE_TYPE_NONE:
 			break;
 
 		case CODE_TYPE_CONTINUOUS_TONE:
@@ -317,7 +317,7 @@ static void APP_HandleReceive(void)
 		{
 			switch (g_current_code_type)
 			{
-				case CODE_TYPE_OFF:
+				case CODE_TYPE_NONE:
 					if (g_eeprom.squelch_level)
 					{
 						if (g_CxCSS_tail_found)
@@ -942,7 +942,7 @@ void APP_EndTransmission(void)
 
 	RADIO_SendEndOfTransmission();
 
-	if (g_current_vfo->pTX->code_type != CODE_TYPE_OFF)
+	if (g_current_vfo->pTX->code_type != CODE_TYPE_NONE)
 	{	// CTCSS/DCS is enabled
 
 		//if (g_eeprom.tail_note_elimination && g_eeprom.repeater_tail_tone_elimination > 0)
@@ -1099,7 +1099,7 @@ void APP_Update(void)
 			}
 			else
 			{
-				if (g_current_code_type == CODE_TYPE_OFF && g_current_function == FUNCTION_INCOMING)
+				if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_INCOMING)
 					APP_StartListening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
 				else
 					USER_NextChannel();    // switch to next channel
@@ -1346,7 +1346,7 @@ void APP_CheckKeys(void)
 				APP_ProcessKey(KEY_PTT, true, false);
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
+					//UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
 				#endif
 			}
 		}
@@ -1367,7 +1367,7 @@ void APP_CheckKeys(void)
 				APP_ProcessKey(KEY_PTT, false, false);
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
+					//UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
 				#endif
 			}
 		}
@@ -1403,7 +1403,7 @@ void APP_CheckKeys(void)
 				{	// key now fully released
 
 					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-						UART_printf(" old key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+						//UART_printf(" old key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 					#endif
 
 					#ifdef ENABLE_AIRCOPY
@@ -1441,7 +1441,7 @@ void APP_CheckKeys(void)
 					g_key_held            = false;
 
 					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-						UART_printf("\r\n new key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+						//UART_printf("\r\n new key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 					#endif
 
 					g_key_prev = key;
@@ -1468,7 +1468,7 @@ void APP_CheckKeys(void)
 				g_key_held = true;
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					UART_printf("long key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+					//UART_printf("long key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 				#endif
 
 				#ifdef ENABLE_AIRCOPY
@@ -1492,7 +1492,7 @@ void APP_CheckKeys(void)
 				g_key_debounce_repeat -= key_repeat_10ms;
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					UART_printf("rept key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+					//UART_printf("rept key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 				#endif
 
 				#ifdef ENABLE_AIRCOPY
@@ -1503,7 +1503,7 @@ void APP_CheckKeys(void)
 				#else
 					APP_ProcessKey(g_key_prev, true, g_key_held);
 				#endif
-				
+
 				//g_update_status  = true;
 				//g_update_display = true;
 			}
@@ -1592,15 +1592,15 @@ void APP_TimeSlice10ms(void)
 			{	// we're TX'ing
 				AIRCOPY_process_FSK_tx_10ms();
 			}
-			
+
 			APP_CheckKeys();
 
 			if (g_update_display)
 				GUI_DisplayScreen();
-	
+
 			if (g_update_status)
 				UI_DisplayStatus(false);
-			
+
 			return;
 		}
 	#endif
@@ -1755,14 +1755,34 @@ void APP_TimeSlice10ms(void)
 			case SCAN_CSS_STATE_OFF:
 
 				if (g_scan_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
-				{	// freq/css scan timeout
-					#ifdef ENABLE_CODE_SCAN_TIMEOUT
-						BK4819_DisableFrequencyScan();
-						g_scan_css_state = SCAN_CSS_STATE_FREQ_FAILED;
-						g_update_status  = true;
-						g_update_display = true;
-						break;
-					#endif
+				{	// FREQ/CTCSS/CDCSS search timeout
+			
+					if (!g_scan_single_frequency)
+					{	// FREQ search timeout
+						#ifdef ENABLE_FREQ_SEARCH_TIMEOUT
+							BK4819_DisableFrequencyScan();
+	
+							g_scan_css_state = SCAN_CSS_STATE_FREQ_FAILED;
+
+							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+							g_update_status  = true;
+							g_update_display = true;
+							break;
+						#endif
+					}
+					else
+					{	// CTCSS/CDCSS search timeout
+						#ifdef ENABLE_CODE_SEARCH_TIMEOUT
+							BK4819_DisableFrequencyScan();
+	
+							g_scan_css_state = SCAN_CSS_STATE_FREQ_FAILED;
+
+							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+							g_update_status  = true;
+							g_update_display = true;
+							break;
+						#endif
+					}
 				}
 
 				if (!BK4819_GetFrequencyScanResult(&Result))
@@ -1786,14 +1806,15 @@ void APP_TimeSlice10ms(void)
 
 					BK4819_SetScanFrequency(g_scan_frequency);
 
-					g_scan_css_result_code     = 0xFF;
-					g_scan_css_result_type     = 0xFF;
+					g_scan_css_result_type     = CODE_TYPE_NONE;
+					g_scan_css_result_code     = 0xff;
 					g_scan_hit_count           = 0;
 					g_scan_use_css_result      = false;
 					g_scan_freq_css_timer_10ms = 0;
 					g_scan_css_state           = SCAN_CSS_STATE_SCANNING;
 
 					GUI_SelectNextDisplay(DISPLAY_SCANNER);
+
 					g_update_status  = true;
 					g_update_display = true;
 				}
@@ -1804,18 +1825,24 @@ void APP_TimeSlice10ms(void)
 			case SCAN_CSS_STATE_SCANNING:
 
 				if (g_scan_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
-				{	// timeout
-					#if defined(ENABLE_CODE_SCAN_TIMEOUT)
+				{	// CTCSS/CDCSS search timeout
+
+					#if defined(ENABLE_CODE_SEARCH_TIMEOUT)
 						BK4819_Disable();
 						g_scan_css_state = SCAN_CSS_STATE_FAILED;
+
+						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 						g_update_status  = true;
 						g_update_display = true;
 						break;
-					#elif defined(ENABLE_FREQ_CODE_SCAN_TIMEOUT)
+
+					#else
 						if (!g_scan_single_frequency)
 						{
 							BK4819_Disable();
 							g_scan_css_state = SCAN_CSS_STATE_FAILED;
+
+							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 							g_update_status  = true;
 							g_update_display = true;
 							break;
@@ -1838,8 +1865,10 @@ void APP_TimeSlice10ms(void)
 						g_scan_css_result_type = CODE_TYPE_DIGITAL;
 						g_scan_css_state       = SCAN_CSS_STATE_FOUND;
 						g_scan_use_css_result  = true;
-						g_update_status        = true;
-						g_update_display       = true;
+
+						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+						g_update_status  = true;
+						g_update_display = true;
 					}
 				}
 				else
@@ -1855,8 +1884,10 @@ void APP_TimeSlice10ms(void)
 							{
 								g_scan_css_state      = SCAN_CSS_STATE_FOUND;
 								g_scan_use_css_result = true;
-								g_update_status       = true;
-								g_update_display      = true;
+
+								AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+								g_update_status  = true;
+								g_update_display = true;
 							}
 						}
 						else
@@ -1867,7 +1898,8 @@ void APP_TimeSlice10ms(void)
 					}
 				}
 
-				if (g_scan_css_state == SCAN_CSS_STATE_OFF || g_scan_css_state == SCAN_CSS_STATE_SCANNING)
+				if (g_scan_css_state == SCAN_CSS_STATE_OFF ||
+				    g_scan_css_state == SCAN_CSS_STATE_SCANNING)
 				{	// re-start scan
 					BK4819_SetScanFrequency(g_scan_frequency);
 					g_scan_delay_10ms = scan_freq_css_delay_10ms;
@@ -1878,7 +1910,7 @@ void APP_TimeSlice10ms(void)
 
 			//case SCAN_CSS_STATE_FOUND:
 			//case SCAN_CSS_STATE_FAILED:
-			//case SCAN_CSS_STATE_FREQ_FAILED:
+			//case SCAN_CSS_STATE_REPEAT:
 			default:
 				break;
 		}
@@ -2049,7 +2081,7 @@ void APP_TimeSlice500ms(void)
 			   (g_screen_to_display != DISPLAY_SCANNER    ||
 				g_scan_css_state == SCAN_CSS_STATE_FOUND  ||
 				g_scan_css_state == SCAN_CSS_STATE_FAILED ||
-				g_scan_css_state == SCAN_CSS_STATE_FREQ_FAILED))
+				g_scan_css_state == SCAN_CSS_STATE_REPEAT))
 			{
 
 				if (g_eeprom.auto_keypad_lock       &&
@@ -2114,7 +2146,7 @@ void APP_TimeSlice500ms(void)
 
 						if (disp == DISPLAY_INVALID)
 						{
-							#ifndef ENABLE_CODE_SCAN_TIMEOUT
+							#ifndef ENABLE_CODE_SEARCH_TIMEOUT
 								if (g_screen_to_display != DISPLAY_SCANNER)
 							#endif
 									disp = DISPLAY_MAIN;
@@ -2463,12 +2495,12 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 		}
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+			//UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 		#endif
 	}
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("proc key 2 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+		//UART_printf("proc key 2 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 	#endif
 
 	if (!flag)  // this flag is responsible for keys being ignored :(

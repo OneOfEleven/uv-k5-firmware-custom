@@ -273,8 +273,8 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 		switch (g_eeprom.vfo_info[VFO].freq_config_rx.code_type)
 		{
 			default:
-			case CODE_TYPE_OFF:
-				g_eeprom.vfo_info[VFO].freq_config_rx.code_type = CODE_TYPE_OFF;
+			case CODE_TYPE_NONE:
+				g_eeprom.vfo_info[VFO].freq_config_rx.code_type = CODE_TYPE_NONE;
 				Tmp = 0;
 				break;
 
@@ -295,8 +295,8 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 		switch (g_eeprom.vfo_info[VFO].freq_config_tx.code_type)
 		{
 			default:
-			case CODE_TYPE_OFF:
-				g_eeprom.vfo_info[VFO].freq_config_tx.code_type = CODE_TYPE_OFF;
+			case CODE_TYPE_NONE:
+				g_eeprom.vfo_info[VFO].freq_config_tx.code_type = CODE_TYPE_NONE;
 				Tmp = 0;
 				break;
 
@@ -414,8 +414,8 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 	{	// freq/chan is in AM mode
 		g_eeprom.vfo_info[VFO].scrambling_type         = 0;
 //		g_eeprom.vfo_info[VFO].dtmf_decoding_enable    = false;  // no reason to disable DTMF decoding, aircraft use it on SSB
-		g_eeprom.vfo_info[VFO].freq_config_rx.code_type = CODE_TYPE_OFF;
-		g_eeprom.vfo_info[VFO].freq_config_tx.code_type = CODE_TYPE_OFF;
+		g_eeprom.vfo_info[VFO].freq_config_rx.code_type = CODE_TYPE_NONE;
+		g_eeprom.vfo_info[VFO].freq_config_tx.code_type = CODE_TYPE_NONE;
 	}
 
 	g_eeprom.vfo_info[VFO].compander = (Attributes & USER_CH_COMPAND) >> 4;
@@ -673,7 +673,7 @@ void RADIO_SetupRegisters(bool bSwitchToFunction0)
 			switch (code_type)
 			{
 				default:
-				case CODE_TYPE_OFF:
+				case CODE_TYPE_NONE:
 					BK4819_SetCTCSSFrequency(670);
 
 					//#ifndef ENABLE_CTCSS_TAIL_PHASE_SHIFT
@@ -887,7 +887,7 @@ void RADIO_SetTxParameters(void)
 	switch (g_current_vfo->pTX->code_type)
 	{
 		default:
-		case CODE_TYPE_OFF:
+		case CODE_TYPE_NONE:
 			BK4819_ExitSubAu();
 			break;
 
@@ -1055,7 +1055,7 @@ void RADIO_EnableCxCSS(void)
 	switch (g_current_vfo->pTX->code_type)
 	{
 		default:
-		case CODE_TYPE_OFF:
+		case CODE_TYPE_NONE:
 			break;
 
 		case CODE_TYPE_CONTINUOUS_TONE:

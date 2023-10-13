@@ -59,6 +59,7 @@ void UI_DisplayScanner(void)
 		case SCAN_CSS_STATE_SCANNING:
 		case SCAN_CSS_STATE_FOUND:
 		case SCAN_CSS_STATE_FAILED:
+		case SCAN_CSS_STATE_REPEAT:
 			{
 				const uint32_t freq = g_scan_frequency;
 				sprintf(String, "FREQ %u.%05u", freq / 100000, freq % 100000);
@@ -66,7 +67,7 @@ void UI_DisplayScanner(void)
 			break;
 
 		case SCAN_CSS_STATE_FREQ_FAILED:
-			strcpy(String, "FREQ not found");
+			strcpy(String, "FREQ none found");
 			break;
 	}
 
@@ -83,7 +84,6 @@ void UI_DisplayScanner(void)
 	{
 		default:
 		case SCAN_CSS_STATE_OFF:
-		case SCAN_CSS_STATE_FREQ_FAILED:
 			strcpy(String, "CODE");
 			break;
 
@@ -92,12 +92,13 @@ void UI_DisplayScanner(void)
 			break;
 
 		case SCAN_CSS_STATE_FOUND:
+		case SCAN_CSS_STATE_REPEAT:
 
 			switch (g_scan_css_result_type)
 			{
 				default:
-				case CODE_TYPE_OFF:
-					strcpy(String, "CODE none");
+				case CODE_TYPE_NONE:
+					strcpy(String, "CODE none found");
 					break;
 				case CODE_TYPE_CONTINUOUS_TONE:
 					sprintf(String, "CTCSS %u.%uHz", CTCSS_OPTIONS[g_scan_css_result_code] / 10, CTCSS_OPTIONS[g_scan_css_result_code] % 10);
@@ -110,7 +111,7 @@ void UI_DisplayScanner(void)
 			break;
 
 		case SCAN_CSS_STATE_FAILED:
-			strcpy(String, "CODE none");
+			strcpy(String, "CODE none found");
 			break;
 	}
 
@@ -121,13 +122,13 @@ void UI_DisplayScanner(void)
 
 	memset(String, 0, sizeof(String));
 
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+
 	switch (g_scanner_edit_state)
 	{
 		default:
 		case SCAN_EDIT_STATE_NONE:
-
-			#pragma GCC diagnostic push
-			#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
 			switch (g_scan_css_state)
 			{
@@ -153,16 +154,15 @@ void UI_DisplayScanner(void)
 					}
 					
 				case SCAN_CSS_STATE_FREQ_FAILED:
+				case SCAN_CSS_STATE_REPEAT:
 					strcpy(String, "* repeat");
 					text_centered = true;
 					break;
 			}
 
-			#pragma GCC diagnostic pop
-
 			break;
 
-		case SCAN_EDIT_STATE_SAVE:
+		case SCAN_EDIT_STATE_SAVE_CHAN:
 			strcpy(String, "SAVE ");
 			{
 				char s[11];
@@ -173,12 +173,13 @@ void UI_DisplayScanner(void)
 			}
 			break;
 
-		case SCAN_EDIT_STATE_DONE:
-//			strcpy(String, "* repeat  M save");
-			strcpy(String, "* repeat");
+		case SCAN_EDIT_STATE_SAVE_CONFIRM:
+			strcpy(String, "* repeat  Save ?");
 			text_centered = true;
 			break;
 	}
+
+	#pragma GCC diagnostic pop
 
 	UI_PrintString(String, text_centered ? 0 : 2, text_centered ? 127 : 0, 5, 8);
 

@@ -23,11 +23,11 @@
 enum scan_css_state_e
 {
 	SCAN_CSS_STATE_OFF = 0,
-//	SCAN_CSS_STATE_FREQ_SCANNING,
 	SCAN_CSS_STATE_SCANNING,
 	SCAN_CSS_STATE_FOUND,
 	SCAN_CSS_STATE_FAILED,
-	SCAN_CSS_STATE_FREQ_FAILED
+	SCAN_CSS_STATE_FREQ_FAILED,
+	SCAN_CSS_STATE_REPEAT
 };
 typedef enum scan_css_state_e scan_css_state_t;
 
@@ -40,8 +40,8 @@ typedef enum scan_state_dir_e scan_state_dir_t;
 
 enum scan_edit_state_e {
 	SCAN_EDIT_STATE_NONE = 0,
-	SCAN_EDIT_STATE_SAVE,
-	SCAN_EDIT_STATE_DONE
+	SCAN_EDIT_STATE_SAVE_CHAN,
+	SCAN_EDIT_STATE_SAVE_CONFIRM
 };
 typedef enum scan_edit_state_e scan_edit_state_t;
 

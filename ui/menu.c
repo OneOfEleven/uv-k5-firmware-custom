@@ -578,7 +578,7 @@ void UI_DisplayMenu(void)
 						break;
 					
 					Code = 0;
-					pConfig->code_type = CODE_TYPE_OFF;
+					pConfig->code_type = CODE_TYPE_NONE;
 					pConfig->code = Code;
 
 					BK4819_ExitSubAu();
