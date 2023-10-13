@@ -156,6 +156,11 @@ volatile bool         g_tx_timeout_reached;
 
 volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 
+bool                  g_scan_pause_mode;
+volatile bool         g_scan_schedule_scan_listen = true;
+volatile uint16_t     g_scan_pause_delay_in_10ms;
+scan_state_dir_t      g_scan_state_dir;
+
 #ifdef ENABLE_NOAA
 	volatile uint16_t g_noaa_count_down_10ms;
 #endif
@@ -201,10 +206,10 @@ bool                  g_flag_save_channel;
 #ifdef ENABLE_FMRADIO
 	bool              g_flag_SaveFM;
 #endif
-bool                  g_CDCSS_lost;
-uint8_t               g_CDCSS_code_type;
-bool                  g_CTCSS_lost;
-bool                  g_CxCSS_tail_found;
+bool                  g_cdcss_lost;
+uint8_t               g_cdcss_code_type;
+bool                  g_ctcss_lost;
+bool                  g_cxcss_tail_found;
 #ifdef ENABLE_VOX
 	bool              g_vox_lost;
 	bool              g_vox_noise_detected;
@@ -216,12 +221,13 @@ uint8_t               g_flash_light_state;
 volatile uint16_t     g_flash_light_blink_counter;
 bool                  g_flag_end_tx;
 uint16_t              g_low_batteryCountdown;
-uint8_t               g_next_channel;
 reception_mode_t      g_rx_reception_mode;
 
-uint8_t               g_restore_channel;
-scan_next_chan_t      g_current_scan_list;
-uint32_t              g_restore_frequency;
+uint8_t               g_scan_next_channel;
+uint8_t               g_scan_restore_channel;
+scan_next_chan_t      g_scan_current_scan_list;
+uint32_t              g_scan_restore_frequency;
+bool                  g_scan_keep_frequency;
 
 bool                  g_rx_vfo_is_active;
 #ifdef ENABLE_ALARM
@@ -230,7 +236,6 @@ bool                  g_rx_vfo_is_active;
 #endif
 uint8_t               g_menu_list_count;
 uint8_t               g_backup_cross_vfo_rx_tx;
-uint8_t               g_scan_delay_10ms;
 
 #ifdef ENABLE_NOAA
 	bool              g_is_noaa_mode;
@@ -240,8 +245,6 @@ uint8_t               g_scan_delay_10ms;
 bool                  g_update_display;
 
 bool                  g_unhide_hidden = false;
-
-uint8_t               g_show_chan_prefix;
 
 volatile bool         g_next_time_slice;
 volatile uint8_t      g_found_CDCSS_count_down_10ms;

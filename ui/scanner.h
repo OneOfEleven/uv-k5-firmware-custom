@@ -17,7 +17,7 @@
 #ifndef UI_SCANNER_H
 #define UI_SCANNER_H
 
-void UI_DisplayScanner(void);
+void UI_DisplaySearch(void);
 
 #endif
 

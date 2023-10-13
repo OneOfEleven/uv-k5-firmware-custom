@@ -95,9 +95,9 @@ void UI_DisplayStatus(const bool test_display)
 		else
 	#endif
 		// SCAN indicator
-		if (g_scan_state_dir != SCAN_OFF || g_screen_to_display == DISPLAY_SCANNER || test_display)
+		if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_screen_to_display == DISPLAY_SEARCH || test_display)
 		{
-			if (g_next_channel <= USER_CHANNEL_LAST)
+			if (g_scan_next_channel <= USER_CHANNEL_LAST)
 			{	// channel mode
 				if (g_eeprom.scan_list_default == 0)
 					UI_PrintStringSmallBuffer("1", line + x);

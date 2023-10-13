@@ -14,58 +14,49 @@
  *     limitations under the License.
  */
 
-#ifndef APP_SCANNER_H
-#define APP_SCANNER_H
+#ifndef APP_SEARCH_H
+#define APP_SEARCH_H
 
 #include "dcs.h"
 #include "driver/keyboard.h"
+#include "frequencies.h"
 
-enum scan_css_state_e
+enum search_css_state_e
 {
-	SCAN_CSS_STATE_OFF = 0,
-	SCAN_CSS_STATE_SCANNING,
-	SCAN_CSS_STATE_FOUND,
-	SCAN_CSS_STATE_FAILED,
-	SCAN_CSS_STATE_FREQ_FAILED,
-	SCAN_CSS_STATE_REPEAT
+	SEARCH_CSS_STATE_OFF = 0,
+	SEARCH_CSS_STATE_SCANNING,
+	SEARCH_CSS_STATE_FOUND,
+	SEARCH_CSS_STATE_FAILED,
+	SEARCH_CSS_STATE_FREQ_FAILED,
+	SEARCH_CSS_STATE_REPEAT
 };
-typedef enum scan_css_state_e scan_css_state_t;
+typedef enum search_css_state_e search_css_state_t;
 
-enum scan_state_dir_e {
-	SCAN_REV = -1,
-	SCAN_OFF =  0,
-	SCAN_FWD = +1
+enum search_edit_state_e {
+	SEARCH_EDIT_STATE_NONE = 0,
+	SEARCH_EDIT_STATE_SAVE_CHAN,
+	SEARCH_EDIT_STATE_SAVE_CONFIRM
 };
-typedef enum scan_state_dir_e scan_state_dir_t;
+typedef enum search_edit_state_e search_edit_state_t;
 
-enum scan_edit_state_e {
-	SCAN_EDIT_STATE_NONE = 0,
-	SCAN_EDIT_STATE_SAVE_CHAN,
-	SCAN_EDIT_STATE_SAVE_CONFIRM
-};
-typedef enum scan_edit_state_e scan_edit_state_t;
+extern search_css_state_t  g_search_css_state;
+extern dcs_code_type_t     g_search_css_result_type;
+extern uint8_t             g_search_css_result_code;
+extern bool                g_search_flag_start_scan;
+extern bool                g_search_flag_stop_scan;
+extern uint8_t             g_search_show_chan_prefix;
+extern bool                g_search_single_frequency;
+extern search_edit_state_t g_search_edit_state;
+extern uint8_t             g_search_channel;
+extern uint32_t            g_search_frequency;
+extern step_setting_t      g_search_step_setting;
+extern uint16_t            g_search_freq_css_timer_10ms;
+extern uint8_t             g_search_delay_10ms;
+extern uint8_t             g_search_hit_count;
+extern bool                g_search_use_css_result;
 
-extern dcs_code_type_t   g_scan_css_result_type;
-extern uint8_t           g_scan_css_result_code;
-extern bool              g_flag_start_scan;
-extern bool              g_flag_stop_scan;
-extern bool              g_scan_single_frequency;
-extern scan_edit_state_t g_scanner_edit_state;
-extern uint8_t           g_scan_channel;
-extern uint32_t          g_scan_frequency;
-extern bool              g_scan_pause_mode;
-extern scan_css_state_t  g_scan_css_state;
-extern volatile bool     g_schedule_scan_listen;
-extern volatile uint16_t g_scan_pause_delay_in_10ms;
-extern uint16_t          g_scan_freq_css_timer_10ms;
-extern uint8_t           g_scan_hit_count;
-extern bool              g_scan_use_css_result;
-extern scan_state_dir_t  g_scan_state_dir;
-extern bool              g_scan_keep_frequency;
-
-void SCANNER_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held);
-void SCANNER_Start(void);
-void SCANNER_Stop(void);
+void SEARCH_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held);
+void SEARCH_Start(void);
 
 #endif
 

@@ -101,6 +101,13 @@ enum scan_next_chan_e {
 };
 typedef enum scan_next_chan_e scan_next_chan_t;
 
+enum scan_state_dir_e {
+	SCAN_STATE_DIR_REVERSE = -1,
+	SCAN_STATE_DIR_OFF     =  0,
+	SCAN_STATE_DIR_FORWARD = +1
+};
+typedef enum scan_state_dir_e scan_state_dir_t;
+
 extern const uint8_t         obfuscate_array[16];
 
 extern const uint8_t         fm_resume_countdown_500ms;
@@ -231,6 +238,11 @@ extern volatile bool         g_tx_timeout_reached;
 
 extern volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 
+extern bool                  g_scan_pause_mode;
+extern volatile bool         g_scan_schedule_scan_listen;
+extern volatile uint16_t     g_scan_pause_delay_in_10ms;
+extern scan_state_dir_t      g_scan_state_dir;
+
 #ifdef ENABLE_FMRADIO
 	extern volatile uint16_t g_fm_play_count_down_10ms;
 #endif
@@ -276,10 +288,10 @@ extern bool                  g_flag_save_channel;
 #ifdef ENABLE_FMRADIO
 	extern bool              g_flag_SaveFM;
 #endif
-extern bool                  g_CDCSS_lost;
-extern uint8_t               g_CDCSS_code_type;
-extern bool                  g_CTCSS_lost;
-extern bool                  g_CxCSS_tail_found;
+extern bool                  g_cdcss_lost;
+extern uint8_t               g_cdcss_code_type;
+extern bool                  g_ctcss_lost;
+extern bool                  g_cxcss_tail_found;
 #ifdef ENABLE_VOX
 	extern bool              g_vox_lost;
 	extern bool              g_vox_noise_detected;
@@ -291,19 +303,19 @@ extern uint8_t               g_flash_light_state;
 extern volatile uint16_t     g_flash_light_blink_counter;
 extern bool                  g_flag_end_tx;
 extern uint16_t              g_low_batteryCountdown;
-extern uint8_t               g_next_channel;
 extern reception_mode_t      g_rx_reception_mode;
 
-extern uint8_t               g_restore_channel;
-extern scan_next_chan_t      g_current_scan_list;
-extern uint32_t              g_restore_frequency;
+extern uint8_t               g_scan_next_channel;
+extern uint8_t               g_scan_restore_channel;
+extern scan_next_chan_t      g_scan_current_scan_list;
+extern uint32_t              g_scan_restore_frequency;
+extern bool                  g_scan_keep_frequency;
 
 extern bool                  g_rx_vfo_is_active;
 extern uint8_t               g_alarm_tone_counter;
 extern uint16_t              g_alarm_running_counter;
 extern uint8_t               g_menu_list_count;
 extern uint8_t               g_backup_cross_vfo_rx_tx;
-extern uint8_t               g_scan_delay_10ms;
 #ifdef ENABLE_NOAA
 	extern bool              g_is_noaa_mode;
 	extern uint8_t           g_noaa_channel;
@@ -314,7 +326,6 @@ extern bool                  g_unhide_hidden;
 #ifdef ENABLE_FMRADIO
 	extern uint8_t           g_fm_channel_position;
 #endif
-extern uint8_t               g_show_chan_prefix;
 extern volatile uint8_t      g_found_CDCSS_count_down_10ms;
 extern volatile uint8_t      g_found_CTCSS_count_down_10ms;
 #ifdef ENABLE_VOX

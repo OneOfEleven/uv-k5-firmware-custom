@@ -50,8 +50,12 @@ static void Render(void)
 
 void UI_DisplayLock(void)
 {
-	key_code_t  Key;
-	beep_type_t Beep;
+	unsigned int g_debounce_counter = 0;
+//	bool         g_key_being_held   = false;
+	key_code_t   g_key_reading_0    = KEY_INVALID;
+//	key_code_t   g_key_reading_1;
+	key_code_t   Key;
+	beep_type_t  Beep;
 
 	g_update_display = true;
 
@@ -73,11 +77,11 @@ void UI_DisplayLock(void)
 			{
 				if (Key == KEY_INVALID)
 				{
-					g_key_reading_1 = KEY_INVALID;
+//					g_key_reading_1 = KEY_INVALID;
 				}
 				else
 				{
-					g_key_reading_1 = Key;
+//					g_key_reading_1 = Key;
 
 					switch (Key)
 					{
@@ -135,13 +139,13 @@ void UI_DisplayLock(void)
 					}
 				}
 
-				g_key_being_held = false;
+//				g_key_being_held = false;
 			}
 		}
 		else
 		{
 			g_debounce_counter = 0;
-			g_key_reading_0     = Key;
+			g_key_reading_0    = Key;
 		}
 
 		if (UART_IsCommandAvailable())

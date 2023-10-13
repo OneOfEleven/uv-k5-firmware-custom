@@ -138,22 +138,22 @@ void GENERIC_Key_PTT(bool key_pressed)
 //		UART_printf("gene key 1 %u\r\n", key_pressed);
 	#endif
 
-	if (g_scan_state_dir != SCAN_OFF ||             // frequency/channel scanning
-	    g_screen_to_display == DISPLAY_SCANNER ||   // CTCSS/CDCSS scanning
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF ||             // frequency/channel scanning
+	    g_screen_to_display == DISPLAY_SEARCH ||   // CTCSS/CDCSS scanning
 	    g_css_scan_mode != CSS_SCAN_MODE_OFF)       //   "     "
 	{	// we're scanning .. stop
 
-		if (g_screen_to_display == DISPLAY_SCANNER)
+		if (g_screen_to_display == DISPLAY_SEARCH)
 		{	// CTCSS/CDCSS scanning .. stop
 			g_eeprom.cross_vfo_rx_tx = g_backup_cross_vfo_rx_tx;
-			g_flag_stop_scan         = true;
+			g_search_flag_stop_scan         = true;
 			g_vfo_configure_mode     = VFO_CONFIGURE_RELOAD;
 			g_flag_reset_vfos         = true;
 		}
 		else
-		if (g_scan_state_dir != SCAN_OFF)
+		if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 		{	// frequency/channel scanning . .stop
-			SCANNER_Stop();
+			SCAN_Stop();
 		}
 		else
 		if (g_css_scan_mode != CSS_SCAN_MODE_OFF)

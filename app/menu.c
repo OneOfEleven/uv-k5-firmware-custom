@@ -88,7 +88,7 @@ void MENU_StartCssScan(int8_t Direction)
 	MENU_SelectNextCode();
 
 	g_scan_pause_delay_in_10ms = scan_pause_delay_in_2_10ms;
-	g_schedule_scan_listen     = false;
+	g_scan_schedule_scan_listen     = false;
 }
 
 void MENU_StopCssScan(void)

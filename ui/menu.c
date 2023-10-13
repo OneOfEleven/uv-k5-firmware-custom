@@ -260,9 +260,9 @@ const char g_sub_menu_PTT_ID[5][15] =
 	"APOLLO\nQUINDAR"
 };
 
-const char g_sub_menu_pwr_on_msg[4][8] =
+const char g_sub_menu_pwr_on_msg[4][14] =
 {
-	"FULL",
+	"ALL\nPIXELS\nON",
 	"MESSAGE",
 	"VOLTAGE",
 	"NONE"
