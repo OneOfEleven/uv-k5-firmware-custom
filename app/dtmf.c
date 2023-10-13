@@ -425,7 +425,7 @@ void DTMF_Reply(void)
 			}
 
 			// send TX-UP DTMF
-			pString = g_eeprom.dtmf_up_code;
+			pString = g_eeprom.dtmf_key_up_code;
 			break;
 	}
 

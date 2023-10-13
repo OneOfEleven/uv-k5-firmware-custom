@@ -148,7 +148,7 @@ void ACTION_Scan(bool bRestart)
 
 						g_fm_auto_scan        = true;
 						g_fm_channel_position = 0;
-						Frequency             = g_eeprom.fm_lower_limit;
+						Frequency             = FM_RADIO_BAND.lower;
 					}
 					else
 					{
