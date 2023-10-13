@@ -21,6 +21,9 @@
 // the default AIRCOPY frequency to use
 uint32_t g_aircopy_freq = 41002500;
 
+// FM broadcast band lower/upper limit
+const freq_band_table_t FM_RADIO_BAND = {760, 1080};
+
 // the BK4819 has 2 bands it covers, 18MHz ~ 630MHz and 760MHz ~ 1300MHz
 const freq_band_table_t BX4819_BAND1 = { 1800000,  63000000};
 const freq_band_table_t BX4819_BAND2 = {84000000, 130000000};

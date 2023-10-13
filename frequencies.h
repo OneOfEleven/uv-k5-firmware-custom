@@ -40,6 +40,8 @@ typedef struct {
 
 extern uint32_t g_aircopy_freq;
 
+extern const freq_band_table_t FM_RADIO_BAND;
+
 extern const freq_band_table_t BX4819_BAND1;
 extern const freq_band_table_t BX4819_BAND2;
 

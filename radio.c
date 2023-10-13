@@ -248,6 +248,9 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 
 		EEPROM_ReadBuffer(Base + 8, Data, sizeof(Data));
 
+		g_eeprom.vfo_info[VFO].freq_config_rx.code_type = (Data[2] >> 0) & 0x0F;
+		g_eeprom.vfo_info[VFO].freq_config_tx.code_type = (Data[2] >> 4) & 0x0F;
+
 		Tmp = Data[3] & 0x0F;
 		if (Tmp > TX_OFFSET_FREQ_DIR_SUB)
 			Tmp = 0;
@@ -264,9 +267,6 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 		if (Tmp > (ARRAY_SIZE(g_sub_menu_SCRAMBLER) - 1))
 			Tmp = 0;
 		g_eeprom.vfo_info[VFO].scrambling_type = Tmp;
-
-		g_eeprom.vfo_info[VFO].freq_config_rx.code_type = (Data[2] >> 0) & 0x0F;
-		g_eeprom.vfo_info[VFO].freq_config_tx.code_type = (Data[2] >> 4) & 0x0F;
 
 		Tmp = Data[0];
 		switch (g_eeprom.vfo_info[VFO].freq_config_rx.code_type)
@@ -1104,7 +1104,7 @@ void RADIO_SendEndOfTransmission(void)
 		BK4819_EnterDTMF_TX(g_eeprom.dtmf_side_tone);
 
 		BK4819_PlayDTMFString(
-				g_eeprom.dtmf_down_code,
+				g_eeprom.dtmf_key_down_code,
 				0,
 				g_eeprom.dtmf_first_code_persist_time,
 				g_eeprom.dtmf_hash_code_persist_time,
