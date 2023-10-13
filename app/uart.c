@@ -155,10 +155,6 @@ static union
 	} __attribute__((packed));
 } __attribute__((packed)) UART_Command;
 
-static const uint8_t Obfuscation[16] = {
-	0x16, 0x6C, 0x14, 0xE6, 0x2E, 0x91, 0x0D, 0x40, 0x21, 0x35, 0xD5, 0x40, 0x13, 0x03, 0xE9, 0x80
-};
-
 uint32_t time_stamp    = 0;
 uint16_t write_index   = 0;
 bool     is_encrypted  = true;
@@ -180,7 +176,7 @@ static void SendReply(void *preply, uint16_t Size)
 		uint8_t     *pBytes = (uint8_t *)preply;
 		unsigned int i;
 		for (i = 0; i < Size; i++)
-			pBytes[i] ^= Obfuscation[i % 16];
+			pBytes[i] ^= obfuscate_array[i % 16];
 	}
 
 	Header.ID   = 0xCDAB;
@@ -190,8 +186,8 @@ static void SendReply(void *preply, uint16_t Size)
 
 	if (is_encrypted)
 	{
-		Footer.pad[0] = Obfuscation[(Size + 0) % 16] ^ 0xFF;
-		Footer.pad[1] = Obfuscation[(Size + 1) % 16] ^ 0xFF;
+		Footer.pad[0] = obfuscate_array[(Size + 0) % 16] ^ 0xFF;
+		Footer.pad[1] = obfuscate_array[(Size + 1) % 16] ^ 0xFF;
 	}
 	else
 	{
@@ -565,7 +561,7 @@ bool UART_IsCommandAvailable(void)
 	{
 		unsigned int i;
 		for (i = 0; i < (Size + 2u); i++)
-			UART_Command.Buffer[i] ^= Obfuscation[i % 16];
+			UART_Command.Buffer[i] ^= obfuscate_array[i % 16];
 	}
 
 	CRC = UART_Command.Buffer[Size] | (UART_Command.Buffer[Size + 1] << 8);

@@ -916,25 +916,22 @@ void APP_CheckRadioInterrupts(void)
 		if (interrupt_status_bits & BK4819_REG_02_SQUELCH_LOST)
 		{
 			g_squelch_lost = true;
+			// turn the LED off
 			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);
 		}
 
 		if (interrupt_status_bits & BK4819_REG_02_SQUELCH_FOUND)
 		{
 			g_squelch_lost = false;
+			// turn the LED on
 			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
 		}
 
 		#ifdef ENABLE_AIRCOPY
-			if (interrupt_status_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL)
+			if (g_screen_to_display == DISPLAY_AIRCOPY)
 			{
-				if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_RX)
-				{
-					unsigned int i;
-					for (i = 0; i < 4; i++)
-						g_aircopy_fsk_buffer[g_aircopy_fsk_write_index++] = BK4819_ReadRegister(BK4819_REG_5F);
-					AIRCOPY_StorePacket();
-				}
+				AIRCOPY_process_FSK_rx_10ms(interrupt_status_bits);
+//				AIRCOPY_process_FSK_tx_10ms(interrupt_status_bits);
 			}
 		#endif
 	}
@@ -1324,21 +1321,19 @@ void APP_CheckKeys(void)
 
 	key_code_t key;
 
-	#ifdef ENABLE_AIRCOPY
-		if (g_setting_killed ||
-		   (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state != AIRCOPY_READY))
-			return;
-	#else
-		if (g_setting_killed)
-			return;
-	#endif
+	if (g_setting_killed)
+		return;
 
 	// *****************
 	// PTT is treated completely separately from all the other buttons
 
 	if (ptt_pressed)
 	{	// PTT pressed
-		if (!g_ptt_is_pressed)
+	#ifdef ENABLE_AIRCOPY
+		if (!g_setting_killed && !g_ptt_is_pressed && g_screen_to_display != DISPLAY_AIRCOPY)
+	#else
+		if (!g_setting_killed && !g_ptt_is_pressed)
+	#endif
 		{
 			if (++g_ptt_debounce >= 3)      // 30ms
 			{	// start TX'ing
@@ -1411,7 +1406,15 @@ void APP_CheckKeys(void)
 						UART_printf(" old key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 					#endif
 
-					APP_ProcessKey(g_key_prev, false, g_key_held);
+					#ifdef ENABLE_AIRCOPY
+						if (g_screen_to_display != DISPLAY_AIRCOPY)
+							APP_ProcessKey(g_key_prev, false, g_key_held);
+						else
+							AIRCOPY_ProcessKey(g_key_prev, false, g_key_held);
+					#else
+						APP_ProcessKey(g_key_prev, false, g_key_held);
+					#endif
+
 					g_key_debounce_press  = 0;
 					g_key_debounce_repeat = 0;
 					g_key_prev            = KEY_INVALID;
@@ -1443,7 +1446,14 @@ void APP_CheckKeys(void)
 
 					g_key_prev = key;
 
-					APP_ProcessKey(g_key_prev, true, g_key_held);
+					#ifdef ENABLE_AIRCOPY
+						if (g_screen_to_display != DISPLAY_AIRCOPY)
+							APP_ProcessKey(g_key_prev, true, g_key_held);
+						else
+							AIRCOPY_ProcessKey(g_key_prev, true, g_key_held);
+					#else
+						APP_ProcessKey(g_key_prev, true, g_key_held);
+					#endif
 
 					g_update_status  = true;
 					g_update_display = true;
@@ -1461,7 +1471,14 @@ void APP_CheckKeys(void)
 					UART_printf("long key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 				#endif
 
-				APP_ProcessKey(g_key_prev, true, g_key_held);
+				#ifdef ENABLE_AIRCOPY
+					if (g_screen_to_display != DISPLAY_AIRCOPY)
+						APP_ProcessKey(g_key_prev, true, g_key_held);
+					else
+						AIRCOPY_ProcessKey(g_key_prev, true, g_key_held);
+				#else
+					APP_ProcessKey(g_key_prev, true, g_key_held);
+				#endif
 
 				//g_update_status  = true;
 				//g_update_display = true;
@@ -1478,8 +1495,15 @@ void APP_CheckKeys(void)
 					UART_printf("rept key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 				#endif
 
-				APP_ProcessKey(g_key_prev, true, g_key_held);
-
+				#ifdef ENABLE_AIRCOPY
+					if (g_screen_to_display != DISPLAY_AIRCOPY)
+						APP_ProcessKey(g_key_prev, true, g_key_held);
+					else
+						AIRCOPY_ProcessKey(g_key_prev, true, g_key_held);
+				#else
+					APP_ProcessKey(g_key_prev, true, g_key_held);
+				#endif
+				
 				//g_update_status  = true;
 				//g_update_display = true;
 			}
@@ -1554,18 +1578,30 @@ void APP_TimeSlice10ms(void)
 	if (g_reduced_service)
 		return;
 
-
 	#ifdef ENABLE_AIRCOPY
-		if (g_screen_to_display == DISPLAY_AIRCOPY && g_aircopy_state == AIRCOPY_TX)
+		if (g_screen_to_display == DISPLAY_AIRCOPY)
 		{
-			if (g_aircopy_send_count_down_10ms > 0)
-			{
-				if (--g_aircopy_send_count_down_10ms == 0)
-				{
-					AIRCOPY_SendMessage(0xff);
-					GUI_DisplayScreen();
-				}
+			APP_CheckRadioInterrupts();
+
+			if (g_aircopy_state == AIRCOPY_RX)
+			{	// we're RX'ing
+				//AIRCOPY_process_FSK_rx_10ms(0);
 			}
+			else
+			if (g_aircopy_state == AIRCOPY_TX)
+			{	// we're TX'ing
+				AIRCOPY_process_FSK_tx_10ms();
+			}
+			
+			APP_CheckKeys();
+
+			if (g_update_display)
+				GUI_DisplayScreen();
+	
+			if (g_update_status)
+				UI_DisplayStatus(false);
+			
+			return;
 		}
 	#endif
 
@@ -2357,8 +2393,8 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 	}
 
 	// key beep
-	if (Key != KEY_PTT && !key_held && key_pressed)
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//	if (Key != KEY_PTT && !key_held && key_pressed)
+//		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 	// ********************
 
@@ -2541,7 +2577,7 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 
 				#ifdef ENABLE_AIRCOPY
 					case DISPLAY_AIRCOPY:
-						AIRCOPY_ProcessKeys(Key, key_pressed, key_held);
+						AIRCOPY_ProcessKey(Key, key_pressed, key_held);
 						break;
 				#endif
 

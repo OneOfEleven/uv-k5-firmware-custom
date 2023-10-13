@@ -19,6 +19,10 @@
 #include "misc.h"
 #include "settings.h"
 
+const uint8_t obfuscate_array[16] = {
+	0x16, 0x6C, 0x14, 0xE6, 0x2E, 0x91, 0x0D, 0x40, 0x21, 0x35, 0xD5, 0x40, 0x13, 0x03, 0xE9, 0x80
+};
+
 // ***********************************************
 
 const uint8_t         fm_resume_countdown_500ms        =  2500 / 500;  // 2.5 seconds

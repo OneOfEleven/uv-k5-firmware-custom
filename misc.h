@@ -101,6 +101,8 @@ enum scan_next_chan_e {
 };
 typedef enum scan_next_chan_e scan_next_chan_t;
 
+extern const uint8_t         obfuscate_array[16];
+
 extern const uint8_t         fm_resume_countdown_500ms;
 extern const uint8_t         fm_radio_countdown_500ms;
 extern const uint16_t        fm_play_countdown_scan_10ms;

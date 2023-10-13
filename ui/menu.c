@@ -981,13 +981,33 @@ void UI_DisplayMenu(void)
 			i = 0;
 			while (i < (sizeof(String) - 1) && k < slen)
 			{
-				String[i++] = Version_str[k++];
-				if (++m >= 9 && k < slen && i < (sizeof(String) - 1))
+				const char c = Version_str[k++];
+				if (c == ' ' || c == '-' || c == '_')
 				{
-					m = 0;
-					String[i++] = '\n';
+					if (m >= 3)
+					{
+						String[i++] = '\n';
+						m = 0;
+					}
+					else
+						String[i++] = c;
+				}
+				else
+				{
+					String[i++] = c;
+					if (++m >= 9 && k < slen && i < (sizeof(String) - 1))
+					{
+						if (m > 0)
+						{
+							m = 0;
+							String[i++] = '\n';
+						}
+					}
 				}
 			}
+			// add the date and time
+			strcat(String, "\n" __DATE__);
+			strcat(String, "\n" __TIME__);
 			break;
 		}
 			
