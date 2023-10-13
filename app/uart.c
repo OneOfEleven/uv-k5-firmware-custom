@@ -299,7 +299,7 @@ static void cmd_051D(const uint8_t *pBuffer)
 {
 	const unsigned int write_size    = 8;
 	const cmd_051D_t  *pCmd          = (const cmd_051D_t *)pBuffer;
-	unsigned int       addr          = pCmd->Offset;
+	const unsigned int addr          = pCmd->Offset;
 	unsigned int       size          = pCmd->Size;
 #ifdef INCLUDE_AES
 	bool               reload_eeprom = false;
@@ -315,8 +315,6 @@ static void cmd_051D(const uint8_t *pBuffer)
 	if (addr >= EEPROM_SIZE)
 		return;
 
-	if (size > sizeof(reply.Data))
-		size = sizeof(reply.Data);
 	if (size > (EEPROM_SIZE - addr))
 		size =  EEPROM_SIZE - addr;
 
@@ -332,11 +330,13 @@ static void cmd_051D(const uint8_t *pBuffer)
 	if (!locked)
 #endif
 	{
-		const uint8_t *data = (uint8_t *)&pCmd + sizeof(cmd_051D_t); // point to the RX'ed data to write to eeprom
 		unsigned int i;
+
 		for (i = 0; i < (size / write_size); i++)
 		{
-			const uint16_t Offset = addr + (i * write_size);
+			const unsigned int k = i * write_size;
+			const unsigned int Offset = addr + k;
+			uint8_t *data = (uint8_t *)pCmd + sizeof(cmd_051D_t) + k;
 
 			if ((Offset + write_size) > EEPROM_SIZE)
 				break;
@@ -345,13 +345,18 @@ static void cmd_051D(const uint8_t *pBuffer)
 				if (Offset >= 0x0F30 && Offset < 0x0F40)     // AES key
 					if (!is_locked)
 						reload_eeprom = true;
+			#else
+				if (Offset == 0x0F30)
+					memset(data, 0xff, 8);   // wipe the AES key
 			#endif
 
 			#ifdef ENABLE_PWRON_PASSWORD
 				if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !g_password_locked || pCmd->allow_password)
-					EEPROM_WriteBuffer(Offset, &data[i * write_size]);
+					EEPROM_WriteBuffer(Offset, data);
 			#else
-				EEPROM_WriteBuffer(Offset, &data[i * write_size]);
+				if (Offset == 0x0E90)
+					memset(data + 8, 0xff, 4);   // wipe the password 
+				EEPROM_WriteBuffer(Offset, data);
 			#endif
 		}
 
