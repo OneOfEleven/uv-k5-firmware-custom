@@ -281,14 +281,15 @@ const char g_sub_menu_RESET[2][4] =
 	"ALL"
 };
 
-const char g_sub_menu_f_lock[6][8] =
+const char g_sub_menu_f_lock[7][9] =
 {
 	"OFF",
 	"FCC",
 	"CE",
 	"GB",
 	"430 MHz",
-	"438 MHz"
+	"438 MHz",
+	"Extended"
 };
 
 const char g_sub_menu_backlight[8][7] =

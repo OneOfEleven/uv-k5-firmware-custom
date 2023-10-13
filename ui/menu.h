@@ -165,7 +165,7 @@ extern const char         g_sub_menu_PTT_ID[5][15];
 extern const char         g_sub_menu_pwr_on_msg[4][8];
 extern const char         g_sub_menu_roger_mode[3][16];
 extern const char         g_sub_menu_RESET[2][4];
-extern const char         g_sub_menu_f_lock[6][8];
+extern const char         g_sub_menu_f_lock[7][9];
 extern const char         g_sub_menu_backlight[8][7];
 extern const char         g_sub_menu_rx_tx[4][6];
 #ifdef ENABLE_AM_FIX_TEST1
