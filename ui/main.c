@@ -599,12 +599,12 @@ void UI_DisplayMain(void)
 		}
 		else
 		{
-			uint32_t frequency = g_eeprom.vfo_info[vfo_num].pRX->frequency;
+			uint32_t frequency = g_eeprom.vfo_info[vfo_num].p_rx->frequency;
 			if (g_current_function == FUNCTION_TRANSMIT)
 			{	// transmitting
 				channel = (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_OFF) ? g_eeprom.rx_vfo : g_eeprom.tx_vfo;
 				if (channel == vfo_num)
-					frequency = g_eeprom.vfo_info[vfo_num].pTX->frequency;
+					frequency = g_eeprom.vfo_info[vfo_num].p_tx->frequency;
 			}
 
 			if (g_eeprom.screen_channel[vfo_num] <= USER_CHANNEL_LAST)
@@ -741,7 +741,7 @@ void UI_DisplayMain(void)
 		}
 		else
 		{	// or show the CTCSS/DCS symbol
-			const freq_config_t *pConfig = (mode == 1) ? g_eeprom.vfo_info[vfo_num].pTX : g_eeprom.vfo_info[vfo_num].pRX;
+			const freq_config_t *pConfig = (mode == 1) ? g_eeprom.vfo_info[vfo_num].p_tx : g_eeprom.vfo_info[vfo_num].p_rx;
 			const unsigned int code_type = pConfig->code_type;
 			const char *code_list[] = {"", "CT", "DCS", "DCR"};
 			if (code_type < ARRAY_SIZE(code_list))

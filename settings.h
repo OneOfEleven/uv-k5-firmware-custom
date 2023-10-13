@@ -115,6 +115,284 @@ enum mdf_display_mode_e {
 };
 typedef enum mdf_display_mode_e mdf_display_mode_t;
 
+// ************************************************
+
+typedef struct {
+	// [0]
+	uint32_t frequency;              //
+	// [4]
+	uint32_t offset;                 //
+	// [8]
+	uint8_t  rx_ctcss_cdcss_code;    //
+	// [9]
+	uint8_t  tx_ctcss_cdcss_code;    //
+	// [10]
+	uint8_t  rx_ctcss_cdcss_type:4;  //
+	uint8_t  tx_ctcss_cdcss_type:4;  //
+	// [11]
+	uint8_t  tx_offset_dir:2;        //
+	uint8_t  unused1:2;
+	uint8_t  am_mode:1;              //
+	uint8_t  unused2:3;
+	// [12]
+	uint8_t  frequency_reverse:1;    // reverse repeater
+	uint8_t  channel_bandwidth:1;    // wide/narrow
+	uint8_t  tx_power:2;             // 0, 1 or 2 .. L, M or H
+	uint8_t  busy_channel_lockout:1; //
+	uint8_t  unused3:3;
+	// [13]
+	uint8_t  dtmf_decoding_enable:1; //
+	uint8_t  dtmf_ptt_id_tx_mode:3;  //
+	uint8_t  unused4:4;
+	// [14]
+	uint8_t  step_setting:3;         //
+	uint8_t  unused5:5;
+	// [15]
+	uint8_t  scrambler:4;            //
+	uint8_t  unused6:4;
+} __attribute__((packed)) t_channel;
+
+// 512 bytes
+typedef struct {
+
+	// 0x1E00
+	struct {
+		uint8_t open_rssi_thresh[10];
+		uint8_t unused1[6];
+
+		uint8_t close_rssi_thresh[10];
+		uint8_t unused2[6];
+
+		uint8_t open_noise_thresh[10];
+		uint8_t unused3[6];
+
+		uint8_t close_noise_thresh[10];
+		uint8_t unused4[6];
+
+		uint8_t open_glitch_thresh[10];
+		uint8_t unused5[6];
+
+		uint8_t close_glitch_thresh[10];
+		uint8_t unused6[6];
+	} __attribute__((packed)) uhf_squelch[6];
+
+	// 0x1E60
+	struct {
+		uint8_t open_rssi_thresh[10];
+		uint8_t unused1[6];
+
+		uint8_t close_rssi_thresh[10];
+		uint8_t unused2[6];
+
+		uint8_t open_noise_thresh[10];
+		uint8_t unused3[6];
+
+		uint8_t close_noise_thresh[10];
+		uint8_t unused4[6];
+
+		uint8_t open_glitch_thresh[10];
+		uint8_t unused5[6];
+
+		uint8_t close_glitch_thresh[10];
+		uint8_t unused6[6];
+	} __attribute__((packed)) vhf_squelch[6];
+
+	// 0x1EC0
+	uint16_t    unknown1[4];
+	uint16_t    rssi[4];
+
+	// 0x1ED0
+	struct
+	{
+		uint8_t low_tx_pwr[3];
+		uint8_t mid_tx_pwr[3];
+		uint8_t high_tx_pwr[3];
+		uint8_t unused[7];
+	} band_setting[7];
+
+	// 0x1F40
+	uint16_t battery[6];
+	uint8_t  unused1[4];
+
+	// 0x1F50
+	struct
+	{
+		uint16_t threshold[10];
+		uint8_t  unused[4];
+	} __attribute__((packed)) vox[2];
+
+	// 0x1F80
+	uint8_t  mic_gain_dB2[5];
+	uint8_t  unused4[3];
+	int16_t  bk4819_xtal_freq_low;
+	uint16_t unknown2;
+	uint16_t unknown3;
+	uint8_t  volume_gain;
+	uint8_t  dac_gain;
+
+	uint8_t  unused5[8 * 10];
+
+} __attribute__((packed)) t_calibration;
+
+typedef struct {
+
+	// 0x0000
+	t_channel channel[200];
+
+	// 0x0C80
+	t_channel vfo[14];
+
+	// 0x0D60
+	struct {
+		uint8_t band:4;
+		uint8_t compander:2;
+		uint8_t scanlist2:1;
+		uint8_t scanlist1:1;
+	} __attribute__((packed)) channel_attr[200];
+
+	uint8_t        unused1[8];
+	uint8_t        unused2[16];
+
+	// 0x0E40
+	uint16_t       fm_channel[20];
+	uint8_t        unused3[8];
+
+	// 0x0E70
+	uint8_t        call1;
+	uint8_t        squelch;
+	uint8_t        tot;
+	uint8_t        noaa_auto_scan;
+	uint8_t        key_lock;
+	uint8_t        vox_switch;
+	uint8_t        vox_level;
+	uint8_t        mic_sensitivity;
+	uint8_t        unused4;
+	uint8_t        mdf;
+	uint8_t        wx;
+	uint8_t        battery_save;
+	uint8_t        tdr;
+	uint8_t        backlight;
+	uint8_t        site;
+	uint8_t        vfo_open;
+
+	// 0x0E80
+	uint8_t        screen_channel_a;
+	uint8_t        channel_a;
+	uint8_t        freq_channel_a;
+	uint8_t        screen_channel_b;
+	uint8_t        channel_b;
+	uint8_t        freq_channel_b;
+	uint8_t        noaa_channel_a;
+	uint8_t        noaa_channel_b;
+	uint8_t        fm_selected_frequency;
+	uint8_t        fm_selected_channel;
+	uint8_t        fm_is_channel_mode;
+	uint8_t        unused5[5];
+
+	// 0x0E90
+	uint8_t        beep_control;
+	uint8_t        key1_short;
+	uint8_t        key1_long;
+	uint8_t        key2_short;
+	uint8_t        key2_long;
+	uint8_t        sc_rev;
+	uint8_t        auto_lock;
+	uint8_t        display_mode;
+	uint32_t       power_on_password;
+	uint8_t        unused6[4];
+
+	// 0x0EA0
+	uint8_t        voice_prompt;
+	uint8_t        unused7[7];
+	uint8_t        alarm_mode;
+	uint8_t        roger_mode;
+	uint8_t        rp_ste;
+	uint8_t        tx_channel;
+	uint8_t        unused8[4];
+
+	// 0x0EB0
+	uint8_t        welcome_line1[16];
+	uint8_t        welcome_line2[16];
+
+	// 0x0ED0
+	uint8_t        dtmf_side_tone;
+	uint8_t        dtmf_separate_code;
+	uint8_t        dtmf_group_call_code;
+	uint8_t        dtmf_rsp;
+	uint8_t        dtmf_auto_reset_time;
+	uint8_t        dtmf_preload_time;
+	uint8_t        dtmf_first_code_time;
+	uint8_t        dtmf_hash_code_time;
+	uint8_t        dtmf_code_time;
+	uint8_t        dtmf_code_interval;
+	uint8_t        dtmf_permit_kill;
+	uint8_t        unused9[5];
+
+	// 0x0EE0
+	uint8_t        dtmf_ani_id[8];
+	uint8_t        dtmf_kill_code[8];
+	uint8_t        dtmf_revive_code[8];
+	uint8_t        dtmf_key_up_code[16];
+	uint8_t        dtmf_key_down_code[16];
+	uint8_t        s_list_default;
+	uint8_t        scanlist1_enable;
+	uint8_t        scanlist1_channel1;
+	uint8_t        scanlist1_channel2;
+	uint8_t        scanlist2_enable;
+	uint8_t        scanlist2_channel1;
+	uint8_t        scanlist2_channel2;
+	uint8_t        unused10;
+
+	// 0x0F20
+	uint8_t        unused11[8];
+
+	// 0x0F30
+	uint8_t        aes_key[16];
+
+	// 0x0F40
+	uint8_t        f_lock;
+	uint8_t        enable_tx_350;
+	uint8_t        killed;
+	uint8_t        enable_tx_200;
+	uint8_t        enable_tx_500;
+	uint8_t        enable_350;
+	uint8_t        enable_scrambler;
+	#if 0
+		// QS
+		uint8_t    unused12[9];
+	#else
+		// 1of11
+		uint8_t    tx_enable:1;
+		uint8_t    dtmf_live_decoder:1;
+		uint8_t    battery_text:2;
+		uint8_t    mic_bar:1;
+		uint8_t    am_fix:1;
+		uint8_t    backlight_on_tx_rx:2;
+
+		uint8_t    unused12[8];
+	#endif
+
+	// 0x0F50
+	char           channel_name[200][16];
+
+	// 0x1BD0
+	uint8_t        unused13[16];
+	uint8_t        unused14[16];
+	uint8_t        unused15[16];
+
+	// 0x1C00
+	uint8_t        dtmf_contact[16][16];
+
+	// 0x1D00
+	uint8_t        unused16[256];
+
+	// 0x1E00
+	t_calibration  calibration;
+
+} __attribute__((packed)) t_eeprom;
+
+// ************************************************
+
 typedef struct {
 	uint8_t               screen_channel[2];
 	uint8_t               freq_channel[2];
@@ -133,8 +411,6 @@ typedef struct {
 		uint8_t           fm_selected_channel;
 		bool              fm_is_channel_mode;
 		uint16_t          fm_frequency_playing;
-		uint16_t          fm_lower_limit;
-		uint16_t          fm_upper_limit;
 	#endif
 
 	uint8_t               squelch_level;
@@ -161,12 +437,12 @@ typedef struct {
 
 	uint8_t               field29_0x26;
 	uint8_t               field30_0x27;
-	
+
 	uint8_t               field37_0x32;
 	uint8_t               field38_0x33;
 
 	bool                  auto_keypad_lock;
-	
+
 	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 		alarm_mode_t      alarm_mode;
 	#endif
@@ -183,8 +459,8 @@ typedef struct {
 	char                  ani_dtmf_id[8];
 	char                  kill_code[8];
 	char                  revive_code[8];
-	char                  dtmf_up_code[16];
-	char                  dtmf_down_code[16];
+	char                  dtmf_key_up_code[16];
+	char                  dtmf_key_down_code[16];
 
 	uint8_t               field57_0x6c;
 	uint8_t               field58_0x6d;

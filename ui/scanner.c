@@ -29,12 +29,12 @@
 #include "ui/scanner.h"
 #include "ui/ui.h"
 
-void UI_DisplayScanner(void)
+void UI_DisplaySearch(void)
 {
 	char String[17];
 	bool text_centered = false;
 
-	if (g_screen_to_display != DISPLAY_SCANNER)
+	if (g_screen_to_display != DISPLAY_SEARCH)
 		return;
 	
 	// clear display buffer
@@ -46,27 +46,27 @@ void UI_DisplayScanner(void)
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
-	switch (g_scan_css_state)
+	switch (g_search_css_state)
 	{
 		default:
-		case SCAN_CSS_STATE_OFF:
-			if (!g_scan_single_frequency)
+		case SEARCH_CSS_STATE_OFF:
+			if (!g_search_single_frequency)
 			{
 				strcpy(String, "FREQ scanning");
 				break;
 			}
 			
-		case SCAN_CSS_STATE_SCANNING:
-		case SCAN_CSS_STATE_FOUND:
-		case SCAN_CSS_STATE_FAILED:
-		case SCAN_CSS_STATE_REPEAT:
+		case SEARCH_CSS_STATE_SCANNING:
+		case SEARCH_CSS_STATE_FOUND:
+		case SEARCH_CSS_STATE_FAILED:
+		case SEARCH_CSS_STATE_REPEAT:
 			{
-				const uint32_t freq = g_scan_frequency;
+				const uint32_t freq = g_search_frequency;
 				sprintf(String, "FREQ %u.%05u", freq / 100000, freq % 100000);
 			}
 			break;
 
-		case SCAN_CSS_STATE_FREQ_FAILED:
+		case SEARCH_CSS_STATE_FREQ_FAILED:
 			strcpy(String, "FREQ none found");
 			break;
 	}
@@ -80,37 +80,39 @@ void UI_DisplayScanner(void)
 	
 	memset(String, 0, sizeof(String));
 
-	switch (g_scan_css_state)
+	switch (g_search_css_state)
 	{
 		default:
-		case SCAN_CSS_STATE_OFF:
+		case SEARCH_CSS_STATE_OFF:
 			strcpy(String, "CODE");
 			break;
 
-		case SCAN_CSS_STATE_SCANNING:
+		case SEARCH_CSS_STATE_SCANNING:
 			strcpy(String, "CODE scanning");
 			break;
 
-		case SCAN_CSS_STATE_FOUND:
-		case SCAN_CSS_STATE_REPEAT:
-
-			switch (g_scan_css_result_type)
+		case SEARCH_CSS_STATE_FOUND:
+		case SEARCH_CSS_STATE_REPEAT:
+			strcpy(String, "CODE none found");
+			if (g_search_use_css_result)
 			{
-				default:
-				case CODE_TYPE_NONE:
-					strcpy(String, "CODE none found");
-					break;
-				case CODE_TYPE_CONTINUOUS_TONE:
-					sprintf(String, "CTCSS %u.%uHz", CTCSS_OPTIONS[g_scan_css_result_code] / 10, CTCSS_OPTIONS[g_scan_css_result_code] % 10);
-					break;
-				case CODE_TYPE_DIGITAL:
-				case CODE_TYPE_REVERSE_DIGITAL:
-					sprintf(String, "CDCSS D%03oN", DCS_OPTIONS[g_scan_css_result_code]);
-					break;
-			}			
+				switch (g_search_css_result_type)
+				{
+					default:
+					case CODE_TYPE_NONE:
+						break;
+					case CODE_TYPE_CONTINUOUS_TONE:
+						sprintf(String, "CTCSS %u.%uHz", CTCSS_OPTIONS[g_search_css_result_code] / 10, CTCSS_OPTIONS[g_search_css_result_code] % 10);
+						break;
+					case CODE_TYPE_DIGITAL:
+					case CODE_TYPE_REVERSE_DIGITAL:
+						sprintf(String, "CDCSS D%03oN", DCS_OPTIONS[g_search_css_result_code]);
+						break;
+				}
+			}				
 			break;
 
-		case SCAN_CSS_STATE_FAILED:
+		case SEARCH_CSS_STATE_FAILED:
 			strcpy(String, "CODE none found");
 			break;
 	}
@@ -125,36 +127,36 @@ void UI_DisplayScanner(void)
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
-	switch (g_scanner_edit_state)
+	switch (g_search_edit_state)
 	{
 		default:
-		case SCAN_EDIT_STATE_NONE:
+		case SEARCH_EDIT_STATE_NONE:
 
-			switch (g_scan_css_state)
+			switch (g_search_css_state)
 			{
 				default:
-				case SCAN_CSS_STATE_OFF:
-				case SCAN_CSS_STATE_SCANNING:	// rolling indicator
+				case SEARCH_CSS_STATE_OFF:
+				case SEARCH_CSS_STATE_SCANNING:	// rolling indicator
 					memset(String, 0, sizeof(String));
 					memset(String, '.', 15);
-					String[(g_scan_freq_css_timer_10ms / 32) % 15] = '#';
+					String[(g_search_freq_css_timer_10ms / 32) % 15] = '#';
 					break;
 
-				case SCAN_CSS_STATE_FOUND:
+				case SEARCH_CSS_STATE_FOUND:
 					strcpy(String, "* repeat  M save");
 					text_centered = true;
 					break;
 
-				case SCAN_CSS_STATE_FAILED:
-					if (!g_scan_single_frequency)
+				case SEARCH_CSS_STATE_FAILED:
+					if (!g_search_single_frequency)
 					{
 						strcpy(String, "* repeat  M save");
 						text_centered = true;
 						break;
 					}
 					
-				case SCAN_CSS_STATE_FREQ_FAILED:
-				case SCAN_CSS_STATE_REPEAT:
+				case SEARCH_CSS_STATE_FREQ_FAILED:
+				case SEARCH_CSS_STATE_REPEAT:
 					strcpy(String, "* repeat");
 					text_centered = true;
 					break;
@@ -162,18 +164,18 @@ void UI_DisplayScanner(void)
 
 			break;
 
-		case SCAN_EDIT_STATE_SAVE_CHAN:
+		case SEARCH_EDIT_STATE_SAVE_CHAN:
 			strcpy(String, "SAVE ");
 			{
 				char s[11];
-				BOARD_fetchChannelName(s, g_scan_channel);
+				BOARD_fetchChannelName(s, g_search_channel);
 				if (s[0] == 0)
-					UI_GenerateChannelStringEx(s, g_show_chan_prefix ? "CH-" : "", g_scan_channel);
+					UI_GenerateChannelStringEx(s, g_search_show_chan_prefix ? "CH-" : "", g_search_channel);
 				strcat(String, s);
 			}
 			break;
 
-		case SCAN_EDIT_STATE_SAVE_CONFIRM:
+		case SEARCH_EDIT_STATE_SAVE_CONFIRM:
 			strcpy(String, "* repeat  Save ?");
 			text_centered = true;
 			break;

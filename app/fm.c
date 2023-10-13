@@ -137,11 +137,11 @@ void FM_Tune(uint16_t Frequency, int8_t Step, bool flag)
 	if (!flag)
 	{
 		Frequency += Step;
-		if (Frequency < g_eeprom.fm_lower_limit)
-			Frequency = g_eeprom.fm_upper_limit;
+		if (Frequency < FM_RADIO_BAND.lower)
+			Frequency = FM_RADIO_BAND.upper;
 		else
-		if (Frequency > g_eeprom.fm_upper_limit)
-			Frequency = g_eeprom.fm_lower_limit;
+		if (Frequency > FM_RADIO_BAND.upper)
+			Frequency = FM_RADIO_BAND.lower;
 
 		g_eeprom.fm_frequency_playing = Frequency;
 	}
@@ -288,7 +288,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 				Frequency /= 10000;
 
-				if (Frequency < g_eeprom.fm_lower_limit || g_eeprom.fm_upper_limit < Frequency)
+				if (Frequency < FM_RADIO_BAND.lower || Frequency > FM_RADIO_BAND.upper)
 				{
 					g_request_display_screen = DISPLAY_FM;
 					return;
@@ -587,11 +587,11 @@ static void FM_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Step)
 	else
 	{	// no, frequency mode
 		uint16_t Frequency = g_eeprom.fm_selected_frequency + Step;
-		if (Frequency < g_eeprom.fm_lower_limit)
-			Frequency = g_eeprom.fm_upper_limit;
+		if (Frequency < FM_RADIO_BAND.lower)
+			Frequency = FM_RADIO_BAND.upper;
 		else
-		if (Frequency > g_eeprom.fm_upper_limit)
-			Frequency = g_eeprom.fm_lower_limit;
+		if (Frequency > FM_RADIO_BAND.upper)
+			Frequency = FM_RADIO_BAND.lower;
 
 		g_eeprom.fm_frequency_playing  = Frequency;
 		g_eeprom.fm_selected_frequency = g_eeprom.fm_frequency_playing;
@@ -649,7 +649,7 @@ void FM_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 
 void FM_Play(void)
 {
-	if (!FM_CheckFrequencyLock(g_eeprom.fm_frequency_playing, g_eeprom.fm_lower_limit))
+	if (!FM_CheckFrequencyLock(g_eeprom.fm_frequency_playing, FM_RADIO_BAND.lower))
 	{
 		if (!g_fm_auto_scan)
 		{
@@ -677,7 +677,7 @@ void FM_Play(void)
 		}
 	}
 
-	if (g_fm_auto_scan && g_eeprom.fm_frequency_playing >= g_eeprom.fm_upper_limit)
+	if (g_fm_auto_scan && g_eeprom.fm_frequency_playing >= FM_RADIO_BAND.upper)
 		FM_PlayAndUpdate();
 	else
 		FM_Tune(g_eeprom.fm_frequency_playing, g_fm_scan_state, false);

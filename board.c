@@ -573,9 +573,7 @@ void BOARD_EEPROM_load(void)
 		} __attribute__((packed)) FM;
 
 		EEPROM_ReadBuffer(0x0E88, &FM, 8);
-		g_eeprom.fm_lower_limit = 760;
-		g_eeprom.fm_upper_limit = 1080;
-		if (FM.SelectedFrequency < g_eeprom.fm_lower_limit || FM.SelectedFrequency > g_eeprom.fm_upper_limit)
+		if (FM.SelectedFrequency < FM_RADIO_BAND.lower || FM.SelectedFrequency > FM_RADIO_BAND.upper)
 			g_eeprom.fm_selected_frequency = 960;
 		else
 			g_eeprom.fm_selected_frequency = FM.SelectedFrequency;
@@ -624,9 +622,11 @@ void BOARD_EEPROM_load(void)
 		#ifdef ENABLE_ALARM
 			g_eeprom.alarm_mode                 = (array.alarm_mode < 2) ? array.alarm_mode : true;
 		#endif
+
 		g_eeprom.roger_mode                     = (array.roger_mode < 3) ? array.roger_mode : ROGER_MODE_OFF;
 		g_eeprom.repeater_tail_tone_elimination = (array.repeater_tail_tone_elimination < 11) ? array.repeater_tail_tone_elimination : 0;
 		g_eeprom.tx_vfo                         = (array.tx_vfo < 2) ? array.tx_vfo : 0;
+
 		#ifdef ENABLE_AIRCOPY_FREQ
 		{
 			unsigned int i;
@@ -637,11 +637,11 @@ void BOARD_EEPROM_load(void)
 					g_aircopy_freq = array.air_copy_freq;
 					break;
 				}
-			}	
+			}
 		}
 		#endif
 	}
-	
+
 	// 0ED0..0ED7
 	EEPROM_ReadBuffer(0x0ED0, Data, 8);
 	g_eeprom.dtmf_side_tone               = (Data[0] < 2) ? Data[0] : true;
@@ -692,21 +692,21 @@ void BOARD_EEPROM_load(void)
 	// 0EF8..0F07
 	EEPROM_ReadBuffer(0x0EF8, Data, 16);
 	if (DTMF_ValidateCodes((char *)Data, 16))
-		memmove(g_eeprom.dtmf_up_code, Data, 16);
+		memmove(g_eeprom.dtmf_key_up_code, Data, 16);
 	else
 	{
-		memset(g_eeprom.dtmf_up_code, 0, sizeof(g_eeprom.dtmf_up_code));
-		strcpy(g_eeprom.dtmf_up_code, "12345");
+		memset(g_eeprom.dtmf_key_up_code, 0, sizeof(g_eeprom.dtmf_key_up_code));
+		strcpy(g_eeprom.dtmf_key_up_code, "12345");
 	}
 
 	// 0F08..0F17
 	EEPROM_ReadBuffer(0x0F08, Data, 16);
 	if (DTMF_ValidateCodes((char *)Data, 16))
-		memmove(g_eeprom.dtmf_down_code, Data, 16);
+		memmove(g_eeprom.dtmf_key_down_code, Data, 16);
 	else
 	{
-		memset(g_eeprom.dtmf_down_code, 0, sizeof(g_eeprom.dtmf_down_code));
-		strcpy(g_eeprom.dtmf_down_code, "54321");
+		memset(g_eeprom.dtmf_key_down_code, 0, sizeof(g_eeprom.dtmf_key_down_code));
+		strcpy(g_eeprom.dtmf_key_down_code, "54321");
 	}
 
 	// 0F18..0F1F
@@ -751,7 +751,7 @@ void BOARD_EEPROM_load(void)
 	EEPROM_ReadBuffer(0x0D60, g_user_channel_attributes, sizeof(g_user_channel_attributes));
 
 	// *****************************
-	
+
 	// 0F30..0F3F .. AES key
 	EEPROM_ReadBuffer(0x0F30, g_custom_aes_key, sizeof(g_custom_aes_key));
 	g_has_custom_aes_key = false;
@@ -763,7 +763,7 @@ void BOARD_EEPROM_load(void)
 			break;
 		}
 	}
-	
+
 #if ENABLE_RESET_AES_KEY
 	// a fix to wipe the darned AES key
 	if (g_has_custom_aes_key)
@@ -840,9 +840,55 @@ uint32_t BOARD_fetchChannelFrequency(const int channel)
 		uint32_t offset;
 	} __attribute__((packed)) info;
 
+	if (channel < 0 || channel > (int)FREQ_CHANNEL_LAST)
+		return 0;
+
+	if (!RADIO_CheckValidChannel(channel, false, 0))
+		return 0;
+
 	EEPROM_ReadBuffer(channel * 16, &info, sizeof(info));
 
 	return info.frequency;
+}
+
+unsigned int BOARD_fetchChannelStepSetting(const int channel)
+{
+	uint8_t      data[8];
+	unsigned int step_setting = 0;
+
+	if (channel < 0)
+		return 0;
+
+	if (channel <= USER_CHANNEL_LAST)
+	{
+		EEPROM_ReadBuffer(channel * 16, &data, sizeof(data));
+	}
+	else
+	if (channel <= FREQ_CHANNEL_LAST)
+	{
+		EEPROM_ReadBuffer(channel * 16, &data, sizeof(data));
+	}
+
+	step_setting = (data[6] >= ARRAY_SIZE(STEP_FREQ_TABLE)) ? STEP_12_5kHz : data[6];
+//	step_size    = STEP_FREQ_TABLE[step_setting];
+
+	return step_setting;
+}
+
+unsigned int BOARD_fetchFrequencyStepSetting(const int channel, const int vfo)
+{
+	uint8_t      data[8];
+	unsigned int step_setting = 0;
+
+	if (channel < 0 || channel > (FREQ_CHANNEL_LAST - FREQ_CHANNEL_FIRST) || vfo < 0 || vfo >= 2)
+		return 0;
+
+	EEPROM_ReadBuffer(FREQ_CHANNEL_FIRST + (channel * 16 * 2) + vfo, &data, sizeof(data));
+
+	step_setting = (data[6] >= ARRAY_SIZE(STEP_FREQ_TABLE)) ? STEP_12_5kHz : data[6];
+//	step_size    = STEP_FREQ_TABLE[step_setting];
+
+	return step_setting;
 }
 
 void BOARD_fetchChannelName(char *s, const int channel)
@@ -854,12 +900,11 @@ void BOARD_fetchChannelName(char *s, const int channel)
 
 	memset(s, 0, 11);  // 's' had better be large enough !
 
-	if (channel < 0)
+	if (channel < 0 || channel > (int)USER_CHANNEL_LAST)
 		return;
 
 	if (!RADIO_CheckValidChannel(channel, false, 0))
 		return;
-
 
 	EEPROM_ReadBuffer(0x0F50 + (channel * 16), s + 0, 8);
 	EEPROM_ReadBuffer(0x0F58 + (channel * 16), s + 8, 2);

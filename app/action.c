@@ -88,10 +88,10 @@ void ACTION_Monitor(void)
 
 	g_monitor_enabled = false;
 	
-	if (g_scan_state_dir != SCAN_OFF)
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{
 		g_scan_pause_delay_in_10ms = scan_pause_delay_in_1_10ms;
-		g_schedule_scan_listen    = false;
+		g_scan_schedule_scan_listen    = false;
 		g_scan_pause_mode         = true;
 	}
 
@@ -148,7 +148,7 @@ void ACTION_Scan(bool bRestart)
 
 						g_fm_auto_scan        = true;
 						g_fm_channel_position = 0;
-						Frequency             = g_eeprom.fm_lower_limit;
+						Frequency             = FM_RADIO_BAND.lower;
 					}
 					else
 					{
@@ -171,7 +171,7 @@ void ACTION_Scan(bool bRestart)
 		}
 	#endif
 
-	if (g_screen_to_display != DISPLAY_SCANNER)
+	if (g_screen_to_display != DISPLAY_SEARCH)
 	{	// not scanning
 
 		g_monitor_enabled = false;
@@ -189,10 +189,10 @@ void ACTION_Scan(bool bRestart)
 		{
 			GUI_SelectNextDisplay(DISPLAY_MAIN);
 
-			if (g_scan_state_dir != SCAN_OFF)
+			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 			{	// already scanning
 		
-				if (g_next_channel <= USER_CHANNEL_LAST)
+				if (g_scan_next_channel <= USER_CHANNEL_LAST)
 				{	// channel mode
 
 					// keep scanning but toggle between scan lists
@@ -201,14 +201,14 @@ void ACTION_Scan(bool bRestart)
 					// jump to the next channel
 					CHANNEL_Next(true, g_scan_state_dir);
 					g_scan_pause_delay_in_10ms = 1;
-					g_schedule_scan_listen    = false;
+					g_scan_schedule_scan_listen    = false;
 
 					g_update_status = true;
 				}
 				else
 				{	// stop scanning
 			
-					SCANNER_Stop();
+					SCAN_Stop();
 
 					#ifdef ENABLE_VOICE
 						g_another_voice_id = VOICE_ID_SCANNING_STOP;
@@ -218,7 +218,7 @@ void ACTION_Scan(bool bRestart)
 			else
 			{	// start scanning
 	
-				CHANNEL_Next(true, SCAN_FWD);
+				CHANNEL_Next(true, SCAN_STATE_DIR_FORWARD);
 
 				#ifdef ENABLE_VOICE
 					AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
@@ -236,14 +236,14 @@ void ACTION_Scan(bool bRestart)
 	}
 	else
 //	if (!bRestart)
-	if (!bRestart && g_next_channel <= USER_CHANNEL_LAST)
+	if (!bRestart && g_scan_next_channel <= USER_CHANNEL_LAST)
 	{	// channel mode, keep scanning but toggle between scan lists
 		g_eeprom.scan_list_default = (g_eeprom.scan_list_default + 1) % 3;
 
 		// jump to the next channel
 		CHANNEL_Next(true, g_scan_state_dir);
 		g_scan_pause_delay_in_10ms = 1;
-		g_schedule_scan_listen    = false;
+		g_scan_schedule_scan_listen    = false;
 
 		g_update_status = true;
 	}
@@ -251,7 +251,7 @@ void ACTION_Scan(bool bRestart)
 	{	// stop scanning
 		g_monitor_enabled = false;
 	
-		SCANNER_Stop();
+		SCAN_Stop();
 	
 		#ifdef ENABLE_VOICE
 			g_another_voice_id = VOICE_ID_SCANNING_STOP;

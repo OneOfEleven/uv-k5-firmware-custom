@@ -209,7 +209,7 @@ void DTMF_HandleRequest(void)
 	if (!g_dtmf_rx_pending)
 		return;   // nothing new received
 
-	if (g_scan_state_dir != SCAN_OFF || g_css_scan_mode != CSS_SCAN_MODE_OFF)
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_css_scan_mode != CSS_SCAN_MODE_OFF)
 	{	// we're busy scanning
 		DTMF_clear_RX();
 		return;
@@ -425,7 +425,7 @@ void DTMF_Reply(void)
 			}
 
 			// send TX-UP DTMF
-			pString = g_eeprom.dtmf_up_code;
+			pString = g_eeprom.dtmf_key_up_code;
 			break;
 	}
 

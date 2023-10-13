@@ -41,7 +41,7 @@
 void toggle_chan_scanlist(void)
 {	// toggle the selected channels scanlist setting
 
-	if (g_screen_to_display == DISPLAY_SCANNER || !IS_USER_CHANNEL(g_tx_vfo->channel_save))
+	if (g_screen_to_display == DISPLAY_SEARCH || !IS_USER_CHANNEL(g_tx_vfo->channel_save))
 		return;
 
 	if (g_tx_vfo->scanlist_1_participation)
@@ -78,7 +78,8 @@ static void processFKeyFunction(const key_code_t Key)
 
 	switch (Key)
 	{
-		case KEY_0:
+		case KEY_0:   // FM
+		
 			#ifdef ENABLE_FMRADIO
 				ACTION_FM();
 			#else
@@ -90,12 +91,13 @@ static void processFKeyFunction(const key_code_t Key)
 			#endif
 			break;
 
-		case KEY_1:
+		case KEY_1:   // BAND
+		
 			if (!IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
 			{
-				g_fkey_pressed = false;
-				g_update_status   = true;
-				g_beep_to_play     = BEEP_1KHZ_60MS_OPTIONAL;
+				g_fkey_pressed  = false;
+				g_update_status = true;
+				g_beep_to_play  = BEEP_1KHZ_60MS_OPTIONAL;
 				return;
 			}
 
@@ -120,7 +122,8 @@ static void processFKeyFunction(const key_code_t Key)
 			g_request_display_screen = DISPLAY_MAIN;
 			break;
 
-		case KEY_2:
+		case KEY_2:   // A/B
+		
 			if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_A)
 				g_eeprom.cross_vfo_rx_tx = CROSS_BAND_CHAN_B;
 			else
@@ -143,7 +146,7 @@ static void processFKeyFunction(const key_code_t Key)
 			g_request_display_screen = DISPLAY_MAIN;
 			break;
 
-		case KEY_3:
+		case KEY_3:   // VFO/MR
 			#ifdef ENABLE_NOAA
 				if (g_eeprom.vfo_open && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 			#else
@@ -190,10 +193,11 @@ static void processFKeyFunction(const key_code_t Key)
 
 			break;
 
-		case KEY_4:
+		case KEY_4:    // FC
+		
 			g_fkey_pressed           = false;
-			g_flag_start_scan        = true;
-			g_scan_single_frequency  = false;
+			g_search_flag_start_scan        = true;
+			g_search_single_frequency  = false;
 			g_backup_cross_vfo_rx_tx = g_eeprom.cross_vfo_rx_tx;
 			g_eeprom.cross_vfo_rx_tx = CROSS_BAND_OFF;
 			g_update_status          = true;
@@ -201,7 +205,8 @@ static void processFKeyFunction(const key_code_t Key)
 			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
-		case KEY_5:
+		case KEY_5:    // NOAA
+		
 			#ifdef ENABLE_NOAA
 
 				if (IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
@@ -227,12 +232,14 @@ static void processFKeyFunction(const key_code_t Key)
 			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
-		case KEY_6:
+		case KEY_6:    // H/M/L
+		
 			ACTION_Power();
 			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
-		case KEY_7:
+		case KEY_7:    // VOX
+		
 			#ifdef ENABLE_VOX
 				ACTION_Vox();
 			#else
@@ -241,13 +248,15 @@ static void processFKeyFunction(const key_code_t Key)
 			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
-		case KEY_8:
+		case KEY_8:    // R
+		
 			g_tx_vfo->frequency_reverse = g_tx_vfo->frequency_reverse == false;
 			g_request_save_channel = 1;
 			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
-		case KEY_9:
+		case KEY_9:    // CALL
+		
 			if (RADIO_CheckValidChannel(g_eeprom.chan_1_call, false, 0))
 			{
 				g_eeprom.user_channel[Vfo]     = g_eeprom.chan_1_call;
@@ -267,6 +276,7 @@ static void processFKeyFunction(const key_code_t Key)
 
 		default:
 			g_update_status = true;
+			g_fkey_pressed  = false;
 			g_fkey_pressed  = false;
 
 			#ifdef ENABLE_FMRADIO
@@ -382,10 +392,10 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				Frequency = FREQ_BAND_TABLE[0].lower;
 			}
 			else
-			if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
+			if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
 			{
-				const uint32_t center = (BX4819_band1.upper + BX4819_band2.lower) / 2;
-				Frequency = (Frequency < center) ? BX4819_band1.upper : BX4819_band2.lower;
+				const uint32_t center = (BX4819_BAND1.upper + BX4819_BAND2.lower) / 2;
+				Frequency = (Frequency < center) ? BX4819_BAND1.upper : BX4819_BAND2.lower;
 			}
 			else
 			if (Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
@@ -394,7 +404,7 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			}
 
 			{
-				const FREQUENCY_Band_t band = FREQUENCY_GetBand(Frequency);
+				const frequency_band_t band = FREQUENCY_GetBand(Frequency);
 
 				#ifdef ENABLE_VOICE
 					g_another_voice_id = (voice_id_t)Key;
@@ -416,10 +426,10 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 				Frequency = FREQUENCY_FloorToStep(Frequency, g_tx_vfo->step_freq, FREQ_BAND_TABLE[g_tx_vfo->band].lower);
 
-				if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
+				if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
 				{	// clamp the frequency to the limit
-					const uint32_t center = (BX4819_band1.upper + BX4819_band2.lower) / 2;
-					Frequency = (Frequency < center) ? BX4819_band1.upper - g_tx_vfo->step_freq : BX4819_band2.lower;
+					const uint32_t center = (BX4819_BAND1.upper + BX4819_BAND2.lower) / 2;
+					Frequency = (Frequency < center) ? BX4819_BAND1.upper - g_tx_vfo->step_freq : BX4819_BAND2.lower;
 				}
 
 				g_tx_vfo->freq_config_rx.frequency = Frequency;
@@ -448,7 +458,7 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				g_input_box_index = 0;
 
 				Channel = (g_input_box[0] * 10) + g_input_box[1];
-				if (Channel >= 1 && Channel <= ARRAY_SIZE(NoaaFrequencyTable))
+				if (Channel >= 1 && Channel <= ARRAY_SIZE(NOAA_FREQUENCY_TABLE))
 				{
 					Channel                   += NOAA_CHANNEL_FIRST;
 					#ifdef ENABLE_VOICE
@@ -492,7 +502,7 @@ static void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 			if (!g_fm_radio_mode)
 		#endif
 		{
-			if (g_scan_state_dir == SCAN_OFF)
+			if (g_scan_state_dir == SCAN_STATE_DIR_OFF)
 			{
 				if (g_input_box_index == 0)
 					return;
@@ -507,7 +517,7 @@ static void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 			}
 			else
 			{
-				SCANNER_Stop();
+				SCAN_Stop();
 
 				#ifdef ENABLE_VOICE
 					g_another_voice_id = VOICE_ID_SCANNING_STOP;
@@ -570,7 +580,7 @@ static void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 					if (g_eeprom.vfo_open && g_css_scan_mode == CSS_SCAN_MODE_OFF)
 					{
 
-						if (g_scan_state_dir != SCAN_OFF)
+						if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 						{
 							if (g_current_function != FUNCTION_INCOMING ||
 							    g_rx_reception_mode == RX_MODE_NONE      ||
@@ -672,9 +682,9 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 	{	// pressed without the F-key
 
 		#ifdef ENABLE_NOAA
-			if (g_scan_state_dir == SCAN_OFF && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
+			if (g_scan_state_dir == SCAN_STATE_DIR_OFF && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 		#else
-			if (g_scan_state_dir == SCAN_OFF)
+			if (g_scan_state_dir == SCAN_STATE_DIR_OFF)
 		#endif
 		{	// start entering a DTMF string
 
@@ -703,8 +713,8 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 		#endif
 
 		// scan the CTCSS/DCS code
-		g_flag_start_scan        = true;
-		g_scan_single_frequency  = true;
+		g_search_flag_start_scan        = true;
+		g_search_single_frequency  = true;
 		g_backup_cross_vfo_rx_tx = g_eeprom.cross_vfo_rx_tx;
 		g_eeprom.cross_vfo_rx_tx = CROSS_BAND_OFF;
 	}
@@ -751,7 +761,7 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 	}
 
-	if (g_scan_state_dir == SCAN_OFF)
+	if (g_scan_state_dir == SCAN_STATE_DIR_OFF)
 	{
 		#ifdef ENABLE_NOAA
 			if (IS_NOT_NOAA_CHANNEL(Channel))
@@ -810,7 +820,7 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 	// jump to the next channel
 	CHANNEL_Next(false, Direction);
 	g_scan_pause_delay_in_10ms = 1;
-	g_schedule_scan_listen    = false;
+	g_scan_schedule_scan_listen    = false;
 
 //	g_ptt_was_released = true;    // why is this being set ?
 }

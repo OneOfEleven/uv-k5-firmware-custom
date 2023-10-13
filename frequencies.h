@@ -21,19 +21,7 @@
 
 #include "frequencies.h"
 
-typedef struct {
-	const uint32_t lower;
-	const uint32_t upper;
-} freq_band_table_t;
-
-extern uint32_t g_aircopy_freq;
-
-extern const freq_band_table_t BX4819_band1;
-extern const freq_band_table_t BX4819_band2;
-
-extern const freq_band_table_t FREQ_BAND_TABLE[7];
-
-enum FREQUENCY_Band_t {
+enum frequency_band_e {
 	BAND_NONE   = -1,
 	BAND1_50MHz =  0,
 	BAND2_108MHz,
@@ -43,11 +31,25 @@ enum FREQUENCY_Band_t {
 	BAND6_400MHz,
 	BAND7_470MHz
 };
-typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
+typedef enum frequency_band_e frequency_band_t;
+
+typedef struct {
+	const uint32_t lower;
+	const uint32_t upper;
+} freq_band_table_t;
+
+extern uint32_t g_aircopy_freq;
+
+extern const freq_band_table_t FM_RADIO_BAND;
+
+extern const freq_band_table_t BX4819_BAND1;
+extern const freq_band_table_t BX4819_BAND2;
+
+extern const freq_band_table_t FREQ_BAND_TABLE[7];
 
 #ifdef ENABLE_1250HZ_STEP
 	// includes 1.25kHz step
-	enum step_setting_t {
+	enum step_setting_e {
 		STEP_1_25kHz = 0,
 		STEP_2_5kHz,
 		STEP_6_25kHz,
@@ -58,7 +60,7 @@ typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
 };
 #else
 	// QS steps
-	enum step_setting_t {
+	enum step_setting_e {
 		STEP_2_5kHz = 0,
 		STEP_5_0kHz,
 		STEP_6_25kHz,
@@ -68,15 +70,15 @@ typedef enum FREQUENCY_Band_t FREQUENCY_Band_t;
 		STEP_8_33kHz
 	};
 #endif
-typedef enum step_setting_t step_setting_t;
+typedef enum step_setting_e step_setting_t;
 
-extern const uint16_t     STEP_FREQ_TABLE[7];
+extern const uint16_t STEP_FREQ_TABLE[7];
 
 #ifdef ENABLE_NOAA
-	extern const uint32_t NoaaFrequencyTable[10];
+	extern const uint32_t NOAA_FREQUENCY_TABLE[10];
 #endif
 
-FREQUENCY_Band_t FREQUENCY_GetBand(uint32_t Frequency);
+frequency_band_t FREQUENCY_GetBand(uint32_t Frequency);
 uint8_t          FREQUENCY_CalculateOutputPower(uint8_t TxpLow, uint8_t TxpMid, uint8_t TxpHigh, int32_t LowerLimit, int32_t Middle, int32_t UpperLimit, int32_t Frequency);
 uint32_t         FREQUENCY_FloorToStep(uint32_t Upper, uint32_t Step, uint32_t Lower);
 

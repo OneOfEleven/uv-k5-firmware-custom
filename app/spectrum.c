@@ -416,7 +416,7 @@ static void ToggleTX(bool on) {
     RegBackupSet(BK4819_REG_51, 0x0000);
 
     BK4819_SetupPowerAmplifier(gCurrentVfo->TXP_CalculatedSetting,
-                               gCurrentVfo->pTX->Frequency);
+                               gCurrentVfo->p_tx->Frequency);
   } else {
     RADIO_SendEndOfTransmission();
     RADIO_EnableCxCSS();
@@ -1328,7 +1328,7 @@ void APP_RunSpectrum() {
   BackupRegisters();
   // TX here coz it always? set to active VFO
   VFO_Info_t vfo = g_eeprom.vfo_info[g_eeprom.TX_CHANNEL];
-  initialFreq = vfo.pRX->Frequency;
+  initialFreq = vfo.p_rx->Frequency;
   currentFreq = initialFreq;
   settings.scanStepIndex = gStepSettingToIndex[vfo.STEP_SETTING];
   settings.listenBw = vfo.CHANNEL_BANDWIDTH == BANDWIDTH_WIDE

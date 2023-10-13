@@ -260,9 +260,9 @@ const char g_sub_menu_PTT_ID[5][15] =
 	"APOLLO\nQUINDAR"
 };
 
-const char g_sub_menu_pwr_on_msg[4][8] =
+const char g_sub_menu_pwr_on_msg[4][14] =
 {
-	"FULL",
+	"ALL\nPIXELS\nON",
 	"MESSAGE",
 	"VOLTAGE",
 	"NONE"
@@ -879,12 +879,12 @@ void UI_DisplayMenu(void)
 
 		case MENU_UPCODE:
 			strcpy(String, "PTT DTMF\nBEGIN\n");
-			strcat(String, g_eeprom.dtmf_up_code);
+			strcat(String, g_eeprom.dtmf_key_up_code);
 			break;
 
 		case MENU_DWCODE:
 			strcpy(String, "PTT DTMF\nEND\n");
-			strcat(String, g_eeprom.dtmf_down_code);
+			strcat(String, g_eeprom.dtmf_key_down_code);
 			break;
 
 		case MENU_D_RSP:
@@ -1149,12 +1149,12 @@ void UI_DisplayMenu(void)
 		UI_PrintString("SCAN", menu_item_x1, menu_item_x2, 4, 8);
 
 	if (g_menu_cursor == MENU_UPCODE)
-		if (strlen(g_eeprom.dtmf_up_code) > 8)
-			UI_PrintString(g_eeprom.dtmf_up_code + 8, menu_item_x1, menu_item_x2, 4, 8);
+		if (strlen(g_eeprom.dtmf_key_up_code) > 8)
+			UI_PrintString(g_eeprom.dtmf_key_up_code + 8, menu_item_x1, menu_item_x2, 4, 8);
 
 	if (g_menu_cursor == MENU_DWCODE)
-		if (strlen(g_eeprom.dtmf_down_code) > 8)
-			UI_PrintString(g_eeprom.dtmf_down_code + 8, menu_item_x1, menu_item_x2, 4, 8);
+		if (strlen(g_eeprom.dtmf_key_down_code) > 8)
+			UI_PrintString(g_eeprom.dtmf_key_down_code + 8, menu_item_x1, menu_item_x2, 4, 8);
 
 	if (g_menu_cursor == MENU_R_CTCS ||
 	    g_menu_cursor == MENU_T_CTCS ||
