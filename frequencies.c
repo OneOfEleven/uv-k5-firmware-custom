@@ -18,12 +18,12 @@
 #include "misc.h"
 #include "settings.h"
 
-// the initial AIRCOPY frequency to use
+// the default AIRCOPY frequency to use
 uint32_t g_aircopy_freq = 41002500;
 
 // the BK4819 has 2 bands it covers, 18MHz ~ 630MHz and 760MHz ~ 1300MHz
-const freq_band_table_t BX4819_band1 = { 1800000,  63000000};
-const freq_band_table_t BX4819_band2 = {84000000, 130000000};
+const freq_band_table_t BX4819_BAND1 = { 1800000,  63000000};
+const freq_band_table_t BX4819_BAND2 = {84000000, 130000000};
 
 const freq_band_table_t FREQ_BAND_TABLE[7] =
 {
@@ -49,7 +49,7 @@ const freq_band_table_t FREQ_BAND_TABLE[7] =
 };
 
 #ifdef ENABLE_NOAA
-	const uint32_t NoaaFrequencyTable[10] =
+	const uint32_t NOAA_FREQUENCY_TABLE[10] =
 	{
 		16255000,
 		16240000,
@@ -72,13 +72,13 @@ const freq_band_table_t FREQ_BAND_TABLE[7] =
 	const uint16_t STEP_FREQ_TABLE[7] = {250, 500, 625, 1000, 1250, 2500, 833};
 #endif
 
-FREQUENCY_Band_t FREQUENCY_GetBand(uint32_t Frequency)
+frequency_band_t FREQUENCY_GetBand(uint32_t Frequency)
 {
 	int band;
 	for (band = ARRAY_SIZE(FREQ_BAND_TABLE) - 1; band >= 0; band--)
 		if (Frequency >= FREQ_BAND_TABLE[band].lower)
 //		if (Frequency <  FREQ_BAND_TABLE[band].upper)
-			return (FREQUENCY_Band_t)band;
+			return (frequency_band_t)band;
 
 	return BAND1_50MHz;
 //	return BAND_NONE;
@@ -134,7 +134,7 @@ int TX_freq_check(const uint32_t Frequency)
 	if (Frequency < FREQ_BAND_TABLE[0].lower || Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
 		return -1;  // not allowed outside this range
 
-	if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
+	if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
 		return -1;  // BX chip does not work in this range
 
 	switch (g_setting_freq_lock)
@@ -202,7 +202,7 @@ int RX_freq_check(const uint32_t Frequency)
 	if (Frequency < FREQ_BAND_TABLE[0].lower || Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
 		return -1;
 
-	if (Frequency >= BX4819_band1.upper && Frequency < BX4819_band2.lower)
+	if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
 		return -1;
 
 	return 0;   // OK frequency

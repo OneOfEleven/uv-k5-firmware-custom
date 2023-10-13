@@ -61,8 +61,8 @@ void GUI_DisplayScreen(void)
 			UI_DisplayMenu();
 			break;
 
-		case DISPLAY_SCANNER:
-			UI_DisplayScanner();
+		case DISPLAY_SEARCH:
+			UI_DisplaySearch();
 			break;
 
 		#ifdef ENABLE_AIRCOPY
@@ -88,7 +88,7 @@ void GUI_SelectNextDisplay(gui_display_type_t Display)
 		g_input_box_index      = 0;
 		g_is_in_sub_menu       = false;
 		g_css_scan_mode        = CSS_SCAN_MODE_OFF;
-		g_scan_state_dir       = SCAN_OFF;
+		g_scan_state_dir       = SCAN_STATE_DIR_OFF;
 		#ifdef ENABLE_FMRADIO
 			g_fm_scan_state    = FM_SCAN_OFF;
 		#endif

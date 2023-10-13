@@ -49,7 +49,7 @@ void FUNCTION_Init(void)
 	{
 		g_current_code_type = g_selected_code_type;
 		if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
-			g_current_code_type = g_rx_vfo->am_mode ? CODE_TYPE_NONE : g_rx_vfo->pRX->code_type;
+			g_current_code_type = g_rx_vfo->am_mode ? CODE_TYPE_NONE : g_rx_vfo->p_rx->code_type;
 	}
 	#ifdef ENABLE_NOAA
 		else
@@ -58,9 +58,9 @@ void FUNCTION_Init(void)
 
 	DTMF_clear_RX();
 
-	g_CxCSS_tail_found = false;
-	g_CDCSS_lost       = false;
-	g_CTCSS_lost       = false;
+	g_cxcss_tail_found = false;
+	g_cdcss_lost       = false;
+	g_ctcss_lost       = false;
 
 	#ifdef ENABLE_VOX
 		g_vox_lost     = false;

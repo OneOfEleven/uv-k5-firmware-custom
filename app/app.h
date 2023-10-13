@@ -29,6 +29,7 @@ extern const uint8_t orig_mixer;
 extern const uint8_t orig_pga;
 
 void     APP_EndTransmission(void);
+void     SCAN_Stop(void);
 void     CHANNEL_Next(const bool flag, const scan_state_dir_t scan_direction);
 void     APP_StartListening(function_type_t Function, const bool reset_am_fix);
 uint32_t APP_SetFrequencyByStep(vfo_info_t *pInfo, int8_t Step);

@@ -20,7 +20,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "app/scanner.h"
+#include "misc.h"
 #include "dcs.h"
 #include "frequencies.h"
 
@@ -74,8 +74,8 @@ typedef struct vfo_info_t
 {
 	freq_config_t  freq_config_rx;
 	freq_config_t  freq_config_tx;
-	freq_config_t *pRX;
-	freq_config_t *pTX;
+	freq_config_t *p_rx;
+	freq_config_t *p_tx;
 
 	uint32_t       tx_offset_freq;
 	uint16_t       step_freq;
@@ -123,8 +123,6 @@ extern vfo_info_t     *g_current_vfo;
 extern dcs_code_type_t g_selected_code_type;
 extern dcs_code_type_t g_current_code_type;
 extern uint8_t         g_selected_code;
-
-extern step_setting_t  g_step_setting;
 
 extern vfo_state_t     g_vfo_state[2];
 

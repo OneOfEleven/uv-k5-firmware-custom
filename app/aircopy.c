@@ -84,7 +84,7 @@ void AIRCOPY_start_FSK_tx(const uint8_t request_packet)
 	
 	// TX the packet
 	RADIO_SetTxParameters();
-	BK4819_SetupPowerAmplifier(0, g_current_vfo->pTX->frequency); // VERY low TX power
+	BK4819_SetupPowerAmplifier(0, g_current_vfo->p_tx->frequency); // VERY low TX power
 
 	// turn the RED LED on
 	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, true);

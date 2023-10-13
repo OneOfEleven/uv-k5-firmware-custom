@@ -452,8 +452,8 @@ static void cmd_052F(const uint8_t *pBuffer)
 	g_eeprom.rx_vfo                           = 0;
 	g_eeprom.dtmf_side_tone                   = false;
 	g_eeprom.vfo_info[0].frequency_reverse    = false;
-	g_eeprom.vfo_info[0].pRX                  = &g_eeprom.vfo_info[0].freq_config_rx;
-	g_eeprom.vfo_info[0].pTX                  = &g_eeprom.vfo_info[0].freq_config_tx;
+	g_eeprom.vfo_info[0].p_rx                  = &g_eeprom.vfo_info[0].freq_config_rx;
+	g_eeprom.vfo_info[0].p_tx                  = &g_eeprom.vfo_info[0].freq_config_tx;
 	g_eeprom.vfo_info[0].tx_offset_freq_dir   = TX_OFFSET_FREQ_DIR_OFF;
 	g_eeprom.vfo_info[0].dtmf_ptt_id_tx_mode  = PTT_ID_OFF;
 	g_eeprom.vfo_info[0].dtmf_decoding_enable = false;

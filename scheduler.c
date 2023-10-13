@@ -78,20 +78,20 @@ void SystickHandler(void)
 	if (g_current_function == FUNCTION_POWER_SAVE)
 		DECREMENT_AND_TRIGGER(g_power_save_10ms, g_power_save_expired);
 
-	if (g_scan_state_dir == SCAN_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch != DUAL_WATCH_OFF)
+	if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch != DUAL_WATCH_OFF)
 		if (g_current_function != FUNCTION_MONITOR && g_current_function != FUNCTION_TRANSMIT && g_current_function != FUNCTION_RECEIVE)
 			DECREMENT_AND_TRIGGER(g_dual_watch_count_down_10ms, g_schedule_dual_watch);
 
 	#ifdef ENABLE_NOAA
-		if (g_scan_state_dir == SCAN_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch == DUAL_WATCH_OFF)
+		if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch == DUAL_WATCH_OFF)
 			if (g_is_noaa_mode && g_current_function != FUNCTION_MONITOR && g_current_function != FUNCTION_TRANSMIT)
 				if (g_current_function != FUNCTION_RECEIVE)
 					DECREMENT_AND_TRIGGER(g_noaa_count_down_10ms, g_schedule_noaa);
 	#endif
 
-	if (g_scan_state_dir != SCAN_OFF || g_css_scan_mode == CSS_SCAN_MODE_SCANNING)
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_css_scan_mode == CSS_SCAN_MODE_SCANNING)
 		if (g_current_function != FUNCTION_MONITOR && g_current_function != FUNCTION_TRANSMIT)
-			DECREMENT_AND_TRIGGER(g_scan_pause_delay_in_10ms, g_schedule_scan_listen);
+			DECREMENT_AND_TRIGGER(g_scan_pause_delay_in_10ms, g_scan_schedule_scan_listen);
 
 	DECREMENT_AND_TRIGGER(g_tail_tone_elimination_count_down_10ms, g_flag_tail_tone_elimination_complete);
 

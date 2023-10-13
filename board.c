@@ -840,9 +840,55 @@ uint32_t BOARD_fetchChannelFrequency(const int channel)
 		uint32_t offset;
 	} __attribute__((packed)) info;
 
+	if (channel < 0 || channel > (int)FREQ_CHANNEL_LAST)
+		return 0;
+
+	if (!RADIO_CheckValidChannel(channel, false, 0))
+		return 0;
+
 	EEPROM_ReadBuffer(channel * 16, &info, sizeof(info));
 
 	return info.frequency;
+}
+
+unsigned int BOARD_fetchChannelStepSetting(const int channel)
+{
+	uint8_t      data[8];
+	unsigned int step_setting = 0;
+	
+	if (channel < 0)
+		return 0;
+
+	if (channel <= USER_CHANNEL_LAST)
+	{
+		EEPROM_ReadBuffer(channel * 16, &data, sizeof(data));
+	}
+	else
+	if (channel <= FREQ_CHANNEL_LAST)
+	{
+		EEPROM_ReadBuffer(channel * 16, &data, sizeof(data));
+	}
+	
+	step_setting = (data[6] >= ARRAY_SIZE(STEP_FREQ_TABLE)) ? STEP_12_5kHz : data[6];
+//	step_size    = STEP_FREQ_TABLE[step_setting];
+	
+	return step_setting;
+}
+
+unsigned int BOARD_fetchFrequencyStepSetting(const int channel, const int vfo)
+{
+	uint8_t      data[8];
+	unsigned int step_setting = 0;
+	
+	if (channel < 0 || channel > (FREQ_CHANNEL_LAST - FREQ_CHANNEL_FIRST) || vfo < 0 || vfo >= 2)
+		return 0;
+
+	EEPROM_ReadBuffer(FREQ_CHANNEL_FIRST + (channel * 16 * 2) + vfo, &data, sizeof(data));
+
+	step_setting = (data[6] >= ARRAY_SIZE(STEP_FREQ_TABLE)) ? STEP_12_5kHz : data[6];
+//	step_size    = STEP_FREQ_TABLE[step_setting];
+	
+	return step_setting;
 }
 
 void BOARD_fetchChannelName(char *s, const int channel)
@@ -854,12 +900,11 @@ void BOARD_fetchChannelName(char *s, const int channel)
 
 	memset(s, 0, 11);  // 's' had better be large enough !
 
-	if (channel < 0)
+	if (channel < 0 || channel > (int)USER_CHANNEL_LAST)
 		return;
 
 	if (!RADIO_CheckValidChannel(channel, false, 0))
 		return;
-
 
 	EEPROM_ReadBuffer(0x0F50 + (channel * 16), s + 0, 8);
 	EEPROM_ReadBuffer(0x0F58 + (channel * 16), s + 8, 2);
