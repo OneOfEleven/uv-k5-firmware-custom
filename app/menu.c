@@ -411,7 +411,7 @@ void MENU_AcceptSetting(void)
 					return;
 				}
 				Code               = 0;
-				pConfig->code_type = CODE_TYPE_OFF;
+				pConfig->code_type = CODE_TYPE_NONE;
 			}
 			else
 			if (g_sub_menu_selection < 105)
@@ -444,7 +444,7 @@ void MENU_AcceptSetting(void)
 				}
 				Code               = 0;
 				pConfig->code      = Code;
-				pConfig->code_type = CODE_TYPE_OFF;
+				pConfig->code_type = CODE_TYPE_NONE;
 
 				BK4819_ExitSubAu();
 			}

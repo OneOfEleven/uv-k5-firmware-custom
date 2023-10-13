@@ -3,46 +3,46 @@
 # 0 = disable
 # 1 = enable
 #
-ENABLE_CLANG                  := 0
-ENABLE_SWD                    := 0
-ENABLE_OVERLAY                := 0
-ENABLE_LTO                    := 1
-ENABLE_UART                   := 1
-ENABLE_UART_DEBUG             := 1
-ENABLE_AIRCOPY                := 1
-ENABLE_AIRCOPY_FREQ           := 1
-ENABLE_FMRADIO                := 1
-ENABLE_NOAA                   := 0
-ENABLE_VOICE                  := 0
-ENABLE_MUTE_RADIO_FOR_VOICE   := 1
-ENABLE_VOX                    := 1
-ENABLE_ALARM                  := 1
-ENABLE_TX1750                 := 1
-ENABLE_PWRON_PASSWORD         := 0
-ENABLE_RESET_AES_KEY          := 1
-ENABLE_BIG_FREQ               := 0
-ENABLE_SMALL_BOLD             := 1
-ENABLE_KEEP_MEM_NAME          := 1
-ENABLE_WIDE_RX                := 1
-ENABLE_1250HZ_STEP            := 1
-ENABLE_TX_WHEN_AM             := 0
-ENABLE_F_CAL_MENU             := 0
-ENABLE_CTCSS_TAIL_PHASE_SHIFT := 1
-ENABLE_BOOT_BEEPS             := 0
-ENABLE_SHOW_CHARGE_LEVEL      := 0
-ENABLE_REVERSE_BAT_SYMBOL     := 1
-ENABLE_CODE_SCAN_TIMEOUT      := 0
-ENABLE_FREQ_CODE_SCAN_TIMEOUT := 1
-ENABLE_AM_FIX                 := 1
-ENABLE_AM_FIX_SHOW_DATA       := 1
-ENABLE_SQUELCH_MORE_SENSITIVE := 1
-ENABLE_FASTER_CHANNEL_SCAN    := 1
-ENABLE_RSSI_BAR               := 1
-ENABLE_SHOW_TX_TIMEOUT        := 0
-ENABLE_AUDIO_BAR              := 1
-ENABLE_COPY_CHAN_TO_VFO       := 1
-#ENABLE_PANADAPTER             := 0
-#ENABLE_SINGLE_VFO_CHAN        := 0
+ENABLE_CLANG                    := 0
+ENABLE_SWD                      := 0
+ENABLE_OVERLAY                  := 0
+ENABLE_LTO                      := 1
+ENABLE_UART                     := 1
+ENABLE_UART_DEBUG               := 1
+ENABLE_AIRCOPY                  := 1
+ENABLE_AIRCOPY_FREQ             := 1
+ENABLE_FMRADIO                  := 1
+ENABLE_NOAA                     := 0
+ENABLE_VOICE                    := 0
+ENABLE_MUTE_RADIO_FOR_VOICE     := 1
+ENABLE_VOX                      := 1
+ENABLE_ALARM                    := 1
+ENABLE_TX1750                   := 1
+ENABLE_PWRON_PASSWORD           := 0
+ENABLE_RESET_AES_KEY            := 1
+ENABLE_BIG_FREQ                 := 0
+ENABLE_SMALL_BOLD               := 1
+ENABLE_KEEP_MEM_NAME            := 1
+ENABLE_WIDE_RX                  := 1
+ENABLE_1250HZ_STEP              := 1
+ENABLE_TX_WHEN_AM               := 0
+ENABLE_F_CAL_MENU               := 0
+ENABLE_CTCSS_TAIL_PHASE_SHIFT   := 1
+ENABLE_BOOT_BEEPS               := 0
+ENABLE_SHOW_CHARGE_LEVEL        := 0
+ENABLE_REVERSE_BAT_SYMBOL       := 1
+ENABLE_FREQ_SEARCH_TIMEOUT      := 0
+ENABLE_CODE_SEARCH_TIMEOUT      := 1
+ENABLE_AM_FIX                   := 1
+ENABLE_AM_FIX_SHOW_DATA         := 1
+ENABLE_SQUELCH_MORE_SENSITIVE   := 1
+ENABLE_FASTER_CHANNEL_SCAN      := 1
+ENABLE_RSSI_BAR                 := 1
+ENABLE_SHOW_TX_TIMEOUT          := 0
+ENABLE_AUDIO_BAR                := 1
+ENABLE_COPY_CHAN_TO_VFO         := 1
+#ENABLE_PANADAPTER              := 0
+#ENABLE_SINGLE_VFO_CHAN         := 0
 
 #############################################################
 
@@ -312,11 +312,11 @@ endif
 ifeq ($(ENABLE_REVERSE_BAT_SYMBOL),1)
 	CFLAGS  += -DENABLE_REVERSE_BAT_SYMBOL
 endif
-ifeq ($(ENABLE_CODE_SCAN_TIMEOUT),1)
-	CFLAGS  += -DENABLE_CODE_SCAN_TIMEOUT
+ifeq ($(ENABLE_CODE_SEARCH_TIMEOUT),1)
+	CFLAGS  += -DENABLE_CODE_SEARCH_TIMEOUT
 endif
-ifeq ($(ENABLE_FREQ_CODE_SCAN_TIMEOUT),1)
-	CFLAGS  += -DENABLE_FREQ_CODE_SCAN_TIMEOUT
+ifeq ($(ENABLE_FREQ_SEARCH_TIMEOUT),1)
+	CFLAGS  += -DENABLE_FREQ_SEARCH_TIMEOUT
 endif
 ifeq ($(ENABLE_AM_FIX),1)
 	CFLAGS  += -DENABLE_AM_FIX

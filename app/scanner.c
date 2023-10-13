@@ -50,7 +50,7 @@ static void SCANNER_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 	if (key_held || key_pressed)
 		return;
 
-	if (g_scanner_edit_state == SCAN_EDIT_STATE_SAVE)
+	if (g_scanner_edit_state == SCAN_EDIT_STATE_SAVE_CHAN)
 	{
 		uint16_t Channel;
 
@@ -95,35 +95,41 @@ static void SCANNER_Key_EXIT(bool key_pressed, bool key_held)
 	switch (g_scanner_edit_state)
 	{
 		case SCAN_EDIT_STATE_NONE:
-			g_request_display_screen    = DISPLAY_MAIN;
-
 			g_eeprom.cross_vfo_rx_tx = g_backup_cross_vfo_rx_tx;
-			g_update_status            = true;
-			g_flag_stop_scan            = true;
-			g_vfo_configure_mode        = VFO_CONFIGURE_RELOAD;
-			g_flag_reset_vfos           = true;
+			g_update_status          = true;
+			g_flag_stop_scan         = true;
+			g_vfo_configure_mode     = VFO_CONFIGURE_RELOAD;
+			g_flag_reset_vfos        = true;
+
 			#ifdef ENABLE_VOICE
-				g_another_voice_id      = VOICE_ID_CANCEL;
+				g_another_voice_id   = VOICE_ID_CANCEL;
 			#endif
+
+			g_request_display_screen = DISPLAY_MAIN;
+			g_update_display         = true;
 			break;
 
-		case SCAN_EDIT_STATE_SAVE:
+		case SCAN_EDIT_STATE_SAVE_CHAN:
 			if (g_input_box_index > 0)
 			{
 				g_input_box[--g_input_box_index] = 10;
+
 				g_request_display_screen = DISPLAY_SCANNER;
+				g_update_display         = true;
 				break;
 			}
 
 			// Fallthrough
 
-		case SCAN_EDIT_STATE_DONE:
-			g_scanner_edit_state     = SCAN_EDIT_STATE_NONE;
+		case SCAN_EDIT_STATE_SAVE_CONFIRM:
+			g_scanner_edit_state = SCAN_EDIT_STATE_NONE;
+
 			#ifdef ENABLE_VOICE
-				g_another_voice_id   = VOICE_ID_CANCEL;
+				g_another_voice_id = VOICE_ID_CANCEL;
 			#endif
-//			g_request_display_screen = DISPLAY_SCANNER;
+
 			g_request_display_screen = DISPLAY_MAIN;
+			g_update_display         = true;
 			break;
 	}
 }
@@ -158,12 +164,16 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 
 	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+
 	switch (g_scanner_edit_state)
 	{
 		case SCAN_EDIT_STATE_NONE:
-/*			if (!g_scan_single_frequency)
+			if (!g_scan_single_frequency)
 			{
 				#if 0
+
 					uint32_t Freq250 = FREQUENCY_FloorToStep(g_scan_frequency, 250, 0);
 					uint32_t Freq625 = FREQUENCY_FloorToStep(g_scan_frequency, 625, 0);
 
@@ -194,7 +204,8 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 						g_step_setting = STEP_2_5kHz;
 						g_scan_frequency = Freq250;
 					}
-				#elif 0
+
+				#elif 1
 
 					#ifdef ENABLE_1250HZ_STEP
 						const step_setting_t small_step = STEP_1_25kHz;
@@ -238,39 +249,23 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 						g_scan_frequency = freq_big_step;
 					}
 
-				#else
-					#ifdef ENABLE_1250HZ_STEP
-						g_step_setting = STEP_1_25kHz;
-					#else
-						g_step_setting = STEP_2_5kHz;
-					#endif
-					{	// round to the nearest step size
-						const uint32_t step = STEP_FREQ_TABLE[g_step_setting];
-						g_scan_frequency = ((g_scan_frequency + (step / 2)) / step) * step;
-					}
 				#endif
 			}
-*/
+
 			if (g_tx_vfo->channel_save <= USER_CHANNEL_LAST)
 			{	// save to channel
-				if (!g_scan_single_frequency)
-				{	// round to the nearest step size
-					const uint32_t step = g_tx_vfo->step_freq;
-					g_scan_frequency = ((g_scan_frequency + (step / 2)) / step) * step;
-				}
 				g_scan_channel       = g_tx_vfo->channel_save;
 				g_show_chan_prefix   = RADIO_CheckValidChannel(g_tx_vfo->channel_save, false, 0);
-				g_scanner_edit_state = SCAN_EDIT_STATE_SAVE;
+				g_scanner_edit_state = SCAN_EDIT_STATE_SAVE_CHAN;
 			}
 			else
-			{	// save the VFO
-				if (!g_scan_single_frequency)
-				{	// round to the nearest step size
-					const uint32_t step = g_tx_vfo->step_freq;
-					g_scan_frequency = ((g_scan_frequency + (step / 2)) / step) * step;
-				}
-				g_scanner_edit_state = SCAN_EDIT_STATE_DONE;
+			{	// save to VFO
+				g_scanner_edit_state = SCAN_EDIT_STATE_SAVE_CONFIRM;
 			}
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				//UART_SendText("edit none\r\n");
+			#endif
 
 			g_scan_css_state = SCAN_CSS_STATE_FOUND;
 
@@ -282,18 +277,27 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 			g_update_status = true;
 			break;
 
-		case SCAN_EDIT_STATE_SAVE:
+		case SCAN_EDIT_STATE_SAVE_CHAN:
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("edit save chan\r\n");
+			#endif
+
+			if (g_input_box_index > 0)
+				break;
+			
 			if (g_input_box_index == 0)
 			{
+				g_scanner_edit_state     = SCAN_EDIT_STATE_SAVE_CONFIRM;
+
 				g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
 				g_request_display_screen = DISPLAY_SCANNER;
-				g_scanner_edit_state     = SCAN_EDIT_STATE_DONE;
 			}
-			break;
+			
+//			break;
 
-		case SCAN_EDIT_STATE_DONE:
+		case SCAN_EDIT_STATE_SAVE_CONFIRM:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				//UART_SendText("edit done\r\n");
+				UART_SendText("edit save confirm\r\n");
 			#endif
 
 			if (!g_scan_single_frequency)
@@ -316,6 +320,7 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 
 				g_tx_vfo->freq_config_rx.code_type = g_scan_css_result_type;
 				g_tx_vfo->freq_config_rx.code      = g_scan_css_result_code;
+
 				g_tx_vfo->freq_config_tx.code_type = g_scan_css_result_type;
 				g_tx_vfo->freq_config_tx.code      = g_scan_css_result_code;
 			}
@@ -339,15 +344,29 @@ static void SCANNER_Key_MENU(bool key_pressed, bool key_held)
 				g_another_voice_id = VOICE_ID_CONFIRM;
 			#endif
 
-			g_scanner_edit_state = SCAN_EDIT_STATE_NONE;
+			if (!g_scan_single_frequency)
+			{	// FREQ/CTCSS/CDCSS search mode .. do another search
+				g_scan_css_state         = SCAN_CSS_STATE_REPEAT;
+				g_scanner_edit_state     = SCAN_EDIT_STATE_NONE;
+				g_request_display_screen = DISPLAY_SCANNER;
+			}
+			else
+			{	// CTCSS/CDCSS search mode .. only do a single search
+				g_scan_css_state         = SCAN_CSS_STATE_OFF;
+				g_scanner_edit_state     = SCAN_EDIT_STATE_NONE;
+				g_request_display_screen = DISPLAY_MAIN;
+			}
 
-			g_request_display_screen = DISPLAY_SCANNER;
+			g_update_display = true;
+			
 			break;
 
 		default:
 			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 	}
+
+	#pragma GCC diagnostic pop
 }
 
 static void SCANNER_Key_STAR(bool key_pressed, bool key_held)
@@ -375,7 +394,7 @@ static void SCANNER_Key_UP_DOWN(bool key_pressed, bool pKeyHeld, int8_t Directio
 		g_beep_to_play    = BEEP_1KHZ_60MS_OPTIONAL;
 	}
 
-	if (g_scanner_edit_state == SCAN_EDIT_STATE_SAVE)
+	if (g_scanner_edit_state == SCAN_EDIT_STATE_SAVE_CHAN)
 	{
 		g_scan_channel           = NUMBER_AddWithWraparound(g_scan_channel, Direction, 0, USER_CHANNEL_LAST);
 		g_show_chan_prefix       = RADIO_CheckValidChannel(g_scan_channel, false, 0);
@@ -475,8 +494,8 @@ void SCANNER_Start(void)
 	DTMF_clear_RX();
 
 	g_scan_delay_10ms          = scan_freq_css_delay_10ms;
-	g_scan_css_result_code     = 0xFF;
-	g_scan_css_result_type     = 0xFF;
+	g_scan_css_result_type     = CODE_TYPE_NONE;
+	g_scan_css_result_code     = 0xff;
 	g_scan_hit_count           = 0;
 	g_scan_use_css_result      = false;
 	g_CxCSS_tail_found         = false;
