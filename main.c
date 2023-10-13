@@ -215,7 +215,6 @@ void Main(void)
 			RADIO_ConfigureNOAA();
 		#endif
 
-		TransponderPing();
 	}
 
 	while (1)
