@@ -214,6 +214,8 @@ void Main(void)
 		#ifdef ENABLE_NOAA
 			RADIO_ConfigureNOAA();
 		#endif
+
+		TransponderPing();
 	}
 
 	while (1)
