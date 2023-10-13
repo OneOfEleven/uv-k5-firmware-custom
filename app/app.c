@@ -1847,7 +1847,8 @@ void APP_TimeSlice10ms(void)
 				}
 				else
 				{	// RF carrier found
-					// stop RF the scan and move on too the CTCSS/CDCSS scan
+					//
+					// stop RF search and start CTCSS/CDCSS search
 
 					BK4819_SetScanFrequency(g_search_frequency);
 
@@ -1858,10 +1859,9 @@ void APP_TimeSlice10ms(void)
 					g_search_freq_css_timer_10ms = 0;
 					g_search_css_state           = SEARCH_CSS_STATE_SCANNING;
 
-					GUI_SelectNextDisplay(DISPLAY_SEARCH);
-
 					g_update_status  = true;
 					g_update_display = true;
+					GUI_SelectNextDisplay(DISPLAY_SEARCH);
 				}
 
 				g_search_delay_10ms = scan_freq_css_delay_10ms;
@@ -1873,8 +1873,9 @@ void APP_TimeSlice10ms(void)
 				{	// CTCSS/CDCSS search timeout
 
 					#if defined(ENABLE_CODE_SEARCH_TIMEOUT)
-						BK4819_Disable();
 						g_search_css_state = SEARCH_CSS_STATE_FAILED;
+
+						BK4819_Disable();
 
 						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 						g_update_status  = true;
@@ -1884,8 +1885,9 @@ void APP_TimeSlice10ms(void)
 					#else
 						if (!g_search_single_frequency)
 						{
-							BK4819_Disable();
 							g_search_css_state = SEARCH_CSS_STATE_FAILED;
+
+							BK4819_Disable();
 
 							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 							g_update_status  = true;
@@ -1903,17 +1905,25 @@ void APP_TimeSlice10ms(void)
 
 				if (ScanResult == BK4819_CSS_RESULT_CDCSS)
 				{	// found a CDCSS code
-					const uint8_t Code = DCS_GetCdcssCode(Result);
-					if (Code != 0xFF)
+					const uint8_t code = DCS_GetCdcssCode(Result);
+					if (code != 0xFF)
 					{
-						g_search_css_result_code = Code;
+						g_search_hit_count       = 0;
 						g_search_css_result_type = CODE_TYPE_DIGITAL;
+						g_search_css_result_code = code;
 						g_search_css_state       = SEARCH_CSS_STATE_FOUND;
 						g_search_use_css_result  = true;
 
 						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 						g_update_status  = true;
 						g_update_display = true;
+					}
+					else
+					{
+						g_search_hit_count       = 0;
+						g_search_css_result_type = CODE_TYPE_NONE;
+						g_search_css_result_code = code;
+						g_search_use_css_result  = false;
 					}
 				}
 				else
@@ -1925,7 +1935,7 @@ void APP_TimeSlice10ms(void)
 						if (code == g_search_css_result_code &&
 						    g_search_css_result_type == CODE_TYPE_CONTINUOUS_TONE)
 						{
-							if (++g_search_hit_count >= 2)
+							if (++g_search_hit_count >= 3)
 							{
 								g_search_css_state      = SEARCH_CSS_STATE_FOUND;
 								g_search_use_css_result = true;
@@ -1936,10 +1946,19 @@ void APP_TimeSlice10ms(void)
 							}
 						}
 						else
-							g_search_hit_count = 0;
-
-						g_search_css_result_type = CODE_TYPE_CONTINUOUS_TONE;
-						g_search_css_result_code = code;
+						{
+							g_search_hit_count       = 1;
+							g_search_css_result_type = CODE_TYPE_CONTINUOUS_TONE;
+							g_search_css_result_code = code;
+							g_search_use_css_result  = false;
+						}
+					}
+					else
+					{
+						g_search_hit_count       = 0;
+						g_search_css_result_type = CODE_TYPE_NONE;
+						g_search_css_result_code = 0xff;
+						g_search_use_css_result  = false;
 					}
 				}
 

@@ -93,21 +93,23 @@ void UI_DisplaySearch(void)
 
 		case SEARCH_CSS_STATE_FOUND:
 		case SEARCH_CSS_STATE_REPEAT:
-
-			switch (g_search_css_result_type)
+			strcpy(String, "CODE none found");
+			if (g_search_use_css_result)
 			{
-				default:
-				case CODE_TYPE_NONE:
-					strcpy(String, "CODE none found");
-					break;
-				case CODE_TYPE_CONTINUOUS_TONE:
-					sprintf(String, "CTCSS %u.%uHz", CTCSS_OPTIONS[g_search_css_result_code] / 10, CTCSS_OPTIONS[g_search_css_result_code] % 10);
-					break;
-				case CODE_TYPE_DIGITAL:
-				case CODE_TYPE_REVERSE_DIGITAL:
-					sprintf(String, "CDCSS D%03oN", DCS_OPTIONS[g_search_css_result_code]);
-					break;
-			}			
+				switch (g_search_css_result_type)
+				{
+					default:
+					case CODE_TYPE_NONE:
+						break;
+					case CODE_TYPE_CONTINUOUS_TONE:
+						sprintf(String, "CTCSS %u.%uHz", CTCSS_OPTIONS[g_search_css_result_code] / 10, CTCSS_OPTIONS[g_search_css_result_code] % 10);
+						break;
+					case CODE_TYPE_DIGITAL:
+					case CODE_TYPE_REVERSE_DIGITAL:
+						sprintf(String, "CDCSS D%03oN", DCS_OPTIONS[g_search_css_result_code]);
+						break;
+				}
+			}				
 			break;
 
 		case SEARCH_CSS_STATE_FAILED:
