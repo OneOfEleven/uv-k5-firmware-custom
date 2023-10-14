@@ -203,7 +203,7 @@ int TX_freq_check(const uint32_t Frequency)
 				return 0;
 			break;
 		
-		case F_LOCK_EXT:
+		case FREQ_LOCK_EXT:
 			return 0;
 			break;
 	}
