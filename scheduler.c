@@ -68,9 +68,9 @@ void SystickHandler(void)
 		DECREMENT(g_noaa_count_down_10ms);
 	#endif
 
-	DECREMENT(g_found_CDCSS_count_down_10ms);
+	DECREMENT(g_found_cdcss_count_down_10ms);
 
-	DECREMENT(g_found_CTCSS_count_down_10ms);
+	DECREMENT(g_found_ctcss_count_down_10ms);
 
 	if (g_current_function == FUNCTION_FOREGROUND)
 		DECREMENT_AND_TRIGGER(g_battery_save_count_down_10ms, g_schedule_power_save);

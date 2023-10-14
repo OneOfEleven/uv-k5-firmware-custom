@@ -124,15 +124,10 @@ uint32_t              g_custom_aes_key[4];
 bool                  g_has_custom_aes_key;
 uint32_t              g_challenge[4];
 
-uint8_t               g_eeprom_1EC0_0[8];
-uint8_t               g_eeprom_1EC0_1[8];
-uint8_t               g_eeprom_1EC0_2[8];
-uint8_t               g_eeprom_1EC0_3[8];
+uint16_t              g_eeprom_rssi_calib[7][4];
 
-uint16_t              g_eeprom_rssi_calib[2][4];
-
-uint16_t              g_eeprom_1F8A;
-uint16_t              g_eeprom_1F8C;
+//uint16_t              g_eeprom_1F8A;
+//uint16_t              g_eeprom_1F8C;
 
 uint8_t               g_user_channel_attributes[FREQ_CHANNEL_LAST + 1];
 
@@ -156,23 +151,18 @@ volatile bool         g_tx_timeout_reached;
 
 volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 
-bool                  g_scan_pause_mode;
-volatile bool         g_scan_schedule_scan_listen = true;
-volatile uint16_t     g_scan_pause_delay_in_10ms;
-scan_state_dir_t      g_scan_state_dir;
-
 #ifdef ENABLE_NOAA
 	volatile uint16_t g_noaa_count_down_10ms;
 #endif
 
 bool                  g_enable_speaker;
-uint8_t               g_key_input_count_down = 0;
+uint8_t               g_key_input_count_down;
 uint8_t               g_key_lock_count_down_500ms;
 uint8_t               g_rtte_count_down;
 bool                  g_password_locked;
 uint8_t               g_update_status;
-uint8_t               g_found_CTCSS;
-uint8_t               g_found_CDCSS;
+uint8_t               g_found_ctcss;
+uint8_t               g_found_cdcss;
 bool                  g_end_of_rx_detected_maybe;
 
 int16_t               g_vfo_rssi[2];
@@ -197,14 +187,14 @@ bool                  g_request_save_settings;
 #endif
 bool                  g_flag_prepare_tx;
 
-bool                  g_flag_AcceptSetting;
+bool                  g_flag_accept_setting;
 bool                  g_flag_refresh_menu;
 
-bool                  g_flag_SaveVfo;
-bool                  g_flag_SaveSettings;
+bool                  g_flag_save_vfo;
+bool                  g_flag_save_settings;
 bool                  g_flag_save_channel;
 #ifdef ENABLE_FMRADIO
-	bool              g_flag_SaveFM;
+	bool              g_flag_save_fm;
 #endif
 bool                  g_cdcss_lost;
 uint8_t               g_cdcss_code_type;
@@ -217,8 +207,10 @@ bool                  g_cxcss_tail_found;
 	uint16_t          g_vox_pause_count_down;
 #endif
 bool                  g_squelch_lost;
+
 uint8_t               g_flash_light_state;
 volatile uint16_t     g_flash_light_blink_counter;
+
 bool                  g_flag_end_tx;
 uint16_t              g_low_batteryCountdown;
 reception_mode_t      g_rx_reception_mode;
@@ -228,6 +220,10 @@ uint8_t               g_scan_restore_channel;
 scan_next_chan_t      g_scan_current_scan_list;
 uint32_t              g_scan_restore_frequency;
 bool                  g_scan_keep_frequency;
+bool                  g_scan_pause_mode;
+volatile bool         g_scan_schedule_scan_listen = true;
+volatile uint16_t     g_scan_pause_delay_in_10ms;
+scan_state_dir_t      g_scan_state_dir;
 
 bool                  g_rx_vfo_is_active;
 #ifdef ENABLE_ALARM
@@ -247,8 +243,8 @@ bool                  g_update_display;
 bool                  g_unhide_hidden = false;
 
 volatile bool         g_next_time_slice;
-volatile uint8_t      g_found_CDCSS_count_down_10ms;
-volatile uint8_t      g_found_CTCSS_count_down_10ms;
+volatile uint8_t      g_found_cdcss_count_down_10ms;
+volatile uint8_t      g_found_ctcss_count_down_10ms;
 #ifdef ENABLE_VOX
 	volatile uint16_t g_vox_stop_count_down_10ms;
 #endif

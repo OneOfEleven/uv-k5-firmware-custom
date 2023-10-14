@@ -241,8 +241,11 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 
 	if (configure == VFO_CONFIGURE_RELOAD || Channel >= FREQ_CHANNEL_FIRST)
 	{
-		uint8_t Tmp;
-		uint8_t Data[8];
+		uint8_t   Tmp;
+		uint8_t   Data[8];
+//		t_channel channel;
+		
+//		EEPROM_ReadBuffer(Base, channel, sizeof(channel));
 
 		// ***************
 

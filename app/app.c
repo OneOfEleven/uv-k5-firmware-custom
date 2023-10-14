@@ -215,12 +215,12 @@ static void APP_HandleIncoming(void)
 	if (g_ctcss_lost && g_current_code_type == CODE_TYPE_CONTINUOUS_TONE)
 	{
 		flag = true;
-		g_found_CTCSS = false;
+		g_found_ctcss = false;
 	}
 
 	if (g_cdcss_lost && g_cdcss_code_type == CDCSS_POSITIVE_CODE && (g_current_code_type == CODE_TYPE_DIGITAL || g_current_code_type == CODE_TYPE_REVERSE_DIGITAL))
 	{
-		g_found_CDCSS = false;
+		g_found_cdcss = false;
 	}
 	else
 	if (!flag)
@@ -286,10 +286,10 @@ static void APP_HandleReceive(void)
 			break;
 
 		case CODE_TYPE_CONTINUOUS_TONE:
-			if (g_found_CTCSS && g_found_CTCSS_count_down_10ms == 0)
+			if (g_found_ctcss && g_found_ctcss_count_down_10ms == 0)
 			{
-				g_found_CTCSS = false;
-				g_found_CDCSS = false;
+				g_found_ctcss = false;
+				g_found_cdcss = false;
 				Mode        = END_OF_RX_MODE_END;
 				goto Skip;
 			}
@@ -297,10 +297,10 @@ static void APP_HandleReceive(void)
 
 		case CODE_TYPE_DIGITAL:
 		case CODE_TYPE_REVERSE_DIGITAL:
-			if (g_found_CDCSS && g_found_CDCSS_count_down_10ms == 0)
+			if (g_found_cdcss && g_found_cdcss_count_down_10ms == 0)
 			{
-				g_found_CTCSS = false;
-				g_found_CDCSS = false;
+				g_found_ctcss = false;
+				g_found_cdcss = false;
 				Mode        = END_OF_RX_MODE_END;
 				goto Skip;
 			}
@@ -331,13 +331,13 @@ static void APP_HandleReceive(void)
 				case CODE_TYPE_CONTINUOUS_TONE:
 					if (g_ctcss_lost)
 					{
-						g_found_CTCSS = false;
+						g_found_ctcss = false;
 					}
 					else
-					if (!g_found_CTCSS)
+					if (!g_found_ctcss)
 					{
-						g_found_CTCSS = true;
-						g_found_CTCSS_count_down_10ms = 100;   // 1 sec
+						g_found_ctcss = true;
+						g_found_ctcss_count_down_10ms = 100;   // 1 sec
 					}
 
 					if (g_cxcss_tail_found)
@@ -351,13 +351,13 @@ static void APP_HandleReceive(void)
 				case CODE_TYPE_REVERSE_DIGITAL:
 					if (g_cdcss_lost && g_cdcss_code_type == CDCSS_POSITIVE_CODE)
 					{
-						g_found_CDCSS = false;
+						g_found_cdcss = false;
 					}
 					else
-					if (!g_found_CDCSS)
+					if (!g_found_cdcss)
 					{
-						g_found_CDCSS = true;
-						g_found_CDCSS_count_down_10ms = 100;   // 1 sec
+						g_found_cdcss = true;
+						g_found_cdcss_count_down_10ms = 100;   // 1 sec
 					}
 
 					if (g_cxcss_tail_found)
@@ -1571,23 +1571,23 @@ void APP_TimeSlice10ms(void)
 
 	// ***********
 
-	if (g_flag_SaveVfo)
+	if (g_flag_save_vfo)
 	{
 		SETTINGS_SaveVfoIndices();
-		g_flag_SaveVfo = false;
+		g_flag_save_vfo = false;
 	}
 
-	if (g_flag_SaveSettings)
+	if (g_flag_save_settings)
 	{
 		SETTINGS_SaveSettings();
-		g_flag_SaveSettings = false;
+		g_flag_save_settings = false;
 	}
 
 	#ifdef ENABLE_FMRADIO
-		if (g_flag_SaveFM)
+		if (g_flag_save_fm)
 		{
 			SETTINGS_SaveFM();
-			g_flag_SaveFM = false;
+			g_flag_save_fm = false;
 		}
 	#endif
 
@@ -2709,14 +2709,14 @@ Skip:
 		g_beep_to_play = BEEP_NONE;
 	}
 
-	if (g_flag_AcceptSetting)
+	if (g_flag_accept_setting)
 	{
 		g_menu_count_down = menu_timeout_500ms;
 
 		MENU_AcceptSetting();
 
 		g_flag_refresh_menu = true;
-		g_flag_AcceptSetting  = false;
+		g_flag_accept_setting  = false;
 	}
 
 	if (g_search_flag_stop_scan)
@@ -2730,7 +2730,7 @@ Skip:
 		if (!key_held)
 			SETTINGS_SaveSettings();
 		else
-			g_flag_SaveSettings = 1;
+			g_flag_save_settings = 1;
 		g_request_save_settings = false;
 		g_update_status        = true;
 	}
@@ -2741,7 +2741,7 @@ Skip:
 			if (!key_held)
 				SETTINGS_SaveFM();
 			else
-				g_flag_SaveFM = true;
+				g_flag_save_fm = true;
 			g_request_save_fm = false;
 		}
 	#endif
@@ -2751,7 +2751,7 @@ Skip:
 		if (!key_held)
 			SETTINGS_SaveVfoIndices();
 		else
-			g_flag_SaveVfo = true;
+			g_flag_save_vfo = true;
 		g_request_save_vfo = false;
 	}
 

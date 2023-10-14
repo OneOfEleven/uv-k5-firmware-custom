@@ -723,7 +723,7 @@ void BOARD_EEPROM_load(void)
 
 	// 0F40..0F47
 	EEPROM_ReadBuffer(0x0F40, Data, 8);
-	g_setting_freq_lock          = (Data[0] < 6) ? Data[0] : F_LOCK_OFF;
+	g_setting_freq_lock          = (Data[0] < 6) ? Data[0] : FREQ_LOCK_OFF;
 	g_setting_350_tx_enable      = (Data[1] < 2) ? Data[1] : false;  // was true
 	g_setting_killed             = (Data[2] < 2) ? Data[2] : false;
 	g_setting_200_tx_enable      = (Data[3] < 2) ? Data[3] : false;
@@ -777,18 +777,18 @@ void BOARD_EEPROM_load(void)
 #endif
 }
 
-void BOARD_EEPROM_LoadMoreSettings(void)
+void BOARD_EEPROM_LoadCalibration(void)
 {
 //	uint8_t Mic;
 
-	EEPROM_ReadBuffer(0x1EC0, g_eeprom_1EC0_0, 8);
-	memmove(g_eeprom_1EC0_1, g_eeprom_1EC0_0, 8);
-	memmove(g_eeprom_1EC0_2, g_eeprom_1EC0_0, 8);
-	memmove(g_eeprom_1EC0_3, g_eeprom_1EC0_0, 8);
+	EEPROM_ReadBuffer(0x1EC0, g_eeprom_rssi_calib[3], 8);
+	memcpy(g_eeprom_rssi_calib[4], g_eeprom_rssi_calib[3], 8);
+	memcpy(g_eeprom_rssi_calib[5], g_eeprom_rssi_calib[3], 8);
+	memcpy(g_eeprom_rssi_calib[6], g_eeprom_rssi_calib[3], 8);
 
-	// 8 * 16-bit values
-	EEPROM_ReadBuffer(0x1EC0, g_eeprom_rssi_calib[0], 8);
-	EEPROM_ReadBuffer(0x1EC8, g_eeprom_rssi_calib[1], 8);
+	EEPROM_ReadBuffer(0x1EC8, g_eeprom_rssi_calib[0], 8);
+	memcpy(g_eeprom_rssi_calib[1], g_eeprom_rssi_calib[0], 8);
+	memcpy(g_eeprom_rssi_calib[2], g_eeprom_rssi_calib[0], 8);
 
 	EEPROM_ReadBuffer(0x1F40, g_battery_calibration, 12);
 	if (g_battery_calibration[0] >= 5000)
@@ -822,8 +822,8 @@ void BOARD_EEPROM_LoadMoreSettings(void)
 		EEPROM_ReadBuffer(0x1F88, &Misc, 8);
 
 		g_eeprom.BK4819_xtal_freq_low = (Misc.BK4819_XtalFreqLow >= -1000 && Misc.BK4819_XtalFreqLow <= 1000) ? Misc.BK4819_XtalFreqLow : 0;
-		g_eeprom_1F8A                 = Misc.EEPROM_1F8A & 0x01FF;
-		g_eeprom_1F8C                 = Misc.EEPROM_1F8C & 0x01FF;
+//		g_eeprom_1F8A                 = Misc.EEPROM_1F8A & 0x01FF;
+//		g_eeprom_1F8C                 = Misc.EEPROM_1F8C & 0x01FF;
 		g_eeprom.volume_gain          = (Misc.volume_gain < 64) ? Misc.volume_gain : 58;
 		g_eeprom.dac_gain             = (Misc.dac_gain    < 16) ? Misc.dac_gain    : 8;
 

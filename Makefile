@@ -27,6 +27,7 @@ ENABLE_WIDE_RX                  := 1
 ENABLE_1250HZ_STEP              := 1
 ENABLE_TX_WHEN_AM               := 1
 ENABLE_F_CAL_MENU               := 1
+ENABLE_TX_EVERYWHERE            := 0
 ENABLE_CTCSS_TAIL_PHASE_SHIFT   := 1
 ENABLE_BOOT_BEEPS               := 0
 ENABLE_SHOW_CHARGE_LEVEL        := 1
@@ -37,7 +38,7 @@ ENABLE_AM_FIX                   := 1
 ENABLE_AM_FIX_SHOW_DATA         := 0
 ENABLE_SQUELCH_MORE_SENSITIVE   := 1
 ENABLE_FASTER_CHANNEL_SCAN      := 1
-ENABLE_RSSI_BAR                 := 1
+ENABLE_RSSI_BAR                 := 0
 ENABLE_SHOW_TX_TIMEOUT          := 0
 ENABLE_AUDIO_BAR                := 1
 ENABLE_COPY_CHAN_TO_VFO         := 1
@@ -299,6 +300,9 @@ ifeq ($(ENABLE_TX_WHEN_AM),1)
 endif
 ifeq ($(ENABLE_F_CAL_MENU),1)
 	CFLAGS  += -DENABLE_F_CAL_MENU
+endif
+ifeq ($(ENABLE_TX_EVERYWHERE),1)
+	CFLAGS  += -DENABLE_TX_EVERYWHERE
 endif
 ifeq ($(ENABLE_CTCSS_TAIL_PHASE_SHIFT),1)
 	CFLAGS  += -DENABLE_CTCSS_TAIL_PHASE_SHIFT

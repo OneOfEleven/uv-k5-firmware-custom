@@ -58,12 +58,13 @@ ENABLE_WIDE_RX                  := 1       full 18MHz to 1300MHz RX (though fron
 ENABLE_1250HZ_STEP              := 1       enable smaller 1.25kHz frequency steps
 ENABLE_TX_WHEN_AM               := 0       allow TX (always FM) when RX is set to AM
 ENABLE_F_CAL_MENU               := 0       enable/disable the radios hidden frequency calibration menu
+ENABLE_TX_EVERYWHERE            := 0       '1' = allow TX everywhere EXCEPT airband (108~136) .. TX harmonic content will cause interference to other services, do so entirely at your own risk !
 ENABLE_CTCSS_TAIL_PHASE_SHIFT   := 1       standard CTCSS tail phase shift rather than QS's own 55Hz tone method
 ENABLE_BOOT_BEEPS               := 0       gives user audio feedback on volume knob position at boot-up
 ENABLE_SHOW_CHARGE_LEVEL        := 0       show the charge level when the radio is on charge
 ENABLE_REVERSE_BAT_SYMBOL       := 1       mirror the battery symbol on the status bar (+ pole on the right)
-ENABLE_FREQ_SEARCH_TIMEOUT      := 1       timeout if FREQ not found
-ENABLE_CODE_SEARCH_TIMEOUT      := 0       timeout if CTCSS/CDCSS not found
+ENABLE_FREQ_SEARCH_TIMEOUT      := 1       timeout if FREQ not found when using F+4 search function
+ENABLE_CODE_SEARCH_TIMEOUT      := 0       timeout if CTCSS/CDCSS not found when using F+* search function
 ENABLE_AM_FIX                   := 1       dynamically adjust the front end gains when in AM mode to helo prevent AM demodulator saturation, ignore the on-screen RSSI level (for now)
 ENABLE_AM_FIX_SHOW_DATA         := 1       show debug data for the AM fix (still tweaking it)
 ENABLE_SQUELCH_MORE_SENSITIVE   := 1       make squelch levels a little bit more sensitive - I plan to let user adjust the values themselves
@@ -199,3 +200,10 @@ Video showing the AM fix working ..
 <video src="/images/AM_fix.mp4"></video>
 
 <video src="https://github.com/OneOfEleven/uv-k5-firmware-custom/assets/51590168/2a3a9cdc-97da-4966-bf0d-1ce6ad09779c"></video>
+
+# WARNING if trying to use K5/K6 to TX out of band ..
+
+Most of the radios TX energy is consentrated into the harmonics and spuriouses rather than within the fundamental ..
+
+<img src="/images/TX_51MHz.png" />
+<img src="/images/TX_70MHz.png" />
