@@ -58,7 +58,7 @@ ENABLE_WIDE_RX                  := 1       full 18MHz to 1300MHz RX (though fron
 ENABLE_1250HZ_STEP              := 1       enable smaller 1.25kHz frequency steps
 ENABLE_TX_WHEN_AM               := 0       allow TX (always FM) when RX is set to AM
 ENABLE_F_CAL_MENU               := 0       enable/disable the radios hidden frequency calibration menu
-ENABLE_TX_EVERYWHERE            := 0       '1' = allow TX everywhere EXCEPT airband (108~136) .. TX harmonic content will cause interference to other services, do so entirely at your own risk !
+ENABLE_TX_UNLOCK                := 0       '1' = allow TX everywhere EXCEPT airband (108~136) .. TX harmonic content will cause interference to other services, do so entirely at your own risk !
 ENABLE_CTCSS_TAIL_PHASE_SHIFT   := 1       standard CTCSS tail phase shift rather than QS's own 55Hz tone method
 ENABLE_BOOT_BEEPS               := 0       gives user audio feedback on volume knob position at boot-up
 ENABLE_SHOW_CHARGE_LEVEL        := 0       show the charge level when the radio is on charge
@@ -203,7 +203,9 @@ Video showing the AM fix working ..
 
 # WARNING if trying to use K5/K6 to TX out of band ..
 
-Most of the radios TX energy is consentrated into the harmonics and spuriouses rather than within the fundamental ..
+Most of the radios TX energy is concentrated into the harmonics and other spurious carriers rather than within the fundamental ..
 
 <img src="/images/TX_51MHz.png" />
 <img src="/images/TX_70MHz.png" />
+
+You have been warned !

@@ -2,7 +2,7 @@
 # compile options (see README.md for descriptions)
 # 0 = disable
 # 1 = enable
-#
+
 ENABLE_CLANG                    := 0
 ENABLE_SWD                      := 1
 ENABLE_OVERLAY                  := 0
@@ -27,7 +27,7 @@ ENABLE_WIDE_RX                  := 1
 ENABLE_1250HZ_STEP              := 1
 ENABLE_TX_WHEN_AM               := 1
 ENABLE_F_CAL_MENU               := 1
-ENABLE_TX_EVERYWHERE            := 0
+ENABLE_TX_UNLOCK                := 1
 ENABLE_CTCSS_TAIL_PHASE_SHIFT   := 1
 ENABLE_BOOT_BEEPS               := 0
 ENABLE_SHOW_CHARGE_LEVEL        := 1
@@ -135,7 +135,7 @@ endif
 OBJS += app/generic.o
 OBJS += app/main.o
 OBJS += app/menu.o
-OBJS += app/scanner.o
+OBJS += app/search.o
 ifeq ($(ENABLE_PANADAPTER),1)
 	OBJS += app/spectrum.o
 endif
@@ -172,7 +172,7 @@ ifeq ($(ENABLE_PWRON_PASSWORD),1)
 endif
 OBJS += ui/main.o
 OBJS += ui/menu.o
-OBJS += ui/scanner.o
+OBJS += ui/search.o
 OBJS += ui/status.o
 OBJS += ui/ui.o
 OBJS += ui/welcome.o
@@ -301,8 +301,8 @@ endif
 ifeq ($(ENABLE_F_CAL_MENU),1)
 	CFLAGS  += -DENABLE_F_CAL_MENU
 endif
-ifeq ($(ENABLE_TX_EVERYWHERE),1)
-	CFLAGS  += -DENABLE_TX_EVERYWHERE
+ifeq ($(ENABLE_TX_UNLOCK),1)
+	CFLAGS  += -DENABLE_TX_UNLOCK
 endif
 ifeq ($(ENABLE_CTCSS_TAIL_PHASE_SHIFT),1)
 	CFLAGS  += -DENABLE_CTCSS_TAIL_PHASE_SHIFT

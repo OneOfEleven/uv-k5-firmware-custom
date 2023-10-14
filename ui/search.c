@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "app/scanner.h"
+#include "app/search.h"
 #include "board.h"
 #include "dcs.h"
 #include "driver/st7565.h"
@@ -26,7 +26,7 @@
 #include "misc.h"
 #include "radio.h"
 #include "ui/helper.h"
-#include "ui/scanner.h"
+#include "ui/search.h"
 #include "ui/ui.h"
 
 void UI_DisplaySearch(void)

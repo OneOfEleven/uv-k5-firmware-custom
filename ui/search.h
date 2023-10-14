@@ -14,8 +14,8 @@
  *     limitations under the License.
  */
 
-#ifndef UI_SCANNER_H
-#define UI_SCANNER_H
+#ifndef UI_SEARCH_H
+#define UI_SEARCH_H
 
 void UI_DisplaySearch(void);
 
