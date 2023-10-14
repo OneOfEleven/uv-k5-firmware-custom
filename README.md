@@ -205,5 +205,5 @@ Video showing the AM fix working ..
 
 Most of the radios TX energy is in the harmonics rather than the desired fundamental ..
 
-<img src="/images/TX_51MHz.png" width=600 />
-<img src="/images/TX_70MHz.png" width=600 />
+<img src="/images/TX_51MHz.png" />
+<img src="/images/TX_70MHz.png" />
