@@ -22,7 +22,7 @@
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
-#include "app/scanner.h"
+#include "app/search.h"
 #include "audio.h"
 #include "bsp/dp32g030/gpio.h"
 #ifdef ENABLE_FMRADIO

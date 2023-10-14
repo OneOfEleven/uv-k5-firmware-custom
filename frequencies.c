@@ -148,24 +148,20 @@ int TX_freq_check(const uint32_t Frequency)
 
 	switch (g_setting_freq_lock)
 	{
-		case FREQ_LOCK_OFF:
-			#ifdef ENABLE_TX_EVERYWHERE
+		case FREQ_LOCK_NORMAL:
+			if (Frequency >= 13600000 && Frequency < 17400000)
 				return 0;
-			#else
-				if (Frequency >= 13600000 && Frequency < 17400000)
+			if (Frequency >= 17400000 && Frequency < 35000000)
+				if (g_setting_200_tx_enable)
 					return 0;
-				if (Frequency >= 17400000 && Frequency < 35000000)
-					if (g_setting_200_tx_enable)
-						return 0;
-				if (Frequency >= 35000000 && Frequency < 40000000)
-					if (g_setting_350_tx_enable && g_setting_350_enable)
-						return 0;
-				if (Frequency >= 40000000 && Frequency < 47000000)
+			if (Frequency >= 35000000 && Frequency < 40000000)
+				if (g_setting_350_tx_enable && g_setting_350_enable)
 					return 0;
-				if (Frequency >= 47000000 && Frequency <= 60000000)
-					if (g_setting_500_tx_enable)
-						return 0;
-			#endif
+			if (Frequency >= 40000000 && Frequency < 47000000)
+				return 0;
+			if (Frequency >= 47000000 && Frequency <= 60000000)
+				if (g_setting_500_tx_enable)
+					return 0;
 			break;
 
 		case FREQ_LOCK_FCC:
@@ -202,6 +198,11 @@ int TX_freq_check(const uint32_t Frequency)
 			if (Frequency >= 40000000 && Frequency < 43800000)
 				return 0;
 			break;
+			
+		#ifdef ENABLE_TX_UNLOCK
+			case FREQ_LOCK_TX_UNLOCK:
+				return 0;
+		#endif
 	}
 
 	// dis-allowed TX frequency

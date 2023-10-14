@@ -23,7 +23,7 @@
 #endif
 #include "app/generic.h"
 #include "app/main.h"
-#include "app/scanner.h"
+#include "app/search.h"
 #include "audio.h"
 #include "board.h"
 #include "driver/bk4819.h"

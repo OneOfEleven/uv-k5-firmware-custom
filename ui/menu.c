@@ -281,15 +281,28 @@ const char g_sub_menu_RESET[2][4] =
 	"ALL"
 };
 
-const char g_sub_menu_freq_lock[6][8] =
-{
-	"OFF",
-	"FCC",
-	"CE",
-	"GB",
-	"430 MHz",
-	"438 MHz"
-};
+#ifdef ENABLE_TX_UNLOCK
+	const char g_sub_menu_freq_lock[7][9] =
+	{
+		"NORMAL",
+		"FCC",
+		"CE",
+		"GB",
+		"430 MHz",
+		"438 MHz",
+		"UNLOCKED"
+	};
+#else
+	const char g_sub_menu_freq_lock[6][8] =
+	{
+		"NORMAL",
+		"FCC",
+		"CE",
+		"GB",
+		"430 MHz",
+		"438 MHz"
+	};
+#endif
 
 const char g_sub_menu_backlight[8][7] =
 {
@@ -1015,14 +1028,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_FREQ_LOCK:
-			#ifdef ENABLE_TX_EVERYWHERE
-				if (g_sub_menu_selection == FREQ_LOCK_OFF)
-					strcpy(String, " WARNING!\nTX\nUNLOCKED");
-				else
-					strcpy(String, g_sub_menu_freq_lock[g_sub_menu_selection]);
-			#else
-				strcpy(String, g_sub_menu_freq_lock[g_sub_menu_selection]);
-			#endif
+			strcpy(String, g_sub_menu_freq_lock[g_sub_menu_selection]);
 			break;
 
 		#ifdef ENABLE_F_CAL_MENU

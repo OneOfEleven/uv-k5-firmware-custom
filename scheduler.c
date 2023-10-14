@@ -17,7 +17,7 @@
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
-#include "app/scanner.h"
+#include "app/search.h"
 #include "audio.h"
 #include "functions.h"
 #include "helper/battery.h"

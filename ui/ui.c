@@ -20,7 +20,7 @@
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
-#include "app/scanner.h"
+#include "app/search.h"
 #include "driver/keyboard.h"
 #include "misc.h"
 #ifdef ENABLE_AIRCOPY
@@ -32,7 +32,7 @@
 #include "ui/inputbox.h"
 #include "ui/main.h"
 #include "ui/menu.h"
-#include "ui/scanner.h"
+#include "ui/search.h"
 #include "ui/ui.h"
 
 gui_display_type_t g_screen_to_display;

@@ -32,12 +32,15 @@ enum pwr_on_display_mode_e {
 typedef enum pwr_on_display_mode_e pwr_on_display_mode_t;
 
 enum {
-	FREQ_LOCK_OFF = 0,
+	FREQ_LOCK_NORMAL = 0,
 	FREQ_LOCK_FCC,
 	FREQ_LOCK_CE,
 	FREQ_LOCK_GB,
 	FREQ_LOCK_430,
-	FREQ_LOCK_438
+	FREQ_LOCK_438,
+#ifdef ENABLE_TX_UNLOCK
+	FREQ_LOCK_TX_UNLOCK
+#endif
 };
 
 enum {

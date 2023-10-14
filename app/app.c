@@ -29,7 +29,7 @@
 #include "app/generic.h"
 #include "app/main.h"
 #include "app/menu.h"
-#include "app/scanner.h"
+#include "app/search.h"
 #include "app/uart.h"
 #include "ARMCM0.h"
 #include "audio.h"
