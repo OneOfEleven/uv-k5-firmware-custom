@@ -123,8 +123,8 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 		case 4: memmove(p + 11, BITMAP_ANTENNA_LEVEL3, sizeof(BITMAP_ANTENNA_LEVEL3));
 		case 3: memmove(p +  8, BITMAP_ANTENNA_LEVEL2, sizeof(BITMAP_ANTENNA_LEVEL2));
 		case 2: memmove(p +  5, BITMAP_ANTENNA_LEVEL1, sizeof(BITMAP_ANTENNA_LEVEL1));
-		case 1: memmove(p +  0, BITMAP_ANTENNA,        sizeof(BITMAP_ANTENNA));
-		case 0: break;
+		case 1: memmove(p +  0, BITMAP_ANTENNA,        sizeof(BITMAP_ANTENNA)); break;
+		case 0: memset( p +  0, 0,                     sizeof(BITMAP_ANTENNA)); break;
 	}
 
 	#pragma GCC diagnostic pop
@@ -305,9 +305,10 @@ void UI_UpdateRSSI(const int16_t rssi, const int vfo)
 
 		// original little RS bars
 
-//		const int16_t dBm   = (rssi / 2) - 160;
-		const uint8_t Line  = (vfo == 0) ? 3 : 7;
-		uint8_t      *p_line = g_frame_buffer[Line - 1];
+//		const int16_t dBm        = (rssi / 2) - 160;
+		const uint8_t Line       = (vfo == 0) ? 3 : 7;
+		uint8_t      *p_line     = g_frame_buffer[Line - 1];
+		uint8_t       rssi_level = 0;
 
 		// TODO: sort out all 8 values from the eeprom
 
@@ -323,29 +324,38 @@ void UI_UpdateRSSI(const int16_t rssi, const int vfo)
 			const int16_t level2  = ( -64 + 160) * 2;   //  -64dBm
 			const int16_t level3  = ( -39 + 160) * 2;   //  -39dBm
 		#endif
-		// create intermediate values (linear interpolation) to make better use of all the available RSSI bars
+		// create intermediate threshold values (linear interpolation) to make full use of the available RSSI bars/graphics
 		const int16_t level01 = (level0 + level1) / 2;
 		const int16_t level12 = (level1 + level2) / 2;
 		const int16_t level23 = (level2 + level3) / 2;
 
 		g_vfo_rssi[vfo] = rssi;
 
-		uint8_t rssi_level = 0;
-
-		if (rssi >= level3)  rssi_level = 7;
+		if (rssi >= level3)
+			rssi_level = 7;
 		else
-		if (rssi >= level23) rssi_level = 6;
+		if (rssi >= level23)
+			rssi_level = 6;
 		else
-		if (rssi >= level2)  rssi_level = 5;
+		if (rssi >= level2)
+			rssi_level = 5;
 		else
-		if (rssi >= level12) rssi_level = 4;
+		if (rssi >= level12)
+			rssi_level = 4;
 		else
-		if (rssi >= level1)  rssi_level = 3;
+		if (rssi >= level1)
+			rssi_level = 3;
 		else
-		if (rssi >= level01) rssi_level = 2;
+		if (rssi >= level01)
+			rssi_level = 2;
 		else
-		if (rssi >= level0)  rssi_level = 1;
-
+		if (rssi >= level0 ||
+		    g_current_function == FUNCTION_MONITOR ||
+		    g_current_function == FUNCTION_INCOMING)
+		{
+			rssi_level = 1;
+		}
+			
 		if (g_vfo_rssi_bar_level[vfo] == rssi_level)
 			return;
 
@@ -501,7 +511,7 @@ void UI_DisplayMain(void)
 
 			#ifdef ENABLE_ALARM
 				if (g_alarm_state == ALARM_STATE_ALARM)
-					mode = 2;
+					mode = 1;
 				else
 			#endif
 			{
@@ -720,7 +730,7 @@ void UI_DisplayMain(void)
 			if (mode == 2)
 			{	// RX signal level
 				#ifndef ENABLE_RSSI_BAR
-					// bar graph
+					// antenna bar graph
 					if (g_vfo_rssi_bar_level[vfo_num] > 0)
 						Level = g_vfo_rssi_bar_level[vfo_num];
 				#endif
