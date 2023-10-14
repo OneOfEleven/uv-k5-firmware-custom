@@ -60,7 +60,8 @@ enum {
 enum {
 	FLASHLIGHT_OFF = 0,
 	FLASHLIGHT_ON,
-	FLASHLIGHT_BLINK
+	FLASHLIGHT_BLINK,
+	FLASHLIGHT_SOS
 };
 
 enum {
@@ -292,6 +293,12 @@ extern bool                  g_cxcss_tail_found;
 extern bool                  g_squelch_lost;
 extern uint8_t               g_flash_light_state;
 extern volatile uint16_t     g_flash_light_blink_counter;
+#ifdef ENABLE_SOS_FLASHLIGHT
+	extern uint8_t               g_flash_light_SOS_Sequence[18];
+	extern volatile uint8_t      g_flash_light_SOS_Index;
+	extern volatile uint8_t      g_flash_light_SOS_Wait_Length;
+	extern volatile uint8_t      g_flash_light_SOS_Wait_Index;
+#endif
 extern bool                  g_flag_end_tx;
 extern uint16_t              g_low_batteryCountdown;
 extern reception_mode_t      g_rx_reception_mode;

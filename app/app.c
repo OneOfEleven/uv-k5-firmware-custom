@@ -1682,6 +1682,29 @@ void APP_TimeSlice10ms(void)
 
 	if (g_flash_light_state == FLASHLIGHT_BLINK && (g_flash_light_blink_counter & 15u) == 0)
 		GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+	
+	#ifdef ENABLE_SOS_FLASHLIGHT
+		if (g_flash_light_state == FLASHLIGHT_SOS && (g_flash_light_blink_counter % (100 / 10)) == 0) { // Runs every 100ms
+			// Sequence:{H,L,H,L,H,L,H,L,H,L,H,L,H,L,H,L,H,L}
+			// Sequence: {1,1,1,1,1,3,3,1,3,1,3,3,1,1,1,1,1,12}
+			// 0: Dot Length
+			// 1: Dash Length / Character Space
+			// 2: End of Sequence Length
+			if (g_flash_light_SOS_Wait_Index < g_flash_light_SOS_Wait_Length) {
+				g_flash_light_SOS_Wait_Index++;
+			}
+			else {
+				g_flash_light_SOS_Wait_Index = 0;
+				GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+				g_flash_light_SOS_Wait_Length = g_flash_light_SOS_Sequence[g_flash_light_SOS_Index];
+				g_flash_light_SOS_Index++;
+				if (g_flash_light_SOS_Index >= sizeof(g_flash_light_SOS_Sequence)) {
+					g_flash_light_SOS_Index = 0;
+					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT); // Forces Flashlight Off at End of Sequence
+				}
+			}
+		}
+	#endif
 
 	#ifdef ENABLE_VOX
 		if (g_vox_resume_count_down > 0)

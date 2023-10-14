@@ -48,6 +48,11 @@ static void ACTION_FlashLight(void)
 		case 1:
 			g_flash_light_state++;
 			break;
+		#ifdef ENABLE_SOS_FLASHLIGHT
+		case 2:
+			g_flash_light_state++;
+			break;
+		#endif
 		default:
 			g_flash_light_state = 0;
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);

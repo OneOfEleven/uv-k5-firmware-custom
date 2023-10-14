@@ -210,6 +210,12 @@ bool                  g_squelch_lost;
 
 uint8_t               g_flash_light_state;
 volatile uint16_t     g_flash_light_blink_counter;
+#ifdef ENABLE_SOS_FLASHLIGHT
+	uint8_t               g_flash_light_SOS_Sequence[18] = {1,1,1,1,1,3,3,1,3,1,3,3,1,1,1,1,1,12};
+	volatile uint8_t      g_flash_light_SOS_Index = 0;
+	volatile uint8_t      g_flash_light_SOS_Wait_Length = 0;
+	volatile uint8_t      g_flash_light_SOS_Wait_Index = 0;
+#endif
 
 bool                  g_flag_end_tx;
 uint16_t              g_low_batteryCountdown;

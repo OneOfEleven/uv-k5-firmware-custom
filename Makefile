@@ -42,6 +42,7 @@ ENABLE_RSSI_BAR                 := 0
 ENABLE_SHOW_TX_TIMEOUT          := 0
 ENABLE_AUDIO_BAR                := 1
 ENABLE_COPY_CHAN_TO_VFO         := 1
+ENABLE_SOS_FLASHLIGHT           := 1
 #ENABLE_PANADAPTER              := 0
 #ENABLE_SINGLE_VFO_CHAN         := 0
 
@@ -357,6 +358,9 @@ ifeq ($(ENABLE_SINGLE_VFO_CHAN),1)
 endif
 ifeq ($(ENABLE_PANADAPTER),1)
 	CFLAGS += -DENABLE_PANADAPTER
+endif
+ifeq ($(ENABLE_SOS_FLASHLIGHT),1)
+	CFLAGS += -DENABLE_SOS_FLASHLIGHT
 endif
 
 LDFLAGS =
