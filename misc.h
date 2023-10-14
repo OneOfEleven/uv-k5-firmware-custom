@@ -206,15 +206,11 @@ extern uint32_t              g_custom_aes_key[4];
 extern bool                  g_has_custom_aes_key;
 extern uint32_t              g_challenge[4];
 
-extern uint8_t               g_eeprom_1EC0_0[8];
-extern uint8_t               g_eeprom_1EC0_1[8];
-extern uint8_t               g_eeprom_1EC0_2[8];
-extern uint8_t               g_eeprom_1EC0_3[8];
+extern uint16_t              g_eeprom_rssi_calib[7][4];
+//extern uint16_t              g_eeprom_rssi_calib[2][4];
 
-extern uint16_t              g_eeprom_rssi_calib[2][4];
-
-extern uint16_t              g_eeprom_1F8A;
-extern uint16_t              g_eeprom_1F8C;
+//extern uint16_t              g_eeprom_1F8A;
+//extern uint16_t              g_eeprom_1F8C;
 
 extern uint8_t               g_user_channel_attributes[207];
 
@@ -238,11 +234,6 @@ extern volatile bool         g_tx_timeout_reached;
 
 extern volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 
-extern bool                  g_scan_pause_mode;
-extern volatile bool         g_scan_schedule_scan_listen;
-extern volatile uint16_t     g_scan_pause_delay_in_10ms;
-extern scan_state_dir_t      g_scan_state_dir;
-
 #ifdef ENABLE_FMRADIO
 	extern volatile uint16_t g_fm_play_count_down_10ms;
 #endif
@@ -255,8 +246,8 @@ extern uint8_t               g_key_lock_count_down_500ms;
 extern uint8_t               g_rtte_count_down;
 extern bool                  g_password_locked;
 extern uint8_t               g_update_status;
-extern uint8_t               g_found_CTCSS;
-extern uint8_t               g_found_CDCSS;
+extern uint8_t               g_found_ctcss;
+extern uint8_t               g_found_cdcss;
 extern bool                  g_end_of_rx_detected_maybe;
 
 extern int16_t               g_vfo_rssi[2];
@@ -279,14 +270,14 @@ extern bool                  g_request_save_settings;
 #endif
 extern bool                  g_flag_prepare_tx;
 
-extern bool                  g_flag_AcceptSetting;   // accept menu setting
+extern bool                  g_flag_accept_setting;   // accept menu setting
 extern bool                  g_flag_refresh_menu;  // refresh menu display
 
-extern bool                  g_flag_SaveVfo;
-extern bool                  g_flag_SaveSettings;
+extern bool                  g_flag_save_vfo;
+extern bool                  g_flag_save_settings;
 extern bool                  g_flag_save_channel;
 #ifdef ENABLE_FMRADIO
-	extern bool              g_flag_SaveFM;
+	extern bool              g_flag_save_fm;
 #endif
 extern bool                  g_cdcss_lost;
 extern uint8_t               g_cdcss_code_type;
@@ -310,6 +301,11 @@ extern uint8_t               g_scan_restore_channel;
 extern scan_next_chan_t      g_scan_current_scan_list;
 extern uint32_t              g_scan_restore_frequency;
 extern bool                  g_scan_keep_frequency;
+extern bool                  g_scan_pause_mode;
+extern volatile bool         g_scan_schedule_scan_listen;
+extern volatile uint16_t     g_scan_pause_delay_in_10ms;
+extern scan_state_dir_t      g_scan_state_dir;
+
 
 extern bool                  g_rx_vfo_is_active;
 extern uint8_t               g_alarm_tone_counter;
@@ -326,8 +322,8 @@ extern bool                  g_unhide_hidden;
 #ifdef ENABLE_FMRADIO
 	extern uint8_t           g_fm_channel_position;
 #endif
-extern volatile uint8_t      g_found_CDCSS_count_down_10ms;
-extern volatile uint8_t      g_found_CTCSS_count_down_10ms;
+extern volatile uint8_t      g_found_cdcss_count_down_10ms;
+extern volatile uint8_t      g_found_ctcss_count_down_10ms;
 #ifdef ENABLE_VOX
 	extern volatile uint16_t g_vox_stop_count_down_10ms;
 #endif

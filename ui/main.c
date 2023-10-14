@@ -90,7 +90,7 @@ center_line_t center_line = CENTER_LINE_NONE;
 			#else
 				UI_PrintStringSmall(s, 2, 0, line);
 			#endif
-			
+
 			#if 1
 				// solid bar
 				for (i = 0; i < bar_width; i++)
@@ -311,22 +311,19 @@ void UI_UpdateRSSI(const int16_t rssi, const int vfo)
 
 		// TODO: sort out all 8 values from the eeprom
 
-		#if 0
-			// dBm     -105  -100  -95   -90      -70   -65   -60   -55
-			// RSSI     110   120   130   140      180   190   200   210
-			// 0000C0   6E 00 78 00 82 00 8C 00    B4 00 BE 00 C8 00 D2 00
-			//
-			const unsigned int band = 1;
+		#if 1
+			const unsigned int band = g_rx_vfo->band;
 			const int16_t level0  = g_eeprom_rssi_calib[band][0];
 			const int16_t level1  = g_eeprom_rssi_calib[band][1];
 			const int16_t level2  = g_eeprom_rssi_calib[band][2];
 			const int16_t level3  = g_eeprom_rssi_calib[band][3];
 		#else
-			const int16_t level0  = (-115 + 160) * 2;   // dB
-			const int16_t level1  = ( -89 + 160) * 2;   // dB
-			const int16_t level2  = ( -64 + 160) * 2;   // dB
-			const int16_t level3  = ( -39 + 160) * 2;   // dB
+			const int16_t level0  = (-115 + 160) * 2;   // -115dBm
+			const int16_t level1  = ( -89 + 160) * 2;   //  -89dBm
+			const int16_t level2  = ( -64 + 160) * 2;   //  -64dBm
+			const int16_t level3  = ( -39 + 160) * 2;   //  -39dBm
 		#endif
+		// create intermediate values (linear interpolation) to make better use of all the available RSSI bars
 		const int16_t level01 = (level0 + level1) / 2;
 		const int16_t level12 = (level1 + level2) / 2;
 		const int16_t level23 = (level2 + level3) / 2;

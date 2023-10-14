@@ -116,6 +116,8 @@ typedef enum mdf_display_mode_e mdf_display_mode_t;
 
 // ************************************************
 
+// unused bits are all '0's if the channel is used,
+// unless the channel is unused, in which case all 16 bytes are 0xff
 typedef struct {
 	// [0]
 	uint32_t frequency;              //
@@ -126,29 +128,31 @@ typedef struct {
 	// [9]
 	uint8_t  tx_ctcss_cdcss_code;    //
 	// [10]
-	uint8_t  rx_ctcss_cdcss_type:4;  //
-	uint8_t  tx_ctcss_cdcss_type:4;  //
+	uint8_t  rx_ctcss_cdcss_type:2;  //
+	uint8_t  unused1:2;
+	uint8_t  tx_ctcss_cdcss_type:2;  //
+	uint8_t  unused2:2;
 	// [11]
 	uint8_t  tx_offset_dir:2;        //
-	uint8_t  unused1:2;
+	uint8_t  unused3:2;
 	uint8_t  am_mode:1;              //
-	uint8_t  unused2:3;
+	uint8_t  unused4:3;
 	// [12]
 	uint8_t  frequency_reverse:1;    // reverse repeater
 	uint8_t  channel_bandwidth:1;    // wide/narrow
 	uint8_t  tx_power:2;             // 0, 1 or 2 .. L, M or H
 	uint8_t  busy_channel_lockout:1; //
-	uint8_t  unused3:3;
+	uint8_t  unused5:3;
 	// [13]
 	uint8_t  dtmf_decoding_enable:1; //
 	uint8_t  dtmf_ptt_id_tx_mode:3;  //
-	uint8_t  unused4:4;
+	uint8_t  unused6:4;
 	// [14]
 	uint8_t  step_setting:3;         //
-	uint8_t  unused5:5;
+	uint8_t  unused7:5;
 	// [15]
 	uint8_t  scrambler:4;            //
-	uint8_t  unused6:4;
+	uint8_t  unused8:4;
 } __attribute__((packed)) t_channel;
 
 // 512 bytes
@@ -197,8 +201,8 @@ typedef struct {
 	} __attribute__((packed)) vhf_squelch[6];
 
 	// 0x1EC0
-	uint16_t    unknown1[4];
-	uint16_t    rssi[4];
+	uint16_t    rssi_uhf[4];
+	uint16_t    rssi_vhf[4];
 
 	// 0x1ED0
 	struct
@@ -236,7 +240,7 @@ typedef struct {
 typedef struct {
 
 	// 0x0000
-	t_channel channel[200];
+	t_channel channel[200];   // unused channels are set to all '0xff'
 
 	// 0x0C80
 	t_channel vfo[14];
@@ -434,12 +438,6 @@ typedef struct {
 	uint8_t               scan_list_priority_ch1[2];
 	uint8_t               scan_list_priority_ch2[2];
 
-	uint8_t               field29_0x26;
-	uint8_t               field30_0x27;
-
-	uint8_t               field37_0x32;
-	uint8_t               field38_0x33;
-
 	bool                  auto_keypad_lock;
 
 	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
@@ -460,12 +458,6 @@ typedef struct {
 	char                  revive_code[8];
 	char                  dtmf_key_up_code[16];
 	char                  dtmf_key_down_code[16];
-
-	uint8_t               field57_0x6c;
-	uint8_t               field58_0x6d;
-
-	uint8_t               field60_0x7e;
-	uint8_t               field61_0x7f;
 
 	char                  dtmf_separate_code;
 	char                  dtmf_group_call_code;
@@ -489,11 +481,22 @@ typedef struct {
 	uint16_t              vox1_threshold;
 	uint16_t              vox0_threshold;
 
-	uint8_t               field77_0x95;
-	uint8_t               field78_0x96;
-	uint8_t               field79_0x97;
+//	uint8_t               field29_0x26;
+//	uint8_t               field30_0x27;
 
-	uint8_t _pad[1];
+//	uint8_t               field37_0x32;
+//	uint8_t               field38_0x33;
+
+//	uint8_t               field57_0x6c;
+//	uint8_t               field58_0x6d;
+
+//	uint8_t               field60_0x7e;
+//	uint8_t               field61_0x7f;
+
+//	uint8_t               field77_0x95;
+//	uint8_t               field78_0x96;
+//	uint8_t               field79_0x97;
+
 } eeprom_config_t;
 
 extern eeprom_config_t g_eeprom;

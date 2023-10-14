@@ -531,7 +531,7 @@ void MENU_AcceptSetting(void)
 				g_eeprom.vox_switch = g_sub_menu_selection != 0;
 				if (g_eeprom.vox_switch)
 					g_eeprom.vox_level = g_sub_menu_selection - 1;
-				BOARD_EEPROM_LoadMoreSettings();
+				BOARD_EEPROM_LoadCalibration();
 				g_flag_reconfigure_vfos = true;
 				g_update_status        = true;
 				break;
@@ -623,7 +623,7 @@ void MENU_AcceptSetting(void)
 
 		case MENU_MIC:
 			g_eeprom.mic_sensitivity = g_sub_menu_selection;
-			BOARD_EEPROM_LoadMoreSettings();
+			BOARD_EEPROM_LoadCalibration();
 			g_flag_reconfigure_vfos = true;
 			break;
 
@@ -1290,7 +1290,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 				if (++g_edit_index >= 10)
 				{	// exit edit
-					g_flag_AcceptSetting  = false;
+					g_flag_accept_setting  = false;
 					g_ask_for_confirmation = 1;
 				}
 
@@ -1561,13 +1561,13 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 			// exit
 			if (memcmp(g_edit_original, g_edit, sizeof(g_edit_original)) == 0)
 			{	// no change - drop it
-				g_flag_AcceptSetting  = false;
+				g_flag_accept_setting  = false;
 				g_is_in_sub_menu        = false;
 				g_ask_for_confirmation = 0;
 			}
 			else
 			{
-				g_flag_AcceptSetting  = false;
+				g_flag_accept_setting  = false;
 				g_ask_for_confirmation = 0;
 			}
 		}
@@ -1609,14 +1609,14 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 						#endif
 					}
 
-					g_flag_AcceptSetting  = true;
+					g_flag_accept_setting  = true;
 					g_is_in_sub_menu        = false;
 					g_ask_for_confirmation = 0;
 			}
 		}
 		else
 		{
-			g_flag_AcceptSetting = true;
+			g_flag_accept_setting = true;
 			g_is_in_sub_menu       = false;
 		}
 	}
@@ -1653,7 +1653,7 @@ static void MENU_Key_STAR(const bool key_pressed, const bool key_held)
 
 			if (++g_edit_index >= 10)
 			{	// exit edit
-				g_flag_AcceptSetting  = false;
+				g_flag_accept_setting  = false;
 				g_ask_for_confirmation = 1;
 			}
 
@@ -1860,7 +1860,7 @@ void MENU_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 						g_edit[g_edit_index] = ' ';
 						if (++g_edit_index >= 10)
 						{	// exit edit
-							g_flag_AcceptSetting  = false;
+							g_flag_accept_setting  = false;
 							g_ask_for_confirmation = 1;
 						}
 						g_request_display_screen = DISPLAY_MENU;
