@@ -129,7 +129,7 @@ const t_menu_item g_menu_list[] =
 	// hidden menu items from here on
 	// enabled by pressing both the PTT and upper side button at power-on
 
-	{"F LOCK", VOICE_ID_INVALID,                       MENU_F_LOCK        }, // country/area specific
+	{"F LOCK", VOICE_ID_INVALID,                       MENU_FREQ_LOCK     }, // country/area specific
 	{"Tx 200", VOICE_ID_INVALID,                       MENU_200TX         }, // was "200TX"
 	{"Tx 350", VOICE_ID_INVALID,                       MENU_350TX         }, // was "350TX"
 	{"Tx 500", VOICE_ID_INVALID,                       MENU_500TX         }, // was "500TX"
@@ -281,7 +281,7 @@ const char g_sub_menu_RESET[2][4] =
 	"ALL"
 };
 
-const char g_sub_menu_f_lock[7][9] =
+const char g_sub_menu_freq_lock[7][9] =
 {
 	"OFF",
 	"FCC",
@@ -1015,8 +1015,15 @@ void UI_DisplayMenu(void)
 			strcpy(String, g_sub_menu_RESET[g_sub_menu_selection]);
 			break;
 
-		case MENU_F_LOCK:
-			strcpy(String, g_sub_menu_f_lock[g_sub_menu_selection]);
+		case MENU_FREQ_LOCK:
+			#ifdef ENABLE_TX_EVERYWHERE
+				if (g_sub_menu_selection == FREQ_LOCK_OFF)
+					strcpy(String, " WARNING!\nTX\nUNLOCKED");
+				else
+					strcpy(String, g_sub_menu_freq_lock[g_sub_menu_selection]);
+			#else
+				strcpy(String, g_sub_menu_freq_lock[g_sub_menu_selection]);
+			#endif
 			break;
 
 		#ifdef ENABLE_F_CAL_MENU

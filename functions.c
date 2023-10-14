@@ -70,10 +70,10 @@ void FUNCTION_Init(void)
 
 	g_flag_tail_tone_elimination_complete   = false;
 	g_tail_tone_elimination_count_down_10ms = 0;
-	g_found_CTCSS                           = false;
-	g_found_CDCSS                           = false;
-	g_found_CTCSS_count_down_10ms           = 0;
-	g_found_CDCSS_count_down_10ms           = 0;
+	g_found_ctcss                           = false;
+	g_found_cdcss                           = false;
+	g_found_ctcss_count_down_10ms           = 0;
+	g_found_cdcss_count_down_10ms           = 0;
 	g_end_of_rx_detected_maybe              = false;
 
 	#ifdef ENABLE_NOAA
