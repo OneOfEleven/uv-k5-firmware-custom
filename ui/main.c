@@ -355,7 +355,7 @@ void UI_UpdateRSSI(const int16_t rssi, const int vfo)
 		{
 			rssi_level = 1;
 		}
-			
+
 		if (g_vfo_rssi_bar_level[vfo] == rssi_level)
 			return;
 
@@ -729,11 +729,11 @@ void UI_DisplayMain(void)
 			else
 			if (mode == 2)
 			{	// RX signal level
-				#ifndef ENABLE_RSSI_BAR
+				//#ifndef ENABLE_RSSI_BAR
 					// antenna bar graph
 					if (g_vfo_rssi_bar_level[vfo_num] > 0)
 						Level = g_vfo_rssi_bar_level[vfo_num];
-				#endif
+				//#endif
 			}
 
 			UI_drawBars(p_line1 + LCD_WIDTH, Level);
