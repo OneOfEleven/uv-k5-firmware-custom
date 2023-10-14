@@ -32,12 +32,12 @@ enum pwr_on_display_mode_e {
 typedef enum pwr_on_display_mode_e pwr_on_display_mode_t;
 
 enum {
-	F_LOCK_OFF = 0,
-	F_LOCK_FCC,
-	F_LOCK_CE,
-	F_LOCK_GB,
-	F_LOCK_430,
-	F_LOCK_438
+	FREQ_LOCK_OFF = 0,
+	FREQ_LOCK_FCC,
+	FREQ_LOCK_CE,
+	FREQ_LOCK_GB,
+	FREQ_LOCK_430,
+	FREQ_LOCK_438
 };
 
 enum {
@@ -353,7 +353,7 @@ typedef struct {
 	uint8_t        aes_key[16];
 
 	// 0x0F40
-	uint8_t        f_lock;
+	uint8_t        freq_lock;
 	uint8_t        enable_tx_350;
 	uint8_t        killed;
 	uint8_t        enable_tx_200;

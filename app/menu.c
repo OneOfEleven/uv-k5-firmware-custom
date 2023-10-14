@@ -118,9 +118,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(g_sub_menu_backlight) - 1;
 			break;
 
-		case MENU_F_LOCK:
+		case MENU_FREQ_LOCK:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_f_lock) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_freq_lock) - 1;
 			break;
 
 		case MENU_MDF:
@@ -791,7 +791,7 @@ void MENU_AcceptSetting(void)
 			g_setting_350_tx_enable = g_sub_menu_selection;
 			break;
 
-		case MENU_F_LOCK:
+		case MENU_FREQ_LOCK:
 			g_setting_freq_lock = g_sub_menu_selection;
 			break;
 
@@ -1225,7 +1225,7 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_setting_350_tx_enable;
 			break;
 
-		case MENU_F_LOCK:
+		case MENU_FREQ_LOCK:
 			g_sub_menu_selection = g_setting_freq_lock;
 			break;
 

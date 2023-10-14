@@ -134,59 +134,69 @@ int TX_freq_check(const uint32_t Frequency)
 {	// return '0' if TX frequency is allowed
 	// otherwise return '-1'
 
-	if (Frequency < FREQ_BAND_TABLE[0].lower || Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
-		return -1;  // not allowed outside this range
+	if (Frequency < BX4819_BAND1.lower || Frequency > BX4819_BAND2.upper)
+		return -1;  // BX radio chip does not work out this range
 
 	if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
-		return -1;  // BX chip does not work in this range
+		return -1;  // BX radio chip does not work in this range
+
+	if (Frequency >= 10800000 && Frequency < 13600000)
+		return -1;  // TX not allowed in the airband
+
+	if (Frequency < FREQ_BAND_TABLE[0].lower || Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
+		return -1;  // TX not allowed outside this range
 
 	switch (g_setting_freq_lock)
 	{
-		case F_LOCK_OFF:
-			if (Frequency >= 13600000 && Frequency < 17400000)
+		case FREQ_LOCK_OFF:
+			#ifdef ENABLE_TX_EVERYWHERE
 				return 0;
-			if (Frequency >= 17400000 && Frequency < 35000000)
-				if (g_setting_200_tx_enable)
+			#else
+				if (Frequency >= 13600000 && Frequency < 17400000)
 					return 0;
-			if (Frequency >= 35000000 && Frequency < 40000000)
-				if (g_setting_350_tx_enable && g_setting_350_enable)
+				if (Frequency >= 17400000 && Frequency < 35000000)
+					if (g_setting_200_tx_enable)
+						return 0;
+				if (Frequency >= 35000000 && Frequency < 40000000)
+					if (g_setting_350_tx_enable && g_setting_350_enable)
+						return 0;
+				if (Frequency >= 40000000 && Frequency < 47000000)
 					return 0;
-			if (Frequency >= 40000000 && Frequency < 47000000)
-				return 0;
-			if (Frequency >= 47000000 && Frequency <= 60000000)
-				if (g_setting_500_tx_enable)
-					return 0;
+				if (Frequency >= 47000000 && Frequency <= 60000000)
+					if (g_setting_500_tx_enable)
+						return 0;
+			#endif
 			break;
 
-		case F_LOCK_FCC:
+		case FREQ_LOCK_FCC:
 			if (Frequency >= 14400000 && Frequency < 14800000)
 				return 0;
 			if (Frequency >= 42000000 && Frequency < 45000000)
 				return 0;
 			break;
 
-		case F_LOCK_CE:
+		case FREQ_LOCK_CE:
 			if (Frequency >= 14400000 && Frequency < 14600000)
 				return 0;
 			if (Frequency >= 43000000 && Frequency < 44000000)
 				return 0;
 			break;
 
-		case F_LOCK_GB:
+		case FREQ_LOCK_GB:
 			if (Frequency >= 14400000 && Frequency < 14800000)
 				return 0;
 			if (Frequency >= 43000000 && Frequency < 44000000)
 				return 0;
 			break;
 
-		case F_LOCK_430:
+		case FREQ_LOCK_430:
 			if (Frequency >= 13600000 && Frequency < 17400000)
 				return 0;
 			if (Frequency >= 40000000 && Frequency < 43000000)
 				return 0;
 			break;
 
-		case F_LOCK_438:
+		case FREQ_LOCK_438:
 			if (Frequency >= 13600000 && Frequency < 17400000)
 				return 0;
 			if (Frequency >= 40000000 && Frequency < 43800000)
