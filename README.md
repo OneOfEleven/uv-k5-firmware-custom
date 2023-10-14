@@ -203,7 +203,7 @@ Video showing the AM fix working ..
 
 # WARNING if trying to use K5/K6 to TX out of band ..
 
-Most of the radios TX energy is in the harmonics rather than the desired fundamental ..
+Most of the radios TX energy is consentrated into the harmonics and spuriouses rather than within the fundamental ..
 
 <img src="/images/TX_51MHz.png" />
 <img src="/images/TX_70MHz.png" />
