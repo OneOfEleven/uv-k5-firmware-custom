@@ -452,6 +452,9 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 			UART_printf("aircopy invalid CRC %04X %04X\r\n", crc2, crc1);
 		#endif
 
+		if (g_aircopy_state == AIRCOPY_RX)
+			goto send_req;
+
 		g_fsk_write_index = 0;
 		return;
 	}
@@ -494,52 +497,24 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	}
 
 	if (g_fsk_buffer[0] != AIRCOPY_MAGIC_START || g_fsk_buffer[g_fsk_write_index - 1] != AIRCOPY_MAGIC_END)
-	{	// invalid magics .. ignore it
+	{	// invalid magics
 		g_aircopy_rx_errors_magic++;
-		g_fsk_write_index = 0;
-		return;
+		goto send_req;
 	}
 
 	if (eeprom_addr != (block_num * block_size))
 	{	// eeprom address not block aligned .. ignore it
-		g_fsk_write_index = 0;
-		return;
+		goto send_req;
 	}
 
 	if (block_num != g_aircopy_block_number)
 	{	// not the block number we're expecting .. request the correct one
-
-		g_fsk_write_index = 0;
-
-		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("aircopy TX req %04X %04X\r\n", g_aircopy_block_number * 64, block_num * 64);
-		#endif
-
-		// this packet takes 150ms start to finish
-		AIRCOPY_start_fsk_tx(g_aircopy_block_number);
-		g_fsk_tx_timeout_10ms = 200 / 5;             // allow up to 200ms for the TX to complete
-		while (g_fsk_tx_timeout_10ms-- > 0)
-		{
-			SYSTEM_DelayMs(5);
-			if (BK4819_ReadRegister(BK4819_REG_0C) & (1u << 0))
-			{	// we have interrupt flags
-				BK4819_WriteRegister(BK4819_REG_02, 0);
-				const uint16_t interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
-				if (interrupt_bits & BK4819_REG_02_FSK_TX_FINISHED)
-					g_fsk_tx_timeout_10ms = 0;       // TX is complete
-			}
-		}
-		AIRCOPY_stop_fsk_tx();
-
-		BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
-
-		return;
+		goto send_req;
 	}
 
 	if ((eeprom_addr + block_size) > AIRCOPY_LAST_EEPROM_ADDR)
 	{	// ignore it
-		g_fsk_write_index = 0;
-		return;
+		goto send_req;
 	}
 
 	// clear the error counts
@@ -582,6 +557,33 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		g_aircopy_state  = AIRCOPY_RX_COMPLETE;
 		AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 	}
+	
+	return;
+	
+send_req:
+	g_fsk_write_index = 0;
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("aircopy TX req %04X %04X\r\n", g_aircopy_block_number * 64, block_num * 64);
+	#endif
+
+	// this packet takes 150ms start to finish
+	AIRCOPY_start_fsk_tx(g_aircopy_block_number);
+	g_fsk_tx_timeout_10ms = 200 / 5;             // allow up to 200ms for the TX to complete
+	while (g_fsk_tx_timeout_10ms-- > 0)
+	{
+		SYSTEM_DelayMs(5);
+		if (BK4819_ReadRegister(BK4819_REG_0C) & (1u << 0))
+		{	// we have interrupt flags
+			BK4819_WriteRegister(BK4819_REG_02, 0);
+			const uint16_t interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
+			if (interrupt_bits & BK4819_REG_02_FSK_TX_FINISHED)
+				g_fsk_tx_timeout_10ms = 0;       // TX is complete
+		}
+	}
+	AIRCOPY_stop_fsk_tx();
+
+	BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 }
 
 static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
