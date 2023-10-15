@@ -556,6 +556,14 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	{	// transfer is complete
 		g_aircopy_state  = AIRCOPY_RX_COMPLETE;
 		AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+		#ifdef ENABLE_AIRCOPY_RX_REBOOT
+			#if defined(ENABLE_OVERLAY)
+				overlay_FLASH_RebootToBootloader();
+			#else
+				NVIC_SystemReset();
+			#endif
+		#endif
 	}
 	
 	return;

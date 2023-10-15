@@ -190,7 +190,7 @@ typedef struct {
 
 		uint8_t close_glitch_thresh[10];
 		uint8_t unused6[6];
-	} __attribute__((packed)) uhf_squelch[6];
+	} __attribute__((packed)) squelch_band_4567[6];
 
 	// 0x1E60
 	struct {
@@ -211,20 +211,20 @@ typedef struct {
 
 		uint8_t close_glitch_thresh[10];
 		uint8_t unused6[6];
-	} __attribute__((packed)) vhf_squelch[6];
+	} __attribute__((packed)) squelch_band_123[6];
 
 	// 0x1EC0
-	uint16_t    rssi_band_4567[4];
-	uint16_t    rssi_band_123[4];
+	uint16_t rssi_band_4567[4];
+	uint16_t rssi_band_123[4];
 
 	// 0x1ED0
 	struct
 	{
-		uint8_t low_tx_pwr[3];
-		uint8_t mid_tx_pwr[3];
-		uint8_t high_tx_pwr[3];
+		uint8_t low[3];
+		uint8_t mid[3];
+		uint8_t high[3];
 		uint8_t unused[7];
-	} band_setting[7];
+	} tx_band_power[7];
 
 	// 0x1F40
 	uint16_t battery[6];
@@ -250,7 +250,7 @@ typedef struct {
 
 } __attribute__((packed)) t_calibration;
 
-// entire eeprom
+// user configuration
 typedef struct {
 
 	// 0x0000
@@ -268,7 +268,7 @@ typedef struct {
 			} __attribute__((packed)) vfo_band[7];
 		} __attribute__((packed));
 	#endif
-	
+
 	// 0x0D60
 	struct {                  // these channel attribute settings could have been in the t_channel structure !
 		uint8_t band:4;       // why do QS have these 4 bits ? .. band can/is computed from the frequency
@@ -278,6 +278,8 @@ typedef struct {
 	} __attribute__((packed)) channel_attr[200];
 
 	uint8_t        unused1[8];
+
+	// 0x0E30
 	uint8_t        unused2[16];
 
 	// 0x0E40
@@ -333,7 +335,7 @@ typedef struct {
 	uint8_t        unused7[7];
 	uint8_t        alarm_mode;
 	uint8_t        roger_mode;
-	uint8_t        repeater_tail_tone_elimination;  // rp_ste 
+	uint8_t        repeater_tail_tone_elimination;  // rp_ste
 	uint8_t        tx_channel;
 	uint8_t        air_copy_freq;                   // 1of11
 
@@ -361,6 +363,8 @@ typedef struct {
 	uint8_t        dtmf_revive_code[8];
 	uint8_t        dtmf_key_up_code[16];
 	uint8_t        dtmf_key_down_code[16];
+
+	// 0x0F18
 	uint8_t        s_list_default;
 	uint8_t        priority1_enable;
 	uint8_t        priority1_channel1;
@@ -374,10 +378,10 @@ typedef struct {
 	uint8_t        unused11[8];
 
 	// 0x0F30
-	uint8_t        aes_key[16];       // disabled = all 0xff
+	uint8_t        aes_key[16];           // disabled = all 0xff
 
 	// 0x0F40
-	uint8_t        freq_lock;             // 
+	uint8_t        freq_lock;             //
 	uint8_t        enable_tx_350;         // 350MHz ~ 400MHz
 	uint8_t        killed;                //
 	uint8_t        enable_tx_200;         //
@@ -386,9 +390,9 @@ typedef struct {
 	uint8_t        enable_scrambler;      //
 	#if 0
 		// QS
-		uint8_t    unused12[9];
+		uint8_t    unused12[9];           //
 	#else
-		// 1of11 .. some of my additional settings
+		// 1of11
 		uint8_t    tx_enable:1;           // 0 = completely disable TX, 1 = allow TX
 		uint8_t    dtmf_live_decoder:1;   // 1 = enable on-screen live DTMF decoder
 		uint8_t    battery_text:2;        // 0 = no battery text, 1 = voltage, 2 = percent .. on the status bar
@@ -396,27 +400,36 @@ typedef struct {
 		uint8_t    am_fix:1;              // 1 = RX AM fix
 		uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when TX, 2 = when RX, 3 = both RX/TX
 
-		uint8_t    unused12[8];
+		uint8_t    unused12[8];           //
 	#endif
 
 	// 0x0F50
-	char           channel_name[200][16]; // each channels name text
+	char           channel_name[200][16]; // each channels name text (max 10 chars used per channel)
 
 	// 0x1BD0
-	uint8_t        unused13[16];
-	uint8_t        unused14[16];
-	uint8_t        unused15[16];
+	uint8_t        unused13[16 * 3];      // free to use
 
 	// 0x1C00
-	uint8_t        dtmf_contact[16][16];
+	struct {
+		char       name[8];
+		uint8_t    number[8];
+	} __attribute__((packed)) dtmf_contact[16];
+	
+} __attribute__((packed)) t_config;
+
+// entire eeprom
+typedef struct {
+
+	// 0x0000
+	t_config       config;                // radios user config
 
 	// 0x1D00
-	uint8_t        unused16[256];         // lots of unused area we could make use of
+	uint8_t        unused14[256];         // does this belong to the config, or the calibration, or neither ?
 
 	// 0x1E00
-	t_calibration  calibration;           // the radios calibration/general settings
+	t_calibration  calibration;           // calibration settings .. we DO NOT pass this through aircopy, it's radio specific
 
-} __attribute__((packed)) t_eeprom;
+} __attribute__((packed)) t_eeprom;       // 8192 bytes of eeprom
 
 // ************************************************
 // this and all the other variables are going to be replaced with the above t_eeprom

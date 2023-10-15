@@ -11,6 +11,7 @@ ENABLE_UART                     := 1
 ENABLE_UART_DEBUG               := 1
 ENABLE_AIRCOPY                  := 1
 ENABLE_AIRCOPY_FREQ             := 1
+ENABLE_AIRCOPY_RX_REBOOT        := 0
 ENABLE_FMRADIO                  := 1
 ENABLE_NOAA                     := 0
 ENABLE_VOICE                    := 0
@@ -246,6 +247,9 @@ ifeq ($(ENABLE_AIRCOPY),1)
 endif
 ifeq ($(ENABLE_AIRCOPY_FREQ),1)
 	CFLAGS += -DENABLE_AIRCOPY_FREQ
+endif
+ifeq ($(ENABLE_AIRCOPY_RX_REBOOT),1)
+	CFLAGS += -DENABLE_AIRCOPY_RX_REBOOT
 endif
 ifeq ($(ENABLE_FMRADIO),1)
 	CFLAGS += -DENABLE_FMRADIO

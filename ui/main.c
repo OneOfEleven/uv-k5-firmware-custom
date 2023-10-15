@@ -450,19 +450,27 @@ void UI_DisplayMain(void)
 			if (g_dtmf_call_state != DTMF_CALL_STATE_NONE || g_dtmf_is_tx || g_dtmf_input_mode)
 			{	// show DTMF stuff
 
-				char Contact[16];
+				char contact[17];
 
 				if (!g_dtmf_input_mode)
 				{
-					memset(Contact, 0, sizeof(Contact));
+					memset(contact, 0, sizeof(contact));
 					if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
-						strcpy(String, (g_dtmf_state == DTMF_STATE_CALL_OUT_RSP) ? "CALL OUT(RSP)" : "CALL OUT");
+					{
+						strcpy(String, (g_dtmf_state == DTMF_STATE_CALL_OUT_RSP) ? "CALL OUT RESP" : "CALL OUT");
+					}
 					else
 					if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
-						sprintf(String, "CALL FRM:%s", (DTMF_FindContact(g_dtmf_caller, Contact)) ? Contact : g_dtmf_caller);
+					{
+						const bool found = DTMF_FindContact(g_dtmf_caller, contact);
+						contact[8] = 0;
+						sprintf(String, "FROM %s", found ? contact : g_dtmf_caller);
+					}
 					else
 					if (g_dtmf_is_tx)
-						strcpy(String, (g_dtmf_state == DTMF_STATE_TX_SUCC) ? "DTMF TX(SUCC)" : "DTMF TX");
+					{
+						strcpy(String, (g_dtmf_state == DTMF_STATE_TX_SUCC) ? "DTMF TX SUCC" : "DTMF TX");
+					}
 				}
 				else
 				{
@@ -473,15 +481,25 @@ void UI_DisplayMain(void)
 				memset(String,  0, sizeof(String));
 				if (!g_dtmf_input_mode)
 				{
-					memset(Contact, 0, sizeof(Contact));
+					memset(contact, 0, sizeof(contact));
 					if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
-						sprintf(String, ">%s", (DTMF_FindContact(g_dtmf_string, Contact)) ? Contact : g_dtmf_string);
+					{
+						const bool found = DTMF_FindContact(g_dtmf_string, contact);
+						contact[15] = 0;
+						sprintf(String, ">%s", found ? contact : g_dtmf_string);
+					}
 					else
 					if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
-						sprintf(String, ">%s", (DTMF_FindContact(g_dtmf_callee, Contact)) ? Contact : g_dtmf_callee);
+					{
+						const bool found = DTMF_FindContact(g_dtmf_callee, contact);
+						contact[15] = 0;
+						sprintf(String, ">%s", found ? contact : g_dtmf_callee);
+					}
 					else
 					if (g_dtmf_is_tx)
+					{
 						sprintf(String, ">%s", g_dtmf_string);
+					}
 				}
 				UI_PrintString(String, 2, 0, 2 + (vfo_num * 3), 8);
 

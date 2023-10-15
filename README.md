@@ -42,6 +42,7 @@ ENABLE_UART                     := 1       without this you can't configure radi
 ENABLE_UART_DEBUG               := 0       just for code debugging, it sends debug info along the USB serial connection (programming lead)
 ENABLE_AIRCOPY                  := 1       clone radio-to-radio via RF
 ENABLE_AIRCOPY_FREQ             := 1       remember what you use for the aircopy frequency
+ENABLE_AIRCOPY_RX_REBOOT        := 0       auto reboot on an aircopy successful RX completion
 ENABLE_FMRADIO                  := 1       WBFM VHF broadcast band receiver
 ENABLE_NOAA                     := 1       everything NOAA (only of any use in the USA)
 ENABLE_VOICE                    := 0       want to hear voices ?
