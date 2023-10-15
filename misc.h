@@ -337,7 +337,7 @@ extern volatile bool         g_flag_tail_tone_elimination_complete;
 	extern volatile bool     g_schedule_fm;
 #endif
 extern int16_t               g_current_rssi[2];   // now one per VFO
-extern volatile uint8_t      g_boot_counter_10ms;
+extern volatile uint16_t     g_boot_counter_10ms;
 
 unsigned int get_TX_VFO(void);
 unsigned int get_RX_VFO(void);

@@ -258,7 +258,7 @@ volatile bool         g_flag_tail_tone_elimination_complete;
 	volatile bool     g_schedule_fm;
 #endif
 
-volatile uint8_t      g_boot_counter_10ms;
+volatile uint16_t     g_boot_counter_10ms = 4000 / 10;   // 4 seconds
 
 int16_t               g_current_rssi[2] = {0, 0};  // now one per VFO
 

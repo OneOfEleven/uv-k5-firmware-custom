@@ -32,8 +32,8 @@ void UI_DisplayReleaseKeys(void)
 	memset(g_status_line,  0, sizeof(g_status_line));
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
-	UI_PrintString("RELEASE", 0, 127, 1, 10);
-	UI_PrintString("ALL KEYS", 0, 127, 3, 10);
+	UI_PrintString("RELEASE",  0, LCD_WIDTH, 1, 10);
+	UI_PrintString("ALL KEYS", 0, LCD_WIDTH, 3, 10);
 
 	ST7565_BlitStatusLine();  // blank status line
 	ST7565_BlitFullScreen();
@@ -61,7 +61,7 @@ void UI_DisplayWelcome(void)
 	{
 		unsigned int slen = strlen(Version_str);
 		if (slen > (sizeof(str2) - 1))
-			slen = sizeof(str2) - 1;
+			slen =  sizeof(str2) - 1;
 
 		memset(str0, 0, sizeof(str0));
 		memset(str1, 0, sizeof(str1));
@@ -83,14 +83,11 @@ void UI_DisplayWelcome(void)
 
 		memmove(str2, Version_str, slen);
 		
-		UI_PrintString(str0, 0, 127, 0, 10);
-		UI_PrintString(str1, 0, 127, 2, 10);
-		
-		if (strlen(str2) <= 12)
-			UI_PrintString(str2, 0, 127, 5, 10);
-		else
-			UI_PrintStringSmall(str2, 0, 127, 5);
-
+		UI_PrintString(str0, 0, LCD_WIDTH, 0, 10);
+		UI_PrintString(str1, 0, LCD_WIDTH, 2, 10);
+		UI_PrintStringSmall(str2, 0, LCD_WIDTH, 4);
+		UI_PrintStringSmall(__DATE__, 0, LCD_WIDTH, 5);
+		UI_PrintStringSmall(__TIME__, 0, LCD_WIDTH, 6);
 
 		#if 1
 			ST7565_BlitStatusLine();  // blank status line

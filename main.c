@@ -68,8 +68,6 @@ void Main(void)
 	BOARD_Init();
 	UART_Init();
 
-	g_boot_counter_10ms = 250;   // 2.5 sec
-
 	#if defined(ENABLE_UART)
 		UART_SendText(UART_Version_str);
 		UART_SendText("\r\n");
@@ -162,7 +160,7 @@ void Main(void)
 		#endif
 
 		if (g_eeprom.pwr_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
-		{	// 2.55 second boot-up screen
+		{	// 3 second boot-up screen
 			while (g_boot_counter_10ms > 0)
 			{
 				if (KEYBOARD_Poll() != KEY_INVALID)

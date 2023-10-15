@@ -1017,9 +1017,9 @@ void UI_DisplayMenu(void)
 					}
 				}
 			}
+
 			// add the date and time
-			strcat(String, "\n" __DATE__);
-			strcat(String, "\n" __TIME__);
+			strcat(String, "\n \n" __DATE__ "\n" __TIME__);
 			break;
 		}
 			

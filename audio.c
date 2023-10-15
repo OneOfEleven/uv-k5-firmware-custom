@@ -14,6 +14,9 @@
  *     limitations under the License.
  */
 
+#ifdef ENABLE_AIRCOPY
+	#include "app/aircopy.h"
+#endif
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
@@ -85,13 +88,11 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		return;
 
 	#ifdef ENABLE_AIRCOPY
-		if (g_screen_to_display == DISPLAY_AIRCOPY)
-			return;
+//		if (g_screen_to_display == DISPLAY_AIRCOPY || g_aircopy_state != AIRCOPY_READY)
+//				return;
 	#endif
-
 	if (g_current_function == FUNCTION_RECEIVE)
 		return;
-
 	if (g_current_function == FUNCTION_MONITOR)
 		return;
 

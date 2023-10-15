@@ -214,8 +214,8 @@ typedef struct {
 	} __attribute__((packed)) vhf_squelch[6];
 
 	// 0x1EC0
-	uint16_t    rssi_uhf[4];
-	uint16_t    rssi_vhf[4];
+	uint16_t    rssi_band_4567[4];
+	uint16_t    rssi_band_123[4];
 
 	// 0x1ED0
 	struct
@@ -270,7 +270,7 @@ typedef struct {
 	#endif
 	
 	// 0x0D60
-	struct {                  // all these channel settings could have been in the t_channel structure !
+	struct {                  // these channel attribute settings could have been in the t_channel structure !
 		uint8_t band:4;       // why do QS have these 4 bits ? .. band can/is computed from the frequency
 		uint8_t compander:2;  // TODO: move this to the t_channel structure
 		uint8_t scanlist2:1;  // set if is in scan list 2
@@ -293,13 +293,13 @@ typedef struct {
 	uint8_t        vox_switch;
 	uint8_t        vox_level;
 	uint8_t        mic_sensitivity;
-	uint8_t        unused4;
-	uint8_t        mdf;
-	uint8_t        wx;
+	uint8_t        lcd_contrast;       // 1of11
+	uint8_t        channel_display_mode;
+	uint8_t        cross_vfo;
 	uint8_t        battery_save;
-	uint8_t        tdr;
+	uint8_t        dual_watch;
 	uint8_t        backlight;
-	uint8_t        site;
+	uint8_t        tail_tone_elimination;
 	uint8_t        vfo_open;
 
 	// 0x0E80
@@ -322,8 +322,8 @@ typedef struct {
 	uint8_t        key1_long;
 	uint8_t        key2_short;
 	uint8_t        key2_long;
-	uint8_t        sc_rev;
-	uint8_t        auto_lock;
+	uint8_t        carrier_search_mode;      // sc_rev;
+	uint8_t        auto_key_lock;
 	uint8_t        display_mode;
 	uint32_t       power_on_password;
 	uint8_t        unused6[4];
@@ -333,9 +333,9 @@ typedef struct {
 	uint8_t        unused7[7];
 	uint8_t        alarm_mode;
 	uint8_t        roger_mode;
-	uint8_t        rp_ste;
+	uint8_t        repeater_tail_tone_elimination;  // rp_ste 
 	uint8_t        tx_channel;
-	uint8_t        unused8[4];
+	uint8_t        air_copy_freq;                   // 1of11
 
 	// 0x0EB0
 	char           welcome_line1[16];
@@ -394,7 +394,7 @@ typedef struct {
 		uint8_t    battery_text:2;        // 0 = no battery text, 1 = voltage, 2 = percent .. on the status bar
 		uint8_t    mic_bar:1;             // 1 = on-screen TX audio level
 		uint8_t    am_fix:1;              // 1 = RX AM fix
-		uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when RX, 2 = when TX, 3 = both RX/TX
+		uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when TX, 2 = when RX, 3 = both RX/TX
 
 		uint8_t    unused12[8];
 	#endif
