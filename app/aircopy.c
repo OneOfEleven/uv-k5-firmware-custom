@@ -18,10 +18,14 @@
 
 #include "app/aircopy.h"
 #include "audio.h"
+#include "bsp/dp32g030/gpio.h"
+#include "driver/backlight.h"
 #include "driver/bk4819.h"
 #include "driver/crc.h"
 #include "driver/eeprom.h"
+#include "driver/gpio.h"
 #include "driver/system.h"
+#include "driver/uart.h"
 #include "frequencies.h"
 #include "misc.h"
 #include "radio.h"
@@ -30,274 +34,528 @@
 #include "ui/inputbox.h"
 #include "ui/ui.h"
 
-#define AIRCOPY_MAGIC_START        0xABCD
-#define AIRCOPY_MAGIC_END          0xDCBA
+// **********************
 
-#define AIRCOPY_LAST_EEPROM_ADDR   0x1E00
+#define AIRCOPY_MAGIC_START_REQ    0xBCDA   // used to request a block resend
+#define AIRCOPY_MAGIC_END_REQ      0xCDBA   // used to request a block resend
 
-const uint8_t    g_aircopy_block_max = 120;
-uint8_t          g_aircopy_block_number;
-uint8_t          g_aircopy_rx_errors;
-aircopy_state_t  g_aircopy_state;
+#define AIRCOPY_MAGIC_START        0xABCD   // normal start value
+#define AIRCOPY_MAGIC_END          0xDCBA   // normal end value
 
-uint8_t          aircopy_send_count_down_10ms;
+#define AIRCOPY_LAST_EEPROM_ADDR   0x1E00   // size of eeprom transferred
 
-uint16_t         g_fsk_buffer[36];
-unsigned int     g_fsk_write_index;
-uint16_t         g_fsk_tx_timeout_10ms;
+// FSK Data Length .. 0xABCD + 2 byte eeprom address + 64 byte payload + 2 byte CRC + 0xDCBA
+#define AIRCOPY_DATA_PACKET_SIZE   (2 + 2 + 64 + 2 + 2)
 
-void AIRCOPY_start_FSK_tx(const uint8_t request_packet)
+// FSK Data Length .. 0xBCDA + 2 byte eeprom address + 2 byte CRC + 0xCDBA
+#define AIRCOPY_REQ_PACKET_SIZE    (2 + 2 + 64 + 2 + 2)
+
+// **********************
+
+const unsigned int g_aircopy_block_max = 120;
+unsigned int       g_aircopy_block_number;
+uint8_t            g_aircopy_rx_errors_fsk_crc;
+uint8_t            g_aircopy_rx_errors_magic;
+uint8_t            g_aircopy_rx_errors_crc;
+aircopy_state_t    g_aircopy_state;
+
+uint16_t           g_fsk_buffer[AIRCOPY_DATA_PACKET_SIZE / 2];
+unsigned int       g_fsk_write_index;
+uint16_t           g_fsk_tx_timeout_10ms;
+
+uint8_t            aircopy_send_count_down_10ms;
+
+void AIRCOPY_init(void)
 {
-	unsigned int   i;
-	const uint16_t eeprom_addr = (uint16_t)g_aircopy_block_number * 64;
+	// turn the backlight ON
+	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
-	// will be used to ask the TX/ing radio to resend a missing/corrupted packet
-	(void)request_packet;
-	
+	RADIO_SetupRegisters(true);
+
+	BK4819_SetupAircopy(AIRCOPY_DATA_PACKET_SIZE);
+
+	BK4819_reset_fsk();
+
+	g_aircopy_state = AIRCOPY_READY;
+
+	g_fsk_write_index = 0;
+	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+	BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
+
+	GUI_SelectNextDisplay(DISPLAY_AIRCOPY);
+}
+
+void AIRCOPY_start_fsk_tx(const int request_block_num)
+{
+	const unsigned int eeprom_addr = (request_block_num < 0) ? g_aircopy_block_number * 64 : (unsigned int)request_block_num * 64;
+	uint16_t           fsk_reg59;
+	unsigned int       k;
+	unsigned int       tx_size = 0;
+
 	// *********
 
 	// packet start
-	g_fsk_buffer[0] = AIRCOPY_MAGIC_START;
+	g_fsk_buffer[tx_size++] = (request_block_num < 0) ? AIRCOPY_MAGIC_START : AIRCOPY_MAGIC_START_REQ;
 
 	// eeprom address
-	g_fsk_buffer[1] = eeprom_addr;
+	g_fsk_buffer[tx_size++] = eeprom_addr;
 
 	// data
-	EEPROM_ReadBuffer(eeprom_addr, &g_fsk_buffer[2], 64);
+	if (request_block_num < 0)
+	{
+		EEPROM_ReadBuffer(eeprom_addr, &g_fsk_buffer[tx_size], 64);
+		tx_size += 64 / 2;
+	}
 
 	// data CRC
-	g_fsk_buffer[34] = CRC_Calculate(&g_fsk_buffer[1], 2 + 64);
+	g_fsk_buffer[tx_size++] = CRC_Calculate(&g_fsk_buffer[1], (request_block_num < 0) ? 2 + 64 : 2);
 
 	// packet end
-	g_fsk_buffer[35] = AIRCOPY_MAGIC_END;
+	g_fsk_buffer[tx_size++] = (request_block_num < 0) ? AIRCOPY_MAGIC_END : AIRCOPY_MAGIC_END_REQ;
 
 	// *********
-	
+
 	{	// scramble the packet
-		//for (i = 0; i < 34; i++)
-			//g_fsk_buffer[1 + i] ^= Obfuscation[i % ARRAY_SIZE(Obfuscation)];
-
 		uint8_t *p = (uint8_t *)&g_fsk_buffer[1];
-		for (i = 0; i < (34 * 2); i++)
-			*p++ ^= obfuscate_array[i % ARRAY_SIZE(obfuscate_array)];
+		for (k = 0; k < ((tx_size - 2) * 2); k++)
+			*p++ ^= obfuscate_array[k % ARRAY_SIZE(obfuscate_array)];
 	}
-	
-	// TX the packet
-	RADIO_SetTxParameters();
-	BK4819_SetupPowerAmplifier(0, g_current_vfo->p_tx->frequency); // VERY low TX power
 
-	// turn the RED LED on
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, true);
+	g_fsk_tx_timeout_10ms = 1000 / 10; // 1 second timeout
 
-	// start sending the packet
+	// turn the TX on
+	RADIO_enableTX(true);
 
-	// let the TX stabilize
-	SYSTEM_DelayMs(10);
-	
+	// REG_59
+	//
+	// <15>  0 TX FIFO
+	//       1 = clear
+	//
+	// <14>  0 RX FIFO
+	//       1 = clear
+	//
+	// <13>  0 FSK Scramble
+	//       1 = Enable
+	//
+	// <12>  0 FSK RX
+	//       1 = Enable
+	//
+	// <11>  0 FSK TX
+	//       1 = Enable
+	//
+	// <10>  0 FSK data when RX
+	//       1 = Invert
+	//
+	// <9>   0 FSK data when TX
+	//       1 = Invert
+	//
+	// <8>   0 ???
+	//
+	// <7:4> 0 FSK preamble length selection
+	//       0  =  1 byte
+	//       1  =  2 bytes
+	//       2  =  3 bytes
+	//       15 = 16 bytes
+	//
+	// <3>   0 FSK sync length selection
+	//       0 = 2 bytes (FSK Sync Byte 0, 1)
+	//       1 = 4 bytes (FSK Sync Byte 0, 1, 2, 3)
+	//
+	// <2:0> 0 ???
+	//
+	// 0x0068 0000 0000 0110 1000
+	//
+	fsk_reg59 = (0u << 15) |   // 0 or 1   1 = clear TX FIFO
+	            (0u << 14) |   // 0 or 1   1 = clear RX FIFO
+	            (0u << 13) |   // 0 or 1   1 = scramble
+				(0u << 12) |   // 0 or 1   1 = enable RX
+				(0u << 11) |   // 0 or 1   1 = enable TX
+				(0u << 10) |   // 0 or 1   1 = invert data when RX
+				(0u <<  9) |   // 0 or 1   1 = invert data when TX
+				(0u <<  8) |   // 0 or 1   ???
+				(6u <<  4) |   // 0 ~ 15   preamble Length Selection
+				(1u <<  3) |   // 0 or 1   sync length selection
+				(0u <<  0);    // 0 ~ 7    ???
+
+	// set the packet size
+	BK4819_WriteRegister(BK4819_REG_5D, (((tx_size * 2) - 1) << 8));
+
+	// clear TX fifo
+	BK4819_WriteRegister(BK4819_REG_59, (1u << 15) | fsk_reg59);
+	BK4819_WriteRegister(BK4819_REG_59, fsk_reg59);
+
+	// load the packet
+	for (k = 0; k < tx_size; k++)
+		BK4819_WriteRegister(BK4819_REG_5F, g_fsk_buffer[k]);
+
+	// enable tx interrupt(s)
 	BK4819_WriteRegister(BK4819_REG_3F, BK4819_REG_3F_FSK_TX_FINISHED);
 
-	BK4819_WriteRegister(BK4819_REG_59, 0x8068);
-	BK4819_WriteRegister(BK4819_REG_59, 0x0068);
-	
-	// load the packet
-	for (i = 0; i < 36; i++)
-		BK4819_WriteRegister(BK4819_REG_5F, g_fsk_buffer[i]);
-	
-//	SYSTEM_DelayMs(20);
-	
-	BK4819_WriteRegister(BK4819_REG_59, 0x2868);
-	
-	g_fsk_tx_timeout_10ms = 1000 / 10; // 1 second timeout
+	// enable scramble, enable TX
+	BK4819_WriteRegister(BK4819_REG_59, (1u << 13) | (1u << 11) | fsk_reg59);
 }
 
-void AIRCOPY_stop_FSK_tx(void)
-{	
+void AIRCOPY_stop_fsk_tx(const bool inc_block)
+{
 	if (g_aircopy_state != AIRCOPY_TX && g_fsk_tx_timeout_10ms == 0)
 		return;
-	
-	g_fsk_tx_timeout_10ms = 0;
-	
-	BK4819_WriteRegister(BK4819_REG_02, 0);  // disable all interrupts
-	
-//	SYSTEM_DelayMs(20);
 
-	BK4819_ResetFSK();
+	g_fsk_tx_timeout_10ms = 0;
 
 	// disable the TX
-	BK4819_SetupPowerAmplifier(0, 0);
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);
+	BK4819_SetupPowerAmplifier(0, 0);                     //
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);        // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);   // LED off
 
-	// turn the RED LED off
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);
-			
-	if (++g_aircopy_block_number >= g_aircopy_block_max)
-	{	// transfer is complete
-		g_aircopy_state = AIRCOPY_TX_COMPLETE;
+	BK4819_reset_fsk();
+
+	if (inc_block)
+	{
+		if (++g_aircopy_block_number >= g_aircopy_block_max)
+		{	// transfer is complete
+			g_aircopy_state = AIRCOPY_TX_COMPLETE;
+		}
+		else
+		{	// TX pause/gap time till we start the next packet
+			aircopy_send_count_down_10ms = 220 / 10;   // 220ms
+		}
+
+		// RX mode
+		BK4819_start_fsk_rx(AIRCOPY_REQ_PACKET_SIZE);
+	
+		g_update_display = true;
+		GUI_DisplayScreen();
 	}
 	else
-	{
-		// TX pause/gap time till we start the next packet
-		#if 0
-			aircopy_send_count_down_10ms = 300 / 10;   // 300ms
-		#else
-			aircopy_send_count_down_10ms =  10 / 10;   // 10ms
-		#endif
+	{	// RX mode
+		BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 	}
-	
-	g_update_display = true;
-	GUI_DisplayScreen();
 }
 
-void AIRCOPY_process_FSK_tx_10ms(void)
+void AIRCOPY_process_fsk_tx_10ms(void)
 {
-	if (g_aircopy_state != AIRCOPY_TX)
+	uint16_t interrupt_bits = 0;
+
+	if (g_aircopy_state != AIRCOPY_TX && g_aircopy_state != AIRCOPY_RX)
 		return;
 
 	if (g_fsk_tx_timeout_10ms == 0)
 	{	// not currently TX'ing
-		if (g_aircopy_block_number < g_aircopy_block_max)
-		{	// not yet finished the complete transfer
-			if (aircopy_send_count_down_10ms > 0)
-			{	// waiting till it's time to TX next packet
-				if (--aircopy_send_count_down_10ms == 0)
-				{	// start next packet
-					AIRCOPY_start_FSK_tx(0xff);
 
-					g_update_display = true;
-					GUI_DisplayScreen();
-				}
-			}
+		if (g_aircopy_state == AIRCOPY_TX && g_aircopy_block_number < g_aircopy_block_max)
+		{	// not yet finished the complete transfer
+
+			if (aircopy_send_count_down_10ms > 0)
+				if (--aircopy_send_count_down_10ms > 0)
+					return;    // not yet time to TX next packet
+
+			if (g_fsk_write_index > 0)
+				return;        // currently RX'ing a packet
+				
+			// start next TX packet
+			AIRCOPY_start_fsk_tx(-1);
+
+			g_update_display = true;
+			GUI_DisplayScreen();
 		}
+
 		return;
 	}
 
 	if (--g_fsk_tx_timeout_10ms > 0)
 	{	// still TX'ing
 		if ((BK4819_ReadRegister(BK4819_REG_0C) & (1u << 0)) == 0)
-			return; /// TX not yet finished
+			return;
+		BK4819_WriteRegister(BK4819_REG_02, 0);
+		interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
+		if ((interrupt_bits & BK4819_REG_02_FSK_TX_FINISHED) == 0)
+			return;            // TX not yet finished
 	}
 
-	AIRCOPY_stop_FSK_tx();
+	AIRCOPY_stop_fsk_tx(true);
 }
 
-void AIRCOPY_process_FSK_rx_10ms(const uint16_t interrupt_status_bits)
+void AIRCOPY_process_fsk_rx_10ms(void)
 {
-	unsigned int i;
-	uint16_t     Status;
+	const unsigned int block_size   = 64;
+	const unsigned int write_size   = 8;
+	const unsigned int req_ack_size = 4;
+	uint16_t           interrupt_bits;
+	uint16_t           status;
+	uint16_t           crc1;
+	uint16_t           crc2;
+	uint16_t           eeprom_addr;
+	uint16_t          *data;
+	unsigned int       block_num;
+	bool               req_ack_packet = false;
+	unsigned int       i;
 
-	if (g_aircopy_state != AIRCOPY_RX)
+	// REG_59
+	//
+	// <15>  0 TX FIFO
+	//       1 = clear
+	//
+	// <14>  0 RX FIFO
+	//       1 = clear
+	//
+	// <13>  0 FSK Scramble
+	//       1 = Enable
+	//
+	// <12>  0 FSK RX
+	//       1 = Enable
+	//
+	// <11>  0 FSK TX
+	//       1 = Enable
+	//
+	// <10>  0 FSK data when RX
+	//       1 = Invert
+	//
+	// <9>   0 FSK data when TX
+	//       1 = Invert
+	//
+	// <8>   0 ???
+	//
+	// <7:4> 0 FSK preamble length selection
+	//       0  =  1 byte
+	//       1  =  2 bytes
+	//       2  =  3 bytes
+	//       15 = 16 bytes
+	//
+	// <3>   0 FSK sync length selection
+	//       0 = 2 bytes (FSK Sync Byte 0, 1)
+	//       1 = 4 bytes (FSK Sync Byte 0, 1, 2, 3)
+	//
+	// <2:0> 0 ???
+	//
+	status = BK4819_ReadRegister(BK4819_REG_59);
+
+	if (status & (1u << 11) || g_fsk_tx_timeout_10ms > 0)
+		return;   // FSK TX is busy
+
+	if ((status & (1u << 12)) == 0)
+	{	// FSK RX is disabled, enable it
+		g_fsk_write_index = 0;
+		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+		BK4819_start_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
+	}
+
+	status = BK4819_ReadRegister(BK4819_REG_0C);
+	if ((status & (1u << 0)) == 0)
+		return;                                                // no flagged interrupts
+
+	// read the interrupt flags
+	BK4819_WriteRegister(BK4819_REG_02, 0);                    // clear them
+	interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
+
+	if (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC)
+		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);   // LED on
+
+	if (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED)
+		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+
+	if ((interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL) == 0)
 		return;
 
-	if (interrupt_status_bits & BK4819_REG_02_FSK_RX_SYNC)
-	{
-		// turn the green LED on
-//		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);
-	}
+	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);       // LED on
 
-	if (interrupt_status_bits & BK4819_REG_02_FSK_RX_FINISHED)
+	// fetch RX'ed data
+	for (i = 0; i < 4; i++)
 	{
-		// turn the green LED off
-//		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
+		const uint16_t word = BK4819_ReadRegister(BK4819_REG_5F);
+		if (g_fsk_write_index < ARRAY_SIZE(g_fsk_buffer))
+			g_fsk_buffer[g_fsk_write_index++] = word;
 	}
 	
-	if (interrupt_status_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL)
+	// REG_0B read only
+	//
+	// <15:12> ???
+	//
+	// <11:8>  DTMF/5-tone code received
+	//
+	// <7>     FSK RX sync negative has been found
+	//
+	// <6>     FSK RX sync positive has been found
+	//
+	// <5>     ???
+	//
+	// <4>     FSK RX CRC indicator
+	//         1 = CRC pass
+	//         0 = CRC fail
+	//
+	// <3:0>   ???
+	//
+	status = BK4819_ReadRegister(BK4819_REG_0B);
+
+	// check to see if it's a REQ/ACK packet
+	if (g_fsk_write_index == req_ack_size)
+		req_ack_packet = (g_fsk_buffer[0] == AIRCOPY_MAGIC_START_REQ && g_fsk_buffer[g_fsk_write_index - 1] == AIRCOPY_MAGIC_END_REQ);
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("aircopy rx %04X %u\r\n", interrupt_bits, g_fsk_write_index);
+	#endif
+
+	if (g_fsk_write_index < ARRAY_SIZE(g_fsk_buffer) && !req_ack_packet)
+		return;        // not yet a complete packet
+
+	// restart the RX
+	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);     // LED off
+	BK4819_start_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
+
+	g_update_display = true;
+
+	// doc says bit 4 should be 1 = CRC OK, 0 = CRC FAIL, but original firmware checks for FAIL
+	if ((status & (1u << 4)) != 0)
 	{
-		for (i = 0; i < 4; i++)
-			g_fsk_buffer[g_fsk_write_index++] = BK4819_ReadRegister(BK4819_REG_5F);
+		g_aircopy_rx_errors_fsk_crc++;
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("aircopy status %04X\r\n", status);
+		#endif
+		g_fsk_write_index = 0;
+		return;
+	}
 
-		if (g_fsk_write_index < ARRAY_SIZE(g_fsk_buffer))
-		{
-			// turn the green LED on
-			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);
-			return;
+	{	// unscramble the packet
+		uint8_t *p = (uint8_t *)&g_fsk_buffer[1];
+		for (i = 0; i < ((g_fsk_write_index - 2) * 2); i++)
+			*p++ ^= obfuscate_array[i % ARRAY_SIZE(obfuscate_array)];
+	}
+
+	// compute the CRC
+	crc1 = CRC_Calculate(&g_fsk_buffer[1], (g_fsk_write_index - 3) * 2);
+	// fetch the CRC
+	crc2 = g_fsk_buffer[g_fsk_write_index - 2];
+	
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		// show the entire packet
+		UART_SendText("aircopy");
+		for (i = 0; i < g_fsk_write_index; i++)
+			UART_printf(" %04X", g_fsk_buffer[i]);
+		UART_printf(" - %04X\r\n", status);
+	#endif
+
+	// check the CRC
+	if (crc2 != crc1)
+	{	// invalid CRC
+		g_aircopy_rx_errors_crc++;
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("aircopy invalid CRC %04X %04X\r\n", crc2, crc1);
+		#endif
+		g_fsk_write_index = 0;
+		return;
+	}
+
+	eeprom_addr =  g_fsk_buffer[1];
+	data        = &g_fsk_buffer[2];
+
+	block_num = eeprom_addr / block_size;
+
+	if (req_ack_packet)
+	{	// it's a req/ack packet
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("aircopy RX req %04X %04X\r\n", block_num * 64, g_aircopy_block_number * 64);
+		#endif
+
+		if (g_aircopy_state == AIRCOPY_TX)
+		{	// send them the block they want
+			g_aircopy_block_number       = block_num;  // go to the block number they want
+			aircopy_send_count_down_10ms = 0;          // TX asap
 		}
+		
+		g_fsk_write_index = 0;
+		return;
+	}
 
-		// turn the green LED off
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
+	if (g_aircopy_state != AIRCOPY_RX)
+	{	// not in RX mode .. ignore it
+		g_fsk_write_index = 0;
+		return;
+	}
+
+	if (g_fsk_buffer[0] != AIRCOPY_MAGIC_START || g_fsk_buffer[g_fsk_write_index - 1] != AIRCOPY_MAGIC_END)
+	{	// invalid magics .. ignore it
+		g_aircopy_rx_errors_magic++;
+		g_fsk_write_index = 0;
+		return;
+	}
+
+	if (eeprom_addr != (block_num * block_size))
+	{	// eeprom address not block aligned .. ignore it
+		g_fsk_write_index = 0;
+		return;
+	}
+
+	if (block_num != g_aircopy_block_number)
+	{	// not the block number we're expecting .. request the correct block
 
 		g_fsk_write_index = 0;
-		g_update_display  = true;
-	
-		Status = BK4819_ReadRegister(BK4819_REG_0B);
-	
-		BK4819_PrepareFSKReceive();
-	
-		// Doc says bit 4 should be 1 = CRC OK, 0 = CRC FAIL, but original firmware checks for FAIL
-	
-		if ((Status & (1u << 4)) == 0 &&
-		    g_fsk_buffer[0] == AIRCOPY_MAGIC_START &&
-		    g_fsk_buffer[35] == AIRCOPY_MAGIC_END)
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("aircopy TX req %04X %04X\r\n", g_aircopy_block_number * 64, block_num * 64);
+		#endif
+
+		// this packet takes 150ms start to finish
+		AIRCOPY_start_fsk_tx(g_aircopy_block_number);
+		g_fsk_tx_timeout_10ms = 200 / 5;             // allow up to 200ms for the TX to complete
+		while (g_fsk_tx_timeout_10ms-- > 0)
 		{
-			unsigned int i;
-			uint16_t     CRC;
-	
-			{	// unscramble the packet
-				uint8_t *p = (uint8_t *)&g_fsk_buffer[1];
-				for (i = 0; i < (34 * 2); i++)
-					*p++ ^= obfuscate_array[i % ARRAY_SIZE(obfuscate_array)];
-			}
-			
-			CRC = CRC_Calculate(&g_fsk_buffer[1], 2 + 64);
-	
-			if (g_fsk_buffer[34] == CRC)
-			{	// CRC is valid
-				uint16_t eeprom_addr = g_fsk_buffer[1];
-	
-				if (eeprom_addr == 0)
-				{	// start again
-					g_aircopy_block_number = 0;
-					g_aircopy_rx_errors    = 0;
-				}
-				
-				if ((eeprom_addr + 64) <= AIRCOPY_LAST_EEPROM_ADDR)
-				{	// eeprom block is valid .. write it directly to eeprom
-			
-					uint16_t *pData = &g_fsk_buffer[2];
-					for (i = 0; i < 8; i++)
-					{
-						if (eeprom_addr == 0x0E98)
-						{	// power-on password .. wipe it
-							#ifndef ENABLE_PWRON_PASSWORD
-								pData[0] = 0xffff;
-								pData[1] = 0xffff;
-							#endif
-						}
-						else
-						if (eeprom_addr == 0x0F30)
-						{	// AES key .. wipe it
-							#ifdef ENABLE_RESET_AES_KEY
-								pData[0] = 0xffff;
-								pData[1] = 0xffff;
-								pData[2] = 0xffff;
-								pData[3] = 0xffff;
-							#endif
-						}
-							
-						EEPROM_WriteBuffer(eeprom_addr, pData);   // 8 bytes at a time
-						pData       += 4;
-						eeprom_addr += 8;
-					}
-	
-					g_aircopy_block_number = eeprom_addr / 64;
-	
-					if (eeprom_addr >= AIRCOPY_LAST_EEPROM_ADDR)
-					{	// reached end of eeprom config area
-						g_aircopy_state  = AIRCOPY_RX_COMPLETE;
-				
-						// turn the green LED off
-						BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
-						
-						g_update_display = true;
-					}
-	
-					memset(g_fsk_buffer, 0, sizeof(g_fsk_buffer));
-					return;
-				}
+			SYSTEM_DelayMs(5);
+			if (BK4819_ReadRegister(BK4819_REG_0C) & (1u << 0))
+			{	// we have interrupt flags
+				BK4819_WriteRegister(BK4819_REG_02, 0);
+				const uint16_t interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
+				if (interrupt_bits & BK4819_REG_02_FSK_TX_FINISHED)
+					g_fsk_tx_timeout_10ms = 0;       // TX is complete
 			}
 		}
-	
-		g_aircopy_rx_errors++;
+		AIRCOPY_stop_fsk_tx(false);
+
+		return;
 	}
+
+	if ((eeprom_addr + block_size) > AIRCOPY_LAST_EEPROM_ADDR)
+	{
+		g_fsk_write_index = 0;
+		return;
+	}
+
+	// clear the error counts
+	g_aircopy_rx_errors_fsk_crc = 0;
+	g_aircopy_rx_errors_magic   = 0;
+	g_aircopy_rx_errors_crc     = 0;
+
+	// eeprom block appears valid .. write it directly to eeprom
+
+	for (i = 0; i < (block_size / write_size); i++)
+	{
+		if (eeprom_addr == 0x0E98)
+		{	// power-on password .. wipe it
+			//#ifndef ENABLE_PWRON_PASSWORD
+				data[0] = 0xffff;
+				data[1] = 0xffff;
+			//#endif
+		}
+		else
+		if (eeprom_addr == 0x0F30)
+		{	// AES key .. wipe it
+			//#ifdef ENABLE_RESET_AES_KEY
+				data[0] = 0xffff;
+				data[1] = 0xffff;
+				data[2] = 0xffff;
+				data[3] = 0xffff;
+			//#endif
+		}
+
+		EEPROM_WriteBuffer(eeprom_addr, data);   // 8 bytes at a time
+		data        += write_size / sizeof(data[0]);
+		eeprom_addr += write_size;
+	}
+
+	g_aircopy_block_number = block_num + 1;
+	g_fsk_write_index      = 0;
+
+	if (eeprom_addr >= AIRCOPY_LAST_EEPROM_ADDR)
+		g_aircopy_state  = AIRCOPY_RX_COMPLETE;		// reached end of eeprom config area
 }
 
 static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
@@ -307,8 +565,8 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 	if (g_aircopy_state != AIRCOPY_READY)
 	{
-		AIRCOPY_stop_FSK_tx();
-		
+		AIRCOPY_stop_fsk_tx(false);
+
 		g_aircopy_state  = AIRCOPY_READY;
 		g_update_display = true;
 		GUI_DisplayScreen();
@@ -320,9 +578,9 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		unsigned int  i;
 
 		INPUTBOX_Append(Key);
-		
+
 		g_request_display_screen = DISPLAY_AIRCOPY;
-		
+
 		if (g_input_box_index < 6)
 		{
 			#ifdef ENABLE_VOICE
@@ -330,11 +588,11 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			#endif
 			return;
 		}
-		
+
 		g_input_box_index = 0;
-		
+
 		NUMBER_Get(g_input_box, &Frequency);
-		
+
 		for (i = 0; i < ARRAY_SIZE(FREQ_BAND_TABLE); i++)
 		{
 			if (Frequency >= FREQ_BAND_TABLE[i].lower && Frequency < FREQ_BAND_TABLE[i].upper)
@@ -342,31 +600,28 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				#ifdef ENABLE_VOICE
 					g_another_voice_id = (voice_id_t)Key;
 				#endif
-		
+
 				g_rx_vfo->band = i;
-		
+
 				// round the frequency to nearest step size
 				Frequency = ((Frequency + (g_rx_vfo->step_freq / 2)) / g_rx_vfo->step_freq) * g_rx_vfo->step_freq;
-		
+
 				g_aircopy_freq = Frequency;
 				#ifdef ENABLE_AIRCOPY_FREQ
 					SETTINGS_SaveSettings();   // remeber the frequency for the next time
 				#endif
-		
+
 				g_rx_vfo->freq_config_rx.frequency = Frequency;
 				g_rx_vfo->freq_config_tx.frequency = Frequency;
 				RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
-		
+
 				g_current_vfo = g_rx_vfo;
-		
-				RADIO_SetupRegisters(true);
-				BK4819_SetupAircopy();
-				BK4819_ResetFSK();
-		
+
+				AIRCOPY_init();
 				return;
 			}
 		}
-		
+
 		g_request_display_screen = DISPLAY_AIRCOPY;
 	}
 }
@@ -383,7 +638,8 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 			// turn the green LED off
 			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
 
-			AIRCOPY_stop_FSK_tx();
+			AIRCOPY_stop_fsk_tx(false);
+
 			g_input_box_index = 0;
 			g_aircopy_state   = AIRCOPY_READY;
 			g_update_display  = true;
@@ -418,12 +674,13 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 		g_update_display = true;
 		GUI_DisplayScreen();
 
-		g_fsk_write_index      = 0;
-		g_aircopy_block_number = 0;
-		g_aircopy_rx_errors    = 0;
-		memset(g_fsk_buffer, 0, sizeof(g_fsk_buffer));
-		
-		BK4819_PrepareFSKReceive();
+		g_fsk_write_index           = 0;
+		g_aircopy_block_number      = 0;
+		g_aircopy_rx_errors_fsk_crc = 0;
+		g_aircopy_rx_errors_magic   = 0;
+		g_aircopy_rx_errors_crc     = 0;
+
+		BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 	}
 }
 
@@ -439,19 +696,21 @@ static void AIRCOPY_Key_MENU(bool key_pressed, bool key_held)
 
 		// enter TX mode
 		g_input_box_index = 0;
-	
+
 		g_aircopy_state  = AIRCOPY_TX;
 		g_update_display = true;
 		GUI_DisplayScreen();
 
 		g_input_box_index = 0;
 
-		g_fsk_write_index      = 0;
-		g_aircopy_block_number = 0;
-		g_aircopy_rx_errors    = 0;
+		g_fsk_write_index           = 0;
+		g_aircopy_block_number      = 0;
+		g_aircopy_rx_errors_fsk_crc = 0;
+		g_aircopy_rx_errors_magic   = 0;
+		g_aircopy_rx_errors_crc     = 0;
 
 		g_fsk_tx_timeout_10ms        = 0;
-		aircopy_send_count_down_10ms = 30 / 10;   // 30ms
+		aircopy_send_count_down_10ms = 0;
 	}
 }
 

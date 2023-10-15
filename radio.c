@@ -34,6 +34,7 @@
 #include "radio.h"
 #include "settings.h"
 #include "ui/menu.h"
+#include "ui/ui.h"
 
 vfo_info_t     *g_tx_vfo;
 vfo_info_t     *g_rx_vfo;
@@ -613,21 +614,19 @@ void RADIO_SetupRegisters(bool bSwitchToFunction0)
 
 	#pragma GCC diagnostic pop
 
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);
-
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);   // LED off
 	BK4819_SetupPowerAmplifier(0, 0);
-
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);        // ???
 
 	while (1)
-	{
-		const uint16_t Status = BK4819_ReadRegister(BK4819_REG_0C);
-		if ((Status & 1u) == 0) // INTERRUPT REQUEST
+	{	// wait for the interrupt to clear ???
+		const uint16_t status_bits = BK4819_ReadRegister(BK4819_REG_0C);
+		if ((status_bits & (1u << 0)) == 0)
 			break;
-
-		BK4819_WriteRegister(BK4819_REG_02, 0);
+		BK4819_WriteRegister(BK4819_REG_02, 0);   // clear the interrupt bits
 		SYSTEM_DelayMs(1);
 	}
+
 	BK4819_WriteRegister(BK4819_REG_3F, 0);
 
 	// mic gain 0.5dB/step 0 to 31
@@ -837,7 +836,7 @@ void RADIO_SetupRegisters(bool bSwitchToFunction0)
 	}
 #endif
 
-void RADIO_SetTxParameters(void)
+void RADIO_enableTX(const bool fsk_tx)
 {
 	BK4819_filter_bandwidth_t Bandwidth = g_current_vfo->channel_bandwidth;
 
@@ -845,7 +844,7 @@ void RADIO_SetTxParameters(void)
 
 	g_enable_speaker = false;
 
-	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, false);
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, false);     // ???
 
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
@@ -868,39 +867,38 @@ void RADIO_SetTxParameters(void)
 	#pragma GCC diagnostic pop
 
 	BK4819_SetFrequency(g_current_vfo->p_tx->frequency);
-
-	// TX compressor
-	BK4819_SetCompander((g_rx_vfo->am_mode == 0 && (g_rx_vfo->compander == 1 || g_rx_vfo->compander >= 3)) ? g_rx_vfo->compander : 0);
-
+	BK4819_SetCompander((!fsk_tx && g_rx_vfo->am_mode == 0 && (g_rx_vfo->compander == 1 || g_rx_vfo->compander >= 3)) ? g_rx_vfo->compander : 0);
 	BK4819_PrepareTransmit();
-
-	SYSTEM_DelayMs(10);
-
 	BK4819_PickRXFilterPathBasedOnFrequency(g_current_vfo->p_tx->frequency);
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, true);                       // ???
+	if (g_screen_to_display != DISPLAY_AIRCOPY)
+		BK4819_SetupPowerAmplifier(g_current_vfo->txp_calculated_setting, g_current_vfo->p_tx->frequency);
+	else
+		BK4819_SetupPowerAmplifier(0, g_current_vfo->p_tx->frequency);  // very low power when in AIRCOPY mode
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, true);                  // turn the RED LED on
 
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, true);
-
-	SYSTEM_DelayMs(5);
-
-	BK4819_SetupPowerAmplifier(g_current_vfo->txp_calculated_setting, g_current_vfo->p_tx->frequency);
-
-	SYSTEM_DelayMs(10);
-
-	switch (g_current_vfo->p_tx->code_type)
+	if (fsk_tx)
 	{
-		default:
-		case CODE_TYPE_NONE:
-			BK4819_ExitSubAu();
-			break;
-
-		case CODE_TYPE_CONTINUOUS_TONE:
-			BK4819_SetCTCSSFrequency(CTCSS_OPTIONS[g_current_vfo->p_tx->code]);
-			break;
-
-		case CODE_TYPE_DIGITAL:
-		case CODE_TYPE_REVERSE_DIGITAL:
-			BK4819_SetCDCSSCodeWord(DCS_GetGolayCodeWord(g_current_vfo->p_tx->code_type, g_current_vfo->p_tx->code));
-			break;
+		BK4819_ExitSubAu();
+	}
+	else
+	{
+		switch (g_current_vfo->p_tx->code_type)
+		{
+			default:
+			case CODE_TYPE_NONE:
+				BK4819_ExitSubAu();
+				break;
+	
+			case CODE_TYPE_CONTINUOUS_TONE:
+				BK4819_SetCTCSSFrequency(CTCSS_OPTIONS[g_current_vfo->p_tx->code]);
+				break;
+	
+			case CODE_TYPE_DIGITAL:
+			case CODE_TYPE_REVERSE_DIGITAL:
+				BK4819_SetCDCSSCodeWord(DCS_GetGolayCodeWord(g_current_vfo->p_tx->code_type, g_current_vfo->p_tx->code));
+				break;
+		}
 	}
 }
 
@@ -1089,7 +1087,7 @@ void RADIO_SendEndOfTransmission(void)
 		BK4819_PlayRoger();
 	else
 	if (g_eeprom.roger_mode == ROGER_MODE_MDC)
-		BK4819_PlayRogerMDC();
+		BK4819_PlayRogerMDC1200();
 
 	if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 		BK4819_PlaySingleTone(APOLLO_TONE2_HZ, APOLLO_TONE_MS, 28, g_eeprom.dtmf_side_tone);
