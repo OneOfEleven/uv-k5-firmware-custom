@@ -89,13 +89,7 @@ void BOOT_ProcessMode(boot_mode_t Mode)
 
 			g_current_vfo = g_rx_vfo;
 
-			RADIO_SetupRegisters(true);
-			BK4819_SetupAircopy();
-			BK4819_ResetFSK();
-
-			g_aircopy_state = AIRCOPY_READY;
-
-			GUI_SelectNextDisplay(DISPLAY_AIRCOPY);
+			AIRCOPY_init();
 		}
 	#endif
 	else

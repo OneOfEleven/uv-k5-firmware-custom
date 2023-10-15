@@ -848,26 +848,13 @@ void APP_CheckRadioInterrupts(void)
 	if (g_screen_to_display == DISPLAY_SEARCH)
 		return;
 
-	while (BK4819_ReadRegister(BK4819_REG_0C) & 1u)
+	while (BK4819_ReadRegister(BK4819_REG_0C) & (1u << 0))
 	{	// BK chip interrupt request
 
-		uint16_t interrupt_status_bits;
-
-		// reset the interrupt ?
 		BK4819_WriteRegister(BK4819_REG_02, 0);
+		const uint16_t interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
 
-		// fetch the interrupt status bits
-		interrupt_status_bits = BK4819_ReadRegister(BK4819_REG_02);
-
-		// 0 = no phase shift
-		// 1 = 120deg phase shift
-		// 2 = 180deg phase shift
-		// 3 = 240deg phase shift
-//		const uint8_t ctcss_shift = BK4819_GetCTCShift();
-//		if (ctcss_shift > 0)
-//			g_ctcss_lost = true;
-
-		if (interrupt_status_bits & BK4819_REG_02_DTMF_5TONE_FOUND)
+		if (interrupt_bits & BK4819_REG_02_DTMF_5TONE_FOUND)
 		{	// save the RX'ed DTMF character
 			const char c = DTMF_GetCharacter(BK4819_GetDTMF_5TONE_Code());
 			if (c != 0xff)
@@ -906,26 +893,26 @@ void APP_CheckRadioInterrupts(void)
 			}
 		}
 
-		if (interrupt_status_bits & BK4819_REG_02_CxCSS_TAIL)
+		if (interrupt_bits & BK4819_REG_02_CxCSS_TAIL)
 			g_cxcss_tail_found = true;
 
-		if (interrupt_status_bits & BK4819_REG_02_CDCSS_LOST)
+		if (interrupt_bits & BK4819_REG_02_CDCSS_LOST)
 		{
 			g_cdcss_lost = true;
 			g_cdcss_code_type = BK4819_get_CDCSS_code_type();
 		}
 
-		if (interrupt_status_bits & BK4819_REG_02_CDCSS_FOUND)
+		if (interrupt_bits & BK4819_REG_02_CDCSS_FOUND)
 			g_cdcss_lost = false;
 
-		if (interrupt_status_bits & BK4819_REG_02_CTCSS_LOST)
+		if (interrupt_bits & BK4819_REG_02_CTCSS_LOST)
 			g_ctcss_lost = true;
 
-		if (interrupt_status_bits & BK4819_REG_02_CTCSS_FOUND)
+		if (interrupt_bits & BK4819_REG_02_CTCSS_FOUND)
 			g_ctcss_lost = false;
 
 		#ifdef ENABLE_VOX
-			if (interrupt_status_bits & BK4819_REG_02_VOX_LOST)
+			if (interrupt_bits & BK4819_REG_02_VOX_LOST)
 			{
 				g_vox_lost = true;
 				g_vox_pause_count_down = 10;
@@ -951,34 +938,24 @@ void APP_CheckRadioInterrupts(void)
 				}
 			}
 
-			if (interrupt_status_bits & BK4819_REG_02_VOX_FOUND)
+			if (interrupt_bits & BK4819_REG_02_VOX_FOUND)
 			{
 				g_vox_lost         = false;
 				g_vox_pause_count_down = 0;
 			}
 		#endif
 
-		if (interrupt_status_bits & BK4819_REG_02_SQUELCH_LOST)
+		if (interrupt_bits & BK4819_REG_02_SQUELCH_LOST)
 		{
 			g_squelch_lost = true;
-			// turn the LED off
-			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);
+			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);   // LED on
 		}
 
-		if (interrupt_status_bits & BK4819_REG_02_SQUELCH_FOUND)
+		if (interrupt_bits & BK4819_REG_02_SQUELCH_FOUND)
 		{
 			g_squelch_lost = false;
-			// turn the LED on
-			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
+			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
 		}
-
-		#ifdef ENABLE_AIRCOPY
-			if (g_screen_to_display == DISPLAY_AIRCOPY)
-			{
-				AIRCOPY_process_FSK_rx_10ms(interrupt_status_bits);
-//				AIRCOPY_process_FSK_tx_10ms(interrupt_status_bits);
-			}
-		#endif
 	}
 }
 
@@ -1625,19 +1602,13 @@ void APP_TimeSlice10ms(void)
 
 	#ifdef ENABLE_AIRCOPY
 		if (g_screen_to_display == DISPLAY_AIRCOPY)
-		{
-			APP_CheckRadioInterrupts();
-
-			if (g_aircopy_state == AIRCOPY_RX)
-			{	// we're RX'ing
-				//AIRCOPY_process_FSK_rx_10ms(0);
-			}
-			else
+		{	// we're in AIRCOPY mode
+	
 			if (g_aircopy_state == AIRCOPY_TX)
-			{	// we're TX'ing
-				AIRCOPY_process_FSK_tx_10ms();
-			}
+				AIRCOPY_process_fsk_tx_10ms();
 
+			AIRCOPY_process_fsk_rx_10ms();
+				
 			APP_CheckKeys();
 
 			if (g_update_display)
@@ -1720,9 +1691,9 @@ void APP_TimeSlice10ms(void)
 
 						RADIO_EnableCxCSS();
 						BK4819_SetupPowerAmplifier(0, 0);
-						BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);
+						BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);      // ???
 						BK4819_Enable_AfDac_DiscMode_TxDsp();
-						BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);
+						BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false); // LED off
 
 						GUI_DisplayScreen();
 					}
@@ -1732,13 +1703,12 @@ void APP_TimeSlice10ms(void)
 
 						GUI_DisplayScreen();
 
-						BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, true);
-						RADIO_SetTxParameters();
+						RADIO_enableTX(false);
 						BK4819_TransmitTone(true, 500);
 						SYSTEM_DelayMs(2);
 						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
-						g_enable_speaker    = true;
+						g_enable_speaker     = true;
 						g_alarm_tone_counter = 0;
 					}
 				}
@@ -2087,12 +2057,17 @@ void APP_TimeSlice500ms(void)
 		}
 	#endif
 
-	if (g_backlight_count_down > 0 && !g_ask_to_save && g_css_scan_mode == CSS_SCAN_MODE_OFF)
+	if (g_backlight_count_down > 0 &&
+	   !g_ask_to_save &&
+	    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
+	    g_screen_to_display != DISPLAY_AIRCOPY)
+	{
 		if (g_screen_to_display != DISPLAY_MENU || g_menu_cursor != MENU_ABR) // don't turn off backlight if user is in backlight menu option
 			if (--g_backlight_count_down == 0)
 				if (g_eeprom.backlight < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
 					GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);   // turn backlight off
-
+	}
+	
 	if (g_reduced_service)
 	{
 		BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);

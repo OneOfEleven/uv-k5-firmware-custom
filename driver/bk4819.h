@@ -105,9 +105,9 @@ void     BK4819_ExitTxMute(void);
 void     BK4819_Sleep(void);
 void     BK4819_TurnsOffTones_TurnsOnRX(void);
 #ifdef ENABLE_AIRCOPY
-	void     BK4819_SetupAircopy(void);
+	void     BK4819_SetupAircopy(const unsigned int packet_size);
 #endif
-void     BK4819_ResetFSK(void);
+void     BK4819_reset_fsk(void);
 void     BK4819_Idle(void);
 void     BK4819_ExitBypass(void);
 void     BK4819_PrepareTransmit(void);
@@ -151,11 +151,10 @@ uint8_t  BK4819_get_CDCSS_code_type(void);
 uint8_t  BK4819_GetCTCShift(void);
 uint8_t  BK4819_GetCTCType(void);
 
-//void     BK4819_SendFSKData(uint16_t *pData);
-void     BK4819_PrepareFSKReceive(void);
+void     BK4819_start_fsk_rx(const unsigned int packet_size);
 
 void     BK4819_PlayRoger(void);
-void     BK4819_PlayRogerMDC(void);
+void     BK4819_PlayRogerMDC1200(void);
 
 void     BK4819_Enable_AfDac_DiscMode_TxDsp(void);
 

@@ -24,10 +24,15 @@
 #include "ui/aircopy.h"
 #include "ui/helper.h"
 #include "ui/inputbox.h"
+#include "ui/ui.h"
 
 void UI_DisplayAircopy(void)
 {
+	const uint8_t errors = g_aircopy_rx_errors_fsk_crc + g_aircopy_rx_errors_magic + g_aircopy_rx_errors_crc;
 	char str[17];
+
+	if (g_screen_to_display != DISPLAY_AIRCOPY)
+		return;
 
 	// clear screen/display buffer
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
@@ -78,7 +83,7 @@ void UI_DisplayAircopy(void)
 			break;
 
 		case AIRCOPY_RX_COMPLETE:
-			if (g_aircopy_rx_errors == 0)
+			if (errors == 0)
 			{
 				UI_PrintString("RX COMPLETE", 0, LCD_WIDTH - 1, 5, 8);
 				break;
@@ -86,8 +91,17 @@ void UI_DisplayAircopy(void)
 
 		case AIRCOPY_RX:
 			sprintf(str, "RX %u.%u", g_aircopy_block_number, g_aircopy_block_max);
-			if (g_aircopy_rx_errors > 0)
-				sprintf(str + strlen(str), " E %u", g_aircopy_rx_errors);
+			if (errors > 0)
+			{
+				#if 1
+					sprintf(str + strlen(str), " E %u", errors);
+				#else
+					sprintf(str + strlen(str), " E %u %u %u",
+						g_aircopy_rx_errors_fsk_crc,
+						g_aircopy_rx_errors_magic,
+						g_aircopy_rx_errors_crc);
+				#endif
+			}
 			UI_PrintString(str, 0, LCD_WIDTH - 1, 5, 7);
 			break;
 

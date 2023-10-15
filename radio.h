@@ -137,7 +137,7 @@ void     RADIO_SetupRegisters(bool bSwitchToFunction0);
 #ifdef ENABLE_NOAA
 	void RADIO_ConfigureNOAA(void);
 #endif
-void     RADIO_SetTxParameters(void);
+void     RADIO_enableTX(const bool fsk_tx);
 
 void     RADIO_Setg_vfo_state(vfo_state_t State);
 void     RADIO_PrepareTX(void);

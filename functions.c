@@ -226,10 +226,7 @@ void FUNCTION_Select(function_type_t Function)
 
 			GUI_DisplayScreen();
 
-			RADIO_SetTxParameters();
-
-			// turn the RED LED on
-			BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, true);
+			RADIO_enableTX(false);
 
 			DTMF_Reply();
 
