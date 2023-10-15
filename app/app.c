@@ -1684,9 +1684,9 @@ void APP_TimeSlice10ms(void)
 		GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
 	
 	#ifdef ENABLE_SOS_FLASHLIGHT
-		if (g_flash_light_state == FLASHLIGHT_SOS && (g_flash_light_blink_counter % (100 / 10)) == 0) { // Runs every 100ms
+		if (g_flash_light_state == FLASHLIGHT_SOS && (g_flash_light_blink_counter % (60 / 10)) == 0) { // Runs every 60ms
 			// Sequence:{H,L,H,L,H,L,H,L,H,L,H,L,H,L,H,L,H,L}
-			// Sequence: {1,1,1,1,1,3,3,1,3,1,3,3,1,1,1,1,1,12}
+			// Sequence: {1,1,1,1,1,3,3,1,3,1,3,3,1,1,1,1,1,7}
 			// 0: Dot Length
 			// 1: Dash Length / Character Space
 			// 2: End of Sequence Length
@@ -1696,6 +1696,10 @@ void APP_TimeSlice10ms(void)
 			else {
 				g_flash_light_SOS_Wait_Index = 0;
 				GPIO_FlipBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+				if (GPIO_CheckBit(&GPIOC->DATA,GPIOC_PIN_FLASHLIGHT)) {
+					RADIO_SetTxParameters();
+					BK4819_PlaySingleTone(600, (g_flash_light_SOS_Sequence[g_flash_light_SOS_Index])*60, 28, true);
+				}
 				g_flash_light_SOS_Wait_Length = g_flash_light_SOS_Sequence[g_flash_light_SOS_Index];
 				g_flash_light_SOS_Index++;
 				if (g_flash_light_SOS_Index >= sizeof(g_flash_light_SOS_Sequence)) {

@@ -56,6 +56,7 @@ static void ACTION_FlashLight(void)
 		default:
 			g_flash_light_state = 0;
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+			BK4819_EnterTxMute();
 	}
 }
 
