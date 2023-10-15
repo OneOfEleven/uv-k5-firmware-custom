@@ -118,9 +118,19 @@ enum mdf_display_mode_e {
 typedef enum mdf_display_mode_e mdf_display_mode_t;
 
 // ************************************************
+// this is the full eeprom structure, both config and calibration areas
+//
+// am going to use this to replace ALL the currently scattered values
+//
+// this will also make AIRCOPY safe as we'll first save the incoming transfer
+// into this ram area.
+// Then, IF the transfer completes withput error, we'll copy it in one go to eeprom
 
-// unused bits are all '0's if the channel is used,
-// unless the channel is unused, in which case all 16 bytes are 0xff
+
+// if channel is  used, all unused bits are '0's
+// if channel not used, all bytes are 0xff
+//
+// 16 bytes
 typedef struct {
 	// [0]
 	uint32_t frequency;              //
@@ -240,20 +250,31 @@ typedef struct {
 
 } __attribute__((packed)) t_calibration;
 
+// entire eeprom
 typedef struct {
 
 	// 0x0000
 	t_channel channel[200];   // unused channels are set to all '0xff'
 
 	// 0x0C80
-	t_channel vfo[14];
-
+	#if 0
+		t_channel vfo[14];        // 2 VFO's (upper/lower) per band, 7 frequency bands
+	#else
+		union {                   // 2 VFO's (upper/lower) per band, 7 frequency bands
+			t_channel vfo[14];
+			struct {
+				t_channel a;
+				t_channel b;
+			} __attribute__((packed)) vfo_band[7];
+		} __attribute__((packed));
+	#endif
+	
 	// 0x0D60
-	struct {
-		uint8_t band:4;
-		uint8_t compander:2;
-		uint8_t scanlist2:1;
-		uint8_t scanlist1:1;
+	struct {                  // all these channel settings could have been in the t_channel structure !
+		uint8_t band:4;       // why do QS have these 4 bits ? .. band can/is computed from the frequency
+		uint8_t compander:2;  // TODO: move this to the t_channel structure
+		uint8_t scanlist2:1;  // set if is in scan list 2
+		uint8_t scanlist1:1;  // set if is in scan list 1
 	} __attribute__((packed)) channel_attr[200];
 
 	uint8_t        unused1[8];
@@ -266,7 +287,7 @@ typedef struct {
 	// 0x0E70
 	uint8_t        call1;
 	uint8_t        squelch;
-	uint8_t        tot;
+	uint8_t        tx_timeout;
 	uint8_t        noaa_auto_scan;
 	uint8_t        key_lock;
 	uint8_t        vox_switch;
@@ -317,8 +338,8 @@ typedef struct {
 	uint8_t        unused8[4];
 
 	// 0x0EB0
-	uint8_t        welcome_line1[16];
-	uint8_t        welcome_line2[16];
+	char           welcome_line1[16];
+	char           welcome_line2[16];
 
 	// 0x0ED0
 	uint8_t        dtmf_side_tone;
@@ -341,45 +362,45 @@ typedef struct {
 	uint8_t        dtmf_key_up_code[16];
 	uint8_t        dtmf_key_down_code[16];
 	uint8_t        s_list_default;
-	uint8_t        scanlist1_enable;
-	uint8_t        scanlist1_channel1;
-	uint8_t        scanlist1_channel2;
-	uint8_t        scanlist2_enable;
-	uint8_t        scanlist2_channel1;
-	uint8_t        scanlist2_channel2;
+	uint8_t        priority1_enable;
+	uint8_t        priority1_channel1;
+	uint8_t        priority1_channel2;
+	uint8_t        priority2_enable;
+	uint8_t        priority2_channel1;
+	uint8_t        priority2_channel2;
 	uint8_t        unused10;
 
 	// 0x0F20
 	uint8_t        unused11[8];
 
 	// 0x0F30
-	uint8_t        aes_key[16];
+	uint8_t        aes_key[16];       // disabled = all 0xff
 
 	// 0x0F40
-	uint8_t        freq_lock;
-	uint8_t        enable_tx_350;
-	uint8_t        killed;
-	uint8_t        enable_tx_200;
-	uint8_t        enable_tx_500;
-	uint8_t        enable_350;
-	uint8_t        enable_scrambler;
+	uint8_t        freq_lock;             // 
+	uint8_t        enable_tx_350;         // 350MHz ~ 400MHz
+	uint8_t        killed;                //
+	uint8_t        enable_tx_200;         //
+	uint8_t        enable_tx_500;         //
+	uint8_t        enable_350;            //
+	uint8_t        enable_scrambler;      //
 	#if 0
 		// QS
 		uint8_t    unused12[9];
 	#else
-		// 1of11
-		uint8_t    tx_enable:1;
-		uint8_t    dtmf_live_decoder:1;
-		uint8_t    battery_text:2;
-		uint8_t    mic_bar:1;
-		uint8_t    am_fix:1;
-		uint8_t    backlight_on_tx_rx:2;
+		// 1of11 .. some of my additional settings
+		uint8_t    tx_enable:1;           // 0 = completely disable TX, 1 = allow TX
+		uint8_t    dtmf_live_decoder:1;   // 1 = enable on-screen live DTMF decoder
+		uint8_t    battery_text:2;        // 0 = no battery text, 1 = voltage, 2 = percent .. on the status bar
+		uint8_t    mic_bar:1;             // 1 = on-screen TX audio level
+		uint8_t    am_fix:1;              // 1 = RX AM fix
+		uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when RX, 2 = when TX, 3 = both RX/TX
 
 		uint8_t    unused12[8];
 	#endif
 
 	// 0x0F50
-	char           channel_name[200][16];
+	char           channel_name[200][16]; // each channels name text
 
 	// 0x1BD0
 	uint8_t        unused13[16];
@@ -390,14 +411,15 @@ typedef struct {
 	uint8_t        dtmf_contact[16][16];
 
 	// 0x1D00
-	uint8_t        unused16[256];
+	uint8_t        unused16[256];         // lots of unused area we could make use of
 
 	// 0x1E00
-	t_calibration  calibration;
+	t_calibration  calibration;           // the radios calibration/general settings
 
 } __attribute__((packed)) t_eeprom;
 
 // ************************************************
+// this and all the other variables are going to be replaced with the above t_eeprom
 
 typedef struct {
 	uint8_t               screen_channel[2];
