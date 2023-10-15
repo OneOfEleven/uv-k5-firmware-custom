@@ -48,6 +48,7 @@ ENABLE_NOAA                     := 1       everything NOAA (only of any use in t
 ENABLE_VOICE                    := 0       want to hear voices ?
 ENABLE_MUTE_RADIO_FOR_VOICE     := 1       mute the radios audio when a voice is playing
 ENABLE_VOX                      := 1       voice operated transmission
+ENABLE_LOWER_LOW_MID_TX         := 1       reduce the low and mid TX power levels (high remains unchanged)
 ENABLE_ALARM                    := 1       TX alarms
 ENABLE_1750HZ                   := 1       side key 1750Hz TX tone (older style repeater access)
 ENABLE_PWRON_PASSWORD           := 0       '1' = allow power-on password

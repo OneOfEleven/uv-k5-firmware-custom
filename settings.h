@@ -142,31 +142,36 @@ typedef struct {
 	uint8_t  tx_ctcss_cdcss_code;    //
 	// [10]
 	uint8_t  rx_ctcss_cdcss_type:2;  //
-	uint8_t  unused1:2;
+	uint8_t  unused1:2;              //
 	uint8_t  tx_ctcss_cdcss_type:2;  //
-	uint8_t  unused2:2;
+	uint8_t  unused2:2;              //
 	// [11]
 	uint8_t  tx_offset_dir:2;        //
-	uint8_t  unused3:2;
+	uint8_t  unused3:2;              //
 	uint8_t  am_mode:1;              //
-	uint8_t  unused4:3;
+	uint8_t  unused4:3;              //
 	// [12]
 	uint8_t  frequency_reverse:1;    // reverse repeater
 	uint8_t  channel_bandwidth:1;    // wide/narrow
 	uint8_t  tx_power:2;             // 0, 1 or 2 .. L, M or H
 	uint8_t  busy_channel_lockout:1; //
-	uint8_t  unused5:3;
+	#if 0
+		uint8_t unused5:3;           //
+	#else
+		uint8_t unused5:1;           //
+		uint8_t compander:2;         // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
+	#endif
 	// [13]
 	uint8_t  dtmf_decoding_enable:1; //
 	uint8_t  dtmf_ptt_id_tx_mode:3;  //
-	uint8_t  unused6:4;
+	uint8_t  unused6:4;              //
 	// [14]
 	uint8_t  step_setting:3;         //
-	uint8_t  unused7:5;
+	uint8_t  unused7:5;              //
 	// [15]
 	uint8_t  scrambler:4;            //
-	uint8_t  unused8:4;
-} __attribute__((packed)) t_channel;
+	uint8_t  unused8:4;              //
+} __attribute__((packed)) t_channel; //
 
 // 512 bytes
 typedef struct {
@@ -175,19 +180,14 @@ typedef struct {
 	struct {
 		uint8_t open_rssi_thresh[10];
 		uint8_t unused1[6];
-
 		uint8_t close_rssi_thresh[10];
 		uint8_t unused2[6];
-
 		uint8_t open_noise_thresh[10];
 		uint8_t unused3[6];
-
 		uint8_t close_noise_thresh[10];
 		uint8_t unused4[6];
-
 		uint8_t open_glitch_thresh[10];
 		uint8_t unused5[6];
-
 		uint8_t close_glitch_thresh[10];
 		uint8_t unused6[6];
 	} __attribute__((packed)) squelch_band_4567[6];
@@ -196,57 +196,52 @@ typedef struct {
 	struct {
 		uint8_t open_rssi_thresh[10];
 		uint8_t unused1[6];
-
 		uint8_t close_rssi_thresh[10];
 		uint8_t unused2[6];
-
 		uint8_t open_noise_thresh[10];
 		uint8_t unused3[6];
-
 		uint8_t close_noise_thresh[10];
 		uint8_t unused4[6];
-
 		uint8_t open_glitch_thresh[10];
 		uint8_t unused5[6];
-
 		uint8_t close_glitch_thresh[10];
 		uint8_t unused6[6];
 	} __attribute__((packed)) squelch_band_123[6];
 
 	// 0x1EC0
-	uint16_t rssi_band_4567[4];
-	uint16_t rssi_band_123[4];
+	uint16_t rssi_band_4567[4];                     //
+	uint16_t rssi_band_123[4];                      //
 
 	// 0x1ED0
 	struct
 	{
-		uint8_t low[3];
-		uint8_t mid[3];
-		uint8_t high[3];
-		uint8_t unused[7];
-	} tx_band_power[7];
+		uint8_t low[3];                             //
+		uint8_t mid[3];                             //
+		uint8_t high[3];                            //
+		uint8_t unused[7];                          //
+	} tx_band_power[7];                             //
 
 	// 0x1F40
-	uint16_t battery[6];
-	uint8_t  unused1[4];
+	uint16_t battery[6];                            //
+	uint8_t  unused1[4];                            //
 
 	// 0x1F50
 	struct
 	{
-		uint16_t threshold[10];
-		uint8_t  unused[4];
-	} __attribute__((packed)) vox[2];
+		uint16_t threshold[10];                     //
+		uint8_t  unused[4];                         //
+	} __attribute__((packed)) vox[2];               //
 
 	// 0x1F80
-	uint8_t  mic_gain_dB2[5];
-	uint8_t  unused4[3];
-	int16_t  bk4819_xtal_freq_low;
-	uint16_t unknown2;
-	uint16_t unknown3;
-	uint8_t  volume_gain;
-	uint8_t  dac_gain;
+	uint8_t  mic_gain_dB2[5];                       //
+	uint8_t  unused4[3];                            //
+	int16_t  bk4819_xtal_freq_low;                  //
+	uint16_t unknown2;                              //
+	uint16_t unknown3;                              //
+	uint8_t  volume_gain;                           //
+	uint8_t  dac_gain;                              //
 
-	uint8_t  unused5[8 * 10];
+	uint8_t  unused5[8 * 10];                       //
 
 } __attribute__((packed)) t_calibration;
 
@@ -254,143 +249,148 @@ typedef struct {
 typedef struct {
 
 	// 0x0000
-	t_channel channel[200];   // unused channels are set to all '0xff'
+	t_channel channel[200];                         // unused channels are set to all '0xff'
 
 	// 0x0C80
 	#if 0
-		t_channel vfo[14];        // 2 VFO's (upper/lower) per band, 7 frequency bands
+		t_channel vfo[14];                          // 2 VFO's (upper/lower) per band, 7 frequency bands
 	#else
-		union {                   // 2 VFO's (upper/lower) per band, 7 frequency bands
-			t_channel vfo[14];
-			struct {
-				t_channel a;
-				t_channel b;
-			} __attribute__((packed)) vfo_band[7];
-		} __attribute__((packed));
+		union {                                     // 2 VFO's (upper/lower) per band, 7 frequency bands
+			t_channel vfo[14];                      //
+			struct {                                //
+				t_channel a;                        //
+				t_channel b;                        //
+			} __attribute__((packed)) vfo_band[7];  //
+		} __attribute__((packed));                  //
 	#endif
 
 	// 0x0D60
-	struct {                  // these channel attribute settings could have been in the t_channel structure !
-		uint8_t band:4;       // why do QS have these 4 bits ? .. band can/is computed from the frequency
-		uint8_t compander:2;  // TODO: move this to the t_channel structure
-		uint8_t scanlist2:1;  // set if is in scan list 2
-		uint8_t scanlist1:1;  // set if is in scan list 1
-	} __attribute__((packed)) channel_attr[200];
+	struct {                                        // these channel attribute settings could have been in the t_channel structure !
+		uint8_t    band:4;                          // why do QS have these 4 bits ? .. band can/is computed from the frequency
+		uint8_t    unused:2;                        //
+//		uint8_t    compander:2;                     // smoved this to the t_channel structure
+		uint8_t    scanlist2:1;                     // set if is in scan list 2
+		uint8_t    scanlist1:1;                     // set if is in scan list 1
+	} __attribute__((packed)) channel_attr[200];    //
 
-	uint8_t        unused1[8];
+	uint8_t        unused1[8];                      //
 
 	// 0x0E30
-	uint8_t        unused2[16];
+	uint8_t        unused2[16];                     //
 
 	// 0x0E40
-	uint16_t       fm_channel[20];
-	uint8_t        unused3[8];
+	uint16_t       fm_channel[20];                  //
+	uint8_t        unused3[8];                      //
 
 	// 0x0E70
-	uint8_t        call1;
-	uint8_t        squelch;
-	uint8_t        tx_timeout;
-	uint8_t        noaa_auto_scan;
-	uint8_t        key_lock;
-	uint8_t        vox_switch;
-	uint8_t        vox_level;
-	uint8_t        mic_sensitivity;
-	uint8_t        lcd_contrast;       // 1of11
-	uint8_t        channel_display_mode;
-	uint8_t        cross_vfo;
-	uint8_t        battery_save;
-	uint8_t        dual_watch;
-	uint8_t        backlight;
-	uint8_t        tail_tone_elimination;
-	uint8_t        vfo_open;
+	uint8_t        call1;                           //
+	uint8_t        squelch;                         //
+	uint8_t        tx_timeout;                      //
+	uint8_t        noaa_auto_scan;                  //
+	uint8_t        key_lock;                        //
+	uint8_t        vox_switch;                      //
+	uint8_t        vox_level;                       //
+	uint8_t        mic_sensitivity;                 //
+	uint8_t        lcd_contrast;                    // 1of11
+	uint8_t        channel_display_mode;            //
+	uint8_t        cross_vfo;                       //
+	uint8_t        battery_save;                    //
+	uint8_t        dual_watch;                      //
+	uint8_t        backlight;                       //
+	uint8_t        tail_tone_elimination;           //
+	uint8_t        vfo_open;                        //
 
 	// 0x0E80
-	uint8_t        screen_channel_a;
-	uint8_t        channel_a;
-	uint8_t        freq_channel_a;
-	uint8_t        screen_channel_b;
-	uint8_t        channel_b;
-	uint8_t        freq_channel_b;
-	uint8_t        noaa_channel_a;
-	uint8_t        noaa_channel_b;
-	uint8_t        fm_selected_frequency;
-	uint8_t        fm_selected_channel;
-	uint8_t        fm_is_channel_mode;
-	uint8_t        unused5[5];
+	uint8_t        screen_channel_a;                //
+	uint8_t        channel_a;                       //
+	uint8_t        freq_channel_a;                  //
+	uint8_t        screen_channel_b;                //
+	uint8_t        channel_b;                       //
+	uint8_t        freq_channel_b;                  //
+	uint8_t        noaa_channel_a;                  //
+	uint8_t        noaa_channel_b;                  //
+	uint8_t        fm_selected_frequency;           //
+	uint8_t        fm_selected_channel;             //
+	uint8_t        fm_is_channel_mode;              //
+	uint8_t        unused5[5];                      //
 
 	// 0x0E90
-	uint8_t        beep_control;
-	uint8_t        key1_short;
-	uint8_t        key1_long;
-	uint8_t        key2_short;
-	uint8_t        key2_long;
-	uint8_t        carrier_search_mode;      // sc_rev;
-	uint8_t        auto_key_lock;
-	uint8_t        display_mode;
-	uint32_t       power_on_password;
-	uint8_t        unused6[4];
+	uint8_t        beep_control;                    //
+	uint8_t        key1_short;                      //
+	uint8_t        key1_long;                       //
+	uint8_t        key2_short;                      //
+	uint8_t        key2_long;                       //
+	uint8_t        carrier_search_mode;             // sc_rev;
+	uint8_t        auto_key_lock;                   //
+	uint8_t        display_mode;                    //
+	uint32_t       power_on_password;               //
+	uint8_t        unused6[4];                      //
 
 	// 0x0EA0
-	uint8_t        voice_prompt;
-	uint8_t        unused7[7];
-	uint8_t        alarm_mode;
-	uint8_t        roger_mode;
+	uint8_t        voice_prompt;                    //
+	uint8_t        unused7[7];                      //
+	uint8_t        alarm_mode;                      //
+	uint8_t        roger_mode;                      //
 	uint8_t        repeater_tail_tone_elimination;  // rp_ste
-	uint8_t        tx_channel;
-	uint8_t        air_copy_freq;                   // 1of11
+	uint8_t        tx_channel;                      //
+	#ifdef ENABLE_AIRCOPY
+		uint32_t   air_copy_freq;                   // 1of11
+	#else
+		uint8_t    unused8[4];                      //
+	#endif
 
 	// 0x0EB0
-	char           welcome_line1[16];
-	char           welcome_line2[16];
+	char           welcome_line1[16];               //
+	char           welcome_line2[16];               //
 
 	// 0x0ED0
-	uint8_t        dtmf_side_tone;
-	uint8_t        dtmf_separate_code;
-	uint8_t        dtmf_group_call_code;
-	uint8_t        dtmf_rsp;
-	uint8_t        dtmf_auto_reset_time;
-	uint8_t        dtmf_preload_time;
-	uint8_t        dtmf_first_code_time;
-	uint8_t        dtmf_hash_code_time;
-	uint8_t        dtmf_code_time;
-	uint8_t        dtmf_code_interval;
-	uint8_t        dtmf_permit_kill;
-	uint8_t        unused9[5];
+	uint8_t        dtmf_side_tone;                  //
+	uint8_t        dtmf_separate_code;              //
+	uint8_t        dtmf_group_call_code;            //
+	uint8_t        dtmf_rsp;                        //
+	uint8_t        dtmf_auto_reset_time;            //
+	uint8_t        dtmf_preload_time;               //
+	uint8_t        dtmf_first_code_time;            //
+	uint8_t        dtmf_hash_code_time;             //
+	uint8_t        dtmf_code_time;                  //
+	uint8_t        dtmf_code_interval;              //
+	uint8_t        dtmf_permit_kill;                //
+	uint8_t        unused9[5];                      //
 
 	// 0x0EE0
-	uint8_t        dtmf_ani_id[8];
-	uint8_t        dtmf_kill_code[8];
-	uint8_t        dtmf_revive_code[8];
-	uint8_t        dtmf_key_up_code[16];
-	uint8_t        dtmf_key_down_code[16];
+	uint8_t        dtmf_ani_id[8];                  //
+	uint8_t        dtmf_kill_code[8];               //
+	uint8_t        dtmf_revive_code[8];             //
+	uint8_t        dtmf_key_up_code[16];            //
+	uint8_t        dtmf_key_down_code[16];          //
 
 	// 0x0F18
-	uint8_t        s_list_default;
-	uint8_t        priority1_enable;
-	uint8_t        priority1_channel1;
-	uint8_t        priority1_channel2;
-	uint8_t        priority2_enable;
-	uint8_t        priority2_channel1;
-	uint8_t        priority2_channel2;
-	uint8_t        unused10;
+	uint8_t        s_list_default;                  //
+	uint8_t        priority1_enable;                //
+	uint8_t        priority1_channel1;              //
+	uint8_t        priority1_channel2;              //
+	uint8_t        priority2_enable;                //
+	uint8_t        priority2_channel1;              //
+	uint8_t        priority2_channel2;              //
+	uint8_t        unused10;                        //
 
 	// 0x0F20
-	uint8_t        unused11[8];
+	uint8_t        unused11[8];                     //
 
 	// 0x0F30
-	uint8_t        aes_key[16];           // disabled = all 0xff
+	uint8_t        aes_key[16];                     // disabled = all 0xff
 
 	// 0x0F40
-	uint8_t        freq_lock;             //
-	uint8_t        enable_tx_350;         // 350MHz ~ 400MHz
-	uint8_t        killed;                //
-	uint8_t        enable_tx_200;         //
-	uint8_t        enable_tx_500;         //
-	uint8_t        enable_350;            //
-	uint8_t        enable_scrambler;      //
+	uint8_t        freq_lock;                       //
+	uint8_t        enable_tx_350;                   // 350MHz ~ 400MHz
+	uint8_t        killed;                          //
+	uint8_t        enable_tx_200;                   //
+	uint8_t        enable_tx_500;                   //
+	uint8_t        enable_350;                      //
+	uint8_t        enable_scrambler;                //
 	#if 0
 		// QS
-		uint8_t    unused12[9];           //
+		uint8_t    unused12[9];                     //
 	#else
 		// 1of11
 		uint8_t    tx_enable:1;           // 0 = completely disable TX, 1 = allow TX
@@ -414,7 +414,7 @@ typedef struct {
 		char       name[8];
 		uint8_t    number[8];
 	} __attribute__((packed)) dtmf_contact[16];
-	
+
 } __attribute__((packed)) t_config;
 
 // entire eeprom

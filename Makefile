@@ -17,6 +17,7 @@ ENABLE_NOAA                     := 0
 ENABLE_VOICE                    := 0
 ENABLE_MUTE_RADIO_FOR_VOICE     := 1
 ENABLE_VOX                      := 1
+ENABLE_LOWER_LOW_MID_TX         := 1
 ENABLE_ALARM                    := 1
 ENABLE_TX1750                   := 1
 ENABLE_PWRON_PASSWORD           := 0
@@ -277,6 +278,9 @@ ifeq ($(ENABLE_MUTE_RADIO_FOR_VOICE),1)
 endif
 ifeq ($(ENABLE_VOX),1)
 	CFLAGS  += -DENABLE_VOX
+endif
+ifeq ($(ENABLE_LOWER_LOW_MID_TX),1)
+	CFLAGS  += -DENABLE_LOWER_LOW_MID_TX
 endif
 ifeq ($(ENABLE_ALARM),1)
 	CFLAGS  += -DENABLE_ALARM

@@ -390,7 +390,7 @@ void UI_DisplayMain(void)
 {
 	const unsigned int line0 = 0;  // text screen line
 	const unsigned int line1 = 4;
-	char               String[16];
+	char               String[17];
 	unsigned int       vfo_num;
 
 	center_line = CENTER_LINE_NONE;
@@ -476,6 +476,7 @@ void UI_DisplayMain(void)
 				{
 					sprintf(String, ">%s", g_dtmf_input_box);
 				}
+				String[16] = 0;
 				UI_PrintString(String, 2, 0, 0 + (vfo_num * 3), 8);
 
 				memset(String,  0, sizeof(String));
@@ -501,6 +502,7 @@ void UI_DisplayMain(void)
 						sprintf(String, ">%s", g_dtmf_string);
 					}
 				}
+				String[16] = 0;
 				UI_PrintString(String, 2, 0, 2 + (vfo_num * 3), 8);
 
 				center_line = CENTER_LINE_IN_USE;
