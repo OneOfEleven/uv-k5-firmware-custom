@@ -117,6 +117,7 @@ buttons to find them.
 * Better backlight times (inc always on)
 * Live DTMF decoder option, though the decoder needs some coeff tuning changes to decode other radios it seems
 * Various menu re-wordings (trying to reduce 'WTH does that mean ?')
+* AIRCOPY RX'ing radio now requests packet resends from TX'ing radio if RX'ed packet is lost/corrupted
 * ..
 
 # Compiler
