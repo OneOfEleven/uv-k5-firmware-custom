@@ -27,6 +27,7 @@
 #include "audio.h"
 #include "board.h"
 #include "driver/bk4819.h"
+#include "driver/uart.h"
 #include "dtmf.h"
 #include "frequencies.h"
 #include "misc.h"
@@ -117,7 +118,7 @@ static void processFKeyFunction(const key_code_t Key)
 			g_request_save_vfo   = true;
 			g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 
-			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 			g_request_display_screen = DISPLAY_MAIN;
 			break;
@@ -141,7 +142,7 @@ static void processFKeyFunction(const key_code_t Key)
 			g_request_save_settings = 1;
 			g_flag_reconfigure_vfos = true;
 
-			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 			g_request_display_screen = DISPLAY_MAIN;
 			break;
@@ -166,7 +167,7 @@ static void processFKeyFunction(const key_code_t Key)
 					g_request_save_vfo   = true;
 					g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 
-					g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//					g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 					break;
 				}
 
@@ -184,7 +185,7 @@ static void processFKeyFunction(const key_code_t Key)
 					g_request_save_vfo   = true;
 					g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 
-					g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//					g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 					break;
 				}
 			}
@@ -202,7 +203,7 @@ static void processFKeyFunction(const key_code_t Key)
 			g_eeprom.cross_vfo_rx_tx = CROSS_BAND_OFF;
 			g_update_status          = true;
 
-			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
 		case KEY_5:    // NOAA
@@ -229,13 +230,13 @@ static void processFKeyFunction(const key_code_t Key)
 				#endif
 			#endif
 
-			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
 		case KEY_6:    // H/M/L
 		
 			ACTION_Power();
-			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
 		case KEY_7:    // VOX
@@ -252,7 +253,7 @@ static void processFKeyFunction(const key_code_t Key)
 		
 			g_tx_vfo->frequency_reverse = g_tx_vfo->frequency_reverse == false;
 			g_request_save_channel = 1;
-			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 
 		case KEY_9:    // CALL
@@ -271,7 +272,7 @@ static void processFKeyFunction(const key_code_t Key)
 				break;
 			}
 
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			break;
 
 		default:
@@ -280,9 +281,9 @@ static void processFKeyFunction(const key_code_t Key)
 			g_fkey_pressed  = false;
 
 			#ifdef ENABLE_FMRADIO
-				if (!g_fm_radio_mode)
+//				if (!g_fm_radio_mode)
 			#endif
-					g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+//					g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 	}
 }
@@ -825,10 +826,14 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 //	g_ptt_was_released = true;    // why is this being set ?
 }
 
-void MAIN_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
+void MAIN_ProcessKeys(key_code_t key, bool key_pressed, bool key_held)
 {
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf(" main 1 key %2u %u %u %u\r\n", key, key_pressed, key_held);
+	#endif
+	
 	#ifdef ENABLE_FMRADIO
-		if (g_fm_radio_mode && Key != KEY_PTT && Key != KEY_EXIT)
+		if (g_fm_radio_mode && key != KEY_PTT && key != KEY_EXIT)
 		{
 			if (!key_held && key_pressed)
 				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
@@ -838,7 +843,7 @@ void MAIN_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 
 	if (g_dtmf_input_mode)
 	{
-		const char Character = DTMF_GetCharacter(Key);
+		const char Character = DTMF_GetCharacter(key);
 		if (Character != 0xFF)
 		{	// add key to DTMF string
 			if (key_pressed && !key_held)
@@ -853,7 +858,7 @@ void MAIN_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 		}
 	}
 
-	switch (Key)
+	switch (key)
 	{
 		case KEY_0:
 		case KEY_1:
@@ -865,7 +870,7 @@ void MAIN_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
 		case KEY_7:
 		case KEY_8:
 		case KEY_9:
-			MAIN_Key_DIGITS(Key, key_pressed, key_held);
+			MAIN_Key_DIGITS(key, key_pressed, key_held);
 			break;
 		case KEY_MENU:
 			MAIN_Key_MENU(key_pressed, key_held);

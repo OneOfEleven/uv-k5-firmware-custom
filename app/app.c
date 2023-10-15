@@ -1164,7 +1164,7 @@ void APP_Update(void)
 	if (g_screen_to_display != DISPLAY_SEARCH && g_eeprom.dual_watch != DUAL_WATCH_OFF)
 	{
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			//UART_SendText("dual watch\r\n");
+			UART_SendText("dual watch\r\n");
 		#endif
 
 	#ifdef ENABLE_VOICE
@@ -1277,7 +1277,7 @@ void APP_Update(void)
 			if (g_rx_idle_mode)
 			{
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					//UART_SendText("ps wake up\r\n");
+//					UART_SendText("ps wake up\r\n");
 				#endif
 
 				BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
@@ -1368,7 +1368,7 @@ void APP_CheckKeys(void)
 				APP_ProcessKey(KEY_PTT, true, false);
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					//UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
+//					UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
 				#endif
 			}
 		}
@@ -1389,7 +1389,7 @@ void APP_CheckKeys(void)
 				APP_ProcessKey(KEY_PTT, false, false);
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					//UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
+//					UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
 				#endif
 			}
 		}
@@ -1425,7 +1425,7 @@ void APP_CheckKeys(void)
 				{	// key now fully released
 
 					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-						//UART_printf(" old key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+//						UART_printf(" old key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 					#endif
 
 					#ifdef ENABLE_AIRCOPY
@@ -1463,7 +1463,7 @@ void APP_CheckKeys(void)
 					g_key_held            = false;
 
 					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-						//UART_printf("\r\n new key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+//						UART_printf("\r\n new key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 					#endif
 
 					g_key_prev = key;
@@ -1490,7 +1490,7 @@ void APP_CheckKeys(void)
 				g_key_held = true;
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					//UART_printf("long key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+//					UART_printf("long key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 				#endif
 
 				#ifdef ENABLE_AIRCOPY
@@ -1514,7 +1514,7 @@ void APP_CheckKeys(void)
 				g_key_debounce_repeat -= key_repeat_10ms;
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					//UART_printf("rept key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
+//					UART_printf("rept key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
 				#endif
 
 				#ifdef ENABLE_AIRCOPY
@@ -2512,35 +2512,48 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 
 	// ********************
 
-	if (Key == KEY_PTT && g_ptt_was_pressed)
+	if (g_ptt_was_pressed)
 	{
-		flag = key_held;
-		if (!key_pressed)
+		if (Key == KEY_PTT)
 		{
-			flag = true;
-			g_ptt_was_pressed = false;
+			flag = key_held;
+			if (!key_pressed)
+			{
+				flag = true;
+				g_ptt_was_pressed = false;
+			}
 		}
+//		g_ptt_was_pressed = false;
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+		#endif
 	}
 
 	// this bit of code has caused soooooo many problems due
 	// to this causing key releases to be ignored :( .. 1of11
-	if (Key != KEY_PTT && g_ptt_was_released)
+	if (g_ptt_was_released)
 	{
-		if (key_held)
-			flag = true;
-		if (key_pressed)	// I now use key released for button press detections
+//		if (Key != KEY_PTT)
+		if (Key == KEY_PTT)
 		{
-			flag = true;
-			g_ptt_was_released = false;
+			if (key_held)
+				flag = true;
+			if (key_pressed)	// I now use key released for button press detections
+			{
+				flag = true;
+				g_ptt_was_released = false;
+			}
 		}
+//		g_ptt_was_released = false;
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			//UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+			UART_printf("proc key 2 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 		#endif
 	}
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		//UART_printf("proc key 2 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+		UART_printf("proc key 3 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 	#endif
 
 	if (!flag)  // this flag is responsible for keys being ignored :(
@@ -2619,7 +2632,7 @@ static void APP_ProcessKey(const key_code_t Key, const bool key_pressed, const b
 					if (Key == KEY_PTT)
 						g_ptt_was_pressed  = true;
 					else
-					if (!key_held)
+//					if (!key_held)
 						g_ptt_was_released = true;
 				}
 			#endif
