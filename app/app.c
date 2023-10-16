@@ -674,17 +674,38 @@ void APP_stop_scan(void)
 
 static void APP_next_freq(void)
 {
-	g_rx_vfo->freq_config_rx.frequency = APP_set_frequency_by_step(g_rx_vfo, g_scan_state_dir);
+	frequency_band_t new_band;
+	const frequency_band_t old_band = FREQUENCY_GetBand(g_rx_vfo->freq_config_rx.frequency);
+	const uint32_t frequency = APP_set_frequency_by_step(g_rx_vfo, g_scan_state_dir);
 
-	RADIO_ApplyOffset(g_rx_vfo);
-	RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
-	RADIO_setup_registers(true);
+	new_band = FREQUENCY_GetBand(frequency);
 
-	#ifdef ENABLE_FASTER_CHANNEL_SCAN
-		g_scan_pause_delay_in_10ms = 9;   // 90ms
-	#else
-		g_scan_pause_delay_in_10ms = scan_pause_delay_in_6_10ms;
-	#endif
+	g_rx_vfo->freq_config_rx.frequency = frequency;
+
+	if (new_band != old_band)
+	{	// original slow method
+
+		RADIO_ApplyOffset(g_rx_vfo);
+		RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
+		RADIO_setup_registers(true);
+
+		#ifdef ENABLE_FASTER_CHANNEL_SCAN
+			g_scan_pause_delay_in_10ms = 9;   // 90ms
+		#else
+			g_scan_pause_delay_in_10ms = scan_pause_delay_in_6_10ms;
+		#endif
+	}
+	else
+	{	// don't need to go through all the other stuff .. lets speed things up !!
+
+		BK4819_set_rf_frequency(frequency, true);
+
+		#ifdef ENABLE_FASTER_CHANNEL_SCAN
+			g_scan_pause_delay_in_10ms = 8;   // 80ms
+		#else
+			g_scan_pause_delay_in_10ms = scan_pause_delay_in_6_10ms;
+		#endif
+	}
 
 	g_scan_keep_frequency = false;
 	g_update_display      = true;
@@ -1557,7 +1578,7 @@ void APP_time_slice_10ms(void)
 
 	if (g_flag_save_channel)
 	{
-		SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_flag_save_channel);
+		SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_flag_save_channel ? 1 : 0);
 		g_flag_save_channel = false;
 
 		RADIO_ConfigureChannel(g_eeprom.tx_vfo, VFO_CONFIGURE);

@@ -718,20 +718,25 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 
 static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Direction)
 {
-	static bool monitor_was_enabled = false;
-	
+	#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
+		static bool monitor_was_enabled = false;
+	#endif
+
 	uint8_t Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
 
-	// only update eeprom when the key is released (saves wear and tear)
 	if (!key_pressed && g_scan_state_dir == SCAN_STATE_DIR_OFF && IS_NOT_NOAA_CHANNEL(Channel) && IS_FREQ_CHANNEL(Channel))
 	{
-		if (key_held && !key_pressed && !monitor_was_enabled && g_current_function == FUNCTION_MONITOR)
-		{	// re-enable the squelch
-			APP_start_listening(FUNCTION_RECEIVE, false);
-			g_monitor_enabled = false;
-		}
-		
-		SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
+		#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
+			if (key_held && !key_pressed && !monitor_was_enabled && g_current_function == FUNCTION_MONITOR)
+			{	// re-enable the squelch
+				APP_start_listening(FUNCTION_RECEIVE, false);
+				g_monitor_enabled = false;
+			}
+		#endif
+
+		// only update eeprom when the key is released - saves a LOT of wear and tear on the little eeprom
+		g_flag_save_channel = 1;
+		//SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //			UART_printf("save chan\r\n");
@@ -781,9 +786,8 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 			if (IS_FREQ_CHANNEL(Channel))
 			{	// step/down in frequency
 
-				const frequency_band_t old_band = FREQUENCY_GetBand(g_tx_vfo->freq_config_rx.frequency);
 				frequency_band_t new_band;
-
+				const frequency_band_t old_band = FREQUENCY_GetBand(g_tx_vfo->freq_config_rx.frequency);
 				const uint32_t frequency = APP_set_frequency_by_step(g_tx_vfo, Direction);
 
 				if (RX_freq_check(frequency) < 0)
@@ -797,21 +801,23 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 				g_tx_vfo->freq_config_rx.frequency = frequency;
 
 				if (new_band != old_band)
-				{
+				{	// original slow method
 					g_request_save_channel = 1;
 				}
 				else
-				{	// don't need to go through all the other stuff
+				{	// don't need to go through all the other stuff .. lets speed things up !!
 
-					if (!key_held && key_pressed)
-						monitor_was_enabled = g_monitor_enabled;
-					
-					if (key_held && key_pressed && !monitor_was_enabled)
-					{	// open the squelch if the user holds the key down
-						APP_start_listening(FUNCTION_MONITOR, false);
-						g_monitor_enabled = true;
-					}
-					
+					#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
+						if (!key_held && key_pressed)
+							monitor_was_enabled = g_monitor_enabled;
+
+						if (key_held && key_pressed && !monitor_was_enabled)
+						{	// open the squelch if the user holds the key down
+							APP_start_listening(FUNCTION_MONITOR, false);
+							g_monitor_enabled = true;
+						}
+					#endif
+
 					BK4819_set_rf_frequency(frequency, true);
 					//BK4819_PickRXFilterPathBasedOnFrequency(frequency);
 				}
