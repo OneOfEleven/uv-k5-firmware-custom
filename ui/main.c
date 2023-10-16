@@ -59,10 +59,21 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 			line[i] = (i <= len) ? 0x7f : 0x41;
 	#else
 		// segmented bar
-		for (i = 0; i < max_width; i += 5)
-			for (int k = i - 5; k < i && k < len; k++)
+		for (i = 0; i < max_width; i += 4)
+		{
+			for (int k = i - 4; k < i && k < len; k++)
+			{
 				if (k >= 0)
-					line[k] = (k < (i - 2)) ? 0x7f : 0x00;
+//					line[k] = (k < (i - 1)) ? 0x7f : 0x00;
+					if (k < (i - 1))
+						line[k] = 0x3e;
+			}
+		}
+		// top/bottom lines
+		for (i = 0; i < len; i += 2)
+			line[i] |= 0x41;
+		for (i &= ~3u ; i < max_width; i += 4)
+			line[i] = 0x41;
 	#endif
 }
 

@@ -125,11 +125,11 @@ const uint8_t BITMAP_KEYLOCK[6] =
 const uint8_t BITMAP_F_KEY[6] =
 {	// F-Key symbol
 	__extension__ 0b00000000,
-	__extension__ 0b01011111,
-	__extension__ 0b01000101,
-	__extension__ 0b01000101,
-	__extension__ 0b01000101,
-	__extension__ 0b01000001
+	__extension__ 0b01111110,
+	__extension__ 0b01111111,
+	__extension__ 0b00011011,
+	__extension__ 0b00011011,
+	__extension__ 0b00011011
 };
 
 #ifdef ENABLE_VOX

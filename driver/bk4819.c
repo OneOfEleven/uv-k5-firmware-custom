@@ -787,9 +787,7 @@ void BK4819_SetupSquelch(
 	#else
 		// faster (but twitchier)
 		(1u << 14) |                  //  1 ???
-//		(2u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
-//		(1u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
-		(1u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
+		(2u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
 		(1u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
 		squelch_open_glitch_thresh);     //  0 ~ 255
 	#endif

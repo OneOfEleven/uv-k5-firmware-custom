@@ -697,7 +697,7 @@ static void APP_next_freq(void)
 		RADIO_setup_registers(true);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
-			g_scan_pause_delay_in_10ms = 7;   // 70ms
+			g_scan_pause_delay_in_10ms = 8;   // 80ms
 		#else
 			g_scan_pause_delay_in_10ms = scan_pause_delay_in_6_10ms;
 		#endif
