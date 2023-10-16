@@ -460,6 +460,8 @@ static void APP_process_function(void)
 			break;
 
 		case FUNCTION_RECEIVE:
+			if (g_setting_backlight_on_tx_rx >= 2)
+				backlight_turn_on(backlight_tx_rx_time_500ms);
 			APP_process_rx();
 			break;
 
@@ -1107,8 +1109,7 @@ void APP_process(void)
 	if (g_reduced_service || g_serial_config_count_down_500ms > 0)
 		return;
 
-	if (g_current_function != FUNCTION_TRANSMIT)
-		APP_process_function();
+	APP_process_function();
 
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode && g_fm_radio_count_down_500ms > 0)
