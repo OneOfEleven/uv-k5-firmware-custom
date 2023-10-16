@@ -206,6 +206,8 @@ void ACTION_Scan(bool bRestart)
 						g_update_status = true;
 						return;
 					}
+
+					g_eeprom.scan_list_default = 0;	// back to scan list 1 - the next time we start scanning
 				}
 
 				// stop scanning
