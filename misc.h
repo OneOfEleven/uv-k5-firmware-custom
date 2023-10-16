@@ -122,6 +122,8 @@ extern const uint16_t        fm_restore_countdown_10ms;
 extern const uint8_t         menu_timeout_500ms;
 extern const uint16_t        menu_timeout_long_500ms;
 
+extern const uint16_t        backlight_tx_rx_time_500ms;
+
 extern const uint8_t         dtmf_rx_live_timeout_500ms;
 extern const uint8_t         dtmf_rx_timeout_500ms;
 extern const uint8_t         dtmf_decode_ring_countdown_500ms;
@@ -162,20 +164,23 @@ extern const uint16_t        dual_watch_count_noaa_10ms;
 	extern const uint16_t    dual_watch_count_after_vox_10ms;
 #endif
 
-extern const uint16_t        scan_pause_delay_in_1_10ms;
-extern const uint16_t        scan_pause_delay_in_2_10ms;
-extern const uint16_t        scan_pause_delay_in_3_10ms;
-extern const uint16_t        scan_pause_delay_in_4_10ms;
-extern const uint16_t        scan_pause_delay_in_5_10ms;
-extern const uint16_t        scan_pause_delay_in_6_10ms;
-extern const uint16_t        scan_pause_delay_in_7_10ms;
+extern const uint16_t        scan_pause_1_10ms;
+extern const uint16_t        scan_pause_2_10ms;
+extern const uint16_t        scan_pause_3_10ms;
+extern const uint16_t        scan_pause_4_10ms;
+extern const uint16_t        scan_pause_5_10ms;
+extern const uint16_t        scan_pause_6_10ms;
+extern const uint16_t        scan_pause_7_10ms;
 
 extern const uint8_t         g_mic_gain_dB_2[5];
 
+#ifdef ENABLE_KILL_REVIVE
+	extern bool              g_setting_radio_disabled;
+#endif
+
 extern bool                  g_setting_350_tx_enable;
-extern bool                  g_setting_killed;
-extern bool                  g_setting_200_tx_enable;
-extern bool                  g_setting_500_tx_enable;
+extern bool                  g_setting_174_tx_enable;
+extern bool                  g_setting_470_tx_enable;
 extern bool                  g_setting_350_enable;
 extern bool                  g_setting_tx_enable;
 extern uint8_t               g_setting_freq_lock;
@@ -226,7 +231,6 @@ extern volatile bool         g_schedule_dual_watch;
 
 extern volatile uint16_t     g_dual_watch_count_down_10ms;
 extern volatile bool         g_dual_watch_count_down_expired;
-extern bool                  g_dual_watch_active;
 
 extern volatile uint8_t      g_serial_config_count_down_500ms;
 
@@ -311,8 +315,7 @@ extern scan_next_chan_t      g_scan_current_scan_list;
 extern uint32_t              g_scan_restore_frequency;
 extern bool                  g_scan_keep_frequency;
 extern bool                  g_scan_pause_mode;
-extern volatile bool         g_scan_schedule_scan_listen;
-extern volatile uint16_t     g_scan_pause_delay_in_10ms;
+extern volatile uint16_t     g_scan_pause_10ms;
 extern scan_state_dir_t      g_scan_state_dir;
 
 
@@ -346,7 +349,7 @@ extern volatile bool         g_flag_tail_tone_elimination_complete;
 	extern volatile bool     g_schedule_fm;
 #endif
 extern int16_t               g_current_rssi[2];   // now one per VFO
-extern volatile uint8_t      g_boot_counter_10ms;
+extern volatile uint16_t     g_boot_counter_10ms;
 
 unsigned int get_TX_VFO(void);
 unsigned int get_RX_VFO(void);

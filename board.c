@@ -729,9 +729,11 @@ void BOARD_EEPROM_load(void)
 		g_setting_freq_lock      = (Data[0] < 6) ? Data[0] : FREQ_LOCK_NORMAL;
 	#endif
 	g_setting_350_tx_enable      = (Data[1] < 2) ? Data[1] : false;  // was true
-	g_setting_killed             = (Data[2] < 2) ? Data[2] : false;
-	g_setting_200_tx_enable      = (Data[3] < 2) ? Data[3] : false;
-	g_setting_500_tx_enable      = (Data[4] < 2) ? Data[4] : false;
+	#ifdef ENABLE_KILL_REVIVE
+		g_setting_radio_disabled = (Data[2] < 2) ? Data[2] : false;
+	#endif
+	g_setting_174_tx_enable      = (Data[3] < 2) ? Data[3] : false;
+	g_setting_470_tx_enable      = (Data[4] < 2) ? Data[4] : false;
 	g_setting_350_enable         = (Data[5] < 2) ? Data[5] : true;
 	g_setting_scramble_enable    = (Data[6] < 2) ? Data[6] : true;
 	g_setting_tx_enable          = (Data[7] & (1u << 0)) ? true : false;

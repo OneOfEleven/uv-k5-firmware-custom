@@ -79,12 +79,15 @@ void UI_DisplayStatus(const bool test_display)
 		// hmmm, what to put in it's place
 	#endif
 	
-	if (g_setting_killed)
+	#ifdef ENABLE_KILL_REVIVE
+		if (g_setting_radio_disabled)
+		{
+			memset(line + x, 0xFF, 10);
+			x1 = x + 10;
+		}
+		else
+	#endif
 	{
-		memset(line + x, 0xFF, 10);
-		x1 = x + 10;
-	}
-	else
 	#ifdef ENABLE_FMRADIO
 		// FM indicator
 		if (g_fm_radio_mode || test_display)
@@ -114,6 +117,7 @@ void UI_DisplayStatus(const bool test_display)
 			}
 			x1 = x + 7;
 		}
+	}
 	x += 7;  // font character width
 
 	#ifdef ENABLE_VOICE
@@ -131,10 +135,17 @@ void UI_DisplayStatus(const bool test_display)
 	// DUAL-WATCH indicator
 	if (g_eeprom.dual_watch != DUAL_WATCH_OFF || test_display)
 	{
-		if (g_dual_watch_active || test_display)
-			memmove(line + x, BITMAP_TDR1, sizeof(BITMAP_TDR1));
+		if (g_scan_state_dir == SCAN_STATE_DIR_OFF ||
+		    g_squelch_lost ||
+			g_current_function == FUNCTION_INCOMING ||
+			g_current_function == FUNCTION_MONITOR ||
+			g_screen_to_display == DISPLAY_SEARCH ||
+			test_display)
+		{
+			memmove(line + x, BITMAP_TDR1, sizeof(BITMAP_TDR1));	// dual-watch is paused
+		}
 		else
-			memmove(line + x, BITMAP_TDR2, sizeof(BITMAP_TDR2));
+			memmove(line + x, BITMAP_TDR2, sizeof(BITMAP_TDR2));    // dual-watch is running
 	}
 	x += sizeof(BITMAP_TDR1);
 

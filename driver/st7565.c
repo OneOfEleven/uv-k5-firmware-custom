@@ -151,51 +151,52 @@ void ST7565_Init(const bool full)
 	if (full)
 	{
 		SPI0_Init();
-
 		ST7565_HardwareReset();
-
-		SPI_ToggleMasterMode(&SPI0->CR, false);
-
-		ST7565_WriteByte(0xE2);   // internal reset
-
-		SYSTEM_DelayMs(120);
 	}
-	else
-		SPI_ToggleMasterMode(&SPI0->CR, false);
 
-	ST7565_WriteByte(0xA2);   // bias 9
-	ST7565_WriteByte(0xC0);   // com normal
-	ST7565_WriteByte(0xA1);   // reverse ?
-
-	ST7565_WriteByte(0xA6);   // normal screen ?
-//	ST7565_WriteByte(0xA7);   // inverse screen ?
-
-	ST7565_WriteByte(0xA4);   // all points normal
-	ST7565_WriteByte(0x24);   //
-
-	ST7565_WriteByte(0x81);       //
-	ST7565_WriteByte(contrast);   // contrast ?  0 ~ 63
+	SPI_ToggleMasterMode(&SPI0->CR, false);
 
 	if (full)
 	{
-		ST7565_WriteByte(0x2B);   // power control ?
+		ST7565_WriteByte(0xE2);      // internal reset
+		SYSTEM_DelayMs(120);
+	}
+	
+	ST7565_WriteByte(0xA2);          // bias 9
+//	ST7565_WriteByte(0xA3);          // bias 7
 
-		SYSTEM_DelayMs(1);
+	ST7565_WriteByte(0xC0);          // COM normal
+//	ST7565_WriteByte(0xC8);          // COM reverse
 
-		ST7565_WriteByte(0x2E);   // power control ?
+//	ST7565_WriteByte(0xA0);          // normal ADC .. mirrors the screen
+	ST7565_WriteByte(0xA1);          // reverse ADC
 
-		SYSTEM_DelayMs(1);
+	ST7565_WriteByte(0xA6);          // normal screen
+//	ST7565_WriteByte(0xA7);          // inverse screen
 
-		ST7565_WriteByte(0x2F);   //
-		ST7565_WriteByte(0x2F);   //
-		ST7565_WriteByte(0x2F);   //
-		ST7565_WriteByte(0x2F);   //
+	ST7565_WriteByte(0xA4);          // all points normal
 
-		SYSTEM_DelayMs(40);
+	ST7565_WriteByte(0x24);          // ???
+
+	ST7565_WriteByte(0x81);          //
+	ST7565_WriteByte(contrast);      // brightness 0 ~ 63
+
+	if (full)
+	{
+		ST7565_WriteByte(0x28 | 4u); // enable voltage converter VC=1 VR=0 VF=0
+		SYSTEM_DelayMs(50);
+
+		ST7565_WriteByte(0x28 | 6u); // enable voltage regulator VC=1 VR=1 VF=0
+		SYSTEM_DelayMs(50);
+
+		ST7565_WriteByte(0x28 | 7u); // enable voltage follower  VC=1 VR=1 VF=1
+		SYSTEM_DelayMs(10);
+
+		ST7565_WriteByte(0x20 | 6u); // set lcd operating voltage (regulator resistor, ref voltage resistor)
 	}
 
-	ST7565_WriteByte(0x40);   // start line ?
-	ST7565_WriteByte(0xAF);   // display on ?
+	ST7565_WriteByte(0x40);          // start line ?
+	ST7565_WriteByte(0xAF);          // display on ?
 
 	SPI_WaitForUndocumentedTxFifoStatusBit();
 

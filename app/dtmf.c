@@ -215,79 +215,85 @@ void DTMF_HandleRequest(void)
 		return;
 	}
 
-	if (!g_rx_vfo->dtmf_decoding_enable && !g_setting_killed)
-	{	// D-DCD is disabled or we're alive
+	#ifdef ENABLE_KILL_REVIVE
+		if (!g_rx_vfo->dtmf_decoding_enable && !g_setting_radio_disabled)
+	#else
+		if (!g_rx_vfo->dtmf_decoding_enable)
+	#endif
+	{	// D-DCD is disabled or we're enabled
 		DTMF_clear_RX();
 		return;
 	}
 
 	g_dtmf_rx_pending = false;
 
-	if (g_dtmf_rx_index >= 9)
-	{	// look for the KILL code
+	#ifdef ENABLE_KILL_REVIVE
+		if (g_dtmf_rx_index >= 9)
+		{	// look for the RADIO DISABLE code
+	
+			sprintf(String, "%s%c%s", g_eeprom.ani_dtmf_id, g_eeprom.dtmf_separate_code, g_eeprom.kill_code);
+	
+			Offset = g_dtmf_rx_index - strlen(String);
+	
+			if (DTMF_CompareMessage(g_dtmf_rx + Offset, String, strlen(String), true))
+			{	// bugger
+	
+				if (g_eeprom.permit_remote_kill)
+				{
+					g_setting_radio_disabled = true;      // :(
+	
+					DTMF_clear_RX();
+	
+					SETTINGS_SaveSettings();
+	
+					g_dtmf_reply_state = DTMF_REPLY_AB;
+	
+					#ifdef ENABLE_FMRADIO
+						if (g_fm_radio_mode)
+						{
+							FM_TurnOff();
+							GUI_SelectNextDisplay(DISPLAY_MAIN);
+						}
+					#endif
+				}
+				else
+				{
+					g_dtmf_reply_state = DTMF_REPLY_NONE;
+				}
+	
+				g_dtmf_call_state = DTMF_CALL_STATE_NONE;
+	
+				g_update_display  = true;
+				g_update_status   = true;
+				return;
+			}
+		}
 
-		sprintf(String, "%s%c%s", g_eeprom.ani_dtmf_id, g_eeprom.dtmf_separate_code, g_eeprom.kill_code);
-
-		Offset = g_dtmf_rx_index - strlen(String);
-
-		if (DTMF_CompareMessage(g_dtmf_rx + Offset, String, strlen(String), true))
-		{	// bugger
-
-			if (g_eeprom.permit_remote_kill)
-			{
-				g_setting_killed = true;      // oooerr !
-
+		if (g_dtmf_rx_index >= 9)
+		{	// look for the REVIVE code
+	
+			sprintf(String, "%s%c%s", g_eeprom.ani_dtmf_id, g_eeprom.dtmf_separate_code, g_eeprom.revive_code);
+	
+			Offset = g_dtmf_rx_index - strlen(String);
+	
+			if (DTMF_CompareMessage(g_dtmf_rx + Offset, String, strlen(String), true))
+			{	// shit, we're back !
+	
+				g_setting_radio_disabled  = false;
+	
 				DTMF_clear_RX();
-
+	
 				SETTINGS_SaveSettings();
-
+	
 				g_dtmf_reply_state = DTMF_REPLY_AB;
-
-				#ifdef ENABLE_FMRADIO
-					if (g_fm_radio_mode)
-					{
-						FM_TurnOff();
-						GUI_SelectNextDisplay(DISPLAY_MAIN);
-					}
-				#endif
+				g_dtmf_call_state  = DTMF_CALL_STATE_NONE;
+	
+				g_update_display   = true;
+				g_update_status    = true;
+				return;
 			}
-			else
-			{
-				g_dtmf_reply_state = DTMF_REPLY_NONE;
-			}
-
-			g_dtmf_call_state = DTMF_CALL_STATE_NONE;
-
-			g_update_display  = true;
-			g_update_status   = true;
-			return;
 		}
-	}
-
-	if (g_dtmf_rx_index >= 9)
-	{	// look for the REVIVE code
-
-		sprintf(String, "%s%c%s", g_eeprom.ani_dtmf_id, g_eeprom.dtmf_separate_code, g_eeprom.revive_code);
-
-		Offset = g_dtmf_rx_index - strlen(String);
-
-		if (DTMF_CompareMessage(g_dtmf_rx + Offset, String, strlen(String), true))
-		{	// shit, we're back !
-
-			g_setting_killed  = false;
-
-			DTMF_clear_RX();
-
-			SETTINGS_SaveSettings();
-
-			g_dtmf_reply_state = DTMF_REPLY_AB;
-			g_dtmf_call_state  = DTMF_CALL_STATE_NONE;
-
-			g_update_display   = true;
-			g_update_status    = true;
-			return;
-		}
-	}
+	#endif
 
 	if (g_dtmf_rx_index >= 2)
 	{	// look for ACK reply
@@ -300,7 +306,6 @@ void DTMF_HandleRequest(void)
 		{	// ends with "AB"
 
 			if (g_dtmf_reply_state != DTMF_REPLY_NONE)          // 1of11
-//			if (g_dtmf_call_state != DTMF_CALL_STATE_NONE)      // 1of11
 //			if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)  // 1of11
 			{
 				g_dtmf_state = DTMF_STATE_TX_SUCC;
@@ -328,10 +333,10 @@ void DTMF_HandleRequest(void)
 		}
 	}
 
-	if (g_setting_killed || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-	{	// we've been killed or expecting a reply
-		return;
-	}
+	#ifdef ENABLE_KILL_REVIVE
+		if (g_setting_radio_disabled)
+			return;        // we've been disabled
+	#endif
 
 	if (g_dtmf_rx_index >= 7)
 	{	// see if we're being called

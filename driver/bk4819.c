@@ -138,7 +138,7 @@ static uint16_t BK4819_ReadU16(void)
 	return Value;
 }
 
-uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register)
+uint16_t BK4819_ReadRegister(bk4819_register_t Register)
 {
 	uint16_t Value;
 
@@ -160,7 +160,7 @@ uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register)
 	return Value;
 }
 
-void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data)
+void BK4819_WriteRegister(bk4819_register_t Register, uint16_t Data)
 {
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
@@ -345,7 +345,7 @@ void BK4819_SetAGC(uint8_t Value)
 	}
 }
 
-void BK4819_set_GPIO_pin(BK4819_GPIO_PIN_t Pin, bool bSet)
+void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
 {
 	if (bSet)
 		gBK4819_GpioOutState |=  (0x40u >> Pin);
@@ -704,10 +704,30 @@ void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
 	BK4819_WriteRegister(BK4819_REG_36, ((uint16_t)bias << 8) | ((uint16_t)enable << 7) | ((uint16_t)gain << 0));
 }
 
-void BK4819_SetFrequency(uint32_t Frequency)
+void BK4819_set_rf_frequency(const uint32_t frequency, const bool trigger_update)
 {
-	BK4819_WriteRegister(BK4819_REG_38, (Frequency >>  0) & 0xFFFF);
-	BK4819_WriteRegister(BK4819_REG_39, (Frequency >> 16) & 0xFFFF);
+	BK4819_WriteRegister(BK4819_REG_38, (frequency >>  0) & 0xFFFF);
+	BK4819_WriteRegister(BK4819_REG_39, (frequency >> 16) & 0xFFFF);
+
+	if (trigger_update)
+	{
+		// <15>    0 VCO Calibration    1 = enable   0 = disable
+		// <14>    ???
+		// <13:10> 0 RX Link           15 = enable   0 = disable
+		// <9>     0 AF DAC             1 = enable   0 = disable
+		// <8>     0 DISC Mode          1 = enable   0 = disable
+		// <7:4>   0 PLL/VCO           15 = enable   0 = disable
+		// <3>     0 PA Gain            1 = enable   0 = disable
+		// <2>     0 MIC ADC            1 = enable   0 = disable
+		// <1>     0 TX DSP             1 = enable   0 = disable
+		// <0>     0 RX DSP             1 = enable   0 = disable
+		//
+		// trigger a PLL/VCO update
+		//
+		const uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
+		BK4819_WriteRegister(BK4819_REG_30, reg & ~(1u << 15) & (15u << 4));
+		BK4819_WriteRegister(BK4819_REG_30, reg);
+	}
 }
 
 void BK4819_SetupSquelch(
@@ -842,20 +862,20 @@ void BK4819_RX_TurnOn(void)
 void BK4819_PickRXFilterPathBasedOnFrequency(uint32_t Frequency)
 {
 	if (Frequency < 28000000)
-	{
-		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30, true);
-		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31, false);
+	{	// VHF
+		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30_VHF, true);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31_UHF, false);
 	}
 	else
 	if (Frequency == 0xFFFFFFFF)
-	{
-		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30, false);
-		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31, false);
+	{	// OFF
+		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30_VHF, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31_UHF, false);
 	}
 	else
-	{
-		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30, false);
-		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31, true);
+	{	// UHF
+		BK4819_set_GPIO_pin(BK4819_GPIO2_PIN30_VHF, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31_UHF, true);
 	}
 }
 
@@ -1179,7 +1199,7 @@ void BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable(void)
 {
 	if (g_rx_idle_mode)
 	{
-		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, true);
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, true);
 		BK4819_RX_TurnOn();
 	}
 }
@@ -1583,7 +1603,7 @@ void BK4819_EnableFrequencyScan(void)
 
 void BK4819_SetScanFrequency(uint32_t Frequency)
 {
-	BK4819_SetFrequency(Frequency);
+	BK4819_set_rf_frequency(Frequency, false);
 
 	// REG_51
 	//

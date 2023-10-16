@@ -46,6 +46,37 @@ center_line_t center_line = CENTER_LINE_NONE;
 
 // ***************************************************************************
 
+void draw_bar(uint8_t *line, const int len, const int max_width)
+{
+	int i;
+	#if 0
+		// solid bar
+		for (i = 0; i < max_width; i++)
+			line[i] = (i > len) ? ((i & 1) == 0) ? 0x41 : 0x00 : ((i & 1) == 0) ? 0x7f : 0x3e;
+	#elif 0
+		// knuled bar
+		for (i = 0; i < max_width; i += 2)
+			line[i] = (i <= len) ? 0x7f : 0x41;
+	#else
+		// segmented bar
+		for (i = 0; i < max_width; i += 4)
+		{
+			for (int k = i - 4; k < i && k < len; k++)
+			{
+				if (k >= 0)
+//					line[k] = (k < (i - 1)) ? 0x7f : 0x00;
+					if (k < (i - 1))
+						line[k] = 0x3e;
+			}
+		}
+		// top/bottom lines
+		for (i = 0; i < len; i += 2)
+			line[i] |= 0x41;
+		for (i &= ~3u ; i < max_width; i += 4)
+			line[i] = 0x41;
+	#endif
+}
+
 #ifdef ENABLE_SHOW_TX_TIMEOUT
 	bool UI_DisplayTXCountdown(const bool now)
 	{
@@ -78,7 +109,6 @@ center_line_t center_line = CENTER_LINE_NONE;
 //			const unsigned int level     = (((timeout_secs - secs) * bar_width) + (timeout_secs / 2)) / timeout_secs;   // with rounding
 			const unsigned int len       = (level <= bar_width) ? level : bar_width;
 			uint8_t           *p_line    = g_frame_buffer[line];
-			unsigned int       i;
 			char               s[17];
 
 			if (now)
@@ -91,15 +121,7 @@ center_line_t center_line = CENTER_LINE_NONE;
 				UI_PrintStringSmall(s, 2, 0, line);
 			#endif
 
-			#if 1
-				// solid bar
-				for (i = 0; i < bar_width; i++)
-					p_line[bar_x + i] = (i > len) ? ((i & 1) == 0) ? 0x41 : 0x00 : ((i & 1) == 0) ? 0x7f : 0x3e;
-			#else
-				// knuled bar
-				for (i = 0; i < bar_width; i += 2)
-					p_line[bar_x + i] = (i <= len) ? 0x7f : 0x41;
-			#endif
+			draw_bar(p_line + bar_x, len, bar_width);
 
 			if (now)
 				ST7565_BlitFullScreen();
@@ -174,7 +196,6 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 			const unsigned int bar_width = LCD_WIDTH - 1 - bar_x;
 			const unsigned int secs      = g_tx_timer_count_down_500ms / 2;
 			uint8_t           *p_line    = g_frame_buffer[line];
-			unsigned int       i;
 			char               s[16];
 
 			if (now)
@@ -182,7 +203,11 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 			// TX timeout seconds
 			sprintf(s, "%3u", secs);
-			UI_PrintStringSmallBold(s, 2, 0, line);
+			#ifdef ENABLE_SMALL_BOLD
+				UI_PrintStringSmallBold(s, 2, 0, line);
+			#else
+				UI_PrintStringSmall(s, 2, 0, line);
+			#endif
 
 			{	// TX audio level
 
@@ -197,15 +222,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 				const unsigned int sqrt_level = sqrt16((level < 65535) ? level : 65535);
 				const unsigned int len        = (sqrt_level <= bar_width) ? sqrt_level : bar_width;
 
-				#if 1
-					// solid bar
-					for (i = 0; i < bar_width; i++)
-						p_line[bar_x + i] = (i > len) ? ((i & 1) == 0) ? 0x41 : 0x00 : ((i & 1) == 0) ? 0x7f : 0x3e;
-				#else
-					// knuled bar
-					for (i = 0; i < bar_width; i += 2)
-						p_line[bar_x + i] = (i <= len) ? 0x7f : 0x41;
-				#endif
+				draw_bar(p_line + bar_x, len, bar_width);
 
 				if (now)
 					ST7565_BlitFullScreen();
@@ -242,7 +259,6 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 		uint8_t           *p_line        = g_frame_buffer[line];
 
 		char               s[16];
-		unsigned int       i;
 
 		if (g_eeprom.key_lock && g_keypad_locked > 0)
 			return;     // display is in use
@@ -268,22 +284,14 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 		}
 		UI_PrintStringSmall(s, 2, 0, line);
 
-		#if 1
-			// solid bar
-			for (i = 0; i < bar_width; i++)
-				p_line[bar_x + i] = (i > len) ? ((i & 1) == 0) ? 0x41 : 0x00 : ((i & 1) == 0) ? 0x7f : 0x3e;
-		#else
-			// knuled bar
-			for (i = 0; i < bar_width; i += 2)
-				p_line[bar_x + i] = (i <= len) ? 0x7f : 0x41;
-		#endif
+		draw_bar(p_line + bar_x, len, bar_width);
 
 		if (now)
 			ST7565_BlitFullScreen();
 	}
 #endif
 
-void UI_UpdateRSSI(const int16_t rssi, const int vfo)
+void UI_update_rssi(const int16_t rssi, const int vfo)
 {
 	#ifdef ENABLE_RSSI_BAR
 
@@ -390,7 +398,7 @@ void UI_DisplayMain(void)
 {
 	const unsigned int line0 = 0;  // text screen line
 	const unsigned int line1 = 4;
-	char               String[16];
+	char               String[17];
 	unsigned int       vfo_num;
 
 	center_line = CENTER_LINE_NONE;
@@ -406,7 +414,7 @@ void UI_DisplayMain(void)
 
 	if (g_serial_config_count_down_500ms > 0)
 	{
-		backlight_turn_on();
+		backlight_turn_on(10);		// 5 seconds
 		UI_PrintString("UART", 0, LCD_WIDTH, 1, 8);
 		UI_PrintString("CONFIG COMMS", 0, LCD_WIDTH, 3, 8);
 		ST7565_BlitFullScreen();
@@ -415,7 +423,7 @@ void UI_DisplayMain(void)
 
 	if (g_eeprom.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
-		backlight_turn_on();
+		backlight_turn_on(10);     // 5 seconds
 		UI_PrintString("Long press #", 0, LCD_WIDTH, 1, 8);
 		UI_PrintString("to unlock",    0, LCD_WIDTH, 3, 8);
 		ST7565_BlitFullScreen();
@@ -450,39 +458,59 @@ void UI_DisplayMain(void)
 			if (g_dtmf_call_state != DTMF_CALL_STATE_NONE || g_dtmf_is_tx || g_dtmf_input_mode)
 			{	// show DTMF stuff
 
-				char Contact[16];
+				char contact[17];
 
 				if (!g_dtmf_input_mode)
 				{
-					memset(Contact, 0, sizeof(Contact));
+					memset(contact, 0, sizeof(contact));
 					if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
-						strcpy(String, (g_dtmf_state == DTMF_STATE_CALL_OUT_RSP) ? "CALL OUT(RSP)" : "CALL OUT");
+					{
+						strcpy(String, (g_dtmf_state == DTMF_STATE_CALL_OUT_RSP) ? "CALL OUT RESP" : "CALL OUT");
+					}
 					else
 					if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
-						sprintf(String, "CALL FRM:%s", (DTMF_FindContact(g_dtmf_caller, Contact)) ? Contact : g_dtmf_caller);
+					{
+						const bool found = DTMF_FindContact(g_dtmf_caller, contact);
+						contact[8] = 0;
+						sprintf(String, "FROM %s", found ? contact : g_dtmf_caller);
+					}
 					else
 					if (g_dtmf_is_tx)
-						strcpy(String, (g_dtmf_state == DTMF_STATE_TX_SUCC) ? "DTMF TX(SUCC)" : "DTMF TX");
+					{
+						strcpy(String, (g_dtmf_state == DTMF_STATE_TX_SUCC) ? "DTMF TX SUCC" : "DTMF TX");
+					}
 				}
 				else
 				{
 					sprintf(String, ">%s", g_dtmf_input_box);
 				}
+				String[16] = 0;
 				UI_PrintString(String, 2, 0, 0 + (vfo_num * 3), 8);
 
 				memset(String,  0, sizeof(String));
 				if (!g_dtmf_input_mode)
 				{
-					memset(Contact, 0, sizeof(Contact));
+					memset(contact, 0, sizeof(contact));
 					if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
-						sprintf(String, ">%s", (DTMF_FindContact(g_dtmf_string, Contact)) ? Contact : g_dtmf_string);
+					{
+						const bool found = DTMF_FindContact(g_dtmf_string, contact);
+						contact[15] = 0;
+						sprintf(String, ">%s", found ? contact : g_dtmf_string);
+					}
 					else
 					if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
-						sprintf(String, ">%s", (DTMF_FindContact(g_dtmf_callee, Contact)) ? Contact : g_dtmf_callee);
+					{
+						const bool found = DTMF_FindContact(g_dtmf_callee, contact);
+						contact[15] = 0;
+						sprintf(String, ">%s", found ? contact : g_dtmf_callee);
+					}
 					else
 					if (g_dtmf_is_tx)
+					{
 						sprintf(String, ">%s", g_dtmf_string);
+					}
 				}
+				String[16] = 0;
 				UI_PrintString(String, 2, 0, 2 + (vfo_num * 3), 8);
 
 				center_line = CENTER_LINE_IN_USE;
@@ -789,8 +817,13 @@ void UI_DisplayMain(void)
 		}
 
 		// show the DTMF decoding symbol
-		if (g_eeprom.vfo_info[vfo_num].dtmf_decoding_enable || g_setting_killed)
-			UI_PrintStringSmall("DTMF", LCD_WIDTH + 78, 0, line + 1);
+		#ifdef ENABLE_KILL_REVIVE
+			if (g_eeprom.vfo_info[vfo_num].dtmf_decoding_enable || g_setting_radio_disabled)
+				UI_PrintStringSmall("DTMF", LCD_WIDTH + 78, 0, line + 1);
+		#else
+			if (g_eeprom.vfo_info[vfo_num].dtmf_decoding_enable)
+				UI_PrintStringSmall("DTMF", LCD_WIDTH + 78, 0, line + 1);
+		#endif
 
 		// show the audio scramble symbol
 		if (g_eeprom.vfo_info[vfo_num].scrambling_type > 0 && g_setting_scramble_enable)

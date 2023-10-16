@@ -91,7 +91,7 @@ void SystickHandler(void)
 
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_css_scan_mode == CSS_SCAN_MODE_SCANNING)
 		if (g_current_function != FUNCTION_MONITOR && g_current_function != FUNCTION_TRANSMIT)
-			DECREMENT_AND_TRIGGER(g_scan_pause_delay_in_10ms, g_scan_schedule_scan_listen);
+			DECREMENT(g_scan_pause_10ms);
 
 	DECREMENT_AND_TRIGGER(g_tail_tone_elimination_count_down_10ms, g_flag_tail_tone_elimination_complete);
 

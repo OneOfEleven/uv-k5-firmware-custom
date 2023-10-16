@@ -310,9 +310,13 @@ void SETTINGS_SaveSettings(void)
 	memset(State, 0xFF, sizeof(State));
 	State[0]  = g_setting_freq_lock;
 	State[1]  = g_setting_350_tx_enable;
-	State[2]  = g_setting_killed;
-	State[3]  = g_setting_200_tx_enable;
-	State[4]  = g_setting_500_tx_enable;
+	#ifdef ENABLE_KILL_REVIVE
+		State[2] = g_setting_radio_disabled;
+	#else
+		State[2] = false;
+	#endif
+	State[3]  = g_setting_174_tx_enable;
+	State[4]  = g_setting_470_tx_enable;
 	State[5]  = g_setting_350_enable;
 	State[6]  = g_setting_scramble_enable;
 	if (!g_setting_tx_enable)             State[7] &= ~(1u << 0);
@@ -335,10 +339,8 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, 
 	      uint16_t OffsetVFO = OffsetMR;
 	      uint8_t  State[8];
 
-	#ifdef ENABLE_NOAA
-		if (IS_NOAA_CHANNEL(Channel))
-			return;
-	#endif
+	if (IS_NOAA_CHANNEL(Channel))
+		return;
 
 	if (IS_FREQ_CHANNEL(Channel))
 	{	// it's a VFO
@@ -374,11 +376,11 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, 
 	SETTINGS_UpdateChannel(Channel, pVFO, true);
 
 	if (Channel > USER_CHANNEL_LAST)
-		return;	// it's not a user channel
+		return;	                       // it's not a user memory channel
 
 	#ifndef ENABLE_KEEP_MEM_NAME
 		// clear/reset the channel name
-		memset(&State, 0x00, sizeof(State));
+		memset(&State, 0, sizeof(State));
 		EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
 		EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
 	#else
@@ -386,7 +388,7 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, 
 		{	// save the channel name
 			memmove(State, pVFO->name + 0, 8);
 			EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-			memset(State, 0x00, sizeof(State));
+			memset(State, 0, sizeof(State));
 			memmove(State, pVFO->name + 8, 2);
 			EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
 		}
@@ -399,10 +401,8 @@ void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep)
 	uint8_t  Attributes = 0xFF;        // default attributes
 	uint16_t Offset = 0x0D60 + (Channel & ~7u);
 
-	#ifdef ENABLE_NOAA
-		if (IS_NOAA_CHANNEL(Channel))
-			return;
-	#endif
+	if (IS_NOAA_CHANNEL(Channel))
+		return;
 
 	Attributes &= (uint8_t)(~USER_CH_COMPAND);  // default to '0' = compander disabled
 
@@ -412,7 +412,7 @@ void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep)
 	{
 		Attributes = (pVFO->scanlist_1_participation << 7) | (pVFO->scanlist_2_participation << 6) | (pVFO->compander << 4) | (pVFO->band << 0);
 		if (State[Channel & 7u] == Attributes)
-			return; // no change in the attributes
+			return; // no change in the attributes .. don't place wear on the eeprom
 	}
 
 	State[Channel & 7u] = Attributes;
@@ -423,13 +423,12 @@ void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep)
 
 //	#ifndef ENABLE_KEEP_MEM_NAME
 		if (Channel <= USER_CHANNEL_LAST)
-		{	// it's a memory channel
+		{	// user memory channel
 
 			const uint16_t OffsetMR = Channel * 16;
 			if (!keep)
 			{	// clear/reset the channel name
-				//memset(&State, 0xFF, sizeof(State));
-				memset(&State, 0x00, sizeof(State));   // follow the QS way
+				memset(&State, 0, sizeof(State));
 				EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
 				EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
 			}
@@ -437,8 +436,7 @@ void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep)
 //			{	// update the channel name
 //				memmove(State, pVFO->name + 0, 8);
 //				EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-//				//memset(State, 0xFF, sizeof(State));
-//				memset(State, 0x00, sizeof(State));  // follow the QS way
+//				memset(State, 0, sizeof(State));
 //				memmove(State, pVFO->name + 8, 2);
 //				EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
 //			}

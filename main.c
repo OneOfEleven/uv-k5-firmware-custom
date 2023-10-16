@@ -68,8 +68,6 @@ void Main(void)
 	BOARD_Init();
 	UART_Init();
 
-	g_boot_counter_10ms = 250;   // 2.5 sec
-
 	#if defined(ENABLE_UART)
 		UART_SendText(UART_Version_str);
 		UART_SendText("\r\n");
@@ -97,9 +95,9 @@ void Main(void)
 	RADIO_ConfigureChannel(0, VFO_CONFIGURE_RELOAD);
 	RADIO_ConfigureChannel(1, VFO_CONFIGURE_RELOAD);
 
-	RADIO_SelectVfos();
+	RADIO_select_vfos();
 
-	RADIO_SetupRegisters(true);
+	RADIO_setup_registers(true);
 
 	for (i = 0; i < ARRAY_SIZE(g_battery_voltages); i++)
 		BOARD_ADC_GetBatteryInfo(&g_battery_voltages[i], &g_usb_current);
@@ -129,7 +127,7 @@ void Main(void)
 	     KEYBOARD_Poll() != KEY_INVALID ||
 		 BootMode != BOOT_MODE_NORMAL)
 	{
-		backlight_turn_on();
+		backlight_turn_on(0);
 		UI_DisplayReleaseKeys();
 		i = 0;
 		while (i < (500 / 10))  // 500ms
@@ -154,7 +152,7 @@ void Main(void)
 	{
 		UI_DisplayWelcome();
 
-		backlight_turn_on();
+		backlight_turn_on(0);
 
 		#ifdef ENABLE_VOICE
 //			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
@@ -162,7 +160,7 @@ void Main(void)
 		#endif
 
 		if (g_eeprom.pwr_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
-		{	// 2.55 second boot-up screen
+		{	// 3 second boot-up screen
 			while (g_boot_counter_10ms > 0)
 			{
 				if (KEYBOARD_Poll() != KEY_INVALID)
@@ -218,17 +216,17 @@ void Main(void)
 
 	while (1)
 	{
-		APP_Update();
+		APP_process();
 
 		if (g_next_time_slice)
 		{
-			APP_TimeSlice10ms();
+			APP_time_slice_10ms();
 			g_next_time_slice = false;
 		}
 
 		if (g_next_time_slice_500ms)
 		{
-			APP_TimeSlice500ms();
+			APP_time_slice_500ms();
 			g_next_time_slice_500ms = false;
 		}
 	}

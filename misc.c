@@ -25,57 +25,59 @@ const uint8_t obfuscate_array[16] = {
 
 // ***********************************************
 
-const uint8_t         fm_resume_countdown_500ms        =  2500 / 500;  // 2.5 seconds
-const uint8_t         fm_radio_countdown_500ms         =  2000 / 500;  // 2 seconds
-const uint16_t        fm_play_countdown_scan_10ms      =   100 / 10;   // 100ms
-const uint16_t        fm_play_countdown_noscan_10ms    =  1200 / 10;   // 1.2 seconds
-const uint16_t        fm_restore_countdown_10ms        =  5000 / 10;   // 5 seconds
+const uint8_t         fm_resume_countdown_500ms        =  2500 / 500;   // 2.5 seconds
+const uint8_t         fm_radio_countdown_500ms         =  2000 / 500;   // 2 seconds
+const uint16_t        fm_play_countdown_scan_10ms      =   100 / 10;    // 100ms
+const uint16_t        fm_play_countdown_noscan_10ms    =  1200 / 10;    // 1.2 seconds
+const uint16_t        fm_restore_countdown_10ms        =  5000 / 10;    // 5 seconds
 
 const uint8_t         menu_timeout_500ms               =  30000 / 500;  // 30 seconds
 const uint16_t        menu_timeout_long_500ms          = 120000 / 500;  // 2 minutes
 
-const uint8_t         dtmf_rx_live_timeout_500ms       =  6000 / 500;  // 6 seconds live decoder on screen
-const uint8_t         dtmf_rx_timeout_500ms            = 10000 / 500;  // 10 seconds till we wipe the DTMF receiver
-const uint8_t         dtmf_decode_ring_countdown_500ms = 15000 / 500;  // 15 seconds .. time we sound the ringing for
-const uint8_t         dtmf_txstop_countdown_500ms      =  3000 / 500;  // 6 seconds
+const uint16_t        backlight_tx_rx_time_500ms       =  10000 / 500;  // 10 seconds
 
-const uint8_t         serial_config_count_down_500ms   =  3000 / 500;  // 3 seconds
+const uint8_t         dtmf_rx_live_timeout_500ms       =   6000 / 500;  // 6 seconds live decoder on screen
+const uint8_t         dtmf_rx_timeout_500ms            =  10000 / 500;  // 10 seconds till we wipe the DTMF receiver
+const uint8_t         dtmf_decode_ring_countdown_500ms =  15000 / 500;  // 15 seconds .. time we sound the ringing for
+const uint8_t         dtmf_txstop_countdown_500ms      =   3000 / 500;  // 6 seconds
 
-const uint8_t         key_input_timeout_500ms          =  6000 / 500;  // 6 seconds
-const uint8_t         key_lock_timeout_500ms           = 30000 / 500;  // 30 seconds
+const uint8_t         serial_config_count_down_500ms   =   3000 / 500;  // 3 seconds
 
-const uint8_t         key_debounce_10ms                =    30 / 10;   // 30ms
-const uint8_t         key_long_press_10ms              =   300 / 10;   // 300ms
-const uint8_t         key_repeat_10ms                  =    80 / 10;   // 80ms
+const uint8_t         key_input_timeout_500ms          =   6000 / 500;  // 6 seconds
+const uint8_t         key_lock_timeout_500ms           =  30000 / 500;  // 30 seconds
 
-const uint16_t        scan_freq_css_timeout_10ms       = 10000 / 10;   // 10 seconds
-const uint8_t         scan_freq_css_delay_10ms         =   210 / 10;   // 210ms .. don't reduce this
+const uint8_t         key_debounce_10ms                =     30 / 10;   // 30ms
+const uint8_t         key_long_press_10ms              =    300 / 10;   // 300ms
+const uint8_t         key_repeat_10ms                  =     50 / 10;   // 50ms
 
-const uint16_t        dual_watch_count_after_tx_10ms   =  3600 / 10;   // 3.6 sec after TX ends
-const uint16_t        dual_watch_count_after_rx_10ms   =  1000 / 10;   // 1 sec after RX ends ?
-const uint16_t        dual_watch_count_after_1_10ms    =  5000 / 10;   // 5 sec
-const uint16_t        dual_watch_count_after_2_10ms    =  3600 / 10;   // 3.6 sec
-const uint16_t        dual_watch_count_noaa_10ms       =    70 / 10;   // 70ms
+const uint16_t        scan_freq_css_timeout_10ms       =  10000 / 10;   // 10 seconds
+const uint8_t         scan_freq_css_delay_10ms         =    210 / 10;   // 210ms .. don't reduce this
+
+const uint16_t        dual_watch_count_after_tx_10ms   =   3600 / 10;   // 3.6 sec after TX ends
+const uint16_t        dual_watch_count_after_rx_10ms   =   1000 / 10;   // 1 sec after RX ends ?
+const uint16_t        dual_watch_count_after_1_10ms    =   5000 / 10;   // 5 sec
+const uint16_t        dual_watch_count_after_2_10ms    =   3600 / 10;   // 3.6 sec
+const uint16_t        dual_watch_count_noaa_10ms       =     70 / 10;   // 70ms
 #ifdef ENABLE_VOX
-	const uint16_t    dual_watch_count_after_vox_10ms  =   200 / 10;   // 200ms
+	const uint16_t    dual_watch_count_after_vox_10ms  =    200 / 10;   // 200ms
 #endif
-const uint16_t        dual_watch_count_toggle_10ms     =   100 / 10;   // 100ms between VFO toggles
+const uint16_t        dual_watch_count_toggle_10ms     =    100 / 10;   // 100ms between VFO toggles
 
-const uint16_t        scan_pause_delay_in_1_10ms       =  5000 / 10;   // 5 seconds
-const uint16_t        scan_pause_delay_in_2_10ms       =   500 / 10;   // 500ms
-const uint16_t        scan_pause_delay_in_3_10ms       =   200 / 10;   // 200ms
-const uint16_t        scan_pause_delay_in_4_10ms       =   300 / 10;   // 300ms
-const uint16_t        scan_pause_delay_in_5_10ms       =  1000 / 10;   // 1 sec
-const uint16_t        scan_pause_delay_in_6_10ms       =   100 / 10;   // 100ms
-const uint16_t        scan_pause_delay_in_7_10ms       =  3600 / 10;   // 3.6 seconds
+const uint16_t        scan_pause_1_10ms                =   5000 / 10;   // 5 seconds
+const uint16_t        scan_pause_2_10ms                =    500 / 10;   // 500ms
+const uint16_t        scan_pause_3_10ms                =    200 / 10;   // 200ms
+const uint16_t        scan_pause_4_10ms                =    300 / 10;   // 300ms
+const uint16_t        scan_pause_5_10ms                =   1000 / 10;   // 1 sec
+const uint16_t        scan_pause_6_10ms                =    100 / 10;   // 100ms
+const uint16_t        scan_pause_7_10ms                =   3600 / 10;   // 3.6 seconds
 
-const uint16_t        battery_save_count_10ms          = 10000 / 10;   // 10 seconds
+const uint16_t        battery_save_count_10ms          =  10000 / 10;   // 10 seconds
 
-const uint16_t        power_save1_10ms                 =   100 / 10;   // 100ms
-const uint16_t        power_save2_10ms                 =   200 / 10;   // 200ms
+const uint16_t        power_save1_10ms                 =    100 / 10;   // 100ms
+const uint16_t        power_save2_10ms                 =    200 / 10;   // 200ms
 
 #ifdef ENABLE_VOX
-	const uint16_t    vox_stop_count_down_10ms         =  1000 / 10;   // 1 second
+	const uint16_t    vox_stop_count_down_10ms         =   1000 / 10;   // 1 second
 #endif
 
 const uint16_t        noaa_count_down_10ms              =  5000 / 10;   // 5 seconds
@@ -88,10 +90,13 @@ const uint32_t        g_default_aes_key[4]                = {0x4AA5CC60, 0x0312C
 
 const uint8_t         g_mic_gain_dB_2[5]                  = {3, 8, 16, 24, 31};
 
+#ifdef ENABLE_KILL_REVIVE
+	bool              g_setting_radio_disabled;
+#endif
+
 bool                  g_setting_350_tx_enable;
-bool                  g_setting_killed;
-bool                  g_setting_200_tx_enable;
-bool                  g_setting_500_tx_enable;
+bool                  g_setting_174_tx_enable;
+bool                  g_setting_470_tx_enable;
 bool                  g_setting_350_enable;
 bool                  g_setting_tx_enable;
 uint8_t               g_setting_freq_lock;
@@ -140,7 +145,6 @@ volatile bool         g_schedule_dual_watch = true;
 
 volatile uint16_t     g_dual_watch_count_down_10ms;
 volatile bool         g_dual_watch_count_down_expired = true;
-bool                  g_dual_watch_active;
 
 volatile uint8_t      g_serial_config_count_down_500ms;
 
@@ -219,6 +223,7 @@ volatile uint16_t     g_flash_light_blink_counter;
 
 bool                  g_flag_end_tx;
 uint16_t              g_low_batteryCountdown;
+
 reception_mode_t      g_rx_reception_mode;
 
 uint8_t               g_scan_next_channel;
@@ -227,8 +232,7 @@ scan_next_chan_t      g_scan_current_scan_list;
 uint32_t              g_scan_restore_frequency;
 bool                  g_scan_keep_frequency;
 bool                  g_scan_pause_mode;
-volatile bool         g_scan_schedule_scan_listen = true;
-volatile uint16_t     g_scan_pause_delay_in_10ms;
+volatile uint16_t     g_scan_pause_10ms;
 scan_state_dir_t      g_scan_state_dir;
 
 bool                  g_rx_vfo_is_active;
@@ -264,7 +268,7 @@ volatile bool         g_flag_tail_tone_elimination_complete;
 	volatile bool     g_schedule_fm;
 #endif
 
-volatile uint8_t      g_boot_counter_10ms;
+volatile uint16_t     g_boot_counter_10ms = 4000 / 10;   // 4 seconds
 
 int16_t               g_current_rssi[2] = {0, 0};  // now one per VFO
 

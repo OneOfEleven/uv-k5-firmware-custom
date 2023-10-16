@@ -202,7 +202,7 @@ static void SetModulation(ModulationType type)
 static void SetF(uint32_t f) {
   fMeasure = f;
 
-  BK4819_SetFrequency(fMeasure);
+  BK4819_set_rf_frequency(fMeasure);
   BK4819_PickRXFilterPathBasedOnFrequency(fMeasure);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
   BK4819_WriteRegister(BK4819_REG_30, 0);
@@ -211,7 +211,7 @@ static void SetF(uint32_t f) {
 
 static void SetTxF(uint32_t f) {
   fTx = f;
-  BK4819_SetFrequency(f);
+  BK4819_set_rf_frequency(f);
   BK4819_PickRXFilterPathBasedOnFrequency(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
   BK4819_WriteRegister(BK4819_REG_30, 0);
@@ -434,8 +434,8 @@ static void ToggleTX(bool on) {
 
     SetF(fMeasure);
   }
-  BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, !on);
-  BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, on);
+  BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, !on);
+  BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, on);
 }
 
 // Scan info

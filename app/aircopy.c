@@ -70,7 +70,7 @@ void AIRCOPY_init(void)
 	// turn the backlight ON
 	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
-	RADIO_SetupRegisters(true);
+	RADIO_setup_registers(true);
 
 	BK4819_SetupAircopy(AIRCOPY_DATA_PACKET_SIZE);
 
@@ -195,7 +195,7 @@ void AIRCOPY_start_fsk_tx(const int request_block_num)
 	BK4819_WriteRegister(BK4819_REG_59, (1u << 13) | (1u << 11) | fsk_reg59);
 }
 
-void AIRCOPY_stop_fsk_tx(const bool inc_block)
+void AIRCOPY_stop_fsk_tx(void)
 {
 	if (g_aircopy_state != AIRCOPY_TX && g_fsk_tx_timeout_10ms == 0)
 		return;
@@ -203,32 +203,21 @@ void AIRCOPY_stop_fsk_tx(const bool inc_block)
 	g_fsk_tx_timeout_10ms = 0;
 
 	// disable the TX
-	BK4819_SetupPowerAmplifier(0, 0);                     //
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);        // ???
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);   // LED off
+	BK4819_SetupPowerAmplifier(0, 0);                             //
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);        // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);           // LED off
 
 	BK4819_reset_fsk();
 
-	if (inc_block)
+	if (g_aircopy_state == AIRCOPY_TX)
 	{
-		if (++g_aircopy_block_number >= g_aircopy_block_max)
-		{	// transfer is complete
-			g_aircopy_state = AIRCOPY_TX_COMPLETE;
-		}
-		else
-		{	// TX pause/gap time till we start the next packet
-			aircopy_send_count_down_10ms = 220 / 10;   // 220ms
-		}
+		g_aircopy_block_number++;
 
-		// RX mode
-		BK4819_start_fsk_rx(AIRCOPY_REQ_PACKET_SIZE);
-	
+		// TX pause/gap time till we start the next packet
+		aircopy_send_count_down_10ms = 250 / 10;   // 250ms
+
 		g_update_display = true;
 		GUI_DisplayScreen();
-	}
-	else
-	{	// RX mode
-		BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 	}
 }
 
@@ -242,18 +231,25 @@ void AIRCOPY_process_fsk_tx_10ms(void)
 	if (g_fsk_tx_timeout_10ms == 0)
 	{	// not currently TX'ing
 
-		if (g_aircopy_state == AIRCOPY_TX && g_aircopy_block_number < g_aircopy_block_max)
-		{	// not yet finished the complete transfer
+		if (g_aircopy_state == AIRCOPY_TX)
+		{	// we're still TX transferring
+
+			if (g_fsk_write_index > 0)
+				return;        // currently RX'ing a packet
 
 			if (aircopy_send_count_down_10ms > 0)
 				if (--aircopy_send_count_down_10ms > 0)
 					return;    // not yet time to TX next packet
 
-			if (g_fsk_write_index > 0)
-				return;        // currently RX'ing a packet
-				
-			// start next TX packet
-			AIRCOPY_start_fsk_tx(-1);
+			if (g_aircopy_block_number >= g_aircopy_block_max)
+			{	// transfer is complete
+				g_aircopy_state = AIRCOPY_TX_COMPLETE;
+				AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+			}
+			else
+			{	// start next TX packet
+				AIRCOPY_start_fsk_tx(-1);
+			}
 
 			g_update_display = true;
 			GUI_DisplayScreen();
@@ -272,7 +268,19 @@ void AIRCOPY_process_fsk_tx_10ms(void)
 			return;            // TX not yet finished
 	}
 
-	AIRCOPY_stop_fsk_tx(true);
+	AIRCOPY_stop_fsk_tx();
+
+	if (g_aircopy_state == AIRCOPY_RX)
+	{
+		g_fsk_write_index = 0;
+		BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
+	}
+	else
+	if (g_aircopy_state == AIRCOPY_TX)
+	{
+		g_fsk_write_index = 0;
+		BK4819_start_fsk_rx(AIRCOPY_REQ_PACKET_SIZE);
+	}
 }
 
 void AIRCOPY_process_fsk_rx_10ms(void)
@@ -365,7 +373,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		if (g_fsk_write_index < ARRAY_SIZE(g_fsk_buffer))
 			g_fsk_buffer[g_fsk_write_index++] = word;
 	}
-	
+
 	// REG_0B read only
 	//
 	// <15:12> ???
@@ -407,9 +415,11 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	if ((status & (1u << 4)) != 0)
 	{
 		g_aircopy_rx_errors_fsk_crc++;
+
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			UART_printf("aircopy status %04X\r\n", status);
 		#endif
+
 		g_fsk_write_index = 0;
 		return;
 	}
@@ -424,7 +434,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	crc1 = CRC_Calculate(&g_fsk_buffer[1], (g_fsk_write_index - 3) * 2);
 	// fetch the CRC
 	crc2 = g_fsk_buffer[g_fsk_write_index - 2];
-	
+
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 		// show the entire packet
 		UART_SendText("aircopy");
@@ -437,9 +447,14 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	if (crc2 != crc1)
 	{	// invalid CRC
 		g_aircopy_rx_errors_crc++;
+
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			UART_printf("aircopy invalid CRC %04X %04X\r\n", crc2, crc1);
 		#endif
+
+		if (g_aircopy_state == AIRCOPY_RX)
+			goto send_req;
+
 		g_fsk_write_index = 0;
 		return;
 	}
@@ -457,11 +472,20 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		#endif
 
 		if (g_aircopy_state == AIRCOPY_TX)
-		{	// send them the block they want
-			g_aircopy_block_number       = block_num;  // go to the block number they want
-			aircopy_send_count_down_10ms = 0;          // TX asap
+		{	// we are the TX'ing radio
+			if (block_num >= g_aircopy_block_max)
+			{	// they have all the blocks .. transfer is complete
+				g_aircopy_block_number = g_aircopy_block_max;
+				g_aircopy_state        = AIRCOPY_TX_COMPLETE;
+				AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+			}
+			else
+			{	// send them the block they want
+				g_aircopy_block_number       = block_num;  // go to the block number they want
+				aircopy_send_count_down_10ms = 0;          // TX asap
+			}
 		}
-		
+
 		g_fsk_write_index = 0;
 		return;
 	}
@@ -473,50 +497,24 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	}
 
 	if (g_fsk_buffer[0] != AIRCOPY_MAGIC_START || g_fsk_buffer[g_fsk_write_index - 1] != AIRCOPY_MAGIC_END)
-	{	// invalid magics .. ignore it
+	{	// invalid magics
 		g_aircopy_rx_errors_magic++;
-		g_fsk_write_index = 0;
-		return;
+		goto send_req;
 	}
 
 	if (eeprom_addr != (block_num * block_size))
 	{	// eeprom address not block aligned .. ignore it
-		g_fsk_write_index = 0;
-		return;
+		goto send_req;
 	}
 
 	if (block_num != g_aircopy_block_number)
-	{	// not the block number we're expecting .. request the correct block
-
-		g_fsk_write_index = 0;
-
-		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("aircopy TX req %04X %04X\r\n", g_aircopy_block_number * 64, block_num * 64);
-		#endif
-
-		// this packet takes 150ms start to finish
-		AIRCOPY_start_fsk_tx(g_aircopy_block_number);
-		g_fsk_tx_timeout_10ms = 200 / 5;             // allow up to 200ms for the TX to complete
-		while (g_fsk_tx_timeout_10ms-- > 0)
-		{
-			SYSTEM_DelayMs(5);
-			if (BK4819_ReadRegister(BK4819_REG_0C) & (1u << 0))
-			{	// we have interrupt flags
-				BK4819_WriteRegister(BK4819_REG_02, 0);
-				const uint16_t interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
-				if (interrupt_bits & BK4819_REG_02_FSK_TX_FINISHED)
-					g_fsk_tx_timeout_10ms = 0;       // TX is complete
-			}
-		}
-		AIRCOPY_stop_fsk_tx(false);
-
-		return;
+	{	// not the block number we're expecting .. request the correct one
+		goto send_req;
 	}
 
 	if ((eeprom_addr + block_size) > AIRCOPY_LAST_EEPROM_ADDR)
-	{
-		g_fsk_write_index = 0;
-		return;
+	{	// ignore it
+		goto send_req;
 	}
 
 	// clear the error counts
@@ -545,6 +543,11 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 				data[3] = 0xffff;
 			//#endif
 		}
+		else
+		if (eeprom_addr == 0x0F40)
+		{	// killed flag is here
+			data[2] = false;	// remove it
+		}
 
 		EEPROM_WriteBuffer(eeprom_addr, data);   // 8 bytes at a time
 		data        += write_size / sizeof(data[0]);
@@ -555,7 +558,45 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	g_fsk_write_index      = 0;
 
 	if (eeprom_addr >= AIRCOPY_LAST_EEPROM_ADDR)
-		g_aircopy_state  = AIRCOPY_RX_COMPLETE;		// reached end of eeprom config area
+	{	// transfer is complete
+		g_aircopy_state  = AIRCOPY_RX_COMPLETE;
+		AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+		#ifdef ENABLE_AIRCOPY_RX_REBOOT
+			#if defined(ENABLE_OVERLAY)
+				overlay_FLASH_RebootToBootloader();
+			#else
+				NVIC_SystemReset();
+			#endif
+		#endif
+	}
+	
+	return;
+	
+send_req:
+	g_fsk_write_index = 0;
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("aircopy TX req %04X %04X\r\n", g_aircopy_block_number * 64, block_num * 64);
+	#endif
+
+	// this packet takes 150ms start to finish
+	AIRCOPY_start_fsk_tx(g_aircopy_block_number);
+	g_fsk_tx_timeout_10ms = 200 / 5;             // allow up to 200ms for the TX to complete
+	while (g_fsk_tx_timeout_10ms-- > 0)
+	{
+		SYSTEM_DelayMs(5);
+		if (BK4819_ReadRegister(BK4819_REG_0C) & (1u << 0))
+		{	// we have interrupt flags
+			BK4819_WriteRegister(BK4819_REG_02, 0);
+			const uint16_t interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
+			if (interrupt_bits & BK4819_REG_02_FSK_TX_FINISHED)
+				g_fsk_tx_timeout_10ms = 0;       // TX is complete
+		}
+	}
+	AIRCOPY_stop_fsk_tx();
+
+	BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 }
 
 static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
@@ -565,9 +606,10 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 	if (g_aircopy_state != AIRCOPY_READY)
 	{
-		AIRCOPY_stop_fsk_tx(false);
+		g_aircopy_state = AIRCOPY_READY;
 
-		g_aircopy_state  = AIRCOPY_READY;
+		AIRCOPY_stop_fsk_tx();
+
 		g_update_display = true;
 		GUI_DisplayScreen();
 	}
@@ -638,10 +680,15 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 			// turn the green LED off
 			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
 
-			AIRCOPY_stop_fsk_tx(false);
-
 			g_input_box_index = 0;
 			g_aircopy_state   = AIRCOPY_READY;
+
+			AIRCOPY_stop_fsk_tx();
+
+			AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+			AIRCOPY_init();
+
 			g_update_display  = true;
 			GUI_DisplayScreen();
 		}
@@ -670,17 +717,21 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 
 		g_input_box_index = 0;
 
-		g_aircopy_state  = AIRCOPY_RX;
-		g_update_display = true;
-		GUI_DisplayScreen();
+		AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+		AIRCOPY_init();
 
 		g_fsk_write_index           = 0;
 		g_aircopy_block_number      = 0;
 		g_aircopy_rx_errors_fsk_crc = 0;
 		g_aircopy_rx_errors_magic   = 0;
 		g_aircopy_rx_errors_crc     = 0;
+		g_aircopy_state             = AIRCOPY_RX;
 
 		BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
+
+		g_update_display = true;
+		GUI_DisplayScreen();
 	}
 }
 
@@ -695,26 +746,28 @@ static void AIRCOPY_Key_MENU(bool key_pressed, bool key_held)
 	{	// key released
 
 		// enter TX mode
-		g_input_box_index = 0;
-
-		g_aircopy_state  = AIRCOPY_TX;
-		g_update_display = true;
-		GUI_DisplayScreen();
 
 		g_input_box_index = 0;
 
-		g_fsk_write_index           = 0;
-		g_aircopy_block_number      = 0;
-		g_aircopy_rx_errors_fsk_crc = 0;
-		g_aircopy_rx_errors_magic   = 0;
-		g_aircopy_rx_errors_crc     = 0;
+		AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 
+		AIRCOPY_init();
+
+		g_fsk_write_index            = 0;
+		g_aircopy_block_number       = 0;
+		g_aircopy_rx_errors_fsk_crc  = 0;
+		g_aircopy_rx_errors_magic    = 0;
+		g_aircopy_rx_errors_crc      = 0;
 		g_fsk_tx_timeout_10ms        = 0;
 		aircopy_send_count_down_10ms = 0;
+		g_aircopy_state              = AIRCOPY_TX;
+
+		g_update_display = true;
+		GUI_DisplayScreen();
 	}
 }
 
-void AIRCOPY_ProcessKey(key_code_t Key, bool key_pressed, bool key_held)
+void AIRCOPY_process_key(key_code_t Key, bool key_pressed, bool key_held)
 {
 	switch (Key)
 	{

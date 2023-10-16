@@ -130,9 +130,9 @@ const t_menu_item g_menu_list[] =
 	// enabled by pressing both the PTT and upper side button at power-on
 
 	{"F LOCK", VOICE_ID_INVALID,                       MENU_FREQ_LOCK     }, // country/area specific
-	{"Tx 200", VOICE_ID_INVALID,                       MENU_200TX         }, // was "200TX"
+	{"Tx 174", VOICE_ID_INVALID,                       MENU_174TX         }, // was "200TX"
 	{"Tx 350", VOICE_ID_INVALID,                       MENU_350TX         }, // was "350TX"
-	{"Tx 500", VOICE_ID_INVALID,                       MENU_500TX         }, // was "500TX"
+	{"Tx 470", VOICE_ID_INVALID,                       MENU_470TX         }, // was "500TX"
 	{"350 EN", VOICE_ID_INVALID,                       MENU_350EN         }, // was "350EN"
 	{"SCR EN", VOICE_ID_INVALID,                       MENU_SCREN         }, // was "SCREN"
 	{"Tx EN",  VOICE_ID_INVALID,                       MENU_TX_EN         }, // enable TX
@@ -752,10 +752,23 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_350TX:
-		case MENU_200TX:
-		case MENU_500TX:
+			strcpy(String, "350 ~ 400\n");
+			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			break;
+
+		case MENU_174TX:
+			strcpy(String, "174 ~ 350\n");
+			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			break;
+
+		case MENU_470TX:
+			strcpy(String, "470 ~ 600\n");
+			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			break;
+
 		case MENU_350EN:
-			strcpy(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			strcpy(String, "350 ~ 400\n");
+			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
 			break;
 
 		case MENU_SCREN:
@@ -1017,9 +1030,9 @@ void UI_DisplayMenu(void)
 					}
 				}
 			}
+
 			// add the date and time
-			strcat(String, "\n" __DATE__);
-			strcat(String, "\n" __TIME__);
+			strcat(String, "\n \n" __DATE__ "\n" __TIME__);
 			break;
 		}
 			

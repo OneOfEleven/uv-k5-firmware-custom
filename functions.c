@@ -43,18 +43,14 @@ function_type_t g_current_function;
 
 void FUNCTION_Init(void)
 {
-	#ifdef ENABLE_NOAA
-		if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
-	#endif
+	if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 	{
 		g_current_code_type = g_selected_code_type;
 		if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
 			g_current_code_type = g_rx_vfo->am_mode ? CODE_TYPE_NONE : g_rx_vfo->p_rx->code_type;
 	}
-	#ifdef ENABLE_NOAA
-		else
-			g_current_code_type = CODE_TYPE_CONTINUOUS_TONE;
-	#endif
+	else
+		g_current_code_type = CODE_TYPE_CONTINUOUS_TONE;
 
 	DTMF_clear_RX();
 
@@ -167,7 +163,7 @@ void FUNCTION_Select(function_type_t Function)
 			BK4819_DisableVox();			
 			BK4819_Sleep();
 
-			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, false);
+			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, false);
 
 			g_update_status = true;
 
@@ -260,11 +256,11 @@ void FUNCTION_Select(function_type_t Function)
 				BK4819_DisableScramble();
 
 			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
-				backlight_turn_on();
+				backlight_turn_on(backlight_tx_rx_time_500ms);
 
 			break;
 
-		case FUNCTION_BAND_SCOPE:
+		case FUNCTION_PANADAPTER:
 			break;
 	}
 

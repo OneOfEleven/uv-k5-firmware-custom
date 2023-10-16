@@ -83,12 +83,11 @@ void MENU_StartCssScan(int8_t Direction)
 
 	g_menu_scroll_direction = Direction;
 
-	RADIO_SelectVfos();
+	RADIO_select_vfos();
 
 	MENU_SelectNextCode();
 
-	g_scan_pause_delay_in_10ms = scan_pause_delay_in_2_10ms;
-	g_scan_schedule_scan_listen     = false;
+	g_scan_pause_10ms = scan_pause_2_10ms;
 }
 
 void MENU_StopCssScan(void)
@@ -96,7 +95,7 @@ void MENU_StopCssScan(void)
 	g_css_scan_mode = CSS_SCAN_MODE_OFF;
 	g_update_status = true;
 
-	RADIO_SetupRegisters(true);
+	RADIO_setup_registers(true);
 }
 
 int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
@@ -253,8 +252,8 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			case MENU_NOAA_S:
 		#endif
 		case MENU_350TX:
-		case MENU_200TX:
-		case MENU_500TX:
+		case MENU_174TX:
+		case MENU_470TX:
 		case MENU_350EN:
 		case MENU_SCREN:
 		case MENU_TX_EN:
@@ -559,12 +558,10 @@ void MENU_AcceptSetting(void)
 			break;
 
 		case MENU_XB:
-			#ifdef ENABLE_NOAA
-				if (IS_NOAA_CHANNEL(g_eeprom.screen_channel[0]))
-					return;
-				if (IS_NOAA_CHANNEL(g_eeprom.screen_channel[1]))
-					return;
-			#endif
+			if (IS_NOAA_CHANNEL(g_eeprom.screen_channel[0]))
+				return;
+			if (IS_NOAA_CHANNEL(g_eeprom.screen_channel[1]))
+				return;
 
 			g_eeprom.cross_vfo_rx_tx = g_sub_menu_selection;
 			g_flag_reconfigure_vfos  = true;
@@ -795,12 +792,12 @@ void MENU_AcceptSetting(void)
 			g_setting_freq_lock = g_sub_menu_selection;
 			break;
 
-		case MENU_200TX:
-			g_setting_200_tx_enable = g_sub_menu_selection;
+		case MENU_174TX:
+			g_setting_174_tx_enable = g_sub_menu_selection;
 			break;
 
-		case MENU_500TX:
-			g_setting_500_tx_enable = g_sub_menu_selection;
+		case MENU_470TX:
+			g_setting_470_tx_enable = g_sub_menu_selection;
 			break;
 
 		case MENU_350EN:
@@ -883,9 +880,9 @@ void MENU_SelectNextCode(void)
 		g_selected_code      = g_sub_menu_selection - 1;
 	}
 
-	RADIO_SetupRegisters(true);
+	RADIO_setup_registers(true);
 
-	g_scan_pause_delay_in_10ms = (g_selected_code_type == CODE_TYPE_CONTINUOUS_TONE) ? scan_pause_delay_in_3_10ms : scan_pause_delay_in_4_10ms;
+	g_scan_pause_10ms = (g_selected_code_type == CODE_TYPE_CONTINUOUS_TONE) ? scan_pause_3_10ms : scan_pause_4_10ms;
 
 	g_update_display = true;
 }
@@ -1229,12 +1226,12 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_setting_freq_lock;
 			break;
 
-		case MENU_200TX:
-			g_sub_menu_selection = g_setting_200_tx_enable;
+		case MENU_174TX:
+			g_sub_menu_selection = g_setting_174_tx_enable;
 			break;
 
-		case MENU_500TX:
-			g_sub_menu_selection = g_setting_500_tx_enable;
+		case MENU_470TX:
+			g_sub_menu_selection = g_setting_470_tx_enable;
 			break;
 
 		case MENU_350EN:
@@ -1663,13 +1660,9 @@ static void MENU_Key_STAR(const bool key_pressed, const bool key_held)
 		return;
 	}
 
-	RADIO_SelectVfos();
+	RADIO_select_vfos();
 
-	#ifdef ENABLE_NOAA
-		if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_rx_vfo->am_mode == 0)
-	#else
-		if (g_rx_vfo->am_mode == 0)
-	#endif
+	if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_rx_vfo->am_mode == 0)
 	{
 		if (g_menu_cursor == MENU_R_CTCS || g_menu_cursor == MENU_R_DCS)
 		{	// scan CTCSS or DCS to find the tone/code of the incoming signal
@@ -1818,7 +1811,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 	g_request_display_screen = DISPLAY_MENU;
 }
 
-void MENU_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
+void MENU_process_key(key_code_t Key, bool key_pressed, bool key_held)
 {
 	switch (Key)
 	{

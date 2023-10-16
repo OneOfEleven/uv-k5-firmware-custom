@@ -423,7 +423,7 @@ static void SEARCH_Key_UP_DOWN(bool key_pressed, bool pKeyHeld, int8_t Direction
 		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 }
 
-void SEARCH_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
+void SEARCH_process_key(key_code_t Key, bool key_pressed, bool key_held)
 {
 	switch (Key)
 	{
@@ -471,7 +471,7 @@ void SEARCH_Start(void)
 
 	BK4819_StopScan();
 
-	RADIO_SelectVfos();
+	RADIO_select_vfos();
 
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save))
@@ -486,7 +486,7 @@ void SEARCH_Start(void)
 	g_rx_vfo->step_setting = BackupStep;
 	g_rx_vfo->step_freq    = BackupStepFreq;
 
-	RADIO_SetupRegisters(true);
+	RADIO_setup_registers(true);
 
 	#ifdef ENABLE_NOAA
 		g_is_noaa_mode = false;

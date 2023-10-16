@@ -55,7 +55,7 @@ extern uint8_t             g_search_delay_10ms;
 extern uint8_t             g_search_hit_count;
 extern bool                g_search_use_css_result;
 
-void SEARCH_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held);
+void SEARCH_process_key(key_code_t Key, bool key_pressed, bool key_held);
 void SEARCH_Start(void);
 
 #endif
