@@ -46,6 +46,26 @@ center_line_t center_line = CENTER_LINE_NONE;
 
 // ***************************************************************************
 
+void draw_bar(uint8_t *line, const int len, const int max_width)
+{
+	int i;
+	#if 0
+		// solid bar
+		for (i = 0; i < max_width; i++)
+			line[i] = (i > len) ? ((i & 1) == 0) ? 0x41 : 0x00 : ((i & 1) == 0) ? 0x7f : 0x3e;
+	#elif 0
+		// knuled bar
+		for (i = 0; i < max_width; i += 2)
+			line[i] = (i <= len) ? 0x7f : 0x41;
+	#else
+		// segmented bar
+		for (i = 0; i < max_width; i += 5)
+			for (int k = i - 5; k < i && k < len; k++)
+				if (k >= 0)
+					line[k] = (k < (i - 2)) ? 0x7f : 0x00;
+	#endif
+}
+
 #ifdef ENABLE_SHOW_TX_TIMEOUT
 	bool UI_DisplayTXCountdown(const bool now)
 	{
@@ -78,7 +98,6 @@ center_line_t center_line = CENTER_LINE_NONE;
 //			const unsigned int level     = (((timeout_secs - secs) * bar_width) + (timeout_secs / 2)) / timeout_secs;   // with rounding
 			const unsigned int len       = (level <= bar_width) ? level : bar_width;
 			uint8_t           *p_line    = g_frame_buffer[line];
-			unsigned int       i;
 			char               s[17];
 
 			if (now)
@@ -91,15 +110,7 @@ center_line_t center_line = CENTER_LINE_NONE;
 				UI_PrintStringSmall(s, 2, 0, line);
 			#endif
 
-			#if 1
-				// solid bar
-				for (i = 0; i < bar_width; i++)
-					p_line[bar_x + i] = (i > len) ? ((i & 1) == 0) ? 0x41 : 0x00 : ((i & 1) == 0) ? 0x7f : 0x3e;
-			#else
-				// knuled bar
-				for (i = 0; i < bar_width; i += 2)
-					p_line[bar_x + i] = (i <= len) ? 0x7f : 0x41;
-			#endif
+			draw_bar(p_line + bar_x, len, bar_width);
 
 			if (now)
 				ST7565_BlitFullScreen();
@@ -174,7 +185,6 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 			const unsigned int bar_width = LCD_WIDTH - 1 - bar_x;
 			const unsigned int secs      = g_tx_timer_count_down_500ms / 2;
 			uint8_t           *p_line    = g_frame_buffer[line];
-			unsigned int       i;
 			char               s[16];
 
 			if (now)
@@ -197,15 +207,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 				const unsigned int sqrt_level = sqrt16((level < 65535) ? level : 65535);
 				const unsigned int len        = (sqrt_level <= bar_width) ? sqrt_level : bar_width;
 
-				#if 1
-					// solid bar
-					for (i = 0; i < bar_width; i++)
-						p_line[bar_x + i] = (i > len) ? ((i & 1) == 0) ? 0x41 : 0x00 : ((i & 1) == 0) ? 0x7f : 0x3e;
-				#else
-					// knuled bar
-					for (i = 0; i < bar_width; i += 2)
-						p_line[bar_x + i] = (i <= len) ? 0x7f : 0x41;
-				#endif
+				draw_bar(p_line + bar_x, len, bar_width);
 
 				if (now)
 					ST7565_BlitFullScreen();
@@ -242,7 +244,6 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 		uint8_t           *p_line        = g_frame_buffer[line];
 
 		char               s[16];
-		unsigned int       i;
 
 		if (g_eeprom.key_lock && g_keypad_locked > 0)
 			return;     // display is in use
@@ -268,15 +269,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 		}
 		UI_PrintStringSmall(s, 2, 0, line);
 
-		#if 1
-			// solid bar
-			for (i = 0; i < bar_width; i++)
-				p_line[bar_x + i] = (i > len) ? ((i & 1) == 0) ? 0x41 : 0x00 : ((i & 1) == 0) ? 0x7f : 0x3e;
-		#else
-			// knuled bar
-			for (i = 0; i < bar_width; i += 2)
-				p_line[bar_x + i] = (i <= len) ? 0x7f : 0x41;
-		#endif
+		draw_bar(p_line + bar_x, len, bar_width);
 
 		if (now)
 			ST7565_BlitFullScreen();
