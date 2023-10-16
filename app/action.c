@@ -90,8 +90,7 @@ void ACTION_Monitor(void)
 	
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{
-		g_scan_pause_delay_in_10ms  = scan_pause_delay_in_1_10ms;
-		g_scan_schedule_scan_listen = false;
+		g_scan_pause_10ms  = scan_pause_1_10ms;
 		g_scan_pause_mode           = true;
 	}
 
@@ -200,8 +199,7 @@ void ACTION_Scan(bool bRestart)
 
 						// jump to the next channel
 						APP_channel_next(true, g_scan_state_dir);
-						g_scan_pause_delay_in_10ms  = 1;
-						g_scan_schedule_scan_listen = false;
+						g_scan_pause_10ms = 0;
 	
 						g_update_status = true;
 						return;
@@ -252,8 +250,7 @@ void ACTION_Scan(bool bRestart)
 
 		// jump to the next channel
 		APP_channel_next(true, g_scan_state_dir);
-		g_scan_pause_delay_in_10ms  = 1;
-		g_scan_schedule_scan_listen = false;
+		g_scan_pause_10ms = 0;
 
 		g_update_status = true;
 	}

@@ -260,7 +260,7 @@ void FUNCTION_Select(function_type_t Function)
 
 			break;
 
-		case FUNCTION_BAND_SCOPE:
+		case FUNCTION_PANADAPTER:
 			break;
 	}
 

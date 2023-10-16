@@ -161,13 +161,13 @@ extern const uint16_t        dual_watch_count_noaa_10ms;
 	extern const uint16_t    dual_watch_count_after_vox_10ms;
 #endif
 
-extern const uint16_t        scan_pause_delay_in_1_10ms;
-extern const uint16_t        scan_pause_delay_in_2_10ms;
-extern const uint16_t        scan_pause_delay_in_3_10ms;
-extern const uint16_t        scan_pause_delay_in_4_10ms;
-extern const uint16_t        scan_pause_delay_in_5_10ms;
-extern const uint16_t        scan_pause_delay_in_6_10ms;
-extern const uint16_t        scan_pause_delay_in_7_10ms;
+extern const uint16_t        scan_pause_1_10ms;
+extern const uint16_t        scan_pause_2_10ms;
+extern const uint16_t        scan_pause_3_10ms;
+extern const uint16_t        scan_pause_4_10ms;
+extern const uint16_t        scan_pause_5_10ms;
+extern const uint16_t        scan_pause_6_10ms;
+extern const uint16_t        scan_pause_7_10ms;
 
 extern const uint8_t         g_mic_gain_dB_2[5];
 
@@ -303,8 +303,7 @@ extern scan_next_chan_t      g_scan_current_scan_list;
 extern uint32_t              g_scan_restore_frequency;
 extern bool                  g_scan_keep_frequency;
 extern bool                  g_scan_pause_mode;
-extern volatile bool         g_scan_schedule_scan_listen;
-extern volatile uint16_t     g_scan_pause_delay_in_10ms;
+extern volatile uint16_t     g_scan_pause_10ms;
 extern scan_state_dir_t      g_scan_state_dir;
 
 

@@ -103,9 +103,8 @@ static void APP_check_for_incoming_rx(void)
 		if (g_css_scan_mode != CSS_SCAN_MODE_OFF && g_rx_reception_mode == RX_MODE_NONE)
 		{	// CTCSS/DTS scanning
 
-			g_scan_pause_delay_in_10ms = scan_pause_delay_in_5_10ms;
-			g_scan_schedule_scan_listen    = false;
-			g_rx_reception_mode       = RX_MODE_DETECTED;
+			g_scan_pause_10ms   = scan_pause_5_10ms;
+			g_rx_reception_mode = RX_MODE_DETECTED;
 		}
 
 		if (g_eeprom.dual_watch == DUAL_WATCH_OFF)
@@ -166,8 +165,7 @@ static void APP_check_for_incoming_rx(void)
 			return;
 		}
 
-		g_scan_pause_delay_in_10ms = scan_pause_delay_in_3_10ms;
-		g_scan_schedule_scan_listen    = false;
+		g_scan_pause_10ms = scan_pause_3_10ms;
 	}
 
 	g_rx_reception_mode = RX_MODE_DETECTED;
@@ -409,8 +407,7 @@ Skip:
 						break;
 
 					case SCAN_RESUME_CO:
-						g_scan_pause_delay_in_10ms  = scan_pause_delay_in_7_10ms;
-						g_scan_schedule_scan_listen = false;
+						g_scan_pause_10ms = scan_pause_7_10ms;
 						break;
 
 					case SCAN_RESUME_SE:
@@ -470,7 +467,7 @@ static void APP_process_function(void)
 				APP_check_for_incoming_rx();
 			break;
 
-		case FUNCTION_BAND_SCOPE:
+		case FUNCTION_PANADAPTER:
 			break;
 	}
 
@@ -505,16 +502,14 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 			case SCAN_RESUME_TO:
 				if (!g_scan_pause_mode)
 				{
-					g_scan_pause_delay_in_10ms  = scan_pause_delay_in_1_10ms;
-					g_scan_schedule_scan_listen = false;
-					g_scan_pause_mode           = true;
+					g_scan_pause_10ms = scan_pause_1_10ms;
+					g_scan_pause_mode          = true;
 				}
 				break;
 
 			case SCAN_RESUME_CO:
 			case SCAN_RESUME_SE:
-				g_scan_pause_delay_in_10ms  = 0;
-				g_scan_schedule_scan_listen = false;
+				g_scan_pause_10ms = 0;
 				break;
 		}
 
@@ -697,9 +692,9 @@ static void APP_next_freq(void)
 		RADIO_setup_registers(true);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
-			g_scan_pause_delay_in_10ms = 8;   // 80ms
+			g_scan_pause_10ms = 8;   // 80ms
 		#else
-			g_scan_pause_delay_in_10ms = scan_pause_delay_in_6_10ms;
+			g_scan_pause_10ms = scan_pause_6_10ms;
 		#endif
 	}
 	else
@@ -708,9 +703,9 @@ static void APP_next_freq(void)
 		BK4819_set_rf_frequency(frequency, true);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
-			g_scan_pause_delay_in_10ms = 10;   // 100ms
+			g_scan_pause_10ms = 10;   // 100ms
 		#else
-			g_scan_pause_delay_in_10ms = scan_pause_delay_in_6_10ms;
+			g_scan_pause_10ms = scan_pause_6_10ms;
 		#endif
 	}
 
@@ -809,9 +804,9 @@ static void APP_next_channel(void)
 	}
 
 	#ifdef ENABLE_FASTER_CHANNEL_SCAN
-		g_scan_pause_delay_in_10ms = 9;  // 90ms .. <= ~60ms it misses signals (squelch response and/or PLL lock time) ?
+		g_scan_pause_10ms = 9;  // 90ms .. <= ~60ms it misses signals (squelch response and/or PLL lock time) ?
 	#else
-		g_scan_pause_delay_in_10ms = scan_pause_delay_in_3_10ms;
+		g_scan_pause_10ms = scan_pause_3_10ms;
 	#endif
 
 	g_scan_keep_frequency = false;
@@ -1120,11 +1115,13 @@ void APP_process(void)
 		if (g_voice_write_index == 0)
 	#endif
 	{
-		if (g_screen_to_display != DISPLAY_SEARCH &&
-		    g_scan_state_dir != SCAN_STATE_DIR_OFF &&
-		    g_scan_schedule_scan_listen &&
+		if ((g_current_function == FUNCTION_FOREGROUND ||
+			g_current_function == FUNCTION_INCOMING)  &&     // TODO: check me
+			g_screen_to_display != DISPLAY_SEARCH     &&
+		    g_scan_state_dir != SCAN_STATE_DIR_OFF    &&
+		    g_scan_pause_10ms == 0           &&
 		    !g_ptt_is_pressed)
-		{	// scanning
+		{	// RF scanning
 
 			if (IS_FREQ_CHANNEL(g_scan_next_channel))
 			{
@@ -1141,9 +1138,8 @@ void APP_process(void)
 					APP_next_channel();    // switch to next channel
 			}
 
-			g_scan_pause_mode           = false;
-			g_rx_reception_mode         = RX_MODE_NONE;
-			g_scan_schedule_scan_listen = false;
+			g_scan_pause_mode          = false;
+			g_rx_reception_mode        = RX_MODE_NONE;
 		}
 	}
 
@@ -1151,11 +1147,8 @@ void APP_process(void)
 		if (g_voice_write_index == 0)
 	#endif
 	{
-		if (g_css_scan_mode == CSS_SCAN_MODE_SCANNING && g_scan_schedule_scan_listen)
-		{
+		if (g_css_scan_mode == CSS_SCAN_MODE_SCANNING && g_scan_pause_10ms == 0)
 			MENU_SelectNextCode();
-			g_scan_schedule_scan_listen = false;
-		}
 	}
 	
 	#ifdef ENABLE_NOAA
@@ -2383,8 +2376,7 @@ void APP_channel_next(const bool flag, const scan_state_dir_t scan_direction)
 		APP_next_freq();
 	}
 
-	g_scan_pause_delay_in_10ms  = scan_pause_delay_in_2_10ms;
-	g_scan_schedule_scan_listen = false;
+	g_scan_pause_10ms  = scan_pause_2_10ms;
 	g_scan_pause_mode           = false;
 	g_scan_keep_frequency       = false;
 

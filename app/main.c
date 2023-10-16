@@ -581,7 +581,7 @@ static void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 						{
 							if (g_current_function != FUNCTION_INCOMING ||
 							    g_rx_reception_mode == RX_MODE_NONE ||
-								g_scan_pause_delay_in_10ms == 0)
+								g_scan_pause_10ms == 0)
 							{	// scan is running (not paused)
 								return;
 							}
@@ -724,10 +724,13 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 
 	uint8_t Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
 
-	if (!key_pressed && g_scan_state_dir == SCAN_STATE_DIR_OFF && IS_NOT_NOAA_CHANNEL(Channel) && IS_FREQ_CHANNEL(Channel))
-	{
+	if (!key_pressed &&
+	     g_scan_state_dir == SCAN_STATE_DIR_OFF &&
+	     IS_NOT_NOAA_CHANNEL(Channel) &&
+	     IS_FREQ_CHANNEL(Channel))
+	{	// key released in frequency mode
 		#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
-			if (key_held && !key_pressed && !monitor_was_enabled && g_current_function == FUNCTION_MONITOR)
+			if (key_held && !monitor_was_enabled && g_current_function == FUNCTION_MONITOR)
 			{	// re-enable the squelch
 				APP_start_listening(FUNCTION_RECEIVE, false);
 				g_monitor_enabled = false;
@@ -736,7 +739,6 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 
 		// only update eeprom when the key is released - saves a LOT of wear and tear on the little eeprom
 		g_flag_save_channel = 1;
-		//SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //			UART_printf("save chan\r\n");
@@ -813,8 +815,8 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 
 						if (key_held && key_pressed && !monitor_was_enabled)
 						{	// open the squelch if the user holds the key down
-							APP_start_listening(FUNCTION_MONITOR, false);
 							g_monitor_enabled = true;
+							APP_start_listening(FUNCTION_MONITOR, false);
 						}
 					#endif
 
@@ -860,8 +862,7 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 
 	// jump to the next channel
 	APP_channel_next(false, Direction);
-	g_scan_pause_delay_in_10ms  = 1;
-	g_scan_schedule_scan_listen = false;
+	g_scan_pause_10ms = 0;
 
 	g_ptt_was_released = true;
 }

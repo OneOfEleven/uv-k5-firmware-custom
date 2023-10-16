@@ -328,7 +328,7 @@ void DTMF_HandleRequest(void)
 		}
 	}
 
-	if (g_setting_radio_disabled || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+	if (g_setting_radio_disabled || g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
 	{	// we've been disabled, or expecting a reply
 		return;
 	}
