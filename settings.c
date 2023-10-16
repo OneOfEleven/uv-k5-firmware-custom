@@ -310,7 +310,11 @@ void SETTINGS_SaveSettings(void)
 	memset(State, 0xFF, sizeof(State));
 	State[0]  = g_setting_freq_lock;
 	State[1]  = g_setting_350_tx_enable;
-	State[2]  = g_setting_radio_disabled;
+	#ifdef ENABLE_KILL_REVIVE
+		State[2] = g_setting_radio_disabled;
+	#else
+		State[2] = false;
+	#endif
 	State[3]  = g_setting_174_tx_enable;
 	State[4]  = g_setting_470_tx_enable;
 	State[5]  = g_setting_350_enable;

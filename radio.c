@@ -791,7 +791,11 @@ void RADIO_setup_registers(bool switch_to_function_0)
 	BK4819_SetCompander((g_rx_vfo->am_mode == 0 && g_rx_vfo->compander >= 2) ? g_rx_vfo->compander : 0);
 
 	#if 0
-		if (!g_rx_vfo->dtmf_decoding_enable && !g_setting_radio_disabled)
+		#ifdef ENABLE_KILL_REVIVE
+			if (!g_rx_vfo->dtmf_decoding_enable && !g_setting_radio_disabled)
+		#else
+			if (!g_rx_vfo->dtmf_decoding_enable)
+		#endif
 		{
 			BK4819_DisableDTMF();
 		}

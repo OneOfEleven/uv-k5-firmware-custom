@@ -67,6 +67,7 @@ ENABLE_SHOW_CHARGE_LEVEL         := 0       show the charge level when the radio
 ENABLE_REVERSE_BAT_SYMBOL        := 1       mirror the battery symbol on the status bar (+ pole on the right)
 ENABLE_FREQ_SEARCH_TIMEOUT       := 1       timeout if FREQ not found when using F+4 search function
 ENABLE_CODE_SEARCH_TIMEOUT       := 0       timeout if CTCSS/CDCSS not found when using F+* search function
+ENABLE_KILL_REVIVE               := 0       '1' = include kill and revive code
 ENABLE_AM_FIX                    := 1       dynamically adjust the front end gains when in AM mode to helo prevent AM demodulator saturation, ignore the on-screen RSSI level (for now)
 ENABLE_AM_FIX_SHOW_DATA          := 1       show debug data for the AM fix (still tweaking it)
 ENABLE_SQUELCH_MORE_SENSITIVE    := 1       make squelch levels a little bit more sensitive - I plan to let user adjust the values themselves

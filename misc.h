@@ -171,8 +171,11 @@ extern const uint16_t        scan_pause_7_10ms;
 
 extern const uint8_t         g_mic_gain_dB_2[5];
 
+#ifdef ENABLE_KILL_REVIVE
+	extern bool              g_setting_radio_disabled;
+#endif
+
 extern bool                  g_setting_350_tx_enable;
-extern bool                  g_setting_radio_disabled;
 extern bool                  g_setting_174_tx_enable;
 extern bool                  g_setting_470_tx_enable;
 extern bool                  g_setting_350_enable;

@@ -225,7 +225,11 @@ static void APP_process_incoming_rx(void)
 	if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
 	{	// not scanning
 	
-		if (g_rx_vfo->dtmf_decoding_enable || g_setting_radio_disabled)
+		#ifdef ENABLE_KILL_REVIVE
+			if (g_rx_vfo->dtmf_decoding_enable || g_setting_radio_disabled)
+		#else
+			if (g_rx_vfo->dtmf_decoding_enable)
+		#endif
 		{	// DTMF DCD is enabled
 
 			DTMF_HandleRequest();
@@ -479,8 +483,10 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 	const unsigned int chan = g_eeprom.rx_vfo;
 //	const unsigned int chan = g_rx_vfo->channel_save;
 
-	if (g_setting_radio_disabled)
-		return;
+	#ifdef ENABLE_KILL_REVIVE
+		if (g_setting_radio_disabled)
+			return;
+	#endif
 
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)
@@ -888,7 +894,11 @@ void APP_process_radio_interrupts(void)
 						g_update_display        = true;
 					}
 
-					if (g_rx_vfo->dtmf_decoding_enable || g_setting_radio_disabled)
+					#ifdef ENABLE_KILL_REVIVE
+						if (g_rx_vfo->dtmf_decoding_enable || g_setting_radio_disabled)
+					#else
+						if (g_rx_vfo->dtmf_decoding_enable)
+					#endif
 					{
 						if (g_dtmf_rx_index >= (sizeof(g_dtmf_rx) - 1))
 						{	// make room
@@ -999,8 +1009,10 @@ void APP_end_tx(void)
 #ifdef ENABLE_VOX
 	static void APP_process_vox(void)
 	{
-		if (g_setting_radio_disabled)
-			return;
+		#ifdef ENABLE_KILL_REVIVE
+			if (g_setting_radio_disabled)
+				return;
+		#endif
 
 		if (g_vox_resume_count_down == 0)
 		{
@@ -1350,37 +1362,44 @@ void APP_check_keys(void)
 
 	key_code_t key;
 
-	if (g_setting_radio_disabled)
-		return;
+	#ifdef ENABLE_KILL_REVIVE
+		if (g_setting_radio_disabled)
+			return;
+	#endif
 
 	// *****************
 	// PTT is treated completely separately from all the other buttons
 
 	if (ptt_pressed)
 	{	// PTT pressed
-	#ifdef ENABLE_AIRCOPY
-		if (!g_setting_radio_disabled && !g_ptt_is_pressed && g_screen_to_display != DISPLAY_AIRCOPY)
-	#else
-		if (!g_setting_radio_disabled && !g_ptt_is_pressed)
+	#ifdef ENABLE_KILL_REVIVE
+		if (!g_setting_radio_disabled)
 	#endif
 		{
-			if (++g_ptt_debounce >= 3)      // 30ms
-			{	// start TX'ing
-
-				g_boot_counter_10ms = 0;    // cancel the boot-up screen
-				g_ptt_is_pressed    = true;
-				g_ptt_was_released  = false;
-				g_ptt_debounce      = 0;
-
-				APP_process_key(KEY_PTT, true, false);
-
-				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//					UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
-				#endif
+		#ifdef ENABLE_AIRCOPY
+			if (!g_ptt_is_pressed && g_screen_to_display != DISPLAY_AIRCOPY)
+		#else
+			if (!g_ptt_is_pressed)
+		#endif
+			{
+				if (++g_ptt_debounce >= 3)      // 30ms
+				{	// start TX'ing
+	
+					g_boot_counter_10ms = 0;    // cancel the boot-up screen
+					g_ptt_is_pressed    = true;
+					g_ptt_was_released  = false;
+					g_ptt_debounce      = 0;
+	
+					APP_process_key(KEY_PTT, true, false);
+	
+					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//						UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
+					#endif
+				}
 			}
+			else
+				g_ptt_debounce = 0;
 		}
-		else
-			g_ptt_debounce = 0;
 	}
 	else
 	{	// PTT released

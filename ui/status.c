@@ -79,12 +79,15 @@ void UI_DisplayStatus(const bool test_display)
 		// hmmm, what to put in it's place
 	#endif
 	
-	if (g_setting_radio_disabled)
+	#ifdef ENABLE_KILL_REVIVE
+		if (g_setting_radio_disabled)
+		{
+			memset(line + x, 0xFF, 10);
+			x1 = x + 10;
+		}
+		else
+	#endif
 	{
-		memset(line + x, 0xFF, 10);
-		x1 = x + 10;
-	}
-	else
 	#ifdef ENABLE_FMRADIO
 		// FM indicator
 		if (g_fm_radio_mode || test_display)
@@ -114,6 +117,7 @@ void UI_DisplayStatus(const bool test_display)
 			}
 			x1 = x + 7;
 		}
+	}
 	x += 7;  // font character width
 
 	#ifdef ENABLE_VOICE

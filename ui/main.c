@@ -817,8 +817,13 @@ void UI_DisplayMain(void)
 		}
 
 		// show the DTMF decoding symbol
-		if (g_eeprom.vfo_info[vfo_num].dtmf_decoding_enable || g_setting_radio_disabled)
-			UI_PrintStringSmall("DTMF", LCD_WIDTH + 78, 0, line + 1);
+		#ifdef ENABLE_KILL_REVIVE
+			if (g_eeprom.vfo_info[vfo_num].dtmf_decoding_enable || g_setting_radio_disabled)
+				UI_PrintStringSmall("DTMF", LCD_WIDTH + 78, 0, line + 1);
+		#else
+			if (g_eeprom.vfo_info[vfo_num].dtmf_decoding_enable)
+				UI_PrintStringSmall("DTMF", LCD_WIDTH + 78, 0, line + 1);
+		#endif
 
 		// show the audio scramble symbol
 		if (g_eeprom.vfo_info[vfo_num].scrambling_type > 0 && g_setting_scramble_enable)

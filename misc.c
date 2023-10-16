@@ -90,8 +90,11 @@ const uint32_t        g_default_aes_key[4]                = {0x4AA5CC60, 0x0312C
 
 const uint8_t         g_mic_gain_dB_2[5]                  = {3, 8, 16, 24, 31};
 
+#ifdef ENABLE_KILL_REVIVE
+	bool              g_setting_radio_disabled;
+#endif
+
 bool                  g_setting_350_tx_enable;
-bool                  g_setting_radio_disabled;
 bool                  g_setting_174_tx_enable;
 bool                  g_setting_470_tx_enable;
 bool                  g_setting_350_enable;

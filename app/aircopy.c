@@ -543,6 +543,11 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 				data[3] = 0xffff;
 			//#endif
 		}
+		else
+		if (eeprom_addr == 0x0F40)
+		{	// killed flag is here
+			data[2] = false;	// remove it
+		}
 
 		EEPROM_WriteBuffer(eeprom_addr, data);   // 8 bytes at a time
 		data        += write_size / sizeof(data[0]);
