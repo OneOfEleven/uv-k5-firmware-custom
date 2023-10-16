@@ -192,7 +192,11 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 			// TX timeout seconds
 			sprintf(s, "%3u", secs);
+		#ifdef ENABLE_SMALL_BOLD
 			UI_PrintStringSmallBold(s, 2, 0, line);
+		#else
+			UI_PrintStringSmall(s, 2, 0, line);
+		#endif
 
 			{	// TX audio level
 
