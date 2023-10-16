@@ -340,7 +340,7 @@ void ACTION_Scan(bool bRestart)
 	}
 #endif
 
-void ACTION_Handle(key_code_t Key, bool key_pressed, bool key_held)
+void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key_held)
 {
 	uint8_t Short = ACTION_OPT_NONE;
 	uint8_t Long  = ACTION_OPT_NONE;

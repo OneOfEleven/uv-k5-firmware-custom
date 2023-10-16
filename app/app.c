@@ -2665,7 +2665,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 			if (g_screen_to_display != DISPLAY_SEARCH)
 		#endif
 		{
-			ACTION_Handle(Key, key_pressed, key_held);
+			ACTION_process(Key, key_pressed, key_held);
 		}
 		else
 		{
