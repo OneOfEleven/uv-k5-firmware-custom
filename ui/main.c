@@ -399,7 +399,7 @@ void UI_DisplayMain(void)
 
 	if (g_serial_config_count_down_500ms > 0)
 	{
-		backlight_turn_on();
+		backlight_turn_on(10);		// 5 seconds
 		UI_PrintString("UART", 0, LCD_WIDTH, 1, 8);
 		UI_PrintString("CONFIG COMMS", 0, LCD_WIDTH, 3, 8);
 		ST7565_BlitFullScreen();
@@ -408,7 +408,7 @@ void UI_DisplayMain(void)
 
 	if (g_eeprom.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
-		backlight_turn_on();
+		backlight_turn_on(10);     // 5 seconds
 		UI_PrintString("Long press #", 0, LCD_WIDTH, 1, 8);
 		UI_PrintString("to unlock",    0, LCD_WIDTH, 3, 8);
 		ST7565_BlitFullScreen();

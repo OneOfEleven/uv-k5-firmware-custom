@@ -437,6 +437,9 @@ Skip:
 
 static void APP_process_function(void)
 {
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+
 	switch (g_current_function)
 	{
 		case FUNCTION_FOREGROUND:
@@ -444,13 +447,16 @@ static void APP_process_function(void)
 			break;
 
 		case FUNCTION_TRANSMIT:
-			break;
-
-		case FUNCTION_MONITOR:
+			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
+				backlight_turn_on(backlight_tx_rx_time_500ms);
 			break;
 
 		case FUNCTION_INCOMING:
 			APP_process_incoming_rx();
+
+		case FUNCTION_MONITOR:
+			if (g_setting_backlight_on_tx_rx >= 2)
+				backlight_turn_on(backlight_tx_rx_time_500ms);
 			break;
 
 		case FUNCTION_RECEIVE:
@@ -465,6 +471,8 @@ static void APP_process_function(void)
 		case FUNCTION_BAND_SCOPE:
 			break;
 	}
+
+	#pragma GCC diagnostic pop
 }
 
 void APP_start_listening(function_type_t Function, const bool reset_am_fix)
@@ -486,9 +494,6 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
 
 	g_enable_speaker = true;
-
-	if (g_setting_backlight_on_tx_rx >= 2)
-		backlight_turn_on();
 
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{	// we're scanning
@@ -690,7 +695,7 @@ static void APP_next_freq(void)
 		RADIO_setup_registers(true);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
-			g_scan_pause_delay_in_10ms = 9;   // 90ms
+			g_scan_pause_delay_in_10ms = 7;   // 70ms
 		#else
 			g_scan_pause_delay_in_10ms = scan_pause_delay_in_6_10ms;
 		#endif
@@ -701,7 +706,7 @@ static void APP_next_freq(void)
 		BK4819_set_rf_frequency(frequency, true);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
-			g_scan_pause_delay_in_10ms = 8;   // 80ms
+			g_scan_pause_delay_in_10ms = 10;   // 100ms
 		#else
 			g_scan_pause_delay_in_10ms = scan_pause_delay_in_6_10ms;
 		#endif
@@ -2401,15 +2406,15 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 
 	if (Key == KEY_EXIT && !backlight_was_on && g_eeprom.backlight > 0)
 	{	// just turn the light on for now so the user can see what's what
-		backlight_turn_on();
+		backlight_turn_on(0);
 		g_beep_to_play = BEEP_NONE;
 		return;
 	}
 */
 	// turn the backlight on
 	if (key_pressed)
-		if (Key != KEY_PTT || g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
-			backlight_turn_on();
+		if (Key != KEY_PTT)
+			backlight_turn_on(0);
 
 	if (g_current_function == FUNCTION_POWER_SAVE)
 		FUNCTION_Select(FUNCTION_FOREGROUND);

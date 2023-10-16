@@ -22,39 +22,48 @@
 // this is decremented once every 500ms
 uint16_t g_backlight_count_down = 0;
 
-void backlight_turn_on(void)
+void backlight_turn_on(const uint16_t min_ticks)
 {
-	if (g_eeprom.backlight == 0)
-		return;
-
-	// turn the backlight ON
-	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-		
-	switch (g_eeprom.backlight)
+	if (min_ticks > 0)
 	{
-		default:
-		case 1:	// 5 sec
-			g_backlight_count_down = 5;
-			break;
-		case 2:	// 10 sec
-			g_backlight_count_down = 10;
-			break;
-		case 3:	// 20 sec
-			g_backlight_count_down = 20;
-			break;
-		case 4:	// 1 min
-			g_backlight_count_down = 60;
-			break;
-		case 5:	// 2 min
-			g_backlight_count_down = 60 * 2;
-			break;
-		case 6:	// 4 min
-			g_backlight_count_down = 60 * 4;
-			break;
-		case 7:	// always on
-			g_backlight_count_down = 0;
-			break;
-	}
+		if (g_backlight_count_down < min_ticks)
+			g_backlight_count_down = min_ticks;
 
-	g_backlight_count_down *= 2;
+		// turn the backlight ON
+		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
+	}
+	else
+	if (g_eeprom.backlight > 0)
+	{
+		// turn the backlight ON
+		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
+		
+		switch (g_eeprom.backlight)
+		{
+			default:
+			case 1:	// 5 sec
+				g_backlight_count_down = 5;
+				break;
+			case 2:	// 10 sec
+				g_backlight_count_down = 10;
+				break;
+			case 3:	// 20 sec
+				g_backlight_count_down = 20;
+				break;
+			case 4:	// 1 min
+				g_backlight_count_down = 60;
+				break;
+			case 5:	// 2 min
+				g_backlight_count_down = 60 * 2;
+				break;
+			case 6:	// 4 min
+				g_backlight_count_down = 60 * 4;
+				break;
+			case 7:	// always on
+				g_backlight_count_down = 0;
+				break;
+		}
+	
+		g_backlight_count_down *= 2;
+	}
 }

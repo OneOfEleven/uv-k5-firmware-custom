@@ -434,20 +434,23 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *pInfo)
 	Band = FREQUENCY_GetBand(pInfo->p_rx->frequency);
 	uint16_t Base = (Band < BAND4_174MHz) ? 0x1E60 : 0x1E00;
 
+	// note that 'noise' and 'glitch' values are inverted compared to 'rssi' values
+
 	if (g_eeprom.squelch_level == 0)
 	{	// squelch == 0 (off)
 		pInfo->squelch_open_rssi_thresh    = 0;     // 0 ~ 255
-		pInfo->squelch_open_noise_thresh   = 127;   // 127 ~ 0
-		pInfo->squelch_close_glitch_thresh = 255;   // 255 ~ 0
-
 		pInfo->squelch_close_rssi_thresh   = 0;     // 0 ~ 255
+
+		pInfo->squelch_open_noise_thresh   = 127;   // 127 ~ 0
 		pInfo->squelch_close_noise_thresh  = 127;   // 127 ~ 0
+
+		pInfo->squelch_close_glitch_thresh = 255;   // 255 ~ 0
 		pInfo->squelch_open_glitch_thresh  = 255;   // 255 ~ 0
 	}
 	else
 	{	// squelch >= 1
-		Base += g_eeprom.squelch_level;                                        // my eeprom squelch-1
-																			  // VHF   UHF
+		Base += g_eeprom.squelch_level;                                          // my eeprom squelch-1
+		                                                                         // VHF   UHF
 		EEPROM_ReadBuffer(Base + 0x00, &pInfo->squelch_open_rssi_thresh,    1);  //  50    10
 		EEPROM_ReadBuffer(Base + 0x10, &pInfo->squelch_close_rssi_thresh,   1);  //  40     5
 
@@ -457,56 +460,78 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *pInfo)
 		EEPROM_ReadBuffer(Base + 0x40, &pInfo->squelch_close_glitch_thresh, 1);  //  90    90
 		EEPROM_ReadBuffer(Base + 0x50, &pInfo->squelch_open_glitch_thresh,  1);  // 100   100
 
-		uint16_t rssi_open    = pInfo->squelch_open_rssi_thresh;
-		uint16_t rssi_close   = pInfo->squelch_close_rssi_thresh;
-		uint16_t noise_open   = pInfo->squelch_open_noise_thresh;
-		uint16_t noise_close  = pInfo->squelch_close_noise_thresh;
-		uint16_t glitch_open  = pInfo->squelch_open_glitch_thresh;
-		uint16_t glitch_close = pInfo->squelch_close_glitch_thresh;
+		// *********
+
+		// used in AM mode
+		int16_t rssi_open    = pInfo->squelch_open_rssi_thresh;      // 0 ~ 255
+		int16_t rssi_close   = pInfo->squelch_close_rssi_thresh;     // 0 ~ 255
+
+		// used in FM mode
+		int16_t noise_open   = pInfo->squelch_open_noise_thresh;     // 127 ~ 0
+		int16_t noise_close  = pInfo->squelch_close_noise_thresh;    // 127 ~ 0
+
+		// used in both modes ?
+		int16_t glitch_open  = pInfo->squelch_open_glitch_thresh;    // 255 ~ 0
+		int16_t glitch_close = pInfo->squelch_close_glitch_thresh;   // 255 ~ 0
+
+		// *********
 
 		#if ENABLE_SQUELCH_MORE_SENSITIVE
 			// make squelch a little more sensitive
 			//
-			// getting the best setting here is still experimental, bare with me
-			//
-			// note that 'noise' and 'glitch' values are inverted compared to 'rssi' values
+			// getting the best general settings here is experimental, bare with me
 
 			#if 0
-				rssi_open   = (rssi_open   * 8) / 9;
+//				rssi_open   = (rssi_open   * 8) / 9;
 				noise_open  = (noise_open  * 9) / 8;
 				glitch_open = (glitch_open * 9) / 8;
 			#else
 				// even more sensitive .. use when RX bandwidths are fixed (no weak signal auto adjust)
-				rssi_open   = (rssi_open   * 1) / 2;
+//				rssi_open   = (rssi_open   * 1) / 2;
 				noise_open  = (noise_open  * 2) / 1;
 				glitch_open = (glitch_open * 2) / 1;
 			#endif
 
 		#else
 			// more sensitive .. use when RX bandwidths are fixed (no weak signal auto adjust)
-			rssi_open   = (rssi_open   * 3) / 4;
+//			rssi_open   = (rssi_open   * 3) / 4;
 			noise_open  = (noise_open  * 4) / 3;
 			glitch_open = (glitch_open * 4) / 3;
 		#endif
 
-		rssi_close   = (rssi_open   *  9) / 10;
-		noise_close  = (noise_open  * 10) / 9;
-		glitch_close = (glitch_open * 10) / 9;
-
+		// *********
 		// ensure the 'close' threshold is lower than the 'open' threshold
-		if (rssi_close   == rssi_open   && rssi_close   >= 2)
-			rssi_close -= 2;
-		if (noise_close  == noise_open  && noise_close  <= 125)
-			noise_close += 2;
-		if (glitch_close == glitch_open && glitch_close <= 253)
-			glitch_close += 2;
+		// ie, maintain a minimum level of hysteresis
 
-		pInfo->squelch_open_rssi_thresh    = (rssi_open    > 255) ? 255 : rssi_open;
-		pInfo->squelch_close_rssi_thresh   = (rssi_close   > 255) ? 255 : rssi_close;
-		pInfo->squelch_open_noise_thresh   = (noise_open   > 127) ? 127 : noise_open;
-		pInfo->squelch_close_noise_thresh  = (noise_close  > 127) ? 127 : noise_close;
-		pInfo->squelch_open_glitch_thresh  = (glitch_open  > 255) ? 255 : glitch_open;
-		pInfo->squelch_close_glitch_thresh = (glitch_close > 255) ? 255 : glitch_close;
+//		rssi_close   = (rssi_open   * 4) / 6;
+		noise_close  = (noise_open  * 6) / 4;
+		glitch_close = (glitch_open * 6) / 4;
+
+//		if (rssi_open  <  8)
+//			rssi_open  =  8;
+//		if (rssi_close > (rssi_open   - 8))
+//			rssi_close =  rssi_open   - 8;
+
+		if (noise_open  > (127 - 4))
+			noise_open  =  127 - 4;
+		if (noise_close < (noise_open  + 4))
+			noise_close =  noise_open  + 4;
+
+		if (glitch_open  > (255 - 8))
+			glitch_open  =  255 - 8;
+		if (glitch_close < (glitch_open + 8))
+			glitch_close =  glitch_open + 8;
+
+		// *********
+
+		pInfo->squelch_open_rssi_thresh    = (rssi_open    > 255) ? 255 : (rssi_open    < 0) ? 0 : rssi_open;
+		pInfo->squelch_close_rssi_thresh   = (rssi_close   > 255) ? 255 : (rssi_close   < 0) ? 0 : rssi_close;
+
+		pInfo->squelch_open_noise_thresh   = (noise_open   > 127) ? 127 : (noise_open   < 0) ? 0 : noise_open;
+		pInfo->squelch_close_noise_thresh  = (noise_close  > 127) ? 127 : (noise_close  < 0) ? 0 : noise_close;
+
+		pInfo->squelch_open_glitch_thresh  = (glitch_open  > 255) ? 255 : (glitch_open  < 0) ? 0 : glitch_open;
+		pInfo->squelch_close_glitch_thresh = (glitch_close > 255) ? 255 : (glitch_close < 0) ? 0 : glitch_close;
 	}
 
 	// *******************************

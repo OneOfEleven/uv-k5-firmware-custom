@@ -256,7 +256,7 @@ void FUNCTION_Select(function_type_t Function)
 				BK4819_DisableScramble();
 
 			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
-				backlight_turn_on();
+				backlight_turn_on(backlight_tx_rx_time_500ms);
 
 			break;
 

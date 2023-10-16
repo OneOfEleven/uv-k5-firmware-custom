@@ -127,7 +127,7 @@ void Main(void)
 	     KEYBOARD_Poll() != KEY_INVALID ||
 		 BootMode != BOOT_MODE_NORMAL)
 	{
-		backlight_turn_on();
+		backlight_turn_on(0);
 		UI_DisplayReleaseKeys();
 		i = 0;
 		while (i < (500 / 10))  // 500ms
@@ -152,7 +152,7 @@ void Main(void)
 	{
 		UI_DisplayWelcome();
 
-		backlight_turn_on();
+		backlight_turn_on(0);
 
 		#ifdef ENABLE_VOICE
 //			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
