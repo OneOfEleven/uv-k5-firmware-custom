@@ -630,7 +630,7 @@ void RADIO_setup_registers(bool switch_to_function_0)
 
 	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);   // LED off
 	BK4819_SetupPowerAmplifier(0, 0);
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);        // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);        // ???
 
 	while (1)
 	{	// wait for the interrupt to clear ?
@@ -662,7 +662,7 @@ void RADIO_setup_registers(bool switch_to_function_0)
 	BK4819_PickRXFilterPathBasedOnFrequency(Frequency);
 
 	// what does this in do ?
-	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, true);
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, true);
 
 	// AF RX Gain and DAC
 	BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);  // 1011 00 111010 1000
@@ -850,7 +850,7 @@ void RADIO_enableTX(const bool fsk_tx)
 
 	g_enable_speaker = false;
 
-	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, false);     // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, false);     // ???
 
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
@@ -876,7 +876,7 @@ void RADIO_enableTX(const bool fsk_tx)
 	BK4819_SetCompander((!fsk_tx && g_rx_vfo->am_mode == 0 && (g_rx_vfo->compander == 1 || g_rx_vfo->compander >= 3)) ? g_rx_vfo->compander : 0);
 	BK4819_PrepareTransmit();
 	BK4819_PickRXFilterPathBasedOnFrequency(g_current_vfo->p_tx->frequency);
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, true);                       // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, true);                       // ???
 	if (g_screen_to_display != DISPLAY_AIRCOPY)
 		BK4819_SetupPowerAmplifier(g_current_vfo->txp_calculated_setting, g_current_vfo->p_tx->frequency);
 	else

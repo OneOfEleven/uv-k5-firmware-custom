@@ -62,14 +62,14 @@ typedef enum BK4819_CSS_scan_result_e BK4819_CSS_scan_result_t;
 extern bool g_rx_idle_mode;
 
 void     BK4819_Init(void);
-uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register);
-void     BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data);
+uint16_t BK4819_ReadRegister(bk4819_register_t Register);
+void     BK4819_WriteRegister(bk4819_register_t Register, uint16_t Data);
 void     BK4819_WriteU8(uint8_t Data);
 void     BK4819_WriteU16(uint16_t Data);
 
 void     BK4819_SetAGC(uint8_t Value);
 
-void     BK4819_set_GPIO_pin(BK4819_GPIO_PIN_t Pin, bool bSet);
+void     BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet);
 
 void     BK4819_SetCDCSSCodeWord(uint32_t CodeWord);
 void     BK4819_SetCTCSSFrequency(uint32_t BaudRate);

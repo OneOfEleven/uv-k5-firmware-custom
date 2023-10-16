@@ -17,7 +17,7 @@
 #ifndef BK4819_REGS_H
 #define BK4819_REGS_H
 
-enum BK4819_REGISTER_t {
+enum bk4819_register_e {
 	BK4819_REG_00 = 0x00U,
 	BK4819_REG_02 = 0x02U,
 	BK4819_REG_06 = 0x06U,
@@ -89,22 +89,20 @@ enum BK4819_REGISTER_t {
 	BK4819_REG_7B = 0x7BU,
 	BK4819_REG_7C = 0x7CU,
 	BK4819_REG_7D = 0x7DU,
-	BK4819_REG_7E = 0x7EU,
+	BK4819_REG_7E = 0x7EU
 };
+typedef enum bk4819_register_e bk4819_register_t;
 
-typedef enum BK4819_REGISTER_t BK4819_REGISTER_t;
-
-enum BK4819_GPIO_PIN_t {
-	BK4819_GPIO6_PIN2        = 0,
-	BK4819_GPIO5_PIN1        = 1,
-	BK4819_GPIO4_PIN32       = 2,
-	BK4819_GPIO3_PIN31       = 3,
-	BK4819_GPIO2_PIN30       = 4,
-	BK4819_GPIO1_PIN29_RED   = 5,
-	BK4819_GPIO0_PIN28_GREEN = 6,
+enum bk4819_gpio_pin_e {
+	BK4819_GPIO6_PIN2_UNKNOWN = 0,   // please let us know if you know what this pin does
+	BK4819_GPIO5_PIN1_UNKNOWN = 1,   //    "            "
+	BK4819_GPIO4_PIN32_UNUSED = 2,
+	BK4819_GPIO3_PIN31_UHF    = 3,
+	BK4819_GPIO2_PIN30_VHF    = 4,
+	BK4819_GPIO1_PIN29_RED    = 5,
+	BK4819_GPIO0_PIN28_GREEN  = 6
 };
-
-typedef enum BK4819_GPIO_PIN_t BK4819_GPIO_PIN_t;
+typedef enum bk4819_gpio_pin_e bk4819_gpio_pin_t;
 
 // REG 02
 
@@ -350,4 +348,3 @@ enum {
 };
 
 #endif
-

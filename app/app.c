@@ -1325,7 +1325,7 @@ void APP_process(void)
 
 				BK4819_DisableVox();
 				BK4819_Sleep();
-				BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, false);
+				BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, false);
 
 				// Authentic device checked removed
 
@@ -1699,7 +1699,7 @@ void APP_time_slice_10ms(void)
 
 						RADIO_EnableCxCSS();
 						BK4819_SetupPowerAmplifier(0, 0);
-						BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);      // ???
+						BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);      // ???
 						BK4819_Enable_AfDac_DiscMode_TxDsp();
 						BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false); // LED off
 

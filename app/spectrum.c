@@ -434,8 +434,8 @@ static void ToggleTX(bool on) {
 
     SetF(fMeasure);
   }
-  BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2, !on);
-  BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, on);
+  BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, !on);
+  BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, on);
 }
 
 // Scan info

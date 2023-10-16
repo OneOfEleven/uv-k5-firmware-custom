@@ -203,9 +203,9 @@ void AIRCOPY_stop_fsk_tx(void)
 	g_fsk_tx_timeout_10ms = 0;
 
 	// disable the TX
-	BK4819_SetupPowerAmplifier(0, 0);                     //
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1, false);        // ???
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);   // LED off
+	BK4819_SetupPowerAmplifier(0, 0);                             //
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);        // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);           // LED off
 
 	BK4819_reset_fsk();
 
