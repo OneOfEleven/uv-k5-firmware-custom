@@ -718,15 +718,19 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 
 static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Direction)
 {
+	static bool monitor_was_enabled = false;
+	
 	uint8_t Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
 
 	// only update eeprom when the key is released (saves wear and tear)
 	if (!key_pressed && g_scan_state_dir == SCAN_STATE_DIR_OFF && IS_NOT_NOAA_CHANNEL(Channel) && IS_FREQ_CHANNEL(Channel))
 	{
-		// monitor off
-		if (key_held && !key_pressed && g_current_function == FUNCTION_MONITOR)
+		if (key_held && !key_pressed && !monitor_was_enabled && g_current_function == FUNCTION_MONITOR)
+		{	// re-enable the squelch
 			APP_start_listening(FUNCTION_RECEIVE, false);
-
+			g_monitor_enabled = false;
+		}
+		
 		SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
@@ -799,10 +803,15 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 				else
 				{	// don't need to go through all the other stuff
 
-					// open the squelch
-					if (key_held && key_pressed && g_current_function != FUNCTION_MONITOR)
+					if (!key_held && key_pressed)
+						monitor_was_enabled = g_monitor_enabled;
+					
+					if (key_held && key_pressed && !monitor_was_enabled)
+					{	// open the squelch if the user holds the key down
 						APP_start_listening(FUNCTION_MONITOR, false);
-
+						g_monitor_enabled = true;
+					}
+					
 					BK4819_set_rf_frequency(frequency, true);
 					//BK4819_PickRXFilterPathBasedOnFrequency(frequency);
 				}
