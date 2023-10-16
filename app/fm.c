@@ -605,7 +605,7 @@ Bail:
 	g_request_display_screen = DISPLAY_FM;
 }
 
-void FM_ProcessKeys(key_code_t Key, bool key_pressed, bool key_held)
+void FM_process_key(key_code_t Key, bool key_pressed, bool key_held)
 {
 	switch (Key)
 	{

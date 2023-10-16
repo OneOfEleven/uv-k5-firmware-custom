@@ -42,6 +42,6 @@ extern uint16_t           g_fsk_tx_timeout_10ms;
 void AIRCOPY_init(void);
 void AIRCOPY_process_fsk_tx_10ms(void);
 void AIRCOPY_process_fsk_rx_10ms(void);
-void AIRCOPY_ProcessKey(key_code_t key, bool key_pressed, bool key_held);
+void AIRCOPY_process_key(key_code_t key, bool key_pressed, bool key_held);
 
 #endif

@@ -109,7 +109,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 			}
 			else
 			{
-				APP_EndTransmission();
+				APP_end_tx();
 
 				if (g_eeprom.repeater_tail_tone_elimination == 0)
 					FUNCTION_Select(FUNCTION_FOREGROUND);
@@ -153,7 +153,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 		else
 		if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 		{	// frequency/channel scanning . .stop
-			SCAN_Stop();
+			APP_stop_scan();
 		}
 		else
 		if (g_css_scan_mode != CSS_SCAN_MODE_OFF)

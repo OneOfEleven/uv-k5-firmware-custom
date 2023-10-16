@@ -704,10 +704,30 @@ void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
 	BK4819_WriteRegister(BK4819_REG_36, ((uint16_t)bias << 8) | ((uint16_t)enable << 7) | ((uint16_t)gain << 0));
 }
 
-void BK4819_SetFrequency(uint32_t Frequency)
+void BK4819_set_rf_frequency(const uint32_t frequency, const bool trigger_update)
 {
-	BK4819_WriteRegister(BK4819_REG_38, (Frequency >>  0) & 0xFFFF);
-	BK4819_WriteRegister(BK4819_REG_39, (Frequency >> 16) & 0xFFFF);
+	BK4819_WriteRegister(BK4819_REG_38, (frequency >>  0) & 0xFFFF);
+	BK4819_WriteRegister(BK4819_REG_39, (frequency >> 16) & 0xFFFF);
+
+	if (trigger_update)
+	{
+		// <15>    0 VCO Calibration    1 = enable   0 = disable
+		// <14>    ???
+		// <13:10> 0 RX Link           15 = enable   0 = disable
+		// <9>     0 AF DAC             1 = enable   0 = disable
+		// <8>     0 DISC Mode          1 = enable   0 = disable
+		// <7:4>   0 PLL/VCO           15 = enable   0 = disable
+		// <3>     0 PA Gain            1 = enable   0 = disable
+		// <2>     0 MIC ADC            1 = enable   0 = disable
+		// <1>     0 TX DSP             1 = enable   0 = disable
+		// <0>     0 RX DSP             1 = enable   0 = disable
+		//
+		// trigger a PLL/VCO update
+		//
+		const uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
+		BK4819_WriteRegister(BK4819_REG_30, reg & ~(1u << 15) & (15u << 4));
+		BK4819_WriteRegister(BK4819_REG_30, reg);
+	}
 }
 
 void BK4819_SetupSquelch(
@@ -1583,7 +1603,7 @@ void BK4819_EnableFrequencyScan(void)
 
 void BK4819_SetScanFrequency(uint32_t Frequency)
 {
-	BK4819_SetFrequency(Frequency);
+	BK4819_set_rf_frequency(Frequency, false);
 
 	// REG_51
 	//

@@ -19,7 +19,7 @@
 
 #include "driver/keyboard.h"
 
-void MAIN_ProcessKeys(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
+void MAIN_process_key(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
 
 #endif
 

@@ -76,13 +76,13 @@ void ACTION_Monitor(void)
 {
 	if (g_current_function != FUNCTION_MONITOR)
 	{	// enable the monitor
-		RADIO_SelectVfos();
-		#ifdef g_power_save_expired
+		RADIO_select_vfos();
+		#ifdef ENABLE_NOAA
 			if (g_rx_vfo->channel_save >= NOAA_CHANNEL_FIRST && g_is_noaa_mode)
 				g_noaa_channel = g_rx_vfo->channel_save - NOAA_CHANNEL_FIRST;
 		#endif
-		RADIO_SetupRegisters(true);
-		APP_StartListening(FUNCTION_MONITOR, false);
+		RADIO_setup_registers(true);
+		APP_start_listening(FUNCTION_MONITOR, false);
 		return;
 	}
 
@@ -90,9 +90,9 @@ void ACTION_Monitor(void)
 	
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{
-		g_scan_pause_delay_in_10ms = scan_pause_delay_in_1_10ms;
-		g_scan_schedule_scan_listen    = false;
-		g_scan_pause_mode         = true;
+		g_scan_pause_delay_in_10ms  = scan_pause_delay_in_1_10ms;
+		g_scan_schedule_scan_listen = false;
+		g_scan_pause_mode           = true;
 	}
 
 	#ifdef g_power_save_expired
@@ -103,7 +103,7 @@ void ACTION_Monitor(void)
 		}
 	#endif
 
-	RADIO_SetupRegisters(true);
+	RADIO_setup_registers(true);
 
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)
@@ -139,19 +139,18 @@ void ACTION_Scan(bool bRestart)
 					#endif
 				}
 				else
-				{
+				{	// start scanning
 					uint16_t Frequency;
 
 					if (bRestart)
-					{	// going to scan and auto store what we find
+					{	// scan with auto store
 						FM_EraseChannels();
-
 						g_fm_auto_scan        = true;
 						g_fm_channel_position = 0;
 						Frequency             = FM_RADIO_BAND.lower;
 					}
 					else
-					{
+					{	// scan without auto store
 						g_fm_auto_scan        = false;
 						g_fm_channel_position = 0;
 						Frequency             = g_eeprom.fm_frequency_playing;
@@ -172,7 +171,7 @@ void ACTION_Scan(bool bRestart)
 	#endif
 
 	if (g_screen_to_display != DISPLAY_SEARCH)
-	{	// not scanning
+	{	// not in freq/ctcss/cdcss search mode
 
 		g_monitor_enabled = false;
 
@@ -181,69 +180,78 @@ void ACTION_Scan(bool bRestart)
 		g_dtmf_rx_live_timeout = 0;
 		memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
 
-		RADIO_SelectVfos();
+		RADIO_select_vfos();
 
-		#ifdef g_power_save_expired
-			if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
-		#endif
+		if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 		{
 			GUI_SelectNextDisplay(DISPLAY_MAIN);
 
 			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-			{	// already scanning
+			{	// currently scanning
 		
 				if (g_scan_next_channel <= USER_CHANNEL_LAST)
 				{	// channel mode
 
-					// keep scanning but toggle between scan lists
-					g_eeprom.scan_list_default = (g_eeprom.scan_list_default + 1) % 3;
+					if (g_eeprom.scan_list_default < 2)
+					{	// keep scanning but toggle between scan lists
 
-					// jump to the next channel
-					CHANNEL_Next(true, g_scan_state_dir);
-					g_scan_pause_delay_in_10ms = 1;
-					g_scan_schedule_scan_listen    = false;
+						//g_eeprom.scan_list_default = (g_eeprom.scan_list_default + 1) % 3;
+						g_eeprom.scan_list_default++;
 
-					g_update_status = true;
-				}
-				else
-				{	// stop scanning
-			
-					SCAN_Stop();
-
-					#ifdef ENABLE_VOICE
-						g_another_voice_id = VOICE_ID_SCANNING_STOP;
-					#endif
-				}
-			}
-			else
-			{	// start scanning
+						// jump to the next channel
+						APP_channel_next(true, g_scan_state_dir);
+						g_scan_pause_delay_in_10ms  = 1;
+						g_scan_schedule_scan_listen = false;
 	
-				CHANNEL_Next(true, SCAN_STATE_DIR_FORWARD);
+						g_update_status = true;
+						return;
+					}
+				}
+
+				// stop scanning
+			
+				APP_stop_scan();
 
 				#ifdef ENABLE_VOICE
-					AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
-					AUDIO_PlaySingleVoice(true);
+					g_another_voice_id = VOICE_ID_SCANNING_STOP;
 				#endif
 
-				// clear the other vfo's rssi level (to hide the antenna symbol)
-				g_vfo_rssi_bar_level[(g_eeprom.rx_vfo + 1) & 1u] = 0;
-
-				// let the user see DW is not active
-				g_dual_watch_active = false;
-				g_update_status    = true;
+				return;
 			}
+
+			// start scanning
+	
+			APP_channel_next(true, SCAN_STATE_DIR_FORWARD);
+			
+			#ifdef ENABLE_VOICE
+				AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
+				AUDIO_PlaySingleVoice(true);
+			#endif
+			
+			// clear the other vfo's rssi level (to hide the antenna symbol)
+			g_vfo_rssi_bar_level[(g_eeprom.rx_vfo + 1) & 1u] = 0;
+			
+			g_update_status = true;
 		}
+		
+		return;
 	}
-	else
+
+	// freq/ctcss/cdcss/search mode
+	
+	
+	// TODO: fixme
+	
+	
 //	if (!bRestart)
 	if (!bRestart && g_scan_next_channel <= USER_CHANNEL_LAST)
 	{	// channel mode, keep scanning but toggle between scan lists
 		g_eeprom.scan_list_default = (g_eeprom.scan_list_default + 1) % 3;
 
 		// jump to the next channel
-		CHANNEL_Next(true, g_scan_state_dir);
-		g_scan_pause_delay_in_10ms = 1;
-		g_scan_schedule_scan_listen    = false;
+		APP_channel_next(true, g_scan_state_dir);
+		g_scan_pause_delay_in_10ms  = 1;
+		g_scan_schedule_scan_listen = false;
 
 		g_update_status = true;
 	}
@@ -251,7 +259,7 @@ void ACTION_Scan(bool bRestart)
 	{	// stop scanning
 		g_monitor_enabled = false;
 	
-		SCAN_Stop();
+		APP_stop_scan();
 	
 		#ifdef ENABLE_VOICE
 			g_another_voice_id = VOICE_ID_SCANNING_STOP;
@@ -320,8 +328,8 @@ void ACTION_Scan(bool bRestart)
 
 			g_monitor_enabled = false;
 
-			RADIO_SelectVfos();
-			RADIO_SetupRegisters(true);
+			RADIO_select_vfos();
+			RADIO_setup_registers(true);
 
 			FM_Start();
 

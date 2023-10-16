@@ -215,7 +215,7 @@ void DTMF_HandleRequest(void)
 		return;
 	}
 
-	if (!g_rx_vfo->dtmf_decoding_enable && !g_setting_killed)
+	if (!g_rx_vfo->dtmf_decoding_enable && !g_setting_radio_disabled)
 	{	// D-DCD is disabled or we're alive
 		DTMF_clear_RX();
 		return;
@@ -235,7 +235,7 @@ void DTMF_HandleRequest(void)
 
 			if (g_eeprom.permit_remote_kill)
 			{
-				g_setting_killed = true;      // oooerr !
+				g_setting_radio_disabled = true;      // oooerr !
 
 				DTMF_clear_RX();
 
@@ -274,7 +274,7 @@ void DTMF_HandleRequest(void)
 		if (DTMF_CompareMessage(g_dtmf_rx + Offset, String, strlen(String), true))
 		{	// shit, we're back !
 
-			g_setting_killed  = false;
+			g_setting_radio_disabled  = false;
 
 			DTMF_clear_RX();
 
@@ -328,8 +328,8 @@ void DTMF_HandleRequest(void)
 		}
 	}
 
-	if (g_setting_killed || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-	{	// we've been killed or expecting a reply
+	if (g_setting_radio_disabled || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+	{	// we've been disabled, or expecting a reply
 		return;
 	}
 

@@ -46,7 +46,7 @@ const uint8_t         key_lock_timeout_500ms           = 30000 / 500;  // 30 sec
 
 const uint8_t         key_debounce_10ms                =    30 / 10;   // 30ms
 const uint8_t         key_long_press_10ms              =   300 / 10;   // 300ms
-const uint8_t         key_repeat_10ms                  =    80 / 10;   // 80ms
+const uint8_t         key_repeat_10ms                  =    50 / 10;   // 50ms
 
 const uint16_t        scan_freq_css_timeout_10ms       = 10000 / 10;   // 10 seconds
 const uint8_t         scan_freq_css_delay_10ms         =   210 / 10;   // 210ms .. don't reduce this
@@ -89,9 +89,9 @@ const uint32_t        g_default_aes_key[4]                = {0x4AA5CC60, 0x0312C
 const uint8_t         g_mic_gain_dB_2[5]                  = {3, 8, 16, 24, 31};
 
 bool                  g_setting_350_tx_enable;
-bool                  g_setting_killed;
-bool                  g_setting_200_tx_enable;
-bool                  g_setting_500_tx_enable;
+bool                  g_setting_radio_disabled;
+bool                  g_setting_174_tx_enable;
+bool                  g_setting_470_tx_enable;
 bool                  g_setting_350_enable;
 bool                  g_setting_tx_enable;
 uint8_t               g_setting_freq_lock;
@@ -140,7 +140,6 @@ volatile bool         g_schedule_dual_watch = true;
 
 volatile uint16_t     g_dual_watch_count_down_10ms;
 volatile bool         g_dual_watch_count_down_expired = true;
-bool                  g_dual_watch_active;
 
 volatile uint8_t      g_serial_config_count_down_500ms;
 
@@ -213,6 +212,7 @@ volatile uint16_t     g_flash_light_blink_counter;
 
 bool                  g_flag_end_tx;
 uint16_t              g_low_batteryCountdown;
+
 reception_mode_t      g_rx_reception_mode;
 
 uint8_t               g_scan_next_channel;

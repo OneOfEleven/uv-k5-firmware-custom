@@ -95,9 +95,9 @@ void Main(void)
 	RADIO_ConfigureChannel(0, VFO_CONFIGURE_RELOAD);
 	RADIO_ConfigureChannel(1, VFO_CONFIGURE_RELOAD);
 
-	RADIO_SelectVfos();
+	RADIO_select_vfos();
 
-	RADIO_SetupRegisters(true);
+	RADIO_setup_registers(true);
 
 	for (i = 0; i < ARRAY_SIZE(g_battery_voltages); i++)
 		BOARD_ADC_GetBatteryInfo(&g_battery_voltages[i], &g_usb_current);
@@ -216,17 +216,17 @@ void Main(void)
 
 	while (1)
 	{
-		APP_Update();
+		APP_process();
 
 		if (g_next_time_slice)
 		{
-			APP_TimeSlice10ms();
+			APP_time_slice_10ms();
 			g_next_time_slice = false;
 		}
 
 		if (g_next_time_slice_500ms)
 		{
-			APP_TimeSlice500ms();
+			APP_time_slice_500ms();
 			g_next_time_slice_500ms = false;
 		}
 	}

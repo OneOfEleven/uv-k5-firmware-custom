@@ -152,7 +152,7 @@ int TX_freq_check(const uint32_t Frequency)
 			if (Frequency >= 13600000 && Frequency < 17400000)
 				return 0;
 			if (Frequency >= 17400000 && Frequency < 35000000)
-				if (g_setting_200_tx_enable)
+				if (g_setting_174_tx_enable)
 					return 0;
 			if (Frequency >= 35000000 && Frequency < 40000000)
 				if (g_setting_350_tx_enable && g_setting_350_enable)
@@ -160,7 +160,7 @@ int TX_freq_check(const uint32_t Frequency)
 			if (Frequency >= 40000000 && Frequency < 47000000)
 				return 0;
 			if (Frequency >= 47000000 && Frequency <= 60000000)
-				if (g_setting_500_tx_enable)
+				if (g_setting_470_tx_enable)
 					return 0;
 			break;
 

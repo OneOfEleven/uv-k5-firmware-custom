@@ -43,18 +43,14 @@ function_type_t g_current_function;
 
 void FUNCTION_Init(void)
 {
-	#ifdef ENABLE_NOAA
-		if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
-	#endif
+	if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 	{
 		g_current_code_type = g_selected_code_type;
 		if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
 			g_current_code_type = g_rx_vfo->am_mode ? CODE_TYPE_NONE : g_rx_vfo->p_rx->code_type;
 	}
-	#ifdef ENABLE_NOAA
-		else
-			g_current_code_type = CODE_TYPE_CONTINUOUS_TONE;
-	#endif
+	else
+		g_current_code_type = CODE_TYPE_CONTINUOUS_TONE;
 
 	DTMF_clear_RX();
 

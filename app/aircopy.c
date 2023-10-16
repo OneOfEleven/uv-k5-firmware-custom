@@ -70,7 +70,7 @@ void AIRCOPY_init(void)
 	// turn the backlight ON
 	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
-	RADIO_SetupRegisters(true);
+	RADIO_setup_registers(true);
 
 	BK4819_SetupAircopy(AIRCOPY_DATA_PACKET_SIZE);
 
@@ -762,7 +762,7 @@ static void AIRCOPY_Key_MENU(bool key_pressed, bool key_held)
 	}
 }
 
-void AIRCOPY_ProcessKey(key_code_t Key, bool key_pressed, bool key_held)
+void AIRCOPY_process_key(key_code_t Key, bool key_pressed, bool key_held)
 {
 	switch (Key)
 	{

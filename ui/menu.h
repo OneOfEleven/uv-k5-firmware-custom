@@ -124,9 +124,9 @@ enum
 	// items after here are normally hidden
 
 	MENU_FREQ_LOCK,
-	MENU_200TX,
+	MENU_174TX,
 	MENU_350TX,
-	MENU_500TX,
+	MENU_470TX,
 	MENU_350EN,
 	MENU_SCREN,
 

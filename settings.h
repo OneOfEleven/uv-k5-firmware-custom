@@ -178,39 +178,39 @@ typedef struct {
 
 	// 0x1E00
 	struct {
-		uint8_t open_rssi_thresh[10];
-		uint8_t unused1[6];
-		uint8_t close_rssi_thresh[10];
-		uint8_t unused2[6];
-		uint8_t open_noise_thresh[10];
-		uint8_t unused3[6];
-		uint8_t close_noise_thresh[10];
-		uint8_t unused4[6];
-		uint8_t open_glitch_thresh[10];
-		uint8_t unused5[6];
-		uint8_t close_glitch_thresh[10];
-		uint8_t unused6[6];
-	} __attribute__((packed)) squelch_band_4567[6];
+		uint8_t open_rssi_thresh[10];               //
+		uint8_t unused1[6];                         // 0xff's
+		uint8_t close_rssi_thresh[10];              //
+		uint8_t unused2[6];                         // 0xff's
+		uint8_t open_noise_thresh[10];              //
+		uint8_t unused3[6];                         // 0xff's
+		uint8_t close_noise_thresh[10];             //
+		uint8_t unused4[6];                         // 0xff's
+		uint8_t open_glitch_thresh[10];             //
+		uint8_t unused5[6];                         // 0xff's
+		uint8_t close_glitch_thresh[10];            //
+		uint8_t unused6[6];                         // 0xff's
+	} __attribute__((packed)) squelch_band_4567[6]; //
 
 	// 0x1E60
 	struct {
-		uint8_t open_rssi_thresh[10];
-		uint8_t unused1[6];
-		uint8_t close_rssi_thresh[10];
-		uint8_t unused2[6];
-		uint8_t open_noise_thresh[10];
-		uint8_t unused3[6];
-		uint8_t close_noise_thresh[10];
-		uint8_t unused4[6];
-		uint8_t open_glitch_thresh[10];
-		uint8_t unused5[6];
-		uint8_t close_glitch_thresh[10];
-		uint8_t unused6[6];
-	} __attribute__((packed)) squelch_band_123[6];
+		uint8_t open_rssi_thresh[10];               //
+		uint8_t unused1[6];                         // 0xff's
+		uint8_t close_rssi_thresh[10];              //
+		uint8_t unused2[6];                         // 0xff's
+		uint8_t open_noise_thresh[10];              //
+		uint8_t unused3[6];                         // 0xff's
+		uint8_t close_noise_thresh[10];             //
+		uint8_t unused4[6];                         // 0xff's
+		uint8_t open_glitch_thresh[10];             //
+		uint8_t unused5[6];                         // 0xff's
+		uint8_t close_glitch_thresh[10];            //
+		uint8_t unused6[6];                         // 0xff's
+	} __attribute__((packed)) squelch_band_123[6];  //
 
 	// 0x1EC0
-	uint16_t rssi_band_4567[4];                     //
-	uint16_t rssi_band_123[4];                      //
+	uint16_t rssi_band_4567[4];                     // RSSI bargraph thresholds .. (dBm + 160) * 2
+	uint16_t rssi_band_123[4];                      // RSSI bargraph thresholds .. (dBm + 160) * 2
 
 	// 0x1ED0
 	struct
@@ -218,18 +218,18 @@ typedef struct {
 		uint8_t low[3];                             //
 		uint8_t mid[3];                             //
 		uint8_t high[3];                            //
-		uint8_t unused[7];                          //
+		uint8_t unused[7];                          // 0xff's
 	} tx_band_power[7];                             //
 
 	// 0x1F40
 	uint16_t battery[6];                            //
-	uint8_t  unused1[4];                            //
+	uint8_t  unused1[4];                            // 0xff's
 
 	// 0x1F50
 	struct
 	{
 		uint16_t threshold[10];                     //
-		uint8_t  unused[4];                         //
+		uint8_t  unused[4];                         // 0xff's
 	} __attribute__((packed)) vox[2];               //
 
 	// 0x1F80
@@ -241,7 +241,7 @@ typedef struct {
 	uint8_t  volume_gain;                           //
 	uint8_t  dac_gain;                              //
 
-	uint8_t  unused5[8 * 10];                       //
+	uint8_t  unused5[8 * 10];                       // 0xff's
 
 } __attribute__((packed)) t_calibration;
 
@@ -267,20 +267,20 @@ typedef struct {
 	// 0x0D60
 	struct {                                        // these channel attribute settings could have been in the t_channel structure !
 		uint8_t    band:4;                          // why do QS have these 4 bits ? .. band can/is computed from the frequency
-		uint8_t    unused:2;                        //
+		uint8_t    unused:2;                        // 0's ?
 //		uint8_t    compander:2;                     // smoved this to the t_channel structure
 		uint8_t    scanlist2:1;                     // set if is in scan list 2
 		uint8_t    scanlist1:1;                     // set if is in scan list 1
 	} __attribute__((packed)) channel_attr[200];    //
 
-	uint8_t        unused1[8];                      //
+	uint8_t        unused1[8];                      // 0xff's
 
 	// 0x0E30
-	uint8_t        unused2[16];                     //
+	uint8_t        unused2[16];                     // 0xff's
 
 	// 0x0E40
 	uint16_t       fm_channel[20];                  //
-	uint8_t        unused3[8];                      //
+	uint8_t        unused3[8];                      // 0xff's
 
 	// 0x0E70
 	uint8_t        call1;                           //
@@ -291,7 +291,11 @@ typedef struct {
 	uint8_t        vox_switch;                      //
 	uint8_t        vox_level;                       //
 	uint8_t        mic_sensitivity;                 //
-	uint8_t        lcd_contrast;                    // 1of11
+	#if 1
+		uint8_t    lcd_contrast;                    // 1of11
+	#else
+		uint8_t    unused4;                         // 0xff's
+	#endif
 	uint8_t        channel_display_mode;            //
 	uint8_t        cross_vfo;                       //
 	uint8_t        battery_save;                    //
@@ -312,7 +316,7 @@ typedef struct {
 	uint8_t        fm_selected_frequency;           //
 	uint8_t        fm_selected_channel;             //
 	uint8_t        fm_is_channel_mode;              //
-	uint8_t        unused5[5];                      //
+	uint8_t        unused5[5];                      // 0xff's
 
 	// 0x0E90
 	uint8_t        beep_control;                    //
@@ -324,11 +328,11 @@ typedef struct {
 	uint8_t        auto_key_lock;                   //
 	uint8_t        display_mode;                    //
 	uint32_t       power_on_password;               //
-	uint8_t        unused6[4];                      //
+	uint8_t        unused6[4];                      // 0xff's
 
 	// 0x0EA0
 	uint8_t        voice_prompt;                    //
-	uint8_t        unused7[7];                      //
+	uint8_t        unused7[7];                      // 0xff's
 	uint8_t        alarm_mode;                      //
 	uint8_t        roger_mode;                      //
 	uint8_t        repeater_tail_tone_elimination;  // rp_ste
@@ -336,7 +340,7 @@ typedef struct {
 	#ifdef ENABLE_AIRCOPY
 		uint32_t   air_copy_freq;                   // 1of11
 	#else
-		uint8_t    unused8[4];                      //
+		uint8_t    unused8[4];                      // 0xff's
 	#endif
 
 	// 0x0EB0
@@ -355,7 +359,7 @@ typedef struct {
 	uint8_t        dtmf_code_time;                  //
 	uint8_t        dtmf_code_interval;              //
 	uint8_t        dtmf_permit_kill;                //
-	uint8_t        unused9[5];                      //
+	uint8_t        unused9[5];                      // 0xff's
 
 	// 0x0EE0
 	uint8_t        dtmf_ani_id[8];                  //
@@ -372,10 +376,10 @@ typedef struct {
 	uint8_t        priority2_enable;                //
 	uint8_t        priority2_channel1;              //
 	uint8_t        priority2_channel2;              //
-	uint8_t        unused10;                        //
+	uint8_t        unused10;                        // 0xff's
 
 	// 0x0F20
-	uint8_t        unused11[8];                     //
+	uint8_t        unused11[8];                     // 0xff's
 
 	// 0x0F30
 	uint8_t        aes_key[16];                     // disabled = all 0xff
@@ -383,14 +387,14 @@ typedef struct {
 	// 0x0F40
 	uint8_t        freq_lock;                       //
 	uint8_t        enable_tx_350;                   // 350MHz ~ 400MHz
-	uint8_t        killed;                          //
-	uint8_t        enable_tx_200;                   //
-	uint8_t        enable_tx_500;                   //
-	uint8_t        enable_350;                      //
-	uint8_t        enable_scrambler;                //
+	uint8_t        radio_disabled;                  // 0 = not radio is not disabled
+	uint8_t        enable_tx_200;                   // 174MHz ~ 350MHz
+	uint8_t        enable_tx_470;                   // >= 470MHz disabled
+	uint8_t        enable_350;                      // 0 = 350HMz ~ 400MHz RX/TX disabled
+	uint8_t        enable_scrambler;                // 0 = scrambler disabled, 1 = enabled
 	#if 0
 		// QS
-		uint8_t    unused12[9];                     //
+		uint8_t    unused12[9];                     // 0xff's
 	#else
 		// 1of11
 		uint8_t    tx_enable:1;           // 0 = completely disable TX, 1 = allow TX
@@ -400,14 +404,17 @@ typedef struct {
 		uint8_t    am_fix:1;              // 1 = RX AM fix
 		uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when TX, 2 = when RX, 3 = both RX/TX
 
-		uint8_t    unused12[8];           //
+		uint8_t    unused12[8];           // 0xff's
 	#endif
 
 	// 0x0F50
-	char           channel_name[200][16]; // each channels name text (max 10 chars used per channel)
-
+	struct {
+		char       name[10];
+		uint8_t    unused[6];             // 0xff's
+	} __attribute__((packed)) channel_name[200];
+	
 	// 0x1BD0
-	uint8_t        unused13[16 * 3];      // free to use
+	uint8_t        unused13[16 * 3];      // 0xff's .. free to use
 
 	// 0x1C00
 	struct {

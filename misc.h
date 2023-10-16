@@ -170,9 +170,9 @@ extern const uint16_t        scan_pause_delay_in_7_10ms;
 extern const uint8_t         g_mic_gain_dB_2[5];
 
 extern bool                  g_setting_350_tx_enable;
-extern bool                  g_setting_killed;
-extern bool                  g_setting_200_tx_enable;
-extern bool                  g_setting_500_tx_enable;
+extern bool                  g_setting_radio_disabled;
+extern bool                  g_setting_174_tx_enable;
+extern bool                  g_setting_470_tx_enable;
 extern bool                  g_setting_350_enable;
 extern bool                  g_setting_tx_enable;
 extern uint8_t               g_setting_freq_lock;
@@ -223,7 +223,6 @@ extern volatile bool         g_schedule_dual_watch;
 
 extern volatile uint16_t     g_dual_watch_count_down_10ms;
 extern volatile bool         g_dual_watch_count_down_expired;
-extern bool                  g_dual_watch_active;
 
 extern volatile uint8_t      g_serial_config_count_down_500ms;
 

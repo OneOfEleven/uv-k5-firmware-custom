@@ -283,7 +283,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 	}
 #endif
 
-void UI_UpdateRSSI(const int16_t rssi, const int vfo)
+void UI_update_rssi(const int16_t rssi, const int vfo)
 {
 	#ifdef ENABLE_RSSI_BAR
 
@@ -809,7 +809,7 @@ void UI_DisplayMain(void)
 		}
 
 		// show the DTMF decoding symbol
-		if (g_eeprom.vfo_info[vfo_num].dtmf_decoding_enable || g_setting_killed)
+		if (g_eeprom.vfo_info[vfo_num].dtmf_decoding_enable || g_setting_radio_disabled)
 			UI_PrintStringSmall("DTMF", LCD_WIDTH + 78, 0, line + 1);
 
 		// show the audio scramble symbol
