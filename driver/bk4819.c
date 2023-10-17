@@ -49,8 +49,8 @@ void BK4819_Init(void)
 	BK4819_WriteRegister(BK4819_REG_37, 0x1D0F);
 	BK4819_WriteRegister(BK4819_REG_36, 0x0022);
 
-	BK4819_SetAGC(0);
-//	BK4819_SetAGC(1);
+//	BK4819_SetAGC(0);
+	BK4819_SetAGC(1);     // ???
 
 	BK4819_WriteRegister(BK4819_REG_19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
 
@@ -111,6 +111,33 @@ void BK4819_Init(void)
 
 	BK4819_WriteRegister(BK4819_REG_33, 0x9000);
 	BK4819_WriteRegister(BK4819_REG_3F, 0);
+
+#if 0
+	// rt-890
+//	BK4819_WriteRegister(0x37, 0x1D0F);
+
+//	DisableAGC(0);
+	BK4819_WriteRegister(0x13, 0x03BE);
+	BK4819_WriteRegister(0x12, 0x037B);
+	BK4819_WriteRegister(0x11, 0x027B);
+	BK4819_WriteRegister(0x10, 0x007A);
+	BK4819_WriteRegister(0x14, 0x0019);
+	BK4819_WriteRegister(0x49, 0x2A38);
+	BK4819_WriteRegister(0x7B, 0x8420);
+
+	BK4819_WriteRegister(0x33, 0x1F00);
+	BK4819_WriteRegister(0x35, 0x0000);
+	BK4819_WriteRegister(0x1E, 0x4C58);
+	BK4819_WriteRegister(0x1F, 0xA656);
+//	BK4819_WriteRegister(0x3E, gCalibration.BandSelectionThreshold);
+	BK4819_WriteRegister(0x3F, 0x0000);
+	BK4819_WriteRegister(0x2A, 0x4F18);
+	BK4819_WriteRegister(0x53, 0xE678);
+	BK4819_WriteRegister(0x2C, 0x5705);
+	BK4819_WriteRegister(0x4B, 0x7102);
+	BK4819_WriteRegister(0x77, 0x88EF);
+	BK4819_WriteRegister(0x26, 0x13A0);
+#endif
 }
 
 static uint16_t BK4819_ReadU16(void)
@@ -778,19 +805,19 @@ void BK4819_SetupSquelch(
 	//         0 ~ 255
 	//
 	BK4819_WriteRegister(BK4819_REG_4E,  // 01 101 11 1 00000000
-	#ifndef ENABLE_FASTER_CHANNEL_SCAN
+//	#ifndef ENABLE_FASTER_CHANNEL_SCAN
 		// original (*)
-		(1u << 14) |                  //  1 ???
-		(3u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
-		(2u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
-		squelch_open_glitch_thresh);     //  0 ~ 255
-	#else
+		(1u << 14) |                  // 1 ???
+		(5u << 11) |                  // 5  squelch = open  delay .. 0 ~ 7
+		(6u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
+		squelch_open_glitch_thresh);  // 0 ~ 255
+//	#else
 		// faster (but twitchier)
-		(1u << 14) |                  //  1 ???
-		(2u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
-		(1u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
-		squelch_open_glitch_thresh);     //  0 ~ 255
-	#endif
+//		(1u << 14) |                  //  1 ???
+//		(2u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
+//		(1u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
+//		squelch_open_glitch_thresh);  //  0 ~ 255
+//	#endif
 
 	// REG_4F
 	//

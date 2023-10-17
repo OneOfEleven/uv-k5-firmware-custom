@@ -907,8 +907,13 @@ void RADIO_enableTX(const bool fsk_tx)
 
 	#pragma GCC diagnostic pop
 
-	BK4819_set_rf_frequency(g_current_vfo->p_tx->frequency, false);
+	// if DTMF is enabled when TX'ing, it changes the TX audio filtering ! .. 1of11
+	// so MAKE SURE that DTMF is disabled - until needed
+	BK4819_DisableDTMF();
+	
 	BK4819_SetCompander((!fsk_tx && g_rx_vfo->am_mode == 0 && (g_rx_vfo->compander == 1 || g_rx_vfo->compander >= 3)) ? g_rx_vfo->compander : 0);
+
+	BK4819_set_rf_frequency(g_current_vfo->p_tx->frequency, false);
 	BK4819_PrepareTransmit();
 	BK4819_PickRXFilterPathBasedOnFrequency(g_current_vfo->p_tx->frequency);
 	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, true);                       // ???
@@ -916,6 +921,7 @@ void RADIO_enableTX(const bool fsk_tx)
 		BK4819_SetupPowerAmplifier(g_current_vfo->txp_calculated_setting, g_current_vfo->p_tx->frequency);
 	else
 		BK4819_SetupPowerAmplifier(0, g_current_vfo->p_tx->frequency);  // very low power when in AIRCOPY mode
+
 	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, true);                  // turn the RED LED on
 
 	if (fsk_tx)

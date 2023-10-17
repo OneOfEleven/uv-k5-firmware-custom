@@ -57,25 +57,24 @@ static void MAIN_stop_scan(void)
 void toggle_chan_scanlist(void)
 {	// toggle the selected channels scanlist setting
 
-	if (g_screen_to_display != DISPLAY_MAIN || !IS_USER_CHANNEL(g_tx_vfo->channel_save))
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{
-		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-		return;
-	}
-
-	if (g_current_function != FUNCTION_FOREGROUND &&
-	    g_current_function != FUNCTION_INCOMING   &&
-		g_current_function != FUNCTION_MONITOR    &&
-	    g_current_function != FUNCTION_RECEIVE)
-	{
-		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-		return;
-	}
-
-	if (g_scan_pause_10ms > 0 && !g_scan_pause_mode)
-	{
-		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-		return;
+		if (g_screen_to_display != DISPLAY_MAIN ||
+		!IS_USER_CHANNEL(g_tx_vfo->channel_save) ||
+			g_current_function == FUNCTION_TRANSMIT ||
+			g_current_function == FUNCTION_PANADAPTER)
+		{
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			return;
+		}
+	
+		if (g_scan_pause_10ms > 0 &&
+			g_scan_pause_10ms <= (200 / 10) &&
+		   !g_scan_pause_mode)
+		{
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			return;
+		}
 	}
 	
 	if (g_tx_vfo->scanlist_1_participation)

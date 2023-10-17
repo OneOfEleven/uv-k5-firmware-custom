@@ -221,7 +221,6 @@ uint8_t               g_scan_next_channel;
 scan_next_chan_t      g_scan_current_scan_list;
 uint8_t               g_scan_restore_channel;
 uint32_t              g_scan_restore_frequency;
-//bool                  g_scan_keep_frequency;
 bool                  g_scan_pause_mode;
 volatile uint16_t     g_scan_pause_10ms;
 scan_state_dir_t      g_scan_state_dir;
