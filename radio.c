@@ -266,7 +266,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		g_eeprom.vfo_info[VFO].step_freq     = STEP_FREQ_TABLE[Tmp];
 
 		Tmp = Data[7];
-		if (Tmp > (ARRAY_SIZE(g_sub_menu_SCRAMBLER) - 1))
+		if (Tmp > (ARRAY_SIZE(g_sub_MENU_SCRAMBLERAMBLER) - 1))
 			Tmp = 0;
 		g_eeprom.vfo_info[VFO].scrambling_type = Tmp;
 
@@ -1079,7 +1079,7 @@ void RADIO_PrepareTX(void)
 		if (g_eeprom.tx_timeout_timer == 0)
 			g_tx_timer_count_down_500ms = 60;   // 30 sec
 		else
-		if (g_eeprom.tx_timeout_timer < (ARRAY_SIZE(g_sub_menu_TOT) - 1))
+		if (g_eeprom.tx_timeout_timer < (ARRAY_SIZE(g_sub_MENU_TX_TO) - 1))
 			g_tx_timer_count_down_500ms = 120 * g_eeprom.tx_timeout_timer;  // minutes
 		else
 			g_tx_timer_count_down_500ms = 120 * 15;  // 15 minutes

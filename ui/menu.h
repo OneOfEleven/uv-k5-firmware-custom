@@ -42,42 +42,42 @@ enum
 
 	MENU_SQL = 0,
 	MENU_STEP,
-	MENU_W_N,
-	MENU_TXP,
-	MENU_R_DCS,
-	MENU_R_CTCS,
-	MENU_T_DCS,
-	MENU_T_CTCS,
-	MENU_SFT_D,
+	MENU_BANDWIDTH,
+	MENU_TX_POWER,
+	MENU_RX_CDCSS,
+	MENU_RX_CTCSS,
+	MENU_TX_CDCSS,
+	MENU_TX_CTCSS,
+	MENU_SHIFT_DIR,
 	MENU_OFFSET,
-	MENU_TOT,
-	MENU_XB,
-	MENU_TDR,
+	MENU_TX_TO,
+	MENU_CROSS_VFO,
+	MENU_DUAL_WATCH,
 	MENU_SCAN_HOLD,
-	MENU_SCR,
-	MENU_BCL,
-	MENU_MEM_CH,
+	MENU_SCRAMBLER,
+	MENU_BUSY_CHAN_LOCK,
+	MENU_MEM_SAVE,
 	MENU_MEM_NAME,
-	MENU_DEL_CH,
-	MENU_MDF,
-	MENU_SAVE,
+	MENU_MEM_DEL,
+	MENU_MEM_DISP,
+	MENU_BAT_SAVE,
 #ifdef ENABLE_VOX
 	MENU_VOX,
 #endif
-	MENU_ABR,
-	MENU_ABR_ON_TX_RX,
+	MENU_AUTO_BACKLITE,
+	MENU_AUTO_BACKLITE_ON_TX_RX,
 	MENU_CONTRAST,
 	MENU_BEEP,
 #ifdef ENABLE_VOICE
 	MENU_VOICE,
 #endif
-	MENU_SC_REV,
-	MENU_AUTOLK,
+	MENU_SCAN_CAR_RESUME,
+	MENU_AUTO_KEY_LOCK,
 	MENU_S_ADD1,
 	MENU_S_ADD2,
 	MENU_STE,
 	MENU_RP_STE,
-	MENU_MIC,
+	MENU_MIC_GAIN,
 	MENU_COMPAND,
 #ifdef ENABLE_AUDIO_BAR
 	MENU_TX_BAR,
@@ -90,24 +90,24 @@ enum
 	MENU_SLIST1,
 	MENU_SLIST2,
 #ifdef ENABLE_ALARM
-	MENU_AL_MOD,
+	MENU_ALARM_MODE,
 #endif
 	MENU_ANI_ID,
-	MENU_UPCODE,
-	MENU_DWCODE,
+	MENU_UP_CODE,
+	MENU_DN_CODE,
 	MENU_PTT_ID,
-	MENU_D_ST,
-	MENU_D_RSP,
-	MENU_D_HOLD,
-	MENU_D_PRE,
-	MENU_D_DCD,
-	MENU_D_LIST,
-	MENU_D_LIVE_DEC,
-	MENU_PONMSG,
-	MENU_ROGER,
-	MENU_VOL,
+	MENU_DTMF_ST,
+	MENU_DTMF_RSP,
+	MENU_DTMF_HOLD,
+	MENU_DTMF_PRE,
+	MENU_DTMF_DCD,
+	MENU_DTMF_LIST,
+	MENU_DTMF_LIVE_DEC,
+	MENU_PON_MSG,
+	MENU_ROGER_MODE,
+	MENU_VOLTAGE,
 	MENU_BAT_TXT,
-	MENU_AM,
+	MENU_MOD_MODE,
 #ifdef ENABLE_AM_FIX
 	MENU_AM_FIX,
 #endif
@@ -115,7 +115,7 @@ enum
 	MENU_AM_FIX_TEST1,
 #endif
 #ifdef ENABLE_NOAA
-	MENU_NOAA_S,
+	MENU_NOAA_SCAN,
 #endif
 	MENU_SIDE1_SHORT,
 	MENU_SIDE1_LONG,
@@ -125,49 +125,52 @@ enum
 	MENU_RESET,
 
 	// ************************************
+	// ************************************
+	// ************************************
 	// items after here are normally hidden
 
-	MENU_FREQ_LOCK,
-	MENU_174TX,
-	MENU_350TX,
-	MENU_470TX,
-	MENU_350EN,
-	MENU_SCREN,
-
-	MENU_TX_EN,   // enable TX
-#ifdef ENABLE_F_CAL_MENU
-	MENU_F_CALI,  // reference xtal calibration
-#endif
-	MENU_BATCAL,  // battery voltage calibration
+	MENU_BAT_CAL,      // battery voltage calibration
 	
+#ifdef ENABLE_F_CAL_MENU
+	MENU_F_CALI,       // 26MHz reference xtal calibration
+#endif
+
+	MENU_SCRAMBLER_EN, // scrambler enable/disable
+	MENU_FREQ_LOCK,    // lock to a selected region
+	MENU_174_TX,       // 174~350MHz TX enable/disable
+	MENU_350_EN,       // 350~400MHz enable/disable
+	MENU_350_TX,       // 350~400MHz TX enable/disable
+	MENU_470_TX,       // 470MHz and up TX enable/disable
+	MENU_TX_EN,        // can disable the TX entirely
+
+	// ************************************
+	// ************************************
 	// ************************************
 };
-
-extern const unsigned int g_hidden_menu_count;
 
 extern const t_menu_item  g_menu_list[];
 extern uint8_t            g_menu_list_sorted[];
 
-extern const char         g_sub_menu_txp[3][5];
+extern const char         g_sub_MENU_TX_POWER[3][5];
 extern const char         g_sub_menu_shift_dir[3][4];
-extern const char         g_sub_menu_w_n[2][7];
+extern const char         g_sub_MENU_BANDWIDTH[2][7];
 extern const char         g_sub_menu_off_on[2][4];
-extern const char         g_sub_menu_SAVE[5][9];
-extern const char         g_sub_menu_TOT[11][7];
-extern const char         g_sub_menu_tdr[3][10];
-extern const char         g_sub_menu_xb[3][10];
+extern const char         g_sub_MENU_BAT_SAVE[5][9];
+extern const char         g_sub_MENU_TX_TO[11][7];
+extern const char         g_sub_MENU_DUAL_WATCH[3][10];
+extern const char         g_sub_MENU_CROSS_VFO[3][10];
 #ifdef ENABLE_VOICE       
 	extern const char     g_sub_menu_voice[3][4];
 #endif                    
-extern const char         g_sub_menu_sc_rev[3][13];
-extern const char         g_sub_menu_mdf[4][15];
+extern const char         g_sub_MENU_SCAN_CAR_RESUME[3][13];
+extern const char         g_sub_MENU_MEM_DISP[4][15];
 #ifdef ENABLE_ALARM       
-	extern const char     g_sub_menu_AL_MOD[2][5];
+	extern const char     g_sub_MENU_ALARM_MODE[2][5];
 #endif                    
-extern const char         g_sub_menu_D_RSP[4][9];
+extern const char         g_sub_MENU_DTMF_RSP[4][9];
 extern const char         g_sub_menu_PTT_ID[5][15];
 extern const char         g_sub_menu_pwr_on_msg[4][14];
-extern const char         g_sub_menu_roger_mode[3][16];
+extern const char         g_sub_MENU_ROGER_MODE_mode[3][16];
 extern const char         g_sub_menu_RESET[2][4];
 #ifdef ENABLE_TX_UNLOCK
 	extern const char     g_sub_menu_freq_lock[7][9];
@@ -177,17 +180,17 @@ extern const char         g_sub_menu_RESET[2][4];
 extern const char         g_sub_menu_backlight[8][7];
 extern const char         g_sub_menu_rx_tx[4][6];
 #ifdef ENABLE_AM_FIX_TEST1
-	extern const char     g_sub_menu_AM_fix_test1[4][8];
+	extern const char     g_sub_MENU_AM_FIX_test1[4][8];
 #endif                    
 extern const char         g_sub_menu_BAT_TXT[3][8];
 extern const char         g_sub_menu_DIS_EN[2][9];
-extern const char         g_sub_menu_SCRAMBLER[11][7];
+extern const char         g_sub_MENU_SCRAMBLERAMBLER[11][7];
 extern const char         g_sub_menu_SIDE_BUTT[9][16];
 						  
 extern bool               g_is_in_sub_menu;
 						  
 extern uint8_t            g_menu_cursor;
-extern int8_t             g_menu_scroll_direction;
+extern int8_t             g_MENU_SCRAMBLERoll_direction;
 extern int32_t            g_sub_menu_selection;
 						  
 extern char               g_edit_original[17];

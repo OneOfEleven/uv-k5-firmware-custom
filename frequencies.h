@@ -56,8 +56,10 @@ extern const freq_band_table_t FREQ_BAND_TABLE[7];
 		STEP_10_0kHz,
 		STEP_12_5kHz,
 		STEP_25_0kHz,
-		STEP_8_33kHz
-};
+		STEP_8_33kHz,
+//		STEP_100Hz,
+//		STEP_500Hz
+	};
 #else
 	// QS steps
 	enum step_setting_e {
@@ -67,12 +69,15 @@ extern const freq_band_table_t FREQ_BAND_TABLE[7];
 		STEP_10_0kHz,
 		STEP_12_5kHz,
 		STEP_25_0kHz,
-		STEP_8_33kHz
+		STEP_8_33kHz,
+//		STEP_100Hz,
+//		STEP_500Hz
 	};
 #endif
 typedef enum step_setting_e step_setting_t;
 
 extern const uint16_t STEP_FREQ_TABLE[7];
+//extern const uint16_t STEP_FREQ_TABLE[9];
 
 #ifdef ENABLE_NOAA
 	extern const uint32_t NOAA_FREQUENCY_TABLE[10];

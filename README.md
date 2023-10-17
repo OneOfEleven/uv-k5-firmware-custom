@@ -63,6 +63,7 @@ ENABLE_F_CAL_MENU                := 0       enable/disable the radios hidden fre
 ENABLE_TX_UNLOCK                 := 0       '1' = allow TX everywhere EXCEPT airband (108~136) .. TX harmonic content will cause interference to other services, do so entirely at your own risk !
 ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1       standard CTCSS tail phase shift rather than QS's own 55Hz tone method
 ENABLE_BOOT_BEEPS                := 0       gives user audio feedback on volume knob position at boot-up
+ENABLE_DTMF_CALL_FLASH_LIGHT     := 1       flash the flash light LED when a DTMF call is received
 ENABLE_SHOW_CHARGE_LEVEL         := 0       show the charge level when the radio is on charge
 ENABLE_REVERSE_BAT_SYMBOL        := 1       mirror the battery symbol on the status bar (+ pole on the right)
 ENABLE_FREQ_SEARCH_TIMEOUT       := 1       timeout if FREQ not found when using F+4 search function

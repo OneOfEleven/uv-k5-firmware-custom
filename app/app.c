@@ -2062,7 +2062,7 @@ void APP_time_slice_500ms(void)
 	    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
 	    g_screen_to_display != DISPLAY_AIRCOPY)
 	{
-		if (g_screen_to_display != DISPLAY_MENU || g_menu_cursor != MENU_ABR) // don't turn off backlight if user is in backlight menu option
+		if (g_screen_to_display != DISPLAY_MENU || g_menu_cursor != MENU_AUTO_BACKLITE) // don't turn off backlight if user is in backlight menu option
 			if (--g_backlight_count_down == 0)
 				if (g_eeprom.backlight < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
 					GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);   // turn backlight off
@@ -2277,7 +2277,16 @@ void APP_time_slice_500ms(void)
 		if (g_dtmf_decode_ring_count_down_500ms > 0)
 		{	// make "ring-ring" sound
 			g_dtmf_decode_ring_count_down_500ms--;
+			
+			#ifdef ENABLE_DTMF_CALL_FLASH_LIGHT
+				GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);    // light on
+			#endif
+			
 			AUDIO_PlayBeep(BEEP_880HZ_200MS);
+			
+			#ifdef ENABLE_DTMF_CALL_FLASH_LIGHT
+				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);  // light off
+			#endif
 		}
 	}
 	else

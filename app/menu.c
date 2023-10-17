@@ -81,7 +81,7 @@ void MENU_start_css_scan(int8_t Direction)
 	g_css_scan_mode  = CSS_SCAN_MODE_SCANNING;
 	g_update_status = true;
 
-	g_menu_scroll_direction = Direction;
+	g_MENU_SCRAMBLERoll_direction = Direction;
 
 	RADIO_select_vfos();
 
@@ -112,7 +112,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(STEP_FREQ_TABLE) - 1;
 			break;
 
-		case MENU_ABR:
+		case MENU_AUTO_BACKLITE:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_backlight) - 1;
 			break;
@@ -122,24 +122,24 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(g_sub_menu_freq_lock) - 1;
 			break;
 
-		case MENU_MDF:
+		case MENU_MEM_DISP:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_mdf) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_MEM_DISP) - 1;
 			break;
 
-		case MENU_TXP:
+		case MENU_TX_POWER:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_txp) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_TX_POWER) - 1;
 			break;
 
-		case MENU_SFT_D:
+		case MENU_SHIFT_DIR:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_shift_dir) - 1;
 			break;
 
-		case MENU_TDR:
+		case MENU_DUAL_WATCH:
 			*pMin = 0;
-//			*pMax = ARRAY_SIZE(g_sub_menu_tdr) - 1;
+//			*pMax = ARRAY_SIZE(g_sub_MENU_DUAL_WATCH) - 1;
 			*pMax = ARRAY_SIZE(g_sub_menu_off_on) - 1;
 			break;
 
@@ -148,9 +148,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = 20;
 			break;
 			
-		case MENU_XB:
+		case MENU_CROSS_VFO:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_xb) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_CROSS_VFO) - 1;
 			break;
 
 		#ifdef ENABLE_VOICE
@@ -160,43 +160,43 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 				break;
 		#endif
 
-		case MENU_SC_REV:
+		case MENU_SCAN_CAR_RESUME:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_sc_rev) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_SCAN_CAR_RESUME) - 1;
 			break;
 
-		case MENU_ROGER:
+		case MENU_ROGER_MODE:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_roger_mode) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_ROGER_MODE_mode) - 1;
 			break;
 
-		case MENU_PONMSG:
+		case MENU_PON_MSG:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_pwr_on_msg) - 1;
 			break;
 
-		case MENU_R_DCS:
-		case MENU_T_DCS:
+		case MENU_RX_CDCSS:
+		case MENU_TX_CDCSS:
 			*pMin = 0;
 			*pMax = 208;
 			//*pMax = (ARRAY_SIZE(DCS_OPTIONS) * 2);
 			break;
 
-		case MENU_R_CTCS:
-		case MENU_T_CTCS:
+		case MENU_RX_CTCSS:
+		case MENU_TX_CTCSS:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(CTCSS_OPTIONS) - 1;
 			break;
 
-		case MENU_W_N:
+		case MENU_BANDWIDTH:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_w_n) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_BANDWIDTH) - 1;
 			break;
 
 		#ifdef ENABLE_ALARM
-			case MENU_AL_MOD:
+			case MENU_ALARM_MODE:
 				*pMin = 0;
-				*pMax = ARRAY_SIZE(g_sub_menu_AL_MOD) - 1;
+				*pMax = ARRAY_SIZE(g_sub_MENU_ALARM_MODE) - 1;
 				break;
 		#endif
 
@@ -214,7 +214,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			break;
 
 		case MENU_COMPAND:
-		case MENU_ABR_ON_TX_RX:
+		case MENU_AUTO_BACKLITE_ON_TX_RX:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_rx_tx) - 1;
 			break;
@@ -229,7 +229,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				*pMin = 0;
-				*pMax = ARRAY_SIZE(g_sub_menu_AM_fix_test1) - 1;
+				*pMax = ARRAY_SIZE(g_sub_MENU_AM_FIX_test1) - 1;
 				break;
 		#endif
 
@@ -242,41 +242,41 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#ifdef ENABLE_RSSI_BAR
 			case MENU_RX_BAR:
 		#endif
-		case MENU_BCL:
+		case MENU_BUSY_CHAN_LOCK:
 		case MENU_BEEP:
-		case MENU_AUTOLK:
+		case MENU_AUTO_KEY_LOCK:
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
 		case MENU_STE:
-		case MENU_D_ST:
-		case MENU_D_DCD:
-		case MENU_D_LIVE_DEC:
-		case MENU_AM:
+		case MENU_DTMF_ST:
+		case MENU_DTMF_DCD:
+		case MENU_DTMF_LIVE_DEC:
+		case MENU_MOD_MODE:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_off_on) - 1;
 			break;
 
 		#ifdef ENABLE_NOAA
-			case MENU_NOAA_S:
+			case MENU_NOAA_SCAN:
 		#endif
-		case MENU_350TX:
-		case MENU_174TX:
-		case MENU_470TX:
-		case MENU_350EN:
-		case MENU_SCREN:
+		case MENU_350_TX:
+		case MENU_174_TX:
+		case MENU_470_TX:
+		case MENU_350_EN:
+		case MENU_SCRAMBLER_EN:
 		case MENU_TX_EN:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_DIS_EN) - 1;
 			break;
 
-		case MENU_SCR:
+		case MENU_SCRAMBLER:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_SCRAMBLER) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_SCRAMBLERAMBLER) - 1;
 			break;
 
-		case MENU_TOT:
+		case MENU_TX_TO:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_TOT) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_TX_TO) - 1;
 			break;
 
 		#ifdef ENABLE_VOX
@@ -287,9 +287,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = 10;
 			break;
 
-		case MENU_MEM_CH:
+		case MENU_MEM_SAVE:
 		case MENU_1_CALL:
-		case MENU_DEL_CH:
+		case MENU_MEM_DEL:
 		case MENU_MEM_NAME:
 			*pMin = 0;
 			*pMax = USER_CHANNEL_LAST;
@@ -301,12 +301,12 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = USER_CHANNEL_LAST;
 			break;
 
-		case MENU_SAVE:
+		case MENU_BAT_SAVE:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_SAVE) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_BAT_SAVE) - 1;
 			break;
 
-		case MENU_MIC:
+		case MENU_MIC_GAIN:
 			*pMin = 0;
 			*pMax = 4;
 			break;
@@ -317,9 +317,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = 2;
 			break;
 
-		case MENU_D_RSP:
+		case MENU_DTMF_RSP:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_D_RSP) - 1;
+			*pMax = ARRAY_SIZE(g_sub_MENU_DTMF_RSP) - 1;
 			break;
 
 		case MENU_PTT_ID:
@@ -332,17 +332,17 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(g_sub_menu_BAT_TXT) - 1;
 			break;
 
-		case MENU_D_HOLD:
+		case MENU_DTMF_HOLD:
 			*pMin = DTMF_HOLD_MIN;
 			*pMax = DTMF_HOLD_MAX;
 			break;
 
-		case MENU_D_PRE:
+		case MENU_DTMF_PRE:
 			*pMin = 3;
 			*pMax = 99;
 			break;
 
-		case MENU_D_LIST:
+		case MENU_DTMF_LIST:
 			*pMin = 1;
 			*pMax = 16;
 			break;
@@ -354,7 +354,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 				break;
 		#endif
 
-		case MENU_BATCAL:
+		case MENU_BAT_CAL:
 			*pMin = 1600;  // 0
 			*pMax = 2200;  // 2300
 			break;
@@ -399,17 +399,17 @@ void MENU_AcceptSetting(void)
 			}
 			return;
 
-		case MENU_TXP:
+		case MENU_TX_POWER:
 			g_tx_vfo->output_power = g_sub_menu_selection;
 			g_request_save_channel = 1;
 			return;
 
-		case MENU_T_DCS:
+		case MENU_TX_CDCSS:
 			pConfig = &g_tx_vfo->freq_config_tx;
 
 			// Fallthrough
 
-		case MENU_R_DCS:
+		case MENU_RX_CDCSS:
 			if (g_sub_menu_selection == 0)
 			{
 				if (pConfig->code_type != CODE_TYPE_DIGITAL && pConfig->code_type != CODE_TYPE_REVERSE_DIGITAL)
@@ -439,9 +439,9 @@ void MENU_AcceptSetting(void)
 		#pragma GCC diagnostic push
 		#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
-		case MENU_T_CTCS:
+		case MENU_TX_CTCSS:
 			pConfig = &g_tx_vfo->freq_config_tx;
-		case MENU_R_CTCS:
+		case MENU_RX_CTCSS:
 			if (g_sub_menu_selection == 0)
 			{
 				if (pConfig->code_type != CODE_TYPE_CONTINUOUS_TONE)
@@ -469,7 +469,7 @@ void MENU_AcceptSetting(void)
 
 		#pragma GCC diagnostic pop
 
-		case MENU_SFT_D:
+		case MENU_SHIFT_DIR:
 			g_tx_vfo->tx_offset_freq_dir = g_sub_menu_selection;
 			g_request_save_channel       = 1;
 			return;
@@ -479,12 +479,12 @@ void MENU_AcceptSetting(void)
 			g_request_save_channel   = 1;
 			return;
 
-		case MENU_W_N:
+		case MENU_BANDWIDTH:
 			g_tx_vfo->channel_bandwidth = g_sub_menu_selection;
 			g_request_save_channel      = 1;
 			return;
 
-		case MENU_SCR:
+		case MENU_SCRAMBLER:
 			g_tx_vfo->scrambling_type = g_sub_menu_selection;
 			#if 0
 				if (g_sub_menu_selection > 0 && g_setting_scramble_enable)
@@ -495,12 +495,12 @@ void MENU_AcceptSetting(void)
 			g_request_save_channel= 1;
 			return;
 
-		case MENU_BCL:
+		case MENU_BUSY_CHAN_LOCK:
 			g_tx_vfo->busy_channel_lock = g_sub_menu_selection;
 			g_request_save_channel      = 1;
 			return;
 
-		case MENU_MEM_CH:
+		case MENU_MEM_SAVE:
 			g_tx_vfo->channel_save = g_sub_menu_selection;
 			#if 0
 				g_eeprom.user_channel[0] = g_sub_menu_selection;
@@ -529,7 +529,7 @@ void MENU_AcceptSetting(void)
 			g_flag_reconfigure_vfos = true;
 			return;
 
-		case MENU_SAVE:
+		case MENU_BAT_SAVE:
 			g_eeprom.battery_save = g_sub_menu_selection;
 			break;
 
@@ -544,11 +544,11 @@ void MENU_AcceptSetting(void)
 				break;
 		#endif
 
-		case MENU_ABR:
+		case MENU_AUTO_BACKLITE:
 			g_eeprom.backlight = g_sub_menu_selection;
 			break;
 
-		case MENU_ABR_ON_TX_RX:
+		case MENU_AUTO_BACKLITE_ON_TX_RX:
 			g_setting_backlight_on_tx_rx = g_sub_menu_selection;
 			break;
 
@@ -557,7 +557,7 @@ void MENU_AcceptSetting(void)
 			ST7565_SetContrast(g_setting_contrast);
 			break;
 
-		case MENU_TDR:
+		case MENU_DUAL_WATCH:
 //			g_eeprom.dual_watch = g_sub_menu_selection;
 			g_eeprom.dual_watch = (g_sub_menu_selection > 0) ? 1 + g_eeprom.tx_vfo : DUAL_WATCH_OFF;
 
@@ -569,7 +569,7 @@ void MENU_AcceptSetting(void)
 			g_eeprom.scan_hold_time_500ms = g_sub_menu_selection;
 			break;
 
-		case MENU_XB:
+		case MENU_CROSS_VFO:
 			if (IS_NOAA_CHANNEL(g_eeprom.screen_channel[0]))
 				return;
 			if (IS_NOAA_CHANNEL(g_eeprom.screen_channel[1]))
@@ -584,7 +584,7 @@ void MENU_AcceptSetting(void)
 			g_eeprom.beep_control = g_sub_menu_selection;
 			break;
 
-		case MENU_TOT:
+		case MENU_TX_TO:
 			g_eeprom.tx_timeout_timer = g_sub_menu_selection;
 			break;
 
@@ -595,15 +595,15 @@ void MENU_AcceptSetting(void)
 				break;
 		#endif
 
-		case MENU_SC_REV:
+		case MENU_SCAN_CAR_RESUME:
 			g_eeprom.scan_resume_mode = g_sub_menu_selection;
 			break;
 
-		case MENU_MDF:
+		case MENU_MEM_DISP:
 			g_eeprom.channel_display_mode = g_sub_menu_selection;
 			break;
 
-		case MENU_AUTOLK:
+		case MENU_AUTO_KEY_LOCK:
 			g_eeprom.auto_keypad_lock   = g_sub_menu_selection;
 			g_key_lock_count_down_500ms = key_lock_timeout_500ms;
 			break;
@@ -630,7 +630,7 @@ void MENU_AcceptSetting(void)
 			g_eeprom.repeater_tail_tone_elimination = g_sub_menu_selection;
 			break;
 
-		case MENU_MIC:
+		case MENU_MIC_GAIN:
 			g_eeprom.mic_sensitivity = g_sub_menu_selection;
 			BOARD_EEPROM_LoadCalibration();
 			g_flag_reconfigure_vfos = true;
@@ -667,24 +667,24 @@ void MENU_AcceptSetting(void)
 			break;
 
 		#ifdef ENABLE_ALARM
-			case MENU_AL_MOD:
+			case MENU_ALARM_MODE:
 				g_eeprom.alarm_mode = g_sub_menu_selection;
 				break;
 		#endif
 
-		case MENU_D_ST:
+		case MENU_DTMF_ST:
 			g_eeprom.dtmf_side_tone = g_sub_menu_selection;
 			break;
 
-		case MENU_D_RSP:
+		case MENU_DTMF_RSP:
 			g_eeprom.dtmf_decode_response = g_sub_menu_selection;
 			break;
 
-		case MENU_D_HOLD:
+		case MENU_DTMF_HOLD:
 			g_eeprom.dtmf_auto_reset_time = g_sub_menu_selection;
 			break;
 
-		case MENU_D_PRE:
+		case MENU_DTMF_PRE:
 			g_eeprom.dtmf_preload_time = g_sub_menu_selection * 10;
 			break;
 
@@ -704,13 +704,13 @@ void MENU_AcceptSetting(void)
 			g_setting_battery_text = g_sub_menu_selection;
 			break;
 
-		case MENU_D_DCD:
+		case MENU_DTMF_DCD:
 			g_tx_vfo->dtmf_decoding_enable = g_sub_menu_selection;
 			DTMF_clear_RX();
 			g_request_save_channel = 1;
 			return;
 
-		case MENU_D_LIVE_DEC:
+		case MENU_DTMF_LIVE_DEC:
 			g_setting_live_dtmf_decoder = g_sub_menu_selection;
 			g_dtmf_rx_live_timeout      = 0;
 			memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
@@ -720,7 +720,7 @@ void MENU_AcceptSetting(void)
 			g_update_status         = true;
 			break;
 
-		case MENU_D_LIST:
+		case MENU_DTMF_LIST:
 			g_dtmf_chosen_contact = g_sub_menu_selection - 1;
 			if (g_dtmf_is_contact_valid)
 			{
@@ -732,11 +732,11 @@ void MENU_AcceptSetting(void)
 			}
 			return;
 
-		case MENU_PONMSG:
+		case MENU_PON_MSG:
 			g_eeprom.pwr_on_display_mode = g_sub_menu_selection;
 			break;
 
-		case MENU_ROGER:
+		case MENU_ROGER_MODE:
 			g_eeprom.roger_mode = g_sub_menu_selection;
 			if (g_eeprom.roger_mode != ROGER_MODE_OFF)
 			{
@@ -750,7 +750,7 @@ void MENU_AcceptSetting(void)
 			}
 			break;
 
-		case MENU_AM:
+		case MENU_MOD_MODE:
 			g_tx_vfo->am_mode      = g_sub_menu_selection;
 			g_request_save_channel = 1;
 			return;
@@ -772,13 +772,13 @@ void MENU_AcceptSetting(void)
 		#endif
 
 		#ifdef ENABLE_NOAA
-			case MENU_NOAA_S:
+			case MENU_NOAA_SCAN:
 				g_eeprom.noaa_auto_scan = g_sub_menu_selection;
 				g_flag_reconfigure_vfos = true;
 				break;
 		#endif
 
-		case MENU_DEL_CH:
+		case MENU_MEM_DEL:
 			SETTINGS_UpdateChannel(g_sub_menu_selection, NULL, false);
 			g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 			g_flag_reset_vfos    = true;
@@ -804,7 +804,7 @@ void MENU_AcceptSetting(void)
 			BOARD_FactoryReset(g_sub_menu_selection);
 			return;
 
-		case MENU_350TX:
+		case MENU_350_TX:
 			g_setting_350_tx_enable = g_sub_menu_selection;
 			break;
 
@@ -812,21 +812,21 @@ void MENU_AcceptSetting(void)
 			g_setting_freq_lock = g_sub_menu_selection;
 			break;
 
-		case MENU_174TX:
+		case MENU_174_TX:
 			g_setting_174_tx_enable = g_sub_menu_selection;
 			break;
 
-		case MENU_470TX:
+		case MENU_470_TX:
 			g_setting_470_tx_enable = g_sub_menu_selection;
 			break;
 
-		case MENU_350EN:
+		case MENU_350_EN:
 			g_setting_350_enable = g_sub_menu_selection;
 			g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 			g_flag_reset_vfos    = true;
 			break;
 
-		case MENU_SCREN:
+		case MENU_SCRAMBLER_EN:
 			g_setting_scramble_enable = g_sub_menu_selection;
 			g_flag_reconfigure_vfos    = true;
 			break;
@@ -841,7 +841,7 @@ void MENU_AcceptSetting(void)
 				return;
 		#endif
 
-		case MENU_BATCAL:
+		case MENU_BAT_CAL:
 		{
 			uint16_t buf[4];
 
@@ -869,18 +869,18 @@ void MENU_SelectNextCode(void)
 {
 	int32_t UpperLimit;
 
-	if (g_menu_cursor == MENU_R_DCS)
+	if (g_menu_cursor == MENU_RX_CDCSS)
 		UpperLimit = 208;
 		//UpperLimit = ARRAY_SIZE(DCS_OPTIONS);
 	else
-	if (g_menu_cursor == MENU_R_CTCS)
+	if (g_menu_cursor == MENU_RX_CTCSS)
 		UpperLimit = ARRAY_SIZE(CTCSS_OPTIONS) - 1;
 	else
 		return;
 
-	g_sub_menu_selection = NUMBER_AddWithWraparound(g_sub_menu_selection, g_menu_scroll_direction, 1, UpperLimit);
+	g_sub_menu_selection = NUMBER_AddWithWraparound(g_sub_menu_selection, g_MENU_SCRAMBLERoll_direction, 1, UpperLimit);
 
-	if (g_menu_cursor == MENU_R_DCS)
+	if (g_menu_cursor == MENU_RX_CDCSS)
 	{
 		if (g_sub_menu_selection > 104)
 		{
@@ -934,11 +934,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_tx_vfo->step_setting;
 			break;
 
-		case MENU_TXP:
+		case MENU_TX_POWER:
 			g_sub_menu_selection = g_tx_vfo->output_power;
 			break;
 
-		case MENU_R_DCS:
+		case MENU_RX_CDCSS:
 			switch (g_tx_vfo->freq_config_rx.code_type)
 			{
 				case CODE_TYPE_DIGITAL:
@@ -957,11 +957,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = 0;
 			break;
 
-		case MENU_R_CTCS:
+		case MENU_RX_CTCSS:
 			g_sub_menu_selection = (g_tx_vfo->freq_config_rx.code_type == CODE_TYPE_CONTINUOUS_TONE) ? g_tx_vfo->freq_config_rx.code + 1 : 0;
 			break;
 
-		case MENU_T_DCS:
+		case MENU_TX_CDCSS:
 			switch (g_tx_vfo->freq_config_tx.code_type)
 			{
 				case CODE_TYPE_DIGITAL:
@@ -976,11 +976,11 @@ void MENU_ShowCurrentSetting(void)
 			}
 			break;
 
-		case MENU_T_CTCS:
+		case MENU_TX_CTCSS:
 			g_sub_menu_selection = (g_tx_vfo->freq_config_tx.code_type == CODE_TYPE_CONTINUOUS_TONE) ? g_tx_vfo->freq_config_tx.code + 1 : 0;
 			break;
 
-		case MENU_SFT_D:
+		case MENU_SHIFT_DIR:
 			g_sub_menu_selection = g_tx_vfo->tx_offset_freq_dir;
 			break;
 
@@ -988,19 +988,19 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_tx_vfo->tx_offset_freq;
 			break;
 
-		case MENU_W_N:
+		case MENU_BANDWIDTH:
 			g_sub_menu_selection = g_tx_vfo->channel_bandwidth;
 			break;
 
-		case MENU_SCR:
+		case MENU_SCRAMBLER:
 			g_sub_menu_selection = g_tx_vfo->scrambling_type;
 			break;
 
-		case MENU_BCL:
+		case MENU_BUSY_CHAN_LOCK:
 			g_sub_menu_selection = g_tx_vfo->busy_channel_lock;
 			break;
 
-		case MENU_MEM_CH:
+		case MENU_MEM_SAVE:
 			#if 0
 				g_sub_menu_selection = g_eeprom.user_channel[0];
 			#else
@@ -1012,7 +1012,7 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.user_channel[g_eeprom.tx_vfo];
 			break;
 
-		case MENU_SAVE:
+		case MENU_BAT_SAVE:
 			g_sub_menu_selection = g_eeprom.battery_save;
 			break;
 
@@ -1022,14 +1022,14 @@ void MENU_ShowCurrentSetting(void)
 				break;
 		#endif
 
-		case MENU_ABR:
+		case MENU_AUTO_BACKLITE:
 			g_sub_menu_selection = g_eeprom.backlight;
 
 			g_backlight_count_down = 0;
 			GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  	// turn the backlight ON while in backlight menu
 			break;
 
-		case MENU_ABR_ON_TX_RX:
+		case MENU_AUTO_BACKLITE_ON_TX_RX:
 			g_sub_menu_selection = g_setting_backlight_on_tx_rx;
 			break;
 
@@ -1037,7 +1037,7 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_setting_contrast;
 			break;
 
-		case MENU_TDR:
+		case MENU_DUAL_WATCH:
 //			g_sub_menu_selection = g_eeprom.dual_watch;
 			g_sub_menu_selection = (g_eeprom.dual_watch == DUAL_WATCH_OFF) ? 0 : 1;
 			break;
@@ -1046,7 +1046,7 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.scan_hold_time_500ms;
 			break;
 
-		case MENU_XB:
+		case MENU_CROSS_VFO:
 			g_sub_menu_selection = g_eeprom.cross_vfo_rx_tx;
 			break;
 
@@ -1054,7 +1054,7 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.beep_control;
 			break;
 
-		case MENU_TOT:
+		case MENU_TX_TO:
 			g_sub_menu_selection = g_eeprom.tx_timeout_timer;
 			break;
 
@@ -1064,15 +1064,15 @@ void MENU_ShowCurrentSetting(void)
 				break;
 		#endif
 
-		case MENU_SC_REV:
+		case MENU_SCAN_CAR_RESUME:
 			g_sub_menu_selection = g_eeprom.scan_resume_mode;
 			break;
 
-		case MENU_MDF:
+		case MENU_MEM_DISP:
 			g_sub_menu_selection = g_eeprom.channel_display_mode;
 			break;
 
-		case MENU_AUTOLK:
+		case MENU_AUTO_KEY_LOCK:
 			g_sub_menu_selection = g_eeprom.auto_keypad_lock;
 			break;
 
@@ -1092,7 +1092,7 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.repeater_tail_tone_elimination;
 			break;
 
-		case MENU_MIC:
+		case MENU_MIC_GAIN:
 			g_sub_menu_selection = g_eeprom.mic_sensitivity;
 			break;
 
@@ -1129,20 +1129,20 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		#ifdef ENABLE_ALARM
-			case MENU_AL_MOD:
+			case MENU_ALARM_MODE:
 				g_sub_menu_selection = g_eeprom.alarm_mode;
 				break;
 		#endif
 
-		case MENU_D_ST:
+		case MENU_DTMF_ST:
 			g_sub_menu_selection = g_eeprom.dtmf_side_tone;
 			break;
 
-		case MENU_D_RSP:
+		case MENU_DTMF_RSP:
 			g_sub_menu_selection = g_eeprom.dtmf_decode_response;
 			break;
 
-		case MENU_D_HOLD:
+		case MENU_DTMF_HOLD:
 			g_sub_menu_selection = g_eeprom.dtmf_auto_reset_time;
 
 			if (g_sub_menu_selection <= DTMF_HOLD_MIN)
@@ -1170,7 +1170,7 @@ void MENU_ShowCurrentSetting(void)
 
 			break;
 
-		case MENU_D_PRE:
+		case MENU_DTMF_PRE:
 			g_sub_menu_selection = g_eeprom.dtmf_preload_time / 10;
 			break;
 
@@ -1182,27 +1182,27 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_setting_battery_text;
 			return;
 
-		case MENU_D_DCD:
+		case MENU_DTMF_DCD:
 			g_sub_menu_selection = g_tx_vfo->dtmf_decoding_enable;
 			break;
 
-		case MENU_D_LIST:
+		case MENU_DTMF_LIST:
 			g_sub_menu_selection = g_dtmf_chosen_contact + 1;
 			break;
 
-		case MENU_D_LIVE_DEC:
+		case MENU_DTMF_LIVE_DEC:
 			g_sub_menu_selection = g_setting_live_dtmf_decoder;
 			break;
 
-		case MENU_PONMSG:
+		case MENU_PON_MSG:
 			g_sub_menu_selection = g_eeprom.pwr_on_display_mode;
 			break;
 
-		case MENU_ROGER:
+		case MENU_ROGER_MODE:
 			g_sub_menu_selection = g_eeprom.roger_mode;
 			break;
 
-		case MENU_AM:
+		case MENU_MOD_MODE:
 			g_sub_menu_selection = g_tx_vfo->am_mode;
 			break;
 
@@ -1219,12 +1219,12 @@ void MENU_ShowCurrentSetting(void)
 		#endif
 
 		#ifdef ENABLE_NOAA
-			case MENU_NOAA_S:
+			case MENU_NOAA_SCAN:
 				g_sub_menu_selection = g_eeprom.noaa_auto_scan;
 				break;
 		#endif
 
-		case MENU_DEL_CH:
+		case MENU_MEM_DEL:
 			#if 0
 				g_sub_menu_selection = RADIO_FindNextChannel(g_eeprom.user_channel[0], 1, false, 1);
 			#else
@@ -1248,7 +1248,7 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.key2_long_press_action;
 			break;
 
-		case MENU_350TX:
+		case MENU_350_TX:
 			g_sub_menu_selection = g_setting_350_tx_enable;
 			break;
 
@@ -1256,19 +1256,19 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_setting_freq_lock;
 			break;
 
-		case MENU_174TX:
+		case MENU_174_TX:
 			g_sub_menu_selection = g_setting_174_tx_enable;
 			break;
 
-		case MENU_470TX:
+		case MENU_470_TX:
 			g_sub_menu_selection = g_setting_470_tx_enable;
 			break;
 
-		case MENU_350EN:
+		case MENU_350_EN:
 			g_sub_menu_selection = g_setting_350_enable;
 			break;
 
-		case MENU_SCREN:
+		case MENU_SCRAMBLER_EN:
 			g_sub_menu_selection = g_setting_scramble_enable;
 			break;
 
@@ -1282,7 +1282,7 @@ void MENU_ShowCurrentSetting(void)
 				break;
 		#endif
 
-		case MENU_BATCAL:
+		case MENU_BAT_CAL:
 			g_sub_menu_selection = g_battery_calibration[3];
 			break;
 
@@ -1401,8 +1401,8 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		return;
 	}
 
-	if (g_menu_cursor == MENU_MEM_CH ||
-	    g_menu_cursor == MENU_DEL_CH ||
+	if (g_menu_cursor == MENU_MEM_SAVE ||
+	    g_menu_cursor == MENU_MEM_DEL ||
 	    g_menu_cursor == MENU_1_CALL ||
 	    g_menu_cursor == MENU_MEM_NAME)
 	{	// enter 3-digit channel number
@@ -1535,12 +1535,12 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 	if (!g_is_in_sub_menu)
 	{
 		#ifdef ENABLE_VOICE
-			if (g_menu_cursor != MENU_SCR)
+			if (g_menu_cursor != MENU_SCRAMBLER)
 				g_another_voice_id = g_menu_list[g_menu_list_sorted[g_menu_cursor]].voice_id;
 		#endif
 
 		#if 1
-			if (g_menu_cursor == MENU_DEL_CH || g_menu_cursor == MENU_MEM_NAME)
+			if (g_menu_cursor == MENU_MEM_DEL || g_menu_cursor == MENU_MEM_NAME)
 				if (!RADIO_CheckValidChannel(g_sub_menu_selection, false, 0))
 					return;  // invalid channel
 		#endif
@@ -1548,7 +1548,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 		g_ask_for_confirmation = 0;
 		g_is_in_sub_menu       = true;
 
-//		if (g_menu_cursor != MENU_D_LIST)
+//		if (g_menu_cursor != MENU_DTMF_LIST)
 		{
 			g_input_box_index = 0;
 			g_edit_index        = -1;
@@ -1605,8 +1605,8 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 	if (g_is_in_sub_menu)
 	{
 		if (g_menu_cursor == MENU_RESET  ||
-			g_menu_cursor == MENU_MEM_CH ||
-			g_menu_cursor == MENU_DEL_CH ||
+			g_menu_cursor == MENU_MEM_SAVE ||
+			g_menu_cursor == MENU_MEM_DEL ||
 			g_menu_cursor == MENU_MEM_NAME)
 		{
 			switch (g_ask_for_confirmation)
@@ -1655,7 +1655,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 	}
 
 	#ifdef ENABLE_VOICE
-		if (g_menu_cursor == MENU_SCR)
+		if (g_menu_cursor == MENU_SCRAMBLER)
 			g_another_voice_id = (g_sub_menu_selection == 0) ? VOICE_ID_SCRAMBLER_OFF : VOICE_ID_SCRAMBLER_ON;
 		else
 			g_another_voice_id = VOICE_ID_CONFIRM;
@@ -1694,7 +1694,7 @@ static void MENU_Key_STAR(const bool key_pressed, const bool key_held)
 
 	if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_rx_vfo->am_mode == 0)
 	{
-		if (g_menu_cursor == MENU_R_CTCS || g_menu_cursor == MENU_R_DCS)
+		if (g_menu_cursor == MENU_RX_CTCSS || g_menu_cursor == MENU_RX_CDCSS)
 		{	// scan CTCSS or DCS to find the tone/code of the incoming signal
 
 			if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
@@ -1782,7 +1782,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 
 		g_request_display_screen = DISPLAY_MENU;
 
-		if (g_menu_cursor != MENU_ABR && g_eeprom.backlight == 0)
+		if (g_menu_cursor != MENU_AUTO_BACKLITE && g_eeprom.backlight == 0)
 		{
 			g_backlight_count_down = 0;
 			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
@@ -1814,7 +1814,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 
 	switch (g_menu_cursor)
 	{
-		case MENU_DEL_CH:
+		case MENU_MEM_DEL:
 		case MENU_1_CALL:
 		case MENU_MEM_NAME:
 			bCheckScanList = false;
@@ -1905,11 +1905,11 @@ void MENU_process_key(key_code_t Key, bool key_pressed, bool key_held)
 
 	if (g_screen_to_display == DISPLAY_MENU)
 	{
-		if (g_menu_cursor == MENU_VOL ||
+		if (g_menu_cursor == MENU_VOLTAGE ||
 			#ifdef ENABLE_F_CAL_MENU
 				g_menu_cursor == MENU_F_CALI ||
 		    #endif
-			g_menu_cursor == MENU_BATCAL)
+			g_menu_cursor == MENU_BAT_CAL)
 		{
 			g_menu_count_down = menu_timeout_long_500ms;
 		}
