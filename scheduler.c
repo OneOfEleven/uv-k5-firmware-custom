@@ -78,9 +78,10 @@ void SystickHandler(void)
 	if (g_current_function == FUNCTION_POWER_SAVE)
 		DECREMENT_AND_TRIGGER(g_power_save_10ms, g_power_save_expired);
 
-	if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch != DUAL_WATCH_OFF)
-		if (g_current_function != FUNCTION_MONITOR && g_current_function != FUNCTION_TRANSMIT && g_current_function != FUNCTION_RECEIVE)
-			DECREMENT_AND_TRIGGER(g_dual_watch_count_down_10ms, g_schedule_dual_watch);
+	if (g_eeprom.dual_watch != DUAL_WATCH_OFF)
+		if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
+			if (g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_POWER_SAVE)
+				DECREMENT(g_dual_watch_delay_10ms);
 
 	#ifdef ENABLE_NOAA
 		if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch == DUAL_WATCH_OFF)

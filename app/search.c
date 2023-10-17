@@ -334,8 +334,8 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 			}
 			else
 			{
-				RADIO_ConfigureChannel(0, VFO_CONFIGURE_RELOAD);
-				RADIO_ConfigureChannel(1, VFO_CONFIGURE_RELOAD);
+				RADIO_configure_channel(0, VFO_CONFIGURE_RELOAD);
+				RADIO_configure_channel(1, VFO_CONFIGURE_RELOAD);
 
 				g_tx_vfo->freq_config_rx.code_type = g_search_css_result_type;
 				g_tx_vfo->freq_config_rx.code      = g_search_css_result_code;

@@ -747,6 +747,10 @@ void BOARD_EEPROM_load(void)
 	#endif
 	g_setting_backlight_on_tx_rx = (Data[7] >> 6) & 3u;
 
+	// 0F48..0F4F
+	EEPROM_ReadBuffer(0x0F48, Data, 8);
+	g_eeprom.scan_hold_time_500ms = (Data[0] > 20) ? 6 : (Data[0] < 2) ? 6 : Data[0];
+
 	if (!g_eeprom.vfo_open)
 	{
 		g_eeprom.screen_channel[0] = g_eeprom.user_channel[0];

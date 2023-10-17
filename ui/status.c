@@ -23,6 +23,7 @@
 #include "bitmaps.h"
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
+#include "app/dtmf.h"
 #include "external/printf/printf.h"
 #include "functions.h"
 #include "helper/battery.h"
@@ -135,19 +136,29 @@ void UI_DisplayStatus(const bool test_display)
 	// DUAL-WATCH indicator
 	if (g_eeprom.dual_watch != DUAL_WATCH_OFF || test_display)
 	{
-		if (g_scan_state_dir == SCAN_STATE_DIR_OFF ||
-		    g_squelch_lost ||
-			g_current_function == FUNCTION_INCOMING ||
-			g_current_function == FUNCTION_MONITOR ||
-			g_screen_to_display == DISPLAY_SEARCH ||
-			test_display)
+		if (g_dual_watch_delay_10ms > dual_watch_delay_toggle_10ms ||
+	        g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+		    g_scan_state_dir != SCAN_STATE_DIR_OFF  ||
+			g_css_scan_mode != CSS_SCAN_MODE_OFF    ||
+			(g_current_function != FUNCTION_FOREGROUND && g_current_function != FUNCTION_POWER_SAVE) ||
+			g_screen_to_display == DISPLAY_SEARCH)
 		{
-			memmove(line + x, BITMAP_TDR1, sizeof(BITMAP_TDR1));	// dual-watch is paused
+			memmove(line + x, BITMAP_TDR_HOLDING, sizeof(BITMAP_TDR_HOLDING));
 		}
 		else
-			memmove(line + x, BITMAP_TDR2, sizeof(BITMAP_TDR2));    // dual-watch is running
+		{
+			memmove(line + x, BITMAP_TDR_RUNNING, sizeof(BITMAP_TDR_RUNNING));
+		}
+		x1 = x + sizeof(BITMAP_TDR_RUNNING);
 	}
-	x += sizeof(BITMAP_TDR1);
+	x += sizeof(BITMAP_TDR_RUNNING);
+
+	if (g_current_function == FUNCTION_MONITOR)
+	{
+		memmove(line + x, BITMAP_MONITOR, sizeof(BITMAP_MONITOR));
+		x1 = x + sizeof(BITMAP_MONITOR);
+	}
+	x += sizeof(BITMAP_MONITOR);
 
 	// CROSS-VFO indicator
 	if (g_eeprom.cross_vfo_rx_tx != CROSS_BAND_OFF || test_display)

@@ -329,8 +329,11 @@ void SETTINGS_SaveSettings(void)
 		if (!g_setting_am_fix)            State[7] &= ~(1u << 5);
 	#endif
 	State[7] = (State[7] & ~(3u << 6)) | ((g_setting_backlight_on_tx_rx & 3u) << 6);
-
 	EEPROM_WriteBuffer(0x0F40, State);
+	
+	memset(State, 0xFF, sizeof(State));
+	State[0] = g_eeprom.scan_hold_time_500ms;
+	EEPROM_WriteBuffer(0x0F48, State);
 }
 
 void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, uint8_t Mode)

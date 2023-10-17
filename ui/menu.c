@@ -59,6 +59,7 @@ const t_menu_item g_menu_list[] =
 	{"Tx TO",  VOICE_ID_TRANSMIT_OVER_TIME,            MENU_TOT           }, // was "TOT"
 	{"Tx VFO", VOICE_ID_INVALID,                       MENU_XB            }, // was "WX"
 	{"Dual W", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           }, // was "TDR"
+	{"S HOLD", VOICE_ID_INVALID,                       MENU_SCAN_HOLD     },
 	{"SCRAM",  VOICE_ID_SCRAMBLER_ON,                  MENU_SCR           }, // was "SCR"
 	{"BCL",    VOICE_ID_BUSY_LOCKOUT,                  MENU_BCL           },
 	{"CH SAV", VOICE_ID_MEMORY_CHANNEL,                MENU_MEM_CH        }, // was "MEM-CH"
@@ -853,6 +854,11 @@ void UI_DisplayMenu(void)
 			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
+		case MENU_SCAN_HOLD:
+			strcpy(String, "SCAN HOLD\n");
+			sprintf(String + strlen(String), "%d.%d sec", g_sub_menu_selection / 2, 5 * (g_sub_menu_selection % 2));
+			break;
+		
 		case MENU_XB:
 			strcpy(String, g_sub_menu_xb[g_sub_menu_selection]);
 			break;

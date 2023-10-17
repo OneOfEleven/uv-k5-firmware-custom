@@ -90,8 +90,8 @@ void ACTION_Monitor(void)
 	
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{
-		g_scan_pause_10ms  = scan_pause_1_10ms;
-		g_scan_pause_mode           = true;
+		g_scan_pause_10ms = g_eeprom.scan_hold_time_500ms * 50;
+		g_scan_pause_mode = true;
 	}
 
 	#ifdef g_power_save_expired

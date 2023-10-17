@@ -76,7 +76,7 @@
 	}
 #endif
 
-void MENU_StartCssScan(int8_t Direction)
+void MENU_start_css_scan(int8_t Direction)
 {
 	g_css_scan_mode  = CSS_SCAN_MODE_SCANNING;
 	g_update_status = true;
@@ -87,10 +87,10 @@ void MENU_StartCssScan(int8_t Direction)
 
 	MENU_SelectNextCode();
 
-	g_scan_pause_10ms = scan_pause_2_10ms;
+	g_scan_pause_10ms = scan_pause_css_10ms;
 }
 
-void MENU_StopCssScan(void)
+void MENU_stop_css_scan(void)
 {
 	g_css_scan_mode = CSS_SCAN_MODE_OFF;
 	g_update_status = true;
@@ -143,6 +143,11 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(g_sub_menu_off_on) - 1;
 			break;
 
+		case MENU_SCAN_HOLD:
+			*pMin = 2;
+			*pMax = 20;
+			break;
+			
 		case MENU_XB:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_xb) - 1;
@@ -557,6 +562,10 @@ void MENU_AcceptSetting(void)
 			g_update_status         = true;
 			break;
 
+		case MENU_SCAN_HOLD:
+			g_eeprom.scan_hold_time_500ms = g_sub_menu_selection;
+			break;
+
 		case MENU_XB:
 			if (IS_NOAA_CHANNEL(g_eeprom.screen_channel[0]))
 				return;
@@ -882,7 +891,7 @@ void MENU_SelectNextCode(void)
 
 	RADIO_setup_registers(true);
 
-	g_scan_pause_10ms = (g_selected_code_type == CODE_TYPE_CONTINUOUS_TONE) ? scan_pause_3_10ms : scan_pause_4_10ms;
+	g_scan_pause_10ms = (g_selected_code_type == CODE_TYPE_CONTINUOUS_TONE) ? scan_pause_ctcss_10ms : scan_pause_cdcss_10ms;
 
 	g_update_display = true;
 }
@@ -1020,6 +1029,10 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_TDR:
 //			g_sub_menu_selection = g_eeprom.dual_watch;
 			g_sub_menu_selection = (g_eeprom.dual_watch == DUAL_WATCH_OFF) ? 0 : 1;
+			break;
+
+		case MENU_SCAN_HOLD:
+			g_sub_menu_selection = g_eeprom.scan_hold_time_500ms;
 			break;
 
 		case MENU_XB:
@@ -1482,7 +1495,7 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 	}
 	else
 	{
-		MENU_StopCssScan();
+		MENU_stop_css_scan();
 
 		#ifdef ENABLE_VOICE
 			g_another_voice_id   = VOICE_ID_SCANNING_STOP;
@@ -1669,7 +1682,7 @@ static void MENU_Key_STAR(const bool key_pressed, const bool key_held)
 
 			if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
 			{
-				MENU_StartCssScan(1);
+				MENU_start_css_scan(1);
 				g_request_display_screen = DISPLAY_MENU;
 				#ifdef ENABLE_VOICE
 					AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
@@ -1678,7 +1691,7 @@ static void MENU_Key_STAR(const bool key_pressed, const bool key_held)
 			}
 			else
 			{
-				MENU_StopCssScan();
+				MENU_stop_css_scan();
 				g_request_display_screen = DISPLAY_MENU;
 				#ifdef ENABLE_VOICE
 					g_another_voice_id       = VOICE_ID_SCANNING_STOP;
@@ -1737,7 +1750,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 
 	if (g_css_scan_mode != CSS_SCAN_MODE_OFF)
 	{
-		MENU_StartCssScan(Direction);
+		MENU_start_css_scan(Direction);
 
 		g_ptt_was_released       = true;
 		g_request_display_screen = DISPLAY_MENU;

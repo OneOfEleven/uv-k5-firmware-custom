@@ -89,10 +89,13 @@ void FUNCTION_Select(function_type_t Function)
 	if (was_power_save && Function != FUNCTION_POWER_SAVE)
 	{	// wake up
 		BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
+
 		g_rx_idle_mode = false;
 
 		UI_DisplayStatus(false);
 	}
+
+	g_update_status = true;
 
 	switch (Function)
 	{
@@ -125,7 +128,6 @@ void FUNCTION_Select(function_type_t Function)
 				g_dtmf_auto_reset_time_500ms = g_eeprom.dtmf_auto_reset_time * 2;
 			}
 
-			g_update_status = true;
 			return;
 
 		case FUNCTION_MONITOR:
@@ -164,8 +166,6 @@ void FUNCTION_Select(function_type_t Function)
 			BK4819_Sleep();
 
 			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, false);
-
-			g_update_status = true;
 
 			if (g_screen_to_display != DISPLAY_MENU)     // 1of11 .. don't close the menu
 				GUI_SelectNextDisplay(DISPLAY_MAIN);
@@ -258,6 +258,13 @@ void FUNCTION_Select(function_type_t Function)
 			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
 				backlight_turn_on(backlight_tx_rx_time_500ms);
 
+			if (g_eeprom.dual_watch != DUAL_WATCH_OFF)
+			{	// dual-RX is enabled
+				g_dual_watch_delay_10ms = dual_watch_delay_after_tx_10ms;
+				if (g_dual_watch_delay_10ms < (g_eeprom.scan_hold_time_500ms * 50))
+					g_dual_watch_delay_10ms = g_eeprom.scan_hold_time_500ms * 50;
+			}
+			
 			break;
 
 		case FUNCTION_PANADAPTER:
@@ -265,9 +272,11 @@ void FUNCTION_Select(function_type_t Function)
 	}
 
 	g_battery_save_count_down_10ms = battery_save_count_10ms;
-	g_schedule_power_save = false;
+	g_schedule_power_save          = false;
 
 	#if defined(ENABLE_FMRADIO)
 		g_fm_restore_count_down_10ms = 0;
 	#endif
+
+	g_update_status = true;
 }

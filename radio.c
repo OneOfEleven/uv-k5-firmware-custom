@@ -16,6 +16,7 @@
 
 #include <string.h>
 
+#include "app/app.h"
 #include "app/dtmf.h"
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
@@ -138,7 +139,7 @@ void RADIO_InitInfo(vfo_info_t *pInfo, const uint8_t ChannelSave, const uint32_t
 	RADIO_ConfigureSquelchAndOutputPower(pInfo);
 }
 
-void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure)
+void RADIO_configure_channel(const unsigned int VFO, const unsigned int configure)
 {
 	uint8_t     Channel;
 	uint8_t     Attributes;
@@ -621,7 +622,7 @@ void RADIO_select_vfos(void)
 	RADIO_SelectCurrentVfo();
 }
 
-void RADIO_setup_registers(bool switch_to_function_0)
+void RADIO_setup_registers(bool switch_to_function_foreground)
 {
 	BK4819_filter_bandwidth_t Bandwidth = g_rx_vfo->channel_bandwidth;
 	uint16_t                  interrupt_mask;
@@ -653,9 +654,9 @@ void RADIO_setup_registers(bool switch_to_function_0)
 
 	#pragma GCC diagnostic pop
 
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);   // LED off
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);       // LED off
 	BK4819_SetupPowerAmplifier(0, 0);
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);        // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);    // ???
 
 	while (1)
 	{	// wait for the interrupt to clear ?
@@ -822,8 +823,13 @@ void RADIO_setup_registers(bool switch_to_function_0)
 
 	FUNCTION_Init();
 
-	if (switch_to_function_0)
-		FUNCTION_Select(FUNCTION_FOREGROUND);
+	if (switch_to_function_foreground)
+	{
+		if (g_monitor_enabled)
+			APP_start_listening(FUNCTION_MONITOR, false);
+		else
+			FUNCTION_Select(FUNCTION_FOREGROUND);
+	}
 }
 
 #ifdef ENABLE_NOAA
@@ -975,10 +981,6 @@ void RADIO_PrepareTX(void)
 
 	if (g_eeprom.dual_watch != DUAL_WATCH_OFF)
 	{	// dual-RX is enabled
-
-		g_dual_watch_count_down_10ms = dual_watch_count_after_tx_10ms;
-		g_schedule_dual_watch        = false;
-
 #if 0
 		if (g_rx_vfo_is_active)
 		{	// use the TX vfo

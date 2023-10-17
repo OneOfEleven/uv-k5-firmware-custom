@@ -158,7 +158,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 		else
 		if (g_css_scan_mode != CSS_SCAN_MODE_OFF)
 		{	// CTCSS/CDCSS scanning .. stop
-			MENU_StopCssScan();
+			MENU_stop_css_scan();
 
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = VOICE_ID_SCANNING_STOP;

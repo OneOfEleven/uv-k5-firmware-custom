@@ -404,7 +404,9 @@ typedef struct {
 		uint8_t    am_fix:1;              // 1 = RX AM fix
 		uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when TX, 2 = when RX, 3 = both RX/TX
 
-		uint8_t    unused12[8];           // 0xff's
+		uint8_t    scan_hold_time;        //
+
+		uint8_t    unused12[7];           // 0xff's
 	#endif
 
 	// 0x0F50
@@ -525,6 +527,8 @@ typedef struct {
 	uint32_t              power_on_password;
 	uint16_t              vox1_threshold;
 	uint16_t              vox0_threshold;
+
+	uint8_t               scan_hold_time_500ms;
 
 //	uint8_t               field29_0x26;
 //	uint8_t               field30_0x27;

@@ -53,23 +53,19 @@ const uint8_t         key_repeat_10ms                  =     50 / 10;   // 50ms
 const uint16_t        scan_freq_css_timeout_10ms       =  10000 / 10;   // 10 seconds
 const uint8_t         scan_freq_css_delay_10ms         =    210 / 10;   // 210ms .. don't reduce this
 
-const uint16_t        dual_watch_count_after_tx_10ms   =   3600 / 10;   // 3.6 sec after TX ends
-const uint16_t        dual_watch_count_after_rx_10ms   =   1000 / 10;   // 1 sec after RX ends ?
-const uint16_t        dual_watch_count_after_1_10ms    =   5000 / 10;   // 5 sec
-const uint16_t        dual_watch_count_after_2_10ms    =   3600 / 10;   // 3.6 sec
-const uint16_t        dual_watch_count_noaa_10ms       =     70 / 10;   // 70ms
 #ifdef ENABLE_VOX
-	const uint16_t    dual_watch_count_after_vox_10ms  =    200 / 10;   // 200ms
+	const uint16_t    dual_watch_delay_after_vox_10ms  =    200 / 10;   // 200ms
 #endif
-const uint16_t        dual_watch_count_toggle_10ms     =    100 / 10;   // 100ms between VFO toggles
+const uint16_t        dual_watch_delay_after_tx_10ms   =   7000 / 10;   // 7 sec after TX ends
+const uint16_t        dual_watch_delay_noaa_10ms       =     70 / 10;   // 70ms
+const uint16_t        dual_watch_delay_toggle_10ms     =    100 / 10;   // 100ms between VFO toggles
 
-const uint16_t        scan_pause_1_10ms                =   5000 / 10;   // 5 seconds
-const uint16_t        scan_pause_2_10ms                =    500 / 10;   // 500ms
-const uint16_t        scan_pause_3_10ms                =    200 / 10;   // 200ms
-const uint16_t        scan_pause_4_10ms                =    300 / 10;   // 300ms
-const uint16_t        scan_pause_5_10ms                =   1000 / 10;   // 1 sec
-const uint16_t        scan_pause_6_10ms                =    100 / 10;   // 100ms
-const uint16_t        scan_pause_7_10ms                =   3600 / 10;   // 3.6 seconds
+const uint16_t        scan_pause_code_10ms             =   1000 / 10;   // 1 sec
+const uint16_t        scan_pause_css_10ms              =    500 / 10;   // 500ms
+const uint16_t        scan_pause_ctcss_10ms            =    200 / 10;   // 200ms
+const uint16_t        scan_pause_cdcss_10ms            =    300 / 10;   // 300ms
+const uint16_t        scan_pause_freq_10ms             =    100 / 10;   // 100ms
+const uint16_t        scan_pause_chan_10ms             =    200 / 10;   // 200ms
 
 const uint16_t        battery_save_count_10ms          =  10000 / 10;   // 10 seconds
 
@@ -80,9 +76,9 @@ const uint16_t        power_save2_10ms                 =    200 / 10;   // 200ms
 	const uint16_t    vox_stop_count_down_10ms         =   1000 / 10;   // 1 second
 #endif
 
-const uint16_t        noaa_count_down_10ms              =  5000 / 10;   // 5 seconds
-const uint16_t        noaa_count_down_2_10ms            =   500 / 10;   // 500ms
-const uint16_t        noaa_count_down_3_10ms            =   200 / 10;   // 200ms
+const uint16_t        noaa_count_down_10ms             =   5000 / 10;   // 5 seconds
+const uint16_t        noaa_count_down_2_10ms           =    500 / 10;   // 500ms
+const uint16_t        noaa_count_down_3_10ms           =    200 / 10;   // 200ms
 
 // ***********************************************
 
@@ -141,10 +137,8 @@ volatile uint16_t     g_battery_save_count_down_10ms = battery_save_count_10ms;
 volatile bool         g_power_save_expired;
 volatile bool         g_schedule_power_save;
 
-volatile bool         g_schedule_dual_watch = true;
-
-volatile uint16_t     g_dual_watch_count_down_10ms;
-volatile bool         g_dual_watch_count_down_expired = true;
+volatile uint16_t     g_dual_watch_delay_10ms;
+volatile bool         g_dual_watch_delay_down_expired = true;
 
 volatile uint8_t      g_serial_config_count_down_500ms;
 
@@ -221,10 +215,10 @@ uint16_t              g_low_batteryCountdown;
 reception_mode_t      g_rx_reception_mode;
 
 uint8_t               g_scan_next_channel;
-uint8_t               g_scan_restore_channel;
 scan_next_chan_t      g_scan_current_scan_list;
+uint8_t               g_scan_restore_channel;
 uint32_t              g_scan_restore_frequency;
-bool                  g_scan_keep_frequency;
+//bool                  g_scan_keep_frequency;
 bool                  g_scan_pause_mode;
 volatile uint16_t     g_scan_pause_10ms;
 scan_state_dir_t      g_scan_state_dir;
