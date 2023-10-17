@@ -649,7 +649,7 @@ void UI_DisplayMain(void)
 				if (attributes & USER_CH_SCANLIST2)
 					memmove(p_line0 + 120, BITMAP_SCANLIST2, sizeof(BITMAP_SCANLIST2));
 				#ifndef ENABLE_BIG_FREQ
-					if ((attributes & USER_CH_COMPAND) > 0)
+					if (g_eeprom.vfo_info[vfo_num].compand)
 						memmove(p_line0 + 120 + LCD_WIDTH, BITMAP_COMPAND, sizeof(BITMAP_COMPAND));
 				#else
 
@@ -727,8 +727,8 @@ void UI_DisplayMain(void)
 				#endif
 
 				// show the channel symbols
-				const uint8_t attributes = g_user_channel_attributes[g_eeprom.screen_channel[vfo_num]];
-				if ((attributes & USER_CH_COMPAND) > 0)
+				//const uint8_t attributes = g_user_channel_attributes[g_eeprom.screen_channel[vfo_num]];
+				if (g_eeprom.vfo_info[vfo_num].compand)
 					#ifdef ENABLE_BIG_FREQ
 						memmove(p_line0 + 120, BITMAP_COMPAND, sizeof(BITMAP_COMPAND));
 					#else

@@ -26,7 +26,7 @@
 
 enum {
 	USER_CH_BAND_MASK = 0x0F << 0,
-	USER_CH_COMPAND   =   3u << 4,  // new
+	USER_CH_SPARE     =   3u << 4,
 	USER_CH_SCANLIST2 =   1u << 6,
 	USER_CH_SCANLIST1 =   1u << 7
 };
@@ -111,7 +111,7 @@ typedef struct vfo_info_t
 
 	uint8_t        am_mode;
 
-	uint8_t        compander;
+	uint8_t        compand;
 
 	char           name[16];
 } vfo_info_t;

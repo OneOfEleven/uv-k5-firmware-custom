@@ -498,7 +498,8 @@ void SEARCH_Start(void)
 		g_search_frequency    = g_rx_vfo->p_rx->frequency;
 		g_search_step_setting = g_rx_vfo->step_setting;
 
-		BK4819_PickRXFilterPathBasedOnFrequency(g_search_frequency);
+		BK4819_set_rf_filter_path(g_search_frequency);
+
 		BK4819_SetScanFrequency(g_search_frequency);
 	}
 	else
@@ -506,7 +507,13 @@ void SEARCH_Start(void)
 		g_search_css_state = SEARCH_CSS_STATE_OFF;
 		g_search_frequency = 0xFFFFFFFF;
 
-		BK4819_PickRXFilterPathBasedOnFrequency(0xFFFFFFFF);
+#if 1
+		// this is why it needs such a strong signal
+		BK4819_set_rf_filter_path(0xFFFFFFFF);                 // disable the LNA filter paths
+#else
+		BK4819_set_rf_filter_path(g_rx_vfo->p_rx->frequency);  // lets have a play ;)
+#endif
+
 		BK4819_EnableFrequencyScan();
 	}
 

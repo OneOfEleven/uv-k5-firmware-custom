@@ -94,13 +94,12 @@ enum bk4819_register_e {
 typedef enum bk4819_register_e bk4819_register_t;
 
 enum bk4819_gpio_pin_e {
-	BK4819_GPIO6_PIN2_UNKNOWN = 0,   // please let us know if you know what this pin does
-	BK4819_GPIO5_PIN1_UNKNOWN = 1,   //    "            "
-	BK4819_GPIO4_PIN32_UNUSED = 2,
-	BK4819_GPIO3_PIN31_UHF    = 3,
-	BK4819_GPIO2_PIN30_VHF    = 4,
-	BK4819_GPIO1_PIN29_RED    = 5,
-	BK4819_GPIO0_PIN28_GREEN  = 6
+	BK4819_GPIO0_PIN28_RX_ENABLE = 0,
+	BK4819_GPIO1_PIN29_PA_ENABLE = 1,
+	BK4819_GPIO3_PIN31_UHF_LNA   = 3,
+	BK4819_GPIO4_PIN32_VHF_LNA   = 4,
+	BK4819_GPIO5_PIN1_RED        = 5,
+	BK4819_GPIO6_PIN2_GREEN      = 6
 };
 typedef enum bk4819_gpio_pin_e bk4819_gpio_pin_t;
 

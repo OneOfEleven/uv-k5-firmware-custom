@@ -154,12 +154,12 @@ typedef struct {
 	uint8_t  frequency_reverse:1;    // reverse repeater
 	uint8_t  channel_bandwidth:1;    // wide/narrow
 	uint8_t  tx_power:2;             // 0, 1 or 2 .. L, M or H
-	uint8_t  busy_channel_lockout:1; //
+	uint8_t  busy_channel_lock:1;    //
 	#if 0
 		uint8_t unused5:3;           //
 	#else
 		uint8_t unused5:1;           //
-		uint8_t compander:2;         // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
+		uint8_t compand:2;           // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
 	#endif
 	// [13]
 	uint8_t  dtmf_decoding_enable:1; //
@@ -267,8 +267,7 @@ typedef struct {
 	// 0x0D60
 	struct {                                        // these channel attribute settings could have been in the t_channel structure !
 		uint8_t    band:4;                          // why do QS have these 4 bits ? .. band can/is computed from the frequency
-		uint8_t    unused:2;                        // 0's ?
-//		uint8_t    compander:2;                     // smoved this to the t_channel structure
+		uint8_t    unused:2;                        // 0's
 		uint8_t    scanlist2:1;                     // set if is in scan list 2
 		uint8_t    scanlist1:1;                     // set if is in scan list 1
 	} __attribute__((packed)) channel_attr[200];    //

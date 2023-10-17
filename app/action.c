@@ -212,10 +212,7 @@ void ACTION_Scan(bool bRestart)
 			
 				APP_stop_scan();
 
-				#ifdef ENABLE_VOICE
-					g_another_voice_id = VOICE_ID_SCANNING_STOP;
-				#endif
-
+				g_request_display_screen = DISPLAY_MAIN;
 				return;
 			}
 
@@ -259,13 +256,7 @@ void ACTION_Scan(bool bRestart)
 	else
 	{	// stop scanning
 		g_monitor_enabled = false;
-	
 		APP_stop_scan();
-	
-		#ifdef ENABLE_VOICE
-			g_another_voice_id = VOICE_ID_SCANNING_STOP;
-		#endif
-	
 		g_request_display_screen = DISPLAY_MAIN;
 	}
 }

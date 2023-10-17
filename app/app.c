@@ -660,6 +660,10 @@ void APP_stop_scan(void)
 		SETTINGS_SaveVfoIndices();
 	}
 
+	#ifdef ENABLE_VOICE
+		g_another_voice_id = VOICE_ID_SCANNING_STOP;
+	#endif
+
 	g_update_status = true;
 }
 
@@ -690,6 +694,7 @@ static void APP_next_freq(void)
 	{	// don't need to go through all the other stuff .. lets speed things up !!
 
 		BK4819_set_rf_frequency(frequency, true);
+		BK4819_set_rf_filter_path(frequency);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
 			g_scan_pause_10ms = 10;   // 100ms
@@ -951,13 +956,13 @@ void APP_process_radio_interrupts(void)
 		if (interrupt_bits & BK4819_REG_02_SQUELCH_LOST)
 		{
 			g_squelch_lost = true;
-			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);   // LED on
+			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
 		}
 
 		if (interrupt_bits & BK4819_REG_02_SQUELCH_FOUND)
 		{
 			g_squelch_lost = false;
-			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 		}
 	}
 }
@@ -1305,7 +1310,7 @@ void APP_process(void)
 
 				BK4819_DisableVox();
 				BK4819_Sleep();
-				BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, false);
+				BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
 
 				// Authentic device checked removed
 
@@ -1686,9 +1691,9 @@ void APP_time_slice_10ms(void)
 
 						RADIO_EnableCxCSS();
 						BK4819_SetupPowerAmplifier(0, 0);
-						BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);      // ???
+						BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);   // PA off
 						BK4819_Enable_AfDac_DiscMode_TxDsp();
-						BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false); // LED off
+						BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);          // LED off
 
 						GUI_DisplayScreen();
 					}

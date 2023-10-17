@@ -39,21 +39,6 @@
 //	#include "app/spectrum.h"
 #endif
 
-static void MAIN_stop_scan(void)
-{
-	if (g_scan_state_dir == SCAN_STATE_DIR_OFF)
-		return;
-
-	APP_stop_scan();
-
-	#ifdef ENABLE_VOICE
-		g_another_voice_id = VOICE_ID_SCANNING_STOP;
-	#endif
-
-	g_request_display_screen = DISPLAY_MAIN;
-	g_update_status = true;
-}
-
 void toggle_chan_scanlist(void)
 {	// toggle the selected channels scanlist setting
 
@@ -70,7 +55,7 @@ void toggle_chan_scanlist(void)
 	    g_scan_pause_10ms > 0 &&
 		g_scan_pause_10ms <= (200 / 10) &&
 	   !g_scan_pause_mode)
-	{
+	{	// scanning isn't paused
 		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
@@ -96,7 +81,7 @@ void toggle_chan_scanlist(void)
 	g_flag_reset_vfos    = true;
 }
 
-static void processFKeyFunction(const key_code_t Key)
+void processFKeyFunction(const key_code_t Key)
 {
 	uint8_t Band;
 	uint8_t Vfo = g_eeprom.tx_vfo;
@@ -112,7 +97,7 @@ static void processFKeyFunction(const key_code_t Key)
 		case KEY_0:   // FM
 
 			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-				MAIN_stop_scan();
+				APP_stop_scan();
 
 			#ifdef ENABLE_FMRADIO
 				ACTION_FM();
@@ -134,7 +119,7 @@ static void processFKeyFunction(const key_code_t Key)
 				return;
 			}
 
-			MAIN_stop_scan();
+			APP_stop_scan();
 
 			Band = g_tx_vfo->band + 1;
 			if (g_setting_350_enable || Band != BAND5_350MHz)
@@ -157,7 +142,7 @@ static void processFKeyFunction(const key_code_t Key)
 
 		case KEY_2:   // A/B
 
-			MAIN_stop_scan();
+			APP_stop_scan();
 
 			if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_A)
 				g_eeprom.cross_vfo_rx_tx = CROSS_BAND_CHAN_B;
@@ -181,7 +166,7 @@ static void processFKeyFunction(const key_code_t Key)
 
 		case KEY_3:   // VFO/MR
 
-			MAIN_stop_scan();
+			APP_stop_scan();
 
 			if (g_eeprom.vfo_open && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 			{
@@ -223,7 +208,7 @@ static void processFKeyFunction(const key_code_t Key)
 
 		case KEY_4:    // FC
 
-			MAIN_stop_scan();
+			APP_stop_scan();
 
 			g_search_flag_start_scan  = true;
 			g_search_single_frequency = false;
@@ -235,7 +220,7 @@ static void processFKeyFunction(const key_code_t Key)
 
 			#ifdef ENABLE_NOAA
 
-				MAIN_stop_scan();
+				APP_stop_scan();
 
 				if (IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 				{
@@ -274,7 +259,7 @@ static void processFKeyFunction(const key_code_t Key)
 		case KEY_7:    // VOX
 
 			#ifdef ENABLE_VOX
-				MAIN_stop_scan();
+				APP_stop_scan();
 
 				ACTION_Vox();
 			#else
@@ -306,7 +291,7 @@ static void processFKeyFunction(const key_code_t Key)
 
 			// swap to the CALL channel
 
-			MAIN_stop_scan();
+			APP_stop_scan();
 
 			g_eeprom.user_channel[Vfo]   = g_eeprom.chan_1_call;
 			g_eeprom.screen_channel[Vfo] = g_eeprom.chan_1_call;
@@ -328,7 +313,7 @@ static void processFKeyFunction(const key_code_t Key)
 	}
 }
 
-static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
+void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 {
 	g_key_input_count_down = key_input_timeout_500ms;
 
@@ -532,7 +517,7 @@ static void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 	g_beep_to_play           = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 }
 
-static void MAIN_Key_EXIT(bool key_pressed, bool key_held)
+void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 {
 	if (!key_held && key_pressed)
 	{	// exit key pressed
@@ -598,7 +583,7 @@ static void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 	}
 }
 
-static void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
+void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 {
 	if (key_pressed && !key_held)
 		// menu key pressed
@@ -696,7 +681,7 @@ static void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 	}
 }
 
-static void MAIN_Key_STAR(bool key_pressed, bool key_held)
+void MAIN_Key_STAR(bool key_pressed, bool key_held)
 {
 	if (g_input_box_index > 0)
 	{	// entering a channel, frequency or DTMF string
@@ -770,7 +755,7 @@ static void MAIN_Key_STAR(bool key_pressed, bool key_held)
 	g_update_status = true;
 }
 
-static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Direction)
+void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Direction)
 {
 	#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
 		static bool monitor_was_enabled = false;
@@ -875,7 +860,7 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 					#endif
 
 					BK4819_set_rf_frequency(frequency, true);
-					//BK4819_PickRXFilterPathBasedOnFrequency(frequency);
+					BK4819_set_rf_filter_path(frequency);
 				}
 
 				return;

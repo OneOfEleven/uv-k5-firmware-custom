@@ -79,7 +79,7 @@ void AIRCOPY_init(void)
 	g_aircopy_state = AIRCOPY_READY;
 
 	g_fsk_write_index = 0;
-	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 	BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 
 	GUI_SelectNextDisplay(DISPLAY_AIRCOPY);
@@ -203,9 +203,9 @@ void AIRCOPY_stop_fsk_tx(void)
 	g_fsk_tx_timeout_10ms = 0;
 
 	// disable the TX
-	BK4819_SetupPowerAmplifier(0, 0);                             //
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);        // ???
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);           // LED off
+	BK4819_SetupPowerAmplifier(0, 0);                            //
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);    // PA off
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);           // LED off
 
 	BK4819_reset_fsk();
 
@@ -343,7 +343,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	if ((status & (1u << 12)) == 0)
 	{	// FSK RX is disabled, enable it
 		g_fsk_write_index = 0;
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 		BK4819_start_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
 	}
 
@@ -356,15 +356,15 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
 
 	if (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC)
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);   // LED on
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
 
 	if (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED)
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 
 	if ((interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL) == 0)
 		return;
 
-	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);       // LED on
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);       // LED on
 
 	// fetch RX'ed data
 	for (i = 0; i < 4; i++)
@@ -406,7 +406,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		return;        // not yet a complete packet
 
 	// restart the RX
-	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);     // LED off
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);     // LED off
 	BK4819_start_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
 
 	g_update_display = true;
@@ -678,7 +678,7 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 		if (!key_held)
 		{
 			// turn the green LED off
-			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
+			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
 			g_input_box_index = 0;
 			g_aircopy_state   = AIRCOPY_READY;
@@ -713,7 +713,7 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 	{	// enter RX mode
 
 		// turn the green LED off
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
 		g_input_box_index = 0;
 

@@ -370,10 +370,11 @@ void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, 
 	State[2] = (pVFO->freq_config_tx.code_type << 4) | pVFO->freq_config_rx.code_type;
 	State[3] = ((pVFO->am_mode & 1u)           << 4) | pVFO->tx_offset_freq_dir;
 	State[4] =
-		  (pVFO->busy_channel_lock << 4)
-		| (pVFO->output_power      << 2)
-		| (pVFO->channel_bandwidth << 1)
-		| (pVFO->frequency_reverse  << 0);
+		(pVFO->compand           << 6) |
+		(pVFO->busy_channel_lock << 4) |
+		(pVFO->output_power      << 2) |
+		(pVFO->channel_bandwidth << 1) |
+		(pVFO->frequency_reverse  << 0);
 	State[5] = ((pVFO->dtmf_ptt_id_tx_mode & 7u) << 1) | ((pVFO->dtmf_decoding_enable & 1u) << 0);
 	State[6] =  pVFO->step_setting;
 	State[7] =  pVFO->scrambling_type;
@@ -410,13 +411,11 @@ void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep)
 	if (IS_NOAA_CHANNEL(Channel))
 		return;
 
-	Attributes &= (uint8_t)(~USER_CH_COMPAND);  // default to '0' = compander disabled
-
 	EEPROM_ReadBuffer(Offset, State, sizeof(State));
 
 	if (keep)
 	{
-		Attributes = (pVFO->scanlist_1_participation << 7) | (pVFO->scanlist_2_participation << 6) | (pVFO->compander << 4) | (pVFO->band << 0);
+		Attributes = (pVFO->scanlist_1_participation << 7) | (pVFO->scanlist_2_participation << 6) | (pVFO->band << 0);
 		if (State[Channel & 7u] == Attributes)
 			return; // no change in the attributes .. don't place wear on the eeprom
 	}

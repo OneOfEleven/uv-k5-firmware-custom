@@ -237,10 +237,10 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			case MENU_AM_FIX:
 		#endif
 		#ifdef ENABLE_AUDIO_BAR
-			case MENU_MIC_BAR:
+			case MENU_TX_BAR:
 		#endif
 		#ifdef ENABLE_RSSI_BAR
-			case MENU_RSSI_BAR:
+			case MENU_RX_BAR:
 		#endif
 		case MENU_BCL:
 		case MENU_BEEP:
@@ -637,23 +637,25 @@ void MENU_AcceptSetting(void)
 			break;
 
 		#ifdef ENABLE_AUDIO_BAR
-			case MENU_MIC_BAR:
+			case MENU_TX_BAR:
 				g_setting_mic_bar = g_sub_menu_selection;
 				break;
 		#endif
 
 		#ifdef ENABLE_RSSI_BAR
-			case MENU_RSSI_BAR:
+			case MENU_RX_BAR:
 				g_setting_rssi_bar = g_sub_menu_selection;
 				break;
 		#endif
 
 		case MENU_COMPAND:
-			g_tx_vfo->compander = g_sub_menu_selection;
-			SETTINGS_UpdateChannel(g_tx_vfo->channel_save, g_tx_vfo, true);
-			g_vfo_configure_mode = VFO_CONFIGURE;
-			g_flag_reset_vfos    = true;
-//			g_request_save_channel = 1;
+			g_tx_vfo->compand      = g_sub_menu_selection;
+			#if 1
+				g_request_save_channel = 1;
+			#else
+				SETTINGS_SaveChannel(g_sub_menu_selection, g_eeprom.tx_vfo, g_tx_vfo, 3);
+				g_flag_reconfigure_vfos = true;
+			#endif
 			return;
 
 		case MENU_1_CALL:
@@ -1095,19 +1097,19 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		#ifdef ENABLE_AUDIO_BAR
-			case MENU_MIC_BAR:
+			case MENU_TX_BAR:
 				g_sub_menu_selection = g_setting_mic_bar;
 				break;
 		#endif
 
 		#ifdef ENABLE_RSSI_BAR
-			case MENU_RSSI_BAR:
+			case MENU_RX_BAR:
 				g_sub_menu_selection = g_setting_rssi_bar;
 				break;
 		#endif
 
 		case MENU_COMPAND:
-			g_sub_menu_selection = g_tx_vfo->compander;
+			g_sub_menu_selection = g_tx_vfo->compand;
 			return;
 
 		case MENU_1_CALL:

@@ -129,9 +129,9 @@ void RADIO_InitInfo(vfo_info_t *pInfo, const uint8_t ChannelSave, const uint32_t
 	pInfo->output_power             = OUTPUT_POWER_LOW;
 	pInfo->freq_config_rx.frequency = Frequency;
 	pInfo->freq_config_tx.frequency = Frequency;
-	pInfo->p_rx                      = &pInfo->freq_config_rx;
-	pInfo->p_tx                      = &pInfo->freq_config_tx;
-	pInfo->compander                = 0;  // off
+	pInfo->p_rx                     = &pInfo->freq_config_rx;
+	pInfo->p_tx                     = &pInfo->freq_config_tx;
+	pInfo->compand                  = 0;  // off
 
 	if (ChannelSave == (FREQ_CHANNEL_FIRST + BAND2_108MHz))
 		pInfo->am_mode = 1;
@@ -320,6 +320,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 			g_eeprom.vfo_info[VFO].channel_bandwidth = BK4819_FILTER_BW_WIDE;
 			g_eeprom.vfo_info[VFO].output_power      = OUTPUT_POWER_LOW;
 			g_eeprom.vfo_info[VFO].busy_channel_lock = false;
+			g_eeprom.vfo_info[VFO].compand           = 0;
 		}
 		else
 		{
@@ -328,6 +329,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 			g_eeprom.vfo_info[VFO].channel_bandwidth = ((d4 >> 1) & 1u) ? true : false;
 			g_eeprom.vfo_info[VFO].output_power      =  (d4 >> 2) & 3u;
 			g_eeprom.vfo_info[VFO].busy_channel_lock = ((d4 >> 4) & 1u) ? true : false;
+			g_eeprom.vfo_info[VFO].compand           =  (d4 >> 6) & 3u;
 		}
 
 		if (Data[5] == 0xFF)
@@ -418,8 +420,6 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		g_eeprom.vfo_info[VFO].freq_config_rx.code_type = CODE_TYPE_NONE;
 		g_eeprom.vfo_info[VFO].freq_config_tx.code_type = CODE_TYPE_NONE;
 	}
-
-	g_eeprom.vfo_info[VFO].compander = (Attributes & USER_CH_COMPAND) >> 4;
 
 	RADIO_ConfigureSquelchAndOutputPower(pRadio);
 }
@@ -632,7 +632,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 	g_enable_speaker = false;
 
-	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
@@ -654,9 +654,9 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 	#pragma GCC diagnostic pop
 
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);       // LED off
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);         // LED off
 	BK4819_SetupPowerAmplifier(0, 0);
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);    // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);  // PA off
 
 	while (1)
 	{	// wait for the interrupt to clear ?
@@ -678,17 +678,16 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		else
 	#endif
 			Frequency = g_rx_vfo->p_rx->frequency;
+
 	BK4819_set_rf_frequency(Frequency, false);
+	BK4819_set_rf_filter_path(Frequency);
 
 	BK4819_SetupSquelch(
 		g_rx_vfo->squelch_open_rssi_thresh,    g_rx_vfo->squelch_close_rssi_thresh,
 		g_rx_vfo->squelch_open_noise_thresh,   g_rx_vfo->squelch_close_noise_thresh,
 		g_rx_vfo->squelch_close_glitch_thresh, g_rx_vfo->squelch_open_glitch_thresh);
 
-	BK4819_PickRXFilterPathBasedOnFrequency(Frequency);
-
-	// what does this in do ?
-	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, true);
+	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
 	// AF RX Gain and DAC
 	BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);  // 1011 00 111010 1000
@@ -789,7 +788,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			BK4819_DisableVox();
 
 	// RX expander
-	BK4819_SetCompander((g_rx_vfo->am_mode == 0 && g_rx_vfo->compander >= 2) ? g_rx_vfo->compander : 0);
+	BK4819_SetCompander((g_rx_vfo->am_mode == 0 && g_rx_vfo->compand >= 2) ? g_rx_vfo->compand : 0);
 
 	#if 0
 		#ifdef ENABLE_KILL_REVIVE
@@ -885,7 +884,7 @@ void RADIO_enableTX(const bool fsk_tx)
 
 	g_enable_speaker = false;
 
-	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, false);     // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);     // ???
 
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
@@ -911,18 +910,19 @@ void RADIO_enableTX(const bool fsk_tx)
 	// so MAKE SURE that DTMF is disabled - until needed
 	BK4819_DisableDTMF();
 	
-	BK4819_SetCompander((!fsk_tx && g_rx_vfo->am_mode == 0 && (g_rx_vfo->compander == 1 || g_rx_vfo->compander >= 3)) ? g_rx_vfo->compander : 0);
+	BK4819_SetCompander((!fsk_tx && g_rx_vfo->am_mode == 0 && (g_rx_vfo->compand == 1 || g_rx_vfo->compand >= 3)) ? g_rx_vfo->compand : 0);
 
 	BK4819_set_rf_frequency(g_current_vfo->p_tx->frequency, false);
+	BK4819_set_rf_filter_path(g_current_vfo->p_tx->frequency);
+
 	BK4819_PrepareTransmit();
-	BK4819_PickRXFilterPathBasedOnFrequency(g_current_vfo->p_tx->frequency);
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, true);                       // ???
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, true);                // PA on
 	if (g_screen_to_display != DISPLAY_AIRCOPY)
 		BK4819_SetupPowerAmplifier(g_current_vfo->txp_calculated_setting, g_current_vfo->p_tx->frequency);
 	else
-		BK4819_SetupPowerAmplifier(0, g_current_vfo->p_tx->frequency);  // very low power when in AIRCOPY mode
+		BK4819_SetupPowerAmplifier(0, g_current_vfo->p_tx->frequency);      // very low power when in AIRCOPY mode
 
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, true);                  // turn the RED LED on
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, true);                       // turn the RED LED on
 
 	if (fsk_tx)
 	{

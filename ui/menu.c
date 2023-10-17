@@ -86,10 +86,10 @@ const t_menu_item g_menu_list[] =
 	{"MIC GN", VOICE_ID_INVALID,                       MENU_MIC           },
 	{"COMPND", VOICE_ID_INVALID,                       MENU_COMPAND       },
 #ifdef ENABLE_AUDIO_BAR
-	{"Tx BAR", VOICE_ID_INVALID,                       MENU_MIC_BAR       },
+	{"Tx BAR", VOICE_ID_INVALID,                       MENU_TX_BAR       },
 #endif
 #ifdef ENABLE_RSSI_BAR
-	{"Rx BAR", VOICE_ID_INVALID,                       MENU_RSSI_BAR      },
+	{"Rx BAR", VOICE_ID_INVALID,                       MENU_RX_BAR      },
 #endif
 	{"1 CALL", VOICE_ID_INVALID,                       MENU_1_CALL        },
 	{"SLIST",  VOICE_ID_INVALID,                       MENU_S_LIST        },
@@ -709,10 +709,10 @@ void UI_DisplayMenu(void)
 			break;
 			
 		#ifdef ENABLE_AUDIO_BAR
-			case MENU_MIC_BAR:
+			case MENU_TX_BAR:
 		#endif
 		#ifdef ENABLE_RSSI_BAR
-			case MENU_RSSI_BAR:
+			case MENU_RX_BAR:
 		#endif
 		#ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:

@@ -165,7 +165,7 @@ void FUNCTION_Select(function_type_t Function)
 			BK4819_DisableVox();			
 			BK4819_Sleep();
 
-			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, false);
+			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
 
 			if (g_screen_to_display != DISPLAY_MENU)     // 1of11 .. don't close the menu
 				GUI_SelectNextDisplay(DISPLAY_MAIN);

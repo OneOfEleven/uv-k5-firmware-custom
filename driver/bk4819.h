@@ -88,7 +88,7 @@ void     BK4819_SetupSquelch(
 
 void     BK4819_SetAF(BK4819_af_type_t AF);
 void     BK4819_RX_TurnOn(void);
-void     BK4819_PickRXFilterPathBasedOnFrequency(uint32_t Frequency);
+void     BK4819_set_rf_filter_path(uint32_t Frequency);
 void     BK4819_DisableScramble(void);
 void     BK4819_EnableScramble(uint8_t Type);
 

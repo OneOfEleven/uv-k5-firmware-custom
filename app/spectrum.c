@@ -203,7 +203,7 @@ static void SetF(uint32_t f) {
   fMeasure = f;
 
   BK4819_set_rf_frequency(fMeasure);
-  BK4819_PickRXFilterPathBasedOnFrequency(fMeasure);
+  BK4819_set_rf_filter_path(fMeasure);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
   BK4819_WriteRegister(BK4819_REG_30, 0);
   BK4819_WriteRegister(BK4819_REG_30, reg);
@@ -212,7 +212,7 @@ static void SetF(uint32_t f) {
 static void SetTxF(uint32_t f) {
   fTx = f;
   BK4819_set_rf_frequency(f);
-  BK4819_PickRXFilterPathBasedOnFrequency(f);
+  BK4819_set_rf_filter_path(f);
   uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
   BK4819_WriteRegister(BK4819_REG_30, 0);
   BK4819_WriteRegister(BK4819_REG_30, reg);
@@ -364,7 +364,7 @@ static void ToggleRX(bool on) {
     ToggleTX(false);
   }
 
-  BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, on);
+  BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, on);
   BK4819_RX_TurnOn();
 
   ToggleAudio(on);
@@ -399,7 +399,7 @@ static void ToggleTX(bool on) {
     ToggleRX(false);
   }
 
-  BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, on);
+  BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, on);
 
   if (on) {
     ToggleAudio(false);
@@ -417,7 +417,9 @@ static void ToggleTX(bool on) {
 
     BK4819_SetupPowerAmplifier(gCurrentVfo->TXP_CalculatedSetting,
                                gCurrentVfo->p_tx->Frequency);
-  } else {
+  }
+  else
+  {
     RADIO_SendEndOfTransmission();
     RADIO_EnableCxCSS();
 
@@ -434,8 +436,9 @@ static void ToggleTX(bool on) {
 
     SetF(fMeasure);
   }
-  BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, !on);
-  BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, on);
+
+  BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, !on);
+  BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, on);
 }
 
 // Scan info
