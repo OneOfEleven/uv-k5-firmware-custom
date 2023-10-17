@@ -735,7 +735,10 @@ void BOARD_EEPROM_load(void)
 	g_setting_174_tx_enable      = (Data[3] < 2) ? Data[3] : false;
 	g_setting_470_tx_enable      = (Data[4] < 2) ? Data[4] : false;
 	g_setting_350_enable         = (Data[5] < 2) ? Data[5] : true;
-	g_setting_scramble_enable    = (Data[6] < 2) ? Data[6] : true;
+	g_setting_scramble_enable    = (Data[6] & (1u << 0)) ? true : false;
+	#ifdef ENABLE_RSSI_BAR
+		g_setting_rssi_bar       = (Data[6] & (1u << 1)) ? true : false;
+	#endif
 	g_setting_tx_enable          = (Data[7] & (1u << 0)) ? true : false;
 	g_setting_live_dtmf_decoder  = (Data[7] & (1u << 1)) ? true : false;
 	g_setting_battery_text       = (((Data[7] >> 2) & 3u) <= 2) ? (Data[7] >> 2) & 3 : 2;

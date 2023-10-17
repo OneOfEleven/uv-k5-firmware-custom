@@ -318,9 +318,12 @@ void SETTINGS_SaveSettings(void)
 	State[3]  = g_setting_174_tx_enable;
 	State[4]  = g_setting_470_tx_enable;
 	State[5]  = g_setting_350_enable;
-	State[6]  = g_setting_scramble_enable;
+	if (!g_setting_scramble_enable)       State[6] &= ~(1u << 0);
+	#ifdef ENABLE_RSSI_BAR
+		if (!g_setting_rssi_bar)          State[6] &= ~(1u << 1);
+	#endif
 	if (!g_setting_tx_enable)             State[7] &= ~(1u << 0);
-	if (!g_setting_live_dtmf_decoder) State[7] &= ~(1u << 1);
+	if (!g_setting_live_dtmf_decoder)     State[7] &= ~(1u << 1);
 	State[7] = (State[7] & ~(3u << 2)) | ((g_setting_battery_text & 3u) << 2);
 	#ifdef ENABLE_AUDIO_BAR
 		if (!g_setting_mic_bar)           State[7] &= ~(1u << 4);

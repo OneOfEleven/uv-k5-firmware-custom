@@ -239,6 +239,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#ifdef ENABLE_AUDIO_BAR
 			case MENU_MIC_BAR:
 		#endif
+		#ifdef ENABLE_RSSI_BAR
+			case MENU_RSSI_BAR:
+		#endif
 		case MENU_BCL:
 		case MENU_BEEP:
 		case MENU_AUTOLK:
@@ -636,6 +639,12 @@ void MENU_AcceptSetting(void)
 		#ifdef ENABLE_AUDIO_BAR
 			case MENU_MIC_BAR:
 				g_setting_mic_bar = g_sub_menu_selection;
+				break;
+		#endif
+
+		#ifdef ENABLE_RSSI_BAR
+			case MENU_RSSI_BAR:
+				g_setting_rssi_bar = g_sub_menu_selection;
 				break;
 		#endif
 
@@ -1088,6 +1097,12 @@ void MENU_ShowCurrentSetting(void)
 		#ifdef ENABLE_AUDIO_BAR
 			case MENU_MIC_BAR:
 				g_sub_menu_selection = g_setting_mic_bar;
+				break;
+		#endif
+
+		#ifdef ENABLE_RSSI_BAR
+			case MENU_RSSI_BAR:
+				g_sub_menu_selection = g_setting_rssi_bar;
 				break;
 		#endif
 

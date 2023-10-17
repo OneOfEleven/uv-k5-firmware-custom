@@ -386,12 +386,19 @@ typedef struct {
 
 	// 0x0F40
 	uint8_t        freq_lock;                       //
-	uint8_t        enable_tx_350;                   // 350MHz ~ 400MHz
-	uint8_t        radio_disabled;                  // 0 = not radio is not disabled
-	uint8_t        enable_tx_200;                   // 174MHz ~ 350MHz
-	uint8_t        enable_tx_470;                   // >= 470MHz disabled
-	uint8_t        enable_350;                      // 0 = 350HMz ~ 400MHz RX/TX disabled
-	uint8_t        enable_scrambler;                // 0 = scrambler disabled, 1 = enabled
+	uint8_t        enable_tx_350:1;                 // 350MHz ~ 400MHz
+	uint8_t        unused11a:7;                     //
+	uint8_t        radio_disabled:1;                // 0 = not radio is not disabled
+	uint8_t        unused11b:7;                     //
+	uint8_t        enable_tx_200:1;                 // 174MHz ~ 350MHz
+	uint8_t        unused11c:7;                     //
+	uint8_t        enable_tx_470:1;                 // >= 470MHz disabled
+	uint8_t        unused11d:7;                     //
+	uint8_t        enable_350:1;                    // 0 = 350HMz ~ 400MHz RX/TX disabled
+	uint8_t        unused11e:7;                     //
+	uint8_t        enable_scrambler:1;              // 0 = scrambler disabled, 1 = enabled
+	uint8_t        enable_rssi_bar:1;               // 0 = disabled .. 1of11
+	uint8_t        unused11f:6;                     //
 	#if 0
 		// QS
 		uint8_t    unused12[9];                     // 0xff's

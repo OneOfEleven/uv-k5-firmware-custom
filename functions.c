@@ -155,7 +155,7 @@ void FUNCTION_Select(function_type_t Function)
 				UART_SendText("func power save\r\n");
 			#endif
 
-			g_power_save_10ms = g_eeprom.battery_save * 10;
+			g_power_save_10ms    = g_eeprom.battery_save * 10;
 			g_power_save_expired = false;
 
 			g_rx_idle_mode = true;
@@ -177,7 +177,8 @@ void FUNCTION_Select(function_type_t Function)
 				UART_SendText("func transmit\r\n");
 			#endif
 
-			// if DTMF is enabled when TX'ing, it changes the TX audio filtering !! .. 1of11
+			// if DTMF is enabled when TX'ing, it changes the TX audio filtering ! .. 1of11
+			// so MAKE SURE that DTMF is disabled - until needed
 			BK4819_DisableDTMF();
 
 			// clear the DTMF RX buffer

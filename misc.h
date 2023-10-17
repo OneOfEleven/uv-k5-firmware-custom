@@ -190,6 +190,9 @@ extern uint8_t               g_setting_backlight_on_tx_rx;
 #ifdef ENABLE_AUDIO_BAR
 	extern bool              g_setting_mic_bar;
 #endif
+#ifdef ENABLE_RSSI_BAR
+	extern bool              g_setting_rssi_bar;
+#endif
 extern bool                  g_setting_live_dtmf_decoder;
 extern uint8_t               g_setting_battery_text;
 

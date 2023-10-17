@@ -236,58 +236,61 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 #ifdef ENABLE_RSSI_BAR
 	void UI_DisplayRSSIBar(const int16_t rssi, const bool now)
 	{
-//		const int16_t      s0_dBm       = -127;                  // S0 .. base level
-		const int16_t      s0_dBm       = -147;                  // S0 .. base level
-
-		const int16_t      s9_dBm       = s0_dBm + (6 * 9);      // S9 .. 6dB/S-Point
-		const int16_t      bar_max_dBm  = s9_dBm + 30;           // S9+30dB
-//		const int16_t      bar_min_dBm  = s0_dBm + (6 * 0);      // S0
-		const int16_t      bar_min_dBm  = s0_dBm + (6 * 4);      // S4
-
-		// ************
-
-		const unsigned int txt_width    = 7 * 8;                 // 8 text chars
-		const unsigned int bar_x        = 2 + txt_width + 4;     // X coord of bar graph
-		const unsigned int bar_width    = LCD_WIDTH - 1 - bar_x;
-
-		const int16_t      rssi_dBm     = (rssi / 2) - 160;
-		const int16_t      clamped_dBm  = (rssi_dBm <= bar_min_dBm) ? bar_min_dBm : (rssi_dBm >= bar_max_dBm) ? bar_max_dBm : rssi_dBm;
-		const unsigned int bar_range_dB = bar_max_dBm - bar_min_dBm;
-		const unsigned int len          = ((clamped_dBm - bar_min_dBm) * bar_width) / bar_range_dB;
-
-		const unsigned int line         = 3;
-		uint8_t           *p_line        = g_frame_buffer[line];
-
-		char               s[16];
-
-		if (g_eeprom.key_lock && g_keypad_locked > 0)
-			return;     // display is in use
-
-		if (g_current_function == FUNCTION_TRANSMIT ||
-		    g_screen_to_display != DISPLAY_MAIN ||
-			g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-			return;     // display is in use
-
-		if (now)
-			memset(p_line, 0, LCD_WIDTH);
-
-		if (rssi_dBm >= (s9_dBm + 6))
-		{	// S9+XXdB, 1dB increment
-			const char *fmt[] = {"%3d 9+%u  ", "%3d 9+%2u "};
-			const unsigned int s9_dB = ((rssi_dBm - s9_dBm) <= 99) ? rssi_dBm - s9_dBm : 99;
-			sprintf(s, (s9_dB < 10) ? fmt[0] : fmt[1], rssi_dBm, s9_dB);
+		if (g_setting_rssi_bar)
+		{
+//			const int16_t      s0_dBm       = -127;                  // S0 .. base level
+			const int16_t      s0_dBm       = -147;                  // S0 .. base level
+	
+			const int16_t      s9_dBm       = s0_dBm + (6 * 9);      // S9 .. 6dB/S-Point
+			const int16_t      bar_max_dBm  = s9_dBm + 30;           // S9+30dB
+//			const int16_t      bar_min_dBm  = s0_dBm + (6 * 0);      // S0
+			const int16_t      bar_min_dBm  = s0_dBm + (6 * 4);      // S4
+	
+			// ************
+	
+			const unsigned int txt_width    = 7 * 8;                 // 8 text chars
+			const unsigned int bar_x        = 2 + txt_width + 4;     // X coord of bar graph
+			const unsigned int bar_width    = LCD_WIDTH - 1 - bar_x;
+	
+			const int16_t      rssi_dBm     = (rssi / 2) - 160;
+			const int16_t      clamped_dBm  = (rssi_dBm <= bar_min_dBm) ? bar_min_dBm : (rssi_dBm >= bar_max_dBm) ? bar_max_dBm : rssi_dBm;
+			const unsigned int bar_range_dB = bar_max_dBm - bar_min_dBm;
+			const unsigned int len          = ((clamped_dBm - bar_min_dBm) * bar_width) / bar_range_dB;
+	
+			const unsigned int line         = 3;
+			uint8_t           *p_line        = g_frame_buffer[line];
+	
+			char               s[16];
+	
+			if (g_eeprom.key_lock && g_keypad_locked > 0)
+				return;     // display is in use
+	
+			if (g_current_function == FUNCTION_TRANSMIT ||
+				g_screen_to_display != DISPLAY_MAIN ||
+				g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+				return;     // display is in use
+	
+			if (now)
+				memset(p_line, 0, LCD_WIDTH);
+	
+			if (rssi_dBm >= (s9_dBm + 6))
+			{	// S9+XXdB, 1dB increment
+				const char *fmt[] = {"%3d 9+%u  ", "%3d 9+%2u "};
+				const unsigned int s9_dB = ((rssi_dBm - s9_dBm) <= 99) ? rssi_dBm - s9_dBm : 99;
+				sprintf(s, (s9_dB < 10) ? fmt[0] : fmt[1], rssi_dBm, s9_dB);
+			}
+			else
+			{	// S0 ~ S9, 6dB per S-point
+				const unsigned int s_level = (rssi_dBm >= s0_dBm) ? (rssi_dBm - s0_dBm) / 6 : 0;
+				sprintf(s, "%4d S%u ", rssi_dBm, s_level);
+			}
+			UI_PrintStringSmall(s, 2, 0, line);
+	
+			draw_bar(p_line + bar_x, len, bar_width);
+	
+			if (now)
+				ST7565_BlitFullScreen();
 		}
-		else
-		{	// S0 ~ S9, 6dB per S-point
-			const unsigned int s_level = (rssi_dBm >= s0_dBm) ? (rssi_dBm - s0_dBm) / 6 : 0;
-			sprintf(s, "%4d S%u ", rssi_dBm, s_level);
-		}
-		UI_PrintStringSmall(s, 2, 0, line);
-
-		draw_bar(p_line + bar_x, len, bar_width);
-
-		if (now)
-			ST7565_BlitFullScreen();
 	}
 #endif
 

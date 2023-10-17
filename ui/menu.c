@@ -70,8 +70,8 @@ const t_menu_item g_menu_list[] =
 #ifdef ENABLE_VOX
 	{"VOX",    VOICE_ID_VOX,                           MENU_VOX           },
 #endif
-	{"BLT",    VOICE_ID_INVALID,                       MENU_ABR           }, // was "ABR"
-	{"BLTTRX", VOICE_ID_INVALID,                       MENU_ABR_ON_TX_RX  },
+	{"BL ",    VOICE_ID_INVALID,                       MENU_ABR           }, // was "ABR"
+	{"BL TRX", VOICE_ID_INVALID,                       MENU_ABR_ON_TX_RX  },
 	{"CTRAST", VOICE_ID_INVALID,                       MENU_CONTRAST      },
 	{"BEEP",   VOICE_ID_BEEP_PROMPT,                   MENU_BEEP          },
 #ifdef ENABLE_VOICE
@@ -84,10 +84,13 @@ const t_menu_item g_menu_list[] =
 	{"STE",    VOICE_ID_INVALID,                       MENU_STE           },
 	{"RP STE", VOICE_ID_INVALID,                       MENU_RP_STE        },
 	{"MIC",    VOICE_ID_INVALID,                       MENU_MIC           },
-#ifdef ENABLE_AUDIO_BAR
-	{"MICBAR", VOICE_ID_INVALID,                       MENU_MIC_BAR       },
-#endif
 	{"COMPND", VOICE_ID_INVALID,                       MENU_COMPAND       },
+#ifdef ENABLE_AUDIO_BAR
+	{"Tx BAR", VOICE_ID_INVALID,                       MENU_MIC_BAR       },
+#endif
+#ifdef ENABLE_RSSI_BAR
+	{"Rx BAR", VOICE_ID_INVALID,                       MENU_RSSI_BAR      },
+#endif
 	{"1 CALL", VOICE_ID_INVALID,                       MENU_1_CALL        },
 	{"SLIST",  VOICE_ID_INVALID,                       MENU_S_LIST        },
 	{"SLIST1", VOICE_ID_INVALID,                       MENU_SLIST1        },
@@ -549,12 +552,6 @@ void UI_DisplayMenu(void)
 			}
 			break;
 
-		#ifdef ENABLE_AUDIO_BAR
-			case MENU_MIC_BAR:
-				strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
-				break;
-		#endif
-
 		case MENU_STEP:
 			sprintf(String, "%d.%02ukHz", STEP_FREQ_TABLE[g_sub_menu_selection] / 100, STEP_FREQ_TABLE[g_sub_menu_selection] % 100);
 			break;
@@ -704,13 +701,19 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_CONTRAST:
-			strcpy(String, "DISPLAY\nCONTRAST\n");
-			sprintf(String, "%d", g_sub_menu_selection);
+			strcpy(String, "CONTRAST\n");
+			sprintf(String + strlen(String), "%d", g_sub_menu_selection);
 			//g_setting_contrast = g_sub_menu_selection
 			ST7565_SetContrast(g_sub_menu_selection);
 			g_update_display = true;
 			break;
 			
+		#ifdef ENABLE_AUDIO_BAR
+			case MENU_MIC_BAR:
+		#endif
+		#ifdef ENABLE_RSSI_BAR
+			case MENU_RSSI_BAR:
+		#endif
 		#ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:
 		#endif
