@@ -139,6 +139,7 @@ static void APP_check_for_incoming_rx(void)
 	}
 
 	g_rx_reception_mode = RX_MODE_DETECTED;
+	g_scan_pause_mode   = true;               // 1of11
 
 done:
 	if (g_current_function != FUNCTION_INCOMING)
@@ -486,8 +487,8 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 				break;
 		}
 
-		g_scan_restore_channel   = 0xff;
-		g_scan_restore_frequency = 0;
+//		g_scan_restore_channel   = 0xff;
+//		g_scan_restore_frequency = 0;
 //		g_scan_keep_frequency = true;
 	}
 
@@ -603,15 +604,27 @@ void APP_stop_scan(void)
 	if (g_scan_state_dir == SCAN_STATE_DIR_OFF)
 		return;   // but, but, we weren't doing anything !
 
-	// yes we were ;)
+	// yes we were
 
 	g_scan_state_dir = SCAN_STATE_DIR_OFF;
 
-	if (g_scan_restore_channel != 0xff || (g_scan_restore_frequency > 0 && g_scan_restore_frequency != 0xffffffff))
-	{	// revert to where we were before starting the scan
+	// 1of11
+	if (g_scan_pause_mode ||
+	    g_current_function == FUNCTION_RECEIVE ||
+	    g_current_function == FUNCTION_MONITOR ||
+	    g_current_function == FUNCTION_INCOMING)
+	{	// stay where we are
+		g_scan_pause_mode        = false;
+		g_scan_restore_frequency = 0xffffffff;
+		g_scan_restore_channel   = 0xff;
+	}
+	
+	if (g_scan_restore_channel != 0xff ||
+	   (g_scan_restore_frequency > 0 && g_scan_restore_frequency != 0xffffffff))
+	{	// revert to where we were when starting the scan
 
 		if (g_scan_next_channel <= USER_CHANNEL_LAST)
-		{	// we were channel scanning
+		{	// we were channel hopping
 	
 			if (g_scan_restore_channel != 0xff)
 			{
@@ -624,7 +637,8 @@ void APP_stop_scan(void)
 		}
 		else
 		if (g_scan_restore_frequency > 0 && g_scan_restore_frequency != 0xffffffff)
-		{
+		{	// we were frequency scanning
+
 			g_rx_vfo->freq_config_rx.frequency = g_scan_restore_frequency;
 
 			RADIO_ApplyOffset(g_rx_vfo);
@@ -747,7 +761,7 @@ static void APP_next_channel(void)
 			default:
 			case SCAN_NEXT_CHAN_USER:
 				g_scan_current_scan_list = SCAN_NEXT_CHAN_USER;
-				g_scan_next_channel     = prevChannel;
+				g_scan_next_channel      = prevChannel;
 				chan             = 0xff;
 				break;
 		}
@@ -770,7 +784,7 @@ static void APP_next_channel(void)
 
 	if (g_scan_next_channel != prev_chan)
 	{
-		g_eeprom.user_channel[g_eeprom.rx_vfo]  = g_scan_next_channel;
+		g_eeprom.user_channel[g_eeprom.rx_vfo]   = g_scan_next_channel;
 		g_eeprom.screen_channel[g_eeprom.rx_vfo] = g_scan_next_channel;
 
 		RADIO_configure_channel(g_eeprom.rx_vfo, VFO_CONFIGURE_RELOAD);
@@ -1103,7 +1117,7 @@ void APP_process(void)
 			g_current_function == FUNCTION_INCOMING)  &&     // TODO: check me
 			g_screen_to_display != DISPLAY_SEARCH     &&
 		    g_scan_state_dir != SCAN_STATE_DIR_OFF    &&
-		    g_scan_pause_10ms == 0           &&
+		    g_scan_pause_10ms == 0                    &&
 		    !g_ptt_is_pressed)
 		{	// RF scanning
 
@@ -2344,13 +2358,19 @@ void APP_channel_next(const bool flag, const scan_state_dir_t scan_direction)
 	if (g_scan_next_channel <= USER_CHANNEL_LAST)
 	{	// channel mode
 		if (flag)
-			g_scan_restore_channel = g_scan_next_channel;
+		{
+			g_scan_restore_frequency = 0xffffffff;
+			g_scan_restore_channel   = g_scan_next_channel;
+		}
 		APP_next_channel();
 	}
 	else
 	{	// frequency mode
 		if (flag)
+		{
+			g_scan_restore_channel   = 0xff;
 			g_scan_restore_frequency = g_rx_vfo->freq_config_rx.frequency;
+		}
 		APP_next_freq();
 	}
 

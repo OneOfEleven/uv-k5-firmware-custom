@@ -919,7 +919,8 @@ static void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t D
 
 	// jump to the next channel
 	APP_channel_next(false, Direction);
-	g_scan_pause_10ms = 0;
+
+	g_scan_pause_10ms = 0;   // go NOW
 
 	g_ptt_was_released = true;
 }

@@ -222,6 +222,8 @@ void ACTION_Scan(bool bRestart)
 			// start scanning
 	
 			APP_channel_next(true, SCAN_STATE_DIR_FORWARD);
+
+			g_scan_pause_10ms = 0;   // go NOW
 			
 			#ifdef ENABLE_VOICE
 				AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);

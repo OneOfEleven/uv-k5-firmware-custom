@@ -234,7 +234,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 #endif
 
 #ifdef ENABLE_RSSI_BAR
-	void UI_DisplayRSSIBar(const int16_t rssi, const bool now)
+	bool UI_DisplayRSSIBar(const int16_t rssi, const bool now)
 	{
 		if (g_setting_rssi_bar)
 		{
@@ -263,12 +263,12 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 			char               s[16];
 	
 			if (g_eeprom.key_lock && g_keypad_locked > 0)
-				return;     // display is in use
+				return false;     // display is in use
 	
 			if (g_current_function == FUNCTION_TRANSMIT ||
 				g_screen_to_display != DISPLAY_MAIN ||
 				g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-				return;     // display is in use
+				return false;     // display is in use
 	
 			if (now)
 				memset(p_line, 0, LCD_WIDTH);
@@ -290,31 +290,25 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 	
 			if (now)
 				ST7565_BlitFullScreen();
+			
+			return true;
 		}
+
+		return false;
 	}
 #endif
 
 void UI_update_rssi(const int16_t rssi, const int vfo)
 {
-	#ifdef ENABLE_RSSI_BAR
-
-		(void)vfo;  // unused
-
-		// optional larger RSSI dBm, S-point and bar level
-
-		if (center_line != CENTER_LINE_RSSI)
-			return;
-
-		if (g_current_function == FUNCTION_RECEIVE ||
-		    g_current_function == FUNCTION_MONITOR ||
-		    g_current_function == FUNCTION_INCOMING)
+	if (center_line == CENTER_LINE_RSSI)
+	{	// optional larger RSSI dBm, S-point and bar level
+		if (g_current_function == FUNCTION_RECEIVE || g_current_function == FUNCTION_MONITOR)
 		{
 			UI_DisplayRSSIBar(rssi, true);
 		}
+	}
 
-	#else
-
-		// original little RS bars
+	{	// original little RS bars
 
 //		const int16_t dBm        = (rssi / 2) - 160;
 		const uint8_t Line       = (vfo == 0) ? 3 : 7;
@@ -392,7 +386,7 @@ void UI_update_rssi(const int16_t rssi, const int vfo)
 			UI_drawBars(p_line, rssi_level);
 
 		ST7565_DrawLine(0, Line, 23, p_line);
-	#endif
+	}
 }
 
 // ***************************************************************************
@@ -874,7 +868,7 @@ void UI_DisplayMain(void)
 
 		#ifdef ENABLE_RSSI_BAR
 			// show the RX RSSI dBm, S-point and signal strength bar graph
-			if (rx)
+			if (rx && g_setting_rssi_bar)
 			{
 				center_line = CENTER_LINE_RSSI;
 				UI_DisplayRSSIBar(g_current_rssi[g_eeprom.rx_vfo], false);

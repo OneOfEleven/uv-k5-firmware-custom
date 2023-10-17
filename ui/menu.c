@@ -66,7 +66,7 @@ const t_menu_item g_menu_list[] =
 	{"CH NAM", VOICE_ID_INVALID,                       MENU_MEM_NAME      },
 	{"CH DEL", VOICE_ID_DELETE_CHANNEL,                MENU_DEL_CH        }, // was "DEL-CH"
 	{"CH DIS", VOICE_ID_INVALID,                       MENU_MDF           }, // was "MDF"
-	{"BATSAV", VOICE_ID_SAVE_MODE,                     MENU_SAVE          }, // was "SAVE"
+	{"BatSAV", VOICE_ID_SAVE_MODE,                     MENU_SAVE          }, // was "SAVE"
 #ifdef ENABLE_VOX
 	{"VOX",    VOICE_ID_VOX,                           MENU_VOX           },
 #endif
@@ -78,12 +78,12 @@ const t_menu_item g_menu_list[] =
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE         },
 #endif
 	{"SC REV", VOICE_ID_INVALID,                       MENU_SC_REV        }, // was "SC_REV"
-	{"KEYLOC", VOICE_ID_INVALID,                       MENU_AUTOLK        }, // was "AUTOLk"
+	{"KeyLOC", VOICE_ID_INVALID,                       MENU_AUTOLK        }, // was "AUTOLk"
 	{"S ADD1", VOICE_ID_INVALID,                       MENU_S_ADD1        },
 	{"S ADD2", VOICE_ID_INVALID,                       MENU_S_ADD2        },
 	{"STE",    VOICE_ID_INVALID,                       MENU_STE           },
 	{"RP STE", VOICE_ID_INVALID,                       MENU_RP_STE        },
-	{"MIC",    VOICE_ID_INVALID,                       MENU_MIC           },
+	{"MIC GN", VOICE_ID_INVALID,                       MENU_MIC           },
 	{"COMPND", VOICE_ID_INVALID,                       MENU_COMPAND       },
 #ifdef ENABLE_AUDIO_BAR
 	{"Tx BAR", VOICE_ID_INVALID,                       MENU_MIC_BAR       },
@@ -99,8 +99,8 @@ const t_menu_item g_menu_list[] =
 	{"SOS AL", VOICE_ID_INVALID,                       MENU_AL_MOD        }, // was "ALMODE"
 #endif
 	{"ANI ID", VOICE_ID_ANI_CODE,                      MENU_ANI_ID        },
-	{"UPCODE", VOICE_ID_INVALID,                       MENU_UPCODE        },
-	{"DWCODE", VOICE_ID_INVALID,                       MENU_DWCODE        },
+	{"UpCODE", VOICE_ID_INVALID,                       MENU_UPCODE        },
+	{"DnCODE", VOICE_ID_INVALID,                       MENU_DWCODE        }, // was "DWCODE"
 	{"PTT ID", VOICE_ID_INVALID,                       MENU_PTT_ID        },
 	{"D ST",   VOICE_ID_INVALID,                       MENU_D_ST          },
     {"D RSP",  VOICE_ID_INVALID,                       MENU_D_RSP         },
@@ -109,10 +109,10 @@ const t_menu_item g_menu_list[] =
 	{"D DCD",  VOICE_ID_INVALID,                       MENU_D_DCD         },
 	{"D LIST", VOICE_ID_INVALID,                       MENU_D_LIST        },
 	{"D LIVE", VOICE_ID_INVALID,                       MENU_D_LIVE_DEC    }, // live DTMF decoder
-	{"PONMSG", VOICE_ID_INVALID,                       MENU_PONMSG        },
+	{"PonMSG", VOICE_ID_INVALID,                       MENU_PONMSG        },
 	{"ROGER",  VOICE_ID_INVALID,                       MENU_ROGER         },
-	{"BATVOL", VOICE_ID_INVALID,                       MENU_VOL           }, // was "VOL"
-	{"BATTXT", VOICE_ID_INVALID,                       MENU_BAT_TXT       },
+	{"BatVOL", VOICE_ID_INVALID,                       MENU_VOL           }, // was "VOL"
+	{"BatTXT", VOICE_ID_INVALID,                       MENU_BAT_TXT       },
 	{"MODE",   VOICE_ID_INVALID,                       MENU_AM            }, // was "AM"
 #ifdef ENABLE_AM_FIX
 	{"AM FIX", VOICE_ID_INVALID,                       MENU_AM_FIX        },
@@ -123,10 +123,10 @@ const t_menu_item g_menu_list[] =
 #ifdef ENABLE_NOAA
 	{"NOAA-S", VOICE_ID_INVALID,                       MENU_NOAA_S        },
 #endif
-	{"SIDE1S", VOICE_ID_INVALID,                       MENU_SIDE1_SHORT   },
-	{"SIDE1L", VOICE_ID_INVALID,                       MENU_SIDE1_LONG    },
-	{"SIDE2S", VOICE_ID_INVALID,                       MENU_SIDE2_SHORT   },
-	{"SIDE2L", VOICE_ID_INVALID,                       MENU_SIDE2_LONG    },
+	{"Side1S", VOICE_ID_INVALID,                       MENU_SIDE1_SHORT   },
+	{"Side1L", VOICE_ID_INVALID,                       MENU_SIDE1_LONG    },
+	{"Side2S", VOICE_ID_INVALID,                       MENU_SIDE2_SHORT   },
+	{"Side2L", VOICE_ID_INVALID,                       MENU_SIDE2_LONG    },
 	{"VER",    VOICE_ID_INVALID,                       MENU_VERSION       },
 	{"RESET",  VOICE_ID_INITIALISATION,                MENU_RESET         }, // might be better to move this to the hidden menu items ?
 
@@ -141,9 +141,9 @@ const t_menu_item g_menu_list[] =
 	{"SCR EN", VOICE_ID_INVALID,                       MENU_SCREN         }, // was "SCREN"
 	{"Tx EN",  VOICE_ID_INVALID,                       MENU_TX_EN         }, // enable TX
 #ifdef ENABLE_F_CAL_MENU
-	{"F CALI", VOICE_ID_INVALID,                       MENU_F_CALI        }, // reference xtal calibration
+	{"F CAL",  VOICE_ID_INVALID,                       MENU_F_CALI        }, // reference xtal calibration
 #endif
-	{"BATCAL", VOICE_ID_INVALID,                       MENU_BATCAL        }, // battery voltage calibration
+	{"BatCAL", VOICE_ID_INVALID,                       MENU_BATCAL        }, // battery voltage calibration
 };
 
 // number of hidden menu items at the end of the list - KEEP THIS UP-TO-DATE
