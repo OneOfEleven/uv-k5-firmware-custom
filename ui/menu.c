@@ -72,7 +72,9 @@ const t_menu_item g_menu_list[] =
 #endif
 	{"BL ",    VOICE_ID_INVALID,                       MENU_AUTO_BACKLITE         }, // was "ABR"
 	{"BL TRX", VOICE_ID_INVALID,                       MENU_AUTO_BACKLITE_ON_TX_RX},
+#ifdef ENABLE_CONTRAST
 	{"CTRAST", VOICE_ID_INVALID,                       MENU_CONTRAST              },
+#endif
 	{"BEEP",   VOICE_ID_BEEP_PROMPT,                   MENU_BEEP                  },
 #ifdef ENABLE_VOICE                                                               
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE                 },
@@ -85,10 +87,10 @@ const t_menu_item g_menu_list[] =
 	{"RP STE", VOICE_ID_INVALID,                       MENU_RP_STE                },
 	{"MIC GN", VOICE_ID_INVALID,                       MENU_MIC_GAIN              },
 	{"COMPND", VOICE_ID_INVALID,                       MENU_COMPAND               },
-#ifdef ENABLE_AUDIO_BAR                                                           
+#ifdef ENABLE_TX_AUDIO_BAR                                                           
 	{"Tx BAR", VOICE_ID_INVALID,                       MENU_TX_BAR                },
 #endif                                                                            
-#ifdef ENABLE_RSSI_BAR                                                            
+#ifdef ENABLE_RX_SIGNAL_BAR                                                            
 	{"Rx BAR", VOICE_ID_INVALID,                       MENU_RX_BAR                },
 #endif                                                                            
 	{"1 CALL", VOICE_ID_INVALID,                       MENU_1_CALL                },
@@ -712,18 +714,20 @@ void UI_DisplayMenu(void)
 			strcpy(String, g_sub_menu_rx_tx[g_sub_menu_selection]);
 			break;
 
-		case MENU_CONTRAST:
-			strcpy(String, "CONTRAST\n");
-			sprintf(String + strlen(String), "%d", g_sub_menu_selection);
-			//g_setting_contrast = g_sub_menu_selection
-			ST7565_SetContrast(g_sub_menu_selection);
-			g_update_display = true;
-			break;
+		#ifdef ENABLE_CONTRAST
+			case MENU_CONTRAST:
+				strcpy(String, "CONTRAST\n");
+				sprintf(String + strlen(String), "%d", g_sub_menu_selection);
+				//g_setting_contrast = g_sub_menu_selection
+				ST7565_SetContrast(g_sub_menu_selection);
+				g_update_display = true;
+				break;
+		#endif
 			
-		#ifdef ENABLE_AUDIO_BAR
+		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
 		#endif
-		#ifdef ENABLE_RSSI_BAR
+		#ifdef ENABLE_RX_SIGNAL_BAR
 			case MENU_RX_BAR:
 		#endif
 		#ifdef ENABLE_AM_FIX

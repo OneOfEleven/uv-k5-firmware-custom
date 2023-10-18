@@ -143,6 +143,6 @@ void     RADIO_Setg_vfo_state(vfo_state_t State);
 void     RADIO_PrepareTX(void);
 void     RADIO_EnableCxCSS(void);
 void     RADIO_PrepareCssTX(void);
-void     RADIO_SendEndOfTransmission(void);
+void     RADIO_tx_eot(void);
 
 #endif

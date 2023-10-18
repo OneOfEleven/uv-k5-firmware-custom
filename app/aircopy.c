@@ -649,7 +649,7 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				Frequency = ((Frequency + (g_rx_vfo->step_freq / 2)) / g_rx_vfo->step_freq) * g_rx_vfo->step_freq;
 
 				g_aircopy_freq = Frequency;
-				#ifdef ENABLE_AIRCOPY_FREQ
+				#ifdef ENABLE_AIRCOPY_REMEMBER_FREQ
 					SETTINGS_SaveSettings();   // remeber the frequency for the next time
 				#endif
 

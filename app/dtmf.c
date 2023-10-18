@@ -389,7 +389,7 @@ void DTMF_HandleRequest(void)
 	}
 }
 
-void DTMF_Reply(void)
+bool DTMF_Reply(void)
 {
 	uint16_t    Delay;
 	char        String[20];
@@ -426,7 +426,7 @@ void DTMF_Reply(void)
 			    g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN)
 			{
 				g_dtmf_reply_state = DTMF_REPLY_NONE;
-				return;
+				return false;
 			}
 
 			// send TX-UP DTMF
@@ -437,13 +437,13 @@ void DTMF_Reply(void)
 	g_dtmf_reply_state = DTMF_REPLY_NONE;
 
 	if (pString == NULL)
-		return;
+		return false;
 
 	Delay = (g_eeprom.dtmf_preload_time < 200) ? 200 : g_eeprom.dtmf_preload_time;
 
 	if (g_eeprom.dtmf_side_tone)
 	{	// the user will also hear the transmitted tones
-		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 		g_enable_speaker = true;
 	}
 
@@ -459,9 +459,11 @@ void DTMF_Reply(void)
 		g_eeprom.dtmf_code_persist_time,
 		g_eeprom.dtmf_code_interval_time);
 
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	g_enable_speaker = false;
 
 	BK4819_ExitDTMF_TX(false);
+	
+	return true;
 }

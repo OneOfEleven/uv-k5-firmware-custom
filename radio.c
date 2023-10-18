@@ -552,7 +552,7 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *pInfo)
 
 	EEPROM_ReadBuffer(0x1ED0 + (Band * 16) + (pInfo->output_power * 3), TX_power, 3);
 
-	#ifdef ENABLE_LOWER_LOW_MID_TX
+	#ifdef ENABLE_REDUCE_LOW_MID_TX_POWER
 		// make low and mid even lower
 		if (pInfo->output_power == OUTPUT_POWER_LOW)
 		{
@@ -628,8 +628,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	uint16_t                  interrupt_mask;
 	uint32_t                  Frequency;
 
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	g_enable_speaker = false;
 
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
@@ -880,7 +879,7 @@ void RADIO_enableTX(const bool fsk_tx)
 {
 	BK4819_filter_bandwidth_t Bandwidth = g_current_vfo->channel_bandwidth;
 
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	g_enable_speaker = false;
 
@@ -1122,29 +1121,27 @@ void RADIO_PrepareCssTX(void)
 	RADIO_setup_registers(true);
 }
 
-void RADIO_SendEndOfTransmission(void)
+void RADIO_tx_eot(void)
 {
-	if (g_eeprom.roger_mode == ROGER_MODE_ROGER)
-		BK4819_PlayRoger();
-	else
-	if (g_eeprom.roger_mode == ROGER_MODE_MDC)
-		BK4819_PlayRogerMDC1200();
-
-	if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
-		BK4819_PlaySingleTone(APOLLO_TONE2_HZ, APOLLO_TONE_MS, 28, g_eeprom.dtmf_side_tone);
+	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+		if (g_alarm_state != ALARM_STATE_OFF)
+		{	// don't send EOT if TX'ing tone/alarm
+			BK4819_ExitDTMF_TX(true);
+			return;
+		} 
+	#endif
 
 	if (g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
 	   (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN || g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_BOTH))
 	{	// end-of-tx
 		if (g_eeprom.dtmf_side_tone)
 		{
-			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 			g_enable_speaker = true;
-			SYSTEM_DelayMs(60);
+//			SYSTEM_DelayMs(60);
+			SYSTEM_DelayMs(5);
 		}
-
 		BK4819_EnterDTMF_TX(g_eeprom.dtmf_side_tone);
-
 		BK4819_PlayDTMFString(
 				g_eeprom.dtmf_key_down_code,
 				0,
@@ -1153,9 +1150,18 @@ void RADIO_SendEndOfTransmission(void)
 				g_eeprom.dtmf_code_persist_time,
 				g_eeprom.dtmf_code_interval_time);
 
-		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 		g_enable_speaker = false;
 	}
+	else
+	if (g_eeprom.roger_mode == ROGER_MODE_ROGER)
+		BK4819_PlayRoger();
+	else
+	if (g_eeprom.roger_mode == ROGER_MODE_MDC)
+		BK4819_PlayRogerMDC1200();
+	else
+	if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+		BK4819_PlayTone(APOLLO_TONE2_HZ, APOLLO_TONE_MS, 28);
 
 	BK4819_ExitDTMF_TX(true);
 }

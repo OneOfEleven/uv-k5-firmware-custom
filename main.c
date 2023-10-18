@@ -104,8 +104,10 @@ void Main(void)
 
 	BATTERY_GetReadings(false);
 
-	ST7565_SetContrast(g_setting_contrast);
-
+	#ifdef ENABLE_CONTRAST
+		ST7565_SetContrast(g_setting_contrast);
+	#endif
+	
 	#ifdef ENABLE_AM_FIX
 		AM_fix_init();
 	#endif

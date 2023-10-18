@@ -106,16 +106,18 @@ uint8_t               g_setting_backlight_on_tx_rx;
 #ifdef ENABLE_AM_FIX_TEST1
 	uint8_t           g_setting_am_fix_test1 = 0;
 #endif
-#ifdef ENABLE_AUDIO_BAR
+#ifdef ENABLE_TX_AUDIO_BAR
 	bool              g_setting_mic_bar;
 #endif
-#ifdef ENABLE_RSSI_BAR
+#ifdef ENABLE_RX_SIGNAL_BAR
 	bool              g_setting_rssi_bar;
 #endif
 bool                  g_setting_live_dtmf_decoder;
 uint8_t               g_setting_battery_text;
 
-uint8_t               g_setting_contrast;
+#ifdef ENABLE_CONTRAST
+	uint8_t           g_setting_contrast;
+#endif
 
 uint8_t               g_setting_side1_short;
 uint8_t               g_setting_side1_long;
@@ -227,8 +229,8 @@ scan_state_dir_t      g_scan_state_dir;
 
 bool                  g_rx_vfo_is_active;
 #ifdef ENABLE_ALARM
-	uint8_t           g_alarm_tone_counter;
-	uint16_t          g_alarm_running_counter;
+	uint16_t          g_alarm_tone_counter_10ms;
+	uint16_t          g_alarm_running_counter_10ms;
 #endif
 uint8_t               g_menu_list_count;
 uint8_t               g_backup_cross_vfo_rx_tx;

@@ -394,7 +394,7 @@ Skip:
 		case END_OF_RX_MODE_TTE:
 			if (g_eeprom.tail_note_elimination)
 			{
-				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 				g_tail_tone_elimination_count_down_10ms = 20;
 				g_flag_tail_tone_elimination_complete   = false;
@@ -464,8 +464,7 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 	// clear the other vfo's rssi level (to hide the antenna symbol)
 	g_vfo_rssi_bar_level[(chan + 1) & 1u] = 0;
 
-	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-
+	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	g_enable_speaker = true;
 
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
@@ -512,7 +511,7 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 
 		g_update_status = true;
 	}
-	
+
 #ifdef ENABLE_AM_FIX
 	{	// RF RX front end gain
 
@@ -970,7 +969,7 @@ void APP_process_radio_interrupts(void)
 void APP_end_tx(void)
 {	// back to RX mode
 
-	RADIO_SendEndOfTransmission();
+	RADIO_tx_eot();
 
 	if (g_current_vfo->p_tx->code_type != CODE_TYPE_NONE)
 	{	// CTCSS/DCS is enabled
@@ -1632,7 +1631,7 @@ void APP_time_slice_10ms(void)
 
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{	// transmitting
-		#ifdef ENABLE_AUDIO_BAR
+		#ifdef ENABLE_TX_AUDIO_BAR
 			if (g_setting_mic_bar && (g_flash_light_blink_counter % (150 / 10)) == 0) // once every 150ms
 				UI_DisplayAudioBar(true);
 		#endif
@@ -1666,24 +1665,25 @@ void APP_time_slice_10ms(void)
 	{
 		#ifdef ENABLE_ALARM
 			if (g_alarm_state == ALARM_STATE_TXALARM || g_alarm_state == ALARM_STATE_ALARM)
-			{
+			{	// TX alarm tone
+
 				uint16_t Tone;
 
-				g_alarm_running_counter++;
-				g_alarm_tone_counter++;
+				g_alarm_running_counter_10ms++;
 
-				Tone = 500 + (g_alarm_tone_counter * 25);
-				if (Tone > 1500)
+				// loop alarm tone frequency 300Hz ~ 1500Hz ~ 300Hz
+				Tone = 300 + (g_alarm_tone_counter_10ms++ * 50);
+				if (Tone >= ((1500 * 2) - 300))
 				{
-					Tone = 500;
-					g_alarm_tone_counter = 0;
+					Tone = 300;
+					g_alarm_tone_counter_10ms = 0;
 				}
 
-				BK4819_SetScrambleFrequencyControlWord(Tone);
+				BK4819_SetScrambleFrequencyControlWord((Tone <= 1500) ? Tone : (1500 * 2) - Tone);
 
-				if (g_eeprom.alarm_mode == ALARM_MODE_TONE && g_alarm_running_counter == 512)
+				if (g_eeprom.alarm_mode == ALARM_MODE_TONE && g_alarm_running_counter_10ms == 512)
 				{
-					g_alarm_running_counter = 0;
+					g_alarm_running_counter_10ms = 0;
 
 					if (g_alarm_state == ALARM_STATE_TXALARM)
 					{
@@ -1706,10 +1706,10 @@ void APP_time_slice_10ms(void)
 						RADIO_enableTX(false);
 						BK4819_TransmitTone(true, 500);
 						SYSTEM_DelayMs(2);
-						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 						g_enable_speaker     = true;
-						g_alarm_tone_counter = 0;
+						g_alarm_tone_counter_10ms = 0;
 					}
 				}
 			}
@@ -2022,7 +2022,7 @@ void APP_time_slice_500ms(void)
 
 	if (g_dtmf_rx_live_timeout > 0)
 	{
-		#ifdef ENABLE_RSSI_BAR
+		#ifdef ENABLE_RX_SIGNAL_BAR
 			if (center_line == CENTER_LINE_DTMF_DEC ||
 				center_line == CENTER_LINE_NONE)  // wait till the center line is free for us to use before timing out
 		#endif
@@ -2277,13 +2277,13 @@ void APP_time_slice_500ms(void)
 		if (g_dtmf_decode_ring_count_down_500ms > 0)
 		{	// make "ring-ring" sound
 			g_dtmf_decode_ring_count_down_500ms--;
-			
+
 			#ifdef ENABLE_DTMF_CALL_FLASH_LIGHT
 				GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);    // light on
 			#endif
-			
+
 			AUDIO_PlayBeep(BEEP_880HZ_200MS);
-			
+
 			#ifdef ENABLE_DTMF_CALL_FLASH_LIGHT
 				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);  // light off
 			#endif
@@ -2324,7 +2324,7 @@ void APP_time_slice_500ms(void)
 		}
 	}
 
-	#ifdef ENABLE_SHOW_TX_TIMEOUT
+	#ifdef ENABLE_TX_TIMEOUT_BAR
 		if (g_current_function == FUNCTION_TRANSMIT && (g_tx_timer_count_down_500ms & 1))
 			UI_DisplayTXCountdown(true);
 	#endif
@@ -2333,20 +2333,20 @@ void APP_time_slice_500ms(void)
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 	static void APP_alarm_off(void)
 	{
-		g_alarm_state = ALARM_STATE_OFF;
-
-		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 		g_enable_speaker = false;
 
 		if (g_eeprom.alarm_mode == ALARM_MODE_TONE)
 		{
-			RADIO_SendEndOfTransmission();
+			RADIO_tx_eot();
 			RADIO_EnableCxCSS();
 		}
-
+		
 		#ifdef ENABLE_VOX
 			g_vox_resume_count_down = 80;
 		#endif
+
+		g_alarm_state = ALARM_STATE_OFF;
 
 		SYSTEM_DelayMs(5);
 
@@ -2608,7 +2608,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 				{
 					if (!key_pressed)
 					{
-						GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+						GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 						g_enable_speaker = false;
 
@@ -2624,7 +2624,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 				{
 					if (g_eeprom.dtmf_side_tone)
 					{	// user will here the DTMF tones in speaker
-						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 						g_enable_speaker = true;
 					}
 

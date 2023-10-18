@@ -77,7 +77,7 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 	#endif
 }
 
-#ifdef ENABLE_SHOW_TX_TIMEOUT
+#ifdef ENABLE_TX_TIMEOUT_BAR
 	bool UI_DisplayTXCountdown(const bool now)
 	{
 		unsigned int timeout_secs = 0;
@@ -152,7 +152,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 	#pragma GCC diagnostic pop
 }
 
-#ifdef ENABLE_AUDIO_BAR
+#ifdef ENABLE_TX_AUDIO_BAR
 
 	uint32_t sqrt16(uint32_t value)
 	{	// return square root of 'value'
@@ -233,7 +233,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 	}
 #endif
 
-#ifdef ENABLE_RSSI_BAR
+#ifdef ENABLE_RX_SIGNAL_BAR
 	bool UI_DisplayRSSIBar(const int16_t rssi, const bool now)
 	{
 		if (g_setting_rssi_bar)
@@ -300,6 +300,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 void UI_update_rssi(const int16_t rssi, const int vfo)
 {
+#ifdef ENABLE_RX_SIGNAL_BAR
 	if (center_line == CENTER_LINE_RSSI)
 	{	// optional larger RSSI dBm, S-point and bar level
 		if (g_current_function == FUNCTION_RECEIVE || g_current_function == FUNCTION_MONITOR)
@@ -307,6 +308,7 @@ void UI_update_rssi(const int16_t rssi, const int vfo)
 			UI_DisplayRSSIBar(rssi, true);
 		}
 	}
+#endif
 
 	{	// original little RS bars
 
@@ -754,7 +756,7 @@ void UI_DisplayMain(void)
 			else
 			if (mode == 2)
 			{	// RX signal level
-				//#ifndef ENABLE_RSSI_BAR
+				//#ifndef ENABLE_RX_SIGNAL_BAR
 					// antenna bar graph
 					if (g_vfo_rssi_bar_level[vfo_num] > 0)
 						Level = g_vfo_rssi_bar_level[vfo_num];
@@ -834,7 +836,7 @@ void UI_DisplayMain(void)
 		                 g_current_function == FUNCTION_MONITOR ||
 		                 g_current_function == FUNCTION_INCOMING);
 
-		#ifdef ENABLE_SHOW_TX_TIMEOUT
+		#ifdef ENABLE_TX_TIMEOUT_BAR
 			// show the TX timeout count down
 			if (UI_DisplayTXCountdown(false))
 			{
@@ -843,7 +845,7 @@ void UI_DisplayMain(void)
 			else
 		#endif
 
-		#ifdef ENABLE_AUDIO_BAR
+		#ifdef ENABLE_TX_AUDIO_BAR
 			// show the TX audio level
 			if (UI_DisplayAudioBar(false))
 			{
@@ -866,7 +868,7 @@ void UI_DisplayMain(void)
 			else
 		#endif
 
-		#ifdef ENABLE_RSSI_BAR
+		#ifdef ENABLE_RX_SIGNAL_BAR
 			// show the RX RSSI dBm, S-point and signal strength bar graph
 			if (rx && g_setting_rssi_bar)
 			{

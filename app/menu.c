@@ -145,7 +145,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_SCAN_HOLD:
 			*pMin = 2;
-			*pMax = 20;
+			*pMax = 20;   // 10 seconds
 			break;
 			
 		case MENU_CROSS_VFO:
@@ -219,13 +219,15 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(g_sub_menu_rx_tx) - 1;
 			break;
 
-		case MENU_CONTRAST:
-//			*pMin = 0;
-//			*pMax = 63;
-			*pMin = 26;
-			*pMax = 45;
-			break;
-
+		#ifdef ENABLE_CONTRAST
+			case MENU_CONTRAST:
+				//*pMin = 0;
+				//*pMax = 63;
+				*pMin = 26;
+				*pMax = 45;
+				break;
+		#endif
+		
 		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				*pMin = 0;
@@ -236,10 +238,10 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:
 		#endif
-		#ifdef ENABLE_AUDIO_BAR
+		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
 		#endif
-		#ifdef ENABLE_RSSI_BAR
+		#ifdef ENABLE_RX_SIGNAL_BAR
 			case MENU_RX_BAR:
 		#endif
 		case MENU_BUSY_CHAN_LOCK:
@@ -552,11 +554,13 @@ void MENU_AcceptSetting(void)
 			g_setting_backlight_on_tx_rx = g_sub_menu_selection;
 			break;
 
-		case MENU_CONTRAST:
-			g_setting_contrast = g_sub_menu_selection;
-			ST7565_SetContrast(g_setting_contrast);
-			break;
-
+		#ifdef ENABLE_CONTRAST
+			case MENU_CONTRAST:
+				g_setting_contrast = g_sub_menu_selection;
+				ST7565_SetContrast(g_setting_contrast);
+				break;
+		#endif
+		
 		case MENU_DUAL_WATCH:
 //			g_eeprom.dual_watch = g_sub_menu_selection;
 			g_eeprom.dual_watch = (g_sub_menu_selection > 0) ? 1 + g_eeprom.tx_vfo : DUAL_WATCH_OFF;
@@ -636,13 +640,13 @@ void MENU_AcceptSetting(void)
 			g_flag_reconfigure_vfos = true;
 			break;
 
-		#ifdef ENABLE_AUDIO_BAR
+		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
 				g_setting_mic_bar = g_sub_menu_selection;
 				break;
 		#endif
 
-		#ifdef ENABLE_RSSI_BAR
+		#ifdef ENABLE_RX_SIGNAL_BAR
 			case MENU_RX_BAR:
 				g_setting_rssi_bar = g_sub_menu_selection;
 				break;
@@ -1033,10 +1037,12 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_setting_backlight_on_tx_rx;
 			break;
 
-		case MENU_CONTRAST:
-			g_sub_menu_selection = g_setting_contrast;
-			break;
-
+		#ifdef ENABLE_CONTRAST
+			case MENU_CONTRAST:
+				g_sub_menu_selection = g_setting_contrast;
+				break;
+		#endif
+		
 		case MENU_DUAL_WATCH:
 //			g_sub_menu_selection = g_eeprom.dual_watch;
 			g_sub_menu_selection = (g_eeprom.dual_watch == DUAL_WATCH_OFF) ? 0 : 1;
@@ -1096,13 +1102,13 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.mic_sensitivity;
 			break;
 
-		#ifdef ENABLE_AUDIO_BAR
+		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
 				g_sub_menu_selection = g_setting_mic_bar;
 				break;
 		#endif
 
-		#ifdef ENABLE_RSSI_BAR
+		#ifdef ENABLE_RX_SIGNAL_BAR
 			case MENU_RX_BAR:
 				g_sub_menu_selection = g_setting_rssi_bar;
 				break;

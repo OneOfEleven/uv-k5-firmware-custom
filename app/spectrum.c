@@ -346,9 +346,9 @@ bool IsTXAllowed() { return g_setting_ALL_TX != 2; }
 
 static void ToggleAudio(bool on) {
   if (on) {
-    GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+    GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
   } else {
-    GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+    GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
   }
 }
 
@@ -420,7 +420,7 @@ static void ToggleTX(bool on) {
   }
   else
   {
-    RADIO_SendEndOfTransmission();
+    RADIO_tx_eot();
     RADIO_EnableCxCSS();
 
     BK4819_SetupPowerAmplifier(0, 0);

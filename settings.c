@@ -211,8 +211,11 @@ void SETTINGS_SaveSettings(void)
 	State[7] = g_eeprom.mic_sensitivity;
 	EEPROM_WriteBuffer(0x0E70, State);
 
-	//State[0] = 0xFF;
-	State[0] = g_setting_contrast;
+	#ifdef ENABLE_CONTRAST
+		State[0] = g_setting_contrast;
+	#else
+		State[0] = 0xFF;
+	#endif
 	State[1] = g_eeprom.channel_display_mode;
 	State[2] = g_eeprom.cross_vfo_rx_tx;
 	State[3] = g_eeprom.battery_save;
@@ -273,7 +276,7 @@ void SETTINGS_SaveSettings(void)
 		array.roger_mode                     = g_eeprom.roger_mode;
 		array.repeater_tail_tone_elimination = g_eeprom.repeater_tail_tone_elimination;
 		array.tx_vfo                         = g_eeprom.tx_vfo;
-		#ifdef ENABLE_AIRCOPY_FREQ
+		#ifdef ENABLE_AIRCOPY_REMEMBER_FREQ
 			// remember the AIRCOPY frequency
 			array.air_copy_freq              = g_aircopy_freq;
 		#endif
@@ -319,13 +322,13 @@ void SETTINGS_SaveSettings(void)
 	State[4]  = g_setting_470_tx_enable;
 	State[5]  = g_setting_350_enable;
 	if (!g_setting_scramble_enable)       State[6] &= ~(1u << 0);
-	#ifdef ENABLE_RSSI_BAR
+	#ifdef ENABLE_RX_SIGNAL_BAR
 		if (!g_setting_rssi_bar)          State[6] &= ~(1u << 1);
 	#endif
 	if (!g_setting_tx_enable)             State[7] &= ~(1u << 0);
 	if (!g_setting_live_dtmf_decoder)     State[7] &= ~(1u << 1);
 	State[7] = (State[7] & ~(3u << 2)) | ((g_setting_battery_text & 3u) << 2);
-	#ifdef ENABLE_AUDIO_BAR
+	#ifdef ENABLE_TX_AUDIO_BAR
 		if (!g_setting_mic_bar)           State[7] &= ~(1u << 4);
 	#endif
 	#ifdef ENABLE_AM_FIX

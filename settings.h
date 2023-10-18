@@ -290,7 +290,7 @@ typedef struct {
 	uint8_t        vox_switch;                      //
 	uint8_t        vox_level;                       //
 	uint8_t        mic_sensitivity;                 //
-	#if 1
+	#ifdef ENABLE_CONTRAST
 		uint8_t    lcd_contrast;                    // 1of11
 	#else
 		uint8_t    unused4;                         // 0xff's
@@ -385,18 +385,18 @@ typedef struct {
 
 	// 0x0F40
 	uint8_t        freq_lock;                       //
-	uint8_t        enable_tx_350:1;                 // 350MHz ~ 400MHz
+	uint8_t        enable_tx_350:1;                 // 1 = 350MHz ~ 400MHz TX is enabled
 	uint8_t        unused11a:7;                     //
-	uint8_t        radio_disabled:1;                // 0 = not radio is not disabled
+	uint8_t        radio_disabled:1;                // 1 = radio is disabled
 	uint8_t        unused11b:7;                     //
-	uint8_t        enable_tx_200:1;                 // 174MHz ~ 350MHz
+	uint8_t        enable_tx_200:1;                 // 1 = 174MHz ~ 350MHz TX enabled
 	uint8_t        unused11c:7;                     //
-	uint8_t        enable_tx_470:1;                 // >= 470MHz disabled
+	uint8_t        enable_tx_470:1;                 // 1 = >= 470MHz TX enabled
 	uint8_t        unused11d:7;                     //
-	uint8_t        enable_350:1;                    // 0 = 350HMz ~ 400MHz RX/TX disabled
+	uint8_t        enable_350:1;                    // 1 = 350HMz ~ 400MHz enabled
 	uint8_t        unused11e:7;                     //
-	uint8_t        enable_scrambler:1;              // 0 = scrambler disabled, 1 = enabled
-	uint8_t        enable_rssi_bar:1;               // 0 = disabled .. 1of11
+	uint8_t        enable_scrambler:1;              //
+	uint8_t        enable_rssi_bar:1;               // 1of11
 	uint8_t        unused11f:6;                     //
 	#if 0
 		// QS
@@ -410,7 +410,7 @@ typedef struct {
 		uint8_t    am_fix:1;              // 1 = RX AM fix
 		uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when TX, 2 = when RX, 3 = both RX/TX
 
-		uint8_t    scan_hold_time;        //
+		uint8_t    scan_hold_time;        // ticks we stay paused on a signal when scanning
 
 		uint8_t    unused12[7];           // 0xff's
 	#endif

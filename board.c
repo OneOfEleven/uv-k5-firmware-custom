@@ -540,7 +540,9 @@ void BOARD_EEPROM_load(void)
 
 	// 0E78..0E7F
 	EEPROM_ReadBuffer(0x0E78, Data, 8);
-	g_setting_contrast             = (Data[0] > 45) ? 31 : (Data[0] < 26) ? 31 : Data[0];
+	#ifdef ENABLE_CONTRAST
+		g_setting_contrast         = (Data[0] > 45) ? 31 : (Data[0] < 26) ? 31 : Data[0];
+	#endif
 	g_eeprom.channel_display_mode  = (Data[1] < 4) ? Data[1] : MDF_FREQUENCY;    // 4 instead of 3 - extra display mode
 	g_eeprom.cross_vfo_rx_tx       = (Data[2] < 3) ? Data[2] : CROSS_BAND_OFF;
 	g_eeprom.battery_save          = (Data[3] < 5) ? Data[3] : 4;
@@ -627,7 +629,7 @@ void BOARD_EEPROM_load(void)
 		g_eeprom.repeater_tail_tone_elimination = (array.repeater_tail_tone_elimination < 11) ? array.repeater_tail_tone_elimination : 0;
 		g_eeprom.tx_vfo                         = (array.tx_vfo < 2) ? array.tx_vfo : 0;
 
-		#ifdef ENABLE_AIRCOPY_FREQ
+		#ifdef ENABLE_AIRCOPY_REMEMBER_FREQ
 		{
 			unsigned int i;
 			for (i = 0; i < ARRAY_SIZE(FREQ_BAND_TABLE); i++)
@@ -736,13 +738,13 @@ void BOARD_EEPROM_load(void)
 	g_setting_470_tx_enable      = (Data[4] < 2) ? Data[4] : false;
 	g_setting_350_enable         = (Data[5] < 2) ? Data[5] : true;
 	g_setting_scramble_enable    = (Data[6] & (1u << 0)) ? true : false;
-	#ifdef ENABLE_RSSI_BAR
+	#ifdef ENABLE_RX_SIGNAL_BAR
 		g_setting_rssi_bar       = (Data[6] & (1u << 1)) ? true : false;
 	#endif
 	g_setting_tx_enable          = (Data[7] & (1u << 0)) ? true : false;
 	g_setting_live_dtmf_decoder  = (Data[7] & (1u << 1)) ? true : false;
 	g_setting_battery_text       = (((Data[7] >> 2) & 3u) <= 2) ? (Data[7] >> 2) & 3 : 2;
-	#ifdef ENABLE_AUDIO_BAR
+	#ifdef ENABLE_TX_AUDIO_BAR
 		g_setting_mic_bar        = (Data[7] & (1u << 4)) ? true : false;
 	#endif
 	#ifdef ENABLE_AM_FIX

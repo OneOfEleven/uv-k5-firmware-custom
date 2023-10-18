@@ -98,7 +98,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 
 	ToneConfig = BK4819_ReadRegister(BK4819_REG_71);
 
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	if (g_current_function == FUNCTION_POWER_SAVE && g_rx_idle_mode)
 		BK4819_RX_TurnOn();
@@ -137,11 +137,11 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			break;
 	}
 
-	BK4819_PlayTone(ToneFrequency, true);
+	BK4819_StartTone1(ToneFrequency, 96, true);
 
 	SYSTEM_DelayMs(2);
 
-	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	SYSTEM_DelayMs(60);
 
@@ -193,7 +193,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	BK4819_EnterTxMute();
 	SYSTEM_DelayMs(20);
 
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	#ifdef ENABLE_VOX
 		g_vox_resume_count_down = 80;
@@ -205,7 +205,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	BK4819_WriteRegister(BK4819_REG_71, ToneConfig);
 
 	if (g_enable_speaker)
-		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)
@@ -281,7 +281,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			#endif
 		#endif
 
-		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 		#ifdef ENABLE_VOX
 			g_vox_resume_count_down = 2000;
@@ -307,7 +307,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			#endif
 
 			if (!g_enable_speaker)
-				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 			g_voice_write_index    = 0;
 			g_voice_read_index     = 0;
@@ -455,7 +455,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		#endif
 
 		if (!g_enable_speaker)
-			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 		// **********************
 		

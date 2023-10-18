@@ -283,10 +283,10 @@ void ACTION_Scan(bool bRestart)
 		
 		#if defined(ENABLE_ALARM) && defined(ENABLE_TX1750)
 			g_alarm_state = b1750 ? ALARM_STATE_TX1750 : ALARM_STATE_TXALARM;
-			g_alarm_running_counter = 0;
+			g_alarm_running_counter_10ms = 0;
 		#elif defined(ENABLE_ALARM)
 			g_alarm_state          = ALARM_STATE_TXALARM;
-			g_alarm_running_counter = 0;
+			g_alarm_running_counter_10ms = 0;
 		#else
 			g_alarm_state = ALARM_STATE_TX1750;
 		#endif
