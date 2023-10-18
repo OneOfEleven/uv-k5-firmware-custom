@@ -19,7 +19,6 @@
 
 #include <stdint.h>
 
-//extern const uint8_t   g_font_big[95][16];
 extern const uint8_t     g_font_big[95][15];
 extern const uint8_t     g_font_big_digits[11][26];
 //extern const uint8_t   g_font_small_digits[11][7];

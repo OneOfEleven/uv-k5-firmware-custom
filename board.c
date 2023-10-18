@@ -725,11 +725,7 @@ void BOARD_EEPROM_load(void)
 
 	// 0F40..0F47
 	EEPROM_ReadBuffer(0x0F40, Data, 8);
-	#ifdef ENABLE_TX_UNLOCK
-		g_setting_freq_lock      = (Data[0] < 7) ? Data[0] : FREQ_LOCK_NORMAL;
-	#else
-		g_setting_freq_lock      = (Data[0] < 6) ? Data[0] : FREQ_LOCK_NORMAL;
-	#endif
+	g_setting_freq_lock          = (Data[0] < FREQ_LOCK_LAST) ? Data[0] : FREQ_LOCK_NORMAL;
 	g_setting_350_tx_enable      = (Data[1] < 2) ? Data[1] : false;  // was true
 	#ifdef ENABLE_KILL_REVIVE
 		g_setting_radio_disabled = (Data[2] < 2) ? Data[2] : false;

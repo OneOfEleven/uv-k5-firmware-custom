@@ -296,29 +296,6 @@ const char g_sub_menu_RESET[2][4] =
 	"ALL"
 };
 
-#ifdef ENABLE_TX_UNLOCK
-	const char g_sub_menu_freq_lock[7][9] =
-	{
-		"NORMAL",
-		"FCC",
-		"CE",
-		"GB",
-		"430 MHz",
-		"438 MHz",
-		"UNLOCKED"
-	};
-#else
-	const char g_sub_menu_freq_lock[6][8] =
-	{
-		"NORMAL",
-		"FCC",
-		"CE",
-		"GB",
-		"430 MHz",
-		"438 MHz"
-	};
-#endif
-
 const char g_sub_menu_backlight[8][7] =
 {
 	"OFF",
@@ -1066,10 +1043,35 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_FREQ_LOCK:
-			if (g_sub_menu_selection == 0)
-				strcpy(String, "136 ~ 174\n400 ~ 470\n+ other\noptions");
-			else
-				strcpy(String, g_sub_menu_freq_lock[g_sub_menu_selection]);
+			switch (g_sub_menu_selection)
+			{
+				case FREQ_LOCK_NORMAL:
+					strcpy(String, "136~174\n400~470\n+ others");
+					break;
+				case FREQ_LOCK_FCC:
+					strcpy(String, "FCC HAM\n144~148\n420~450");
+					break;
+				case FREQ_LOCK_CE:
+					strcpy(String, "CE HAM\n144~146\n430~440");
+					break;
+				case FREQ_LOCK_GB:
+					strcpy(String, "GB HAM\n144~148\n430~440");
+					break;
+				case FREQ_LOCK_430:
+					strcpy(String, "136~174\n400~430");
+					break;
+				case FREQ_LOCK_438:
+					strcpy(String, "136~174\n400~438");
+					break;
+				case FREQ_LOCK_446:
+					strcpy(String, "446.00625\n~\n446.19375");
+					break;
+				#ifdef ENABLE_TX_UNLOCK
+					case FREQ_LOCK_TX_UNLOCK:
+						sprintf(String, "UNLOCKED\n%u ~ %u", BX4819_BAND1.lower / 100000, BX4819_BAND2.upper / 100000);
+						break;
+				#endif
+			}
 			break;
 
 		#ifdef ENABLE_F_CAL_MENU

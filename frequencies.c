@@ -201,6 +201,11 @@ int TX_freq_check(const uint32_t Frequency)
 				return 0;
 			break;
 			
+		case FREQ_LOCK_446:
+			if (Frequency >= 446.00625 && Frequency <= 446.19375)
+				return 0;
+			break;
+
 		#ifdef ENABLE_TX_UNLOCK
 			case FREQ_LOCK_TX_UNLOCK:
 				return 0;
