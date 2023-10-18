@@ -618,7 +618,8 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 					    g_eeprom.vfo_open)
 					{	// not scanning
 				
-						const unsigned int vfo = get_RX_VFO();
+						//const unsigned int vfo = get_RX_VFO();
+						const unsigned int vfo = g_eeprom.tx_vfo;
 
 						if (IS_USER_CHANNEL(g_eeprom.screen_channel[vfo]))
 						{	// copy channel to VFO, then swap to the VFO
@@ -636,7 +637,8 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 
 							g_request_save_vfo = true;
 
-							g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+							g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
+							//g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 							g_update_status  = true;
 							g_update_display = true;
@@ -645,16 +647,30 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 						if (IS_FREQ_CHANNEL(g_eeprom.screen_channel[vfo]))
 						{	// copy VFO to channel
 
-							#ifdef ENABLE_VOICE
-								g_another_voice_id   = VOICE_ID_MENU;
-							#endif
-							
-//							g_request_display_screen = DISPLAY_MENU;
+							// search the channels to see if the frequency is already present
+							const unsigned int chan = BOARD_find_channel(g_eeprom.vfo_info[vfo].p_tx->frequency);
+
+							g_screen_to_display = DISPLAY_INVALID;
 							GUI_SelectNextDisplay(DISPLAY_MENU);
-							g_menu_cursor          = MENU_MEM_SAVE;
-							g_flag_refresh_menu    = true;
-							g_ask_for_confirmation = 0;
-							g_is_in_sub_menu       = true;
+	
+							g_flag_refresh_menu = false;
+							g_menu_cursor       = MENU_MEM_SAVE;
+							g_is_in_sub_menu    = true;
+
+							if (chan <= USER_CHANNEL_LAST)
+							{	// go straight to the channel that holds the same frequency
+								g_sub_menu_selection = chan;
+							}
+
+							g_screen_to_display = DISPLAY_MENU;
+							g_update_display    = false;
+							UI_DisplayMenu();
+
+							#ifdef ENABLE_VOICE
+								g_another_voice_id = VOICE_ID_MENU;
+							#endif
+
+							g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
 						}
 					}
 					else

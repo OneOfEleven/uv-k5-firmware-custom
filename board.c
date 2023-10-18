@@ -843,23 +843,45 @@ void BOARD_EEPROM_LoadCalibration(void)
 	}
 }
 
+unsigned int BOARD_find_channel(const uint32_t frequency)
+{
+	unsigned int chan;
+	
+	if (frequency == 0 || frequency == 0xffffffff)
+		return 0xffffffff;
+	
+	for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
+	{
+		uint32_t chan_freq;
+
+		if ((g_user_channel_attributes[chan] & USER_CH_BAND_MASK) > BAND7_470MHz)
+			continue;
+		
+		EEPROM_ReadBuffer(chan * 16, &chan_freq, 4);
+
+		if (chan_freq == 0 || chan_freq == 0xffffffff)
+			continue;
+		
+		if (chan_freq == frequency)
+			return chan;          // found it
+	}
+	
+	return 0xffffffff;
+}
+
 uint32_t BOARD_fetchChannelFrequency(const int channel)
 {
-	struct
-	{
-		uint32_t frequency;
-		uint32_t offset;
-	} __attribute__((packed)) info;
+	uint32_t frequency;
 
 	if (channel < 0 || channel > (int)FREQ_CHANNEL_LAST)
 		return 0;
 
-	if (!RADIO_CheckValidChannel(channel, false, 0))
+	if ((g_user_channel_attributes[channel] & USER_CH_BAND_MASK) > BAND7_470MHz)
 		return 0;
 
-	EEPROM_ReadBuffer(channel * 16, &info, sizeof(info));
+	EEPROM_ReadBuffer(channel * 16, &frequency, 4);
 
-	return info.frequency;
+	return frequency;
 }
 
 unsigned int BOARD_fetchChannelStepSetting(const int channel)

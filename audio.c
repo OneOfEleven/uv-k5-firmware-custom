@@ -29,6 +29,7 @@
 #include "driver/gpio.h"
 #include "driver/system.h"
 #include "driver/systick.h"
+#include "driver/uart.h"
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"
@@ -96,7 +97,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 //				return;
 	#endif
 	if (g_current_function == FUNCTION_RECEIVE || g_current_function == FUNCTION_MONITOR)
-		return;
+		return;   // not while the speakers in use
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
@@ -110,9 +111,13 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		#endif
 	#endif
 
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("beep %u\r\n", (unsigned int)Beep);
+	#endif
+	
 	// whats this for ?
-//	SYSTEM_DelayMs(20);
-	SYSTEM_DelayMs(2);
+	SYSTEM_DelayMs(20);
+//	SYSTEM_DelayMs(2);
 
 	switch (Beep)
 	{

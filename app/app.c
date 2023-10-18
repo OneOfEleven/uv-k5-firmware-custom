@@ -2544,7 +2544,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 //		g_ptt_was_pressed = false;
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+//			UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 		#endif
 	}
 
@@ -2566,12 +2566,12 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 //		g_ptt_was_released = false;
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("proc key 2 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+//			UART_printf("proc key 2 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 		#endif
 	}
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("proc key 3 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
+//		UART_printf("proc key 3 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 	#endif
 
 	if (!flag)  // this flag is responsible for keys being ignored :(
