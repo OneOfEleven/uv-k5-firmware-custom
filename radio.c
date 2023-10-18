@@ -1021,7 +1021,7 @@ void RADIO_PrepareTX(void)
 		State = VFO_STATE_TX_DISABLE;
 	}
 	else
-	if (TX_freq_check(g_current_vfo->p_tx->frequency) == 0)
+	if (FREQUENCY_tx_freq_check(g_current_vfo->p_tx->frequency) == 0)
 	{	// TX frequency is allowed
 		if (g_current_vfo->busy_channel_lock && g_current_function == FUNCTION_RECEIVE)
 			State = VFO_STATE_BUSY;          // busy RX'ing a station

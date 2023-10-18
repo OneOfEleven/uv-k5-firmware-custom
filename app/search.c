@@ -180,95 +180,14 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 
 			if (!g_search_single_frequency)
 			{
-				#if 0
-
-					uint32_t Freq250 = FREQUENCY_FloorToStep(g_search_frequency, 250, 0);
-					uint32_t Freq625 = FREQUENCY_FloorToStep(g_search_frequency, 625, 0);
-
-					int16_t Delta250 = (int16_t)g_search_frequency - (int16_t)Freq250;
-					int16_t Delta625;
-
-					if (125 < Delta250)
-					{
-						Delta250 = 250 - Delta250;
-						Freq250 += 250;
-					}
-
-					Delta625 = (int16_t)g_search_frequency - (int16_t)Freq625;
-
-					if (312 < Delta625)
-					{
-						Delta625 = 625 - Delta625;
-						Freq625 += 625;
-					}
-
-					if (Delta625 < Delta250)
-					{
-						g_search_step_setting = STEP_6_25kHz;
-						g_search_frequency = Freq625;
-					}
-					else
-					{
-						g_search_step_setting = STEP_2_5kHz;
-						g_search_frequency = Freq250;
-					}
-
-				#elif 0
-
-					#ifdef ENABLE_1250HZ_STEP
-						const step_setting_t small_step = STEP_1_25kHz;
-						const step_setting_t big_step   = STEP_6_25kHz;
-					#else
-						const step_setting_t small_step = STEP_2_5kHz;
-						const step_setting_t big_step   = STEP_6_25kHz;
-					#endif
-
-					const uint32_t small_step_freq = STEP_FREQ_TABLE[small_step];
-					const uint32_t big_step_freq   = STEP_FREQ_TABLE[big_step];
-
-					uint32_t freq_small_step = FREQUENCY_FloorToStep(g_search_frequency, small_step_freq, 0);
-					uint32_t freq_big_step   = FREQUENCY_FloorToStep(g_search_frequency, big_step_freq,   0);
-
-					int32_t delta_small_step = (int32_t)g_search_frequency - freq_small_step;
-					int32_t delta_big_step   = (int32_t)g_search_frequency - freq_big_step;
-
-					if (delta_small_step > 125)
-					{
-						delta_small_step = STEP_FREQ_TABLE[small_step] - delta_small_step;
-						freq_big_step += small_step_freq;
-					}
-
-					delta_big_step = (int32_t)g_search_frequency - freq_big_step;
-
-					if (delta_big_step > 312)
-					{
-						delta_big_step = big_step_freq - delta_big_step;
-						freq_big_step += big_step_freq;
-					}
-
-					if (delta_small_step >= delta_big_step)
-					{
-						g_search_step_setting = small_step;
-						g_search_frequency    = freq_small_step;
-					}
-					else
-					{
-						g_search_step_setting = big_step;
-						g_search_frequency    = freq_big_step;
-					}
-
-				#else
-
-					// determine what the current step size is for the detected frequency
-					// use the 7 VFO channels/bands to determine it
-					const unsigned int band = (unsigned int)FREQUENCY_GetBand(g_search_frequency);
-					g_search_step_setting = BOARD_fetchFrequencyStepSetting(band, g_eeprom.tx_vfo);
-					{	// round to nearest step size
-						const uint16_t step_size = STEP_FREQ_TABLE[g_search_step_setting];
-						g_search_frequency = ((g_search_frequency + (step_size / 2)) / step_size) * step_size;
-					}
-
-				#endif
+				// determine what the current step size is for the detected frequency
+				// use the 7 VFO channels/bands to determine it
+				const unsigned int band = (unsigned int)FREQUENCY_GetBand(g_search_frequency);
+				g_search_step_setting = BOARD_fetchFrequencyStepSetting(band, g_eeprom.tx_vfo);
+				{	// round to nearest step size
+					const uint16_t step_size = STEP_FREQ_TABLE[g_search_step_setting];
+					g_search_frequency = ((g_search_frequency + (step_size / 2)) / step_size) * step_size;
+				}
 			}
 
 			if (g_tx_vfo->channel_save <= USER_CHANNEL_LAST)

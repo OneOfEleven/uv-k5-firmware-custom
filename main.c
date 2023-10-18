@@ -65,8 +65,8 @@ void Main(void)
 		| SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE;
 
 	SYSTICK_Init();
-	BOARD_Init();
 	UART_Init();
+	BOARD_Init();
 
 	#if defined(ENABLE_UART)
 		UART_SendText(UART_Version_str);
@@ -79,6 +79,8 @@ void Main(void)
 
 	memset(g_dtmf_string, '-', sizeof(g_dtmf_string));
 	g_dtmf_string[sizeof(g_dtmf_string) - 1] = 0;
+
+	FREQUENCY_init();
 
 #if 0
 	SETTINGS_restore_calibration();

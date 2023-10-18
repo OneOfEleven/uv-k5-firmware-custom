@@ -393,7 +393,7 @@ void MENU_AcceptSetting(void)
 			break;
 
 		case MENU_STEP:
-			g_tx_vfo->step_setting = g_sub_menu_selection;
+			g_tx_vfo->step_setting = step_freq_table_sorted[g_sub_menu_selection];
 			if (IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
 			{
 				g_request_save_channel = 1;
@@ -935,9 +935,9 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_STEP:
-			g_sub_menu_selection = g_tx_vfo->step_setting;
+			g_sub_menu_selection = FREQUENCY_get_step_index(STEP_FREQ_TABLE[g_tx_vfo->step_setting]);
 			break;
-
+		
 		case MENU_TX_POWER:
 			g_sub_menu_selection = g_tx_vfo->output_power;
 			break;

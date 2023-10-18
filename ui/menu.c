@@ -26,6 +26,7 @@
 #include "driver/bk4819.h"
 #include "driver/eeprom.h"   // EEPROM_ReadBuffer()
 #include "driver/st7565.h"
+#include "driver/uart.h"
 #include "external/printf/printf.h"
 #include "frequencies.h"
 #include "helper/battery.h"
@@ -410,8 +411,6 @@ void UI_SortMenu(const bool hide_hidden)
 	// this means the menu order is entirely determined by the enum list (found in id/menu.h)
 	// it now no longer depends on the order of entries in the above const list (they can be any order)
 
-//	unsigned int i;
-
 	unsigned int hidden_menu_count = g_hidden_menu_count;
 
 	#ifndef ENABLE_F_CAL_MENU
@@ -420,16 +419,22 @@ void UI_SortMenu(const bool hide_hidden)
 
 	g_menu_list_count = ARRAY_SIZE(g_menu_list);
 
-	// linear index array
-//	for (i = 0; i < ARRAY_SIZE(g_menu_list_sorted); i++)
-//		g_menu_list_sorted[i] = i;
-
 	// sort non-hidden entries at the beginning
 	sort_list(0, g_menu_list_count - hidden_menu_count);
 
 	// sort the hidden entries at the end
 	sort_list(g_menu_list_count - hidden_menu_count, hidden_menu_count);
-
+/*
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	{
+		unsigned int i;
+		UART_SendText("menu ..\r\n");
+		for (i = 0; i < ARRAY_SIZE(g_menu_list_sorted); i++)
+			UART_printf("%3u %3u %3u\r\n", i, g_menu_list_sorted[i], g_menu_list[g_menu_list_sorted[i]].menu_id);
+		UART_SendText("\r\n");
+	}
+	#endif
+*/
 	if (hide_hidden)
 		g_menu_list_count -= hidden_menu_count;  // hide the hidden menu items
 }
@@ -544,9 +549,25 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_STEP:
-			sprintf(String, "%d.%02ukHz", STEP_FREQ_TABLE[g_sub_menu_selection] / 100, STEP_FREQ_TABLE[g_sub_menu_selection] % 100);
+		{
+//			const uint32_t step = (uint32_t)STEP_FREQ_TABLE[g_sub_menu_selection] * 10;
+			const uint32_t step = (uint32_t)STEP_FREQ_TABLE[step_freq_table_sorted[g_sub_menu_selection]] * 10;
+			if (step < 1000)
+			{	// Hz
+				sprintf(String, "%uHz", step);
+			}
+			else
+			{	// kHz
+				int i;
+				sprintf(String, "%u.%03u", step / 1000, step % 1000);
+				i = strlen(String) - 1;
+				while (i > 0 && String[i] == '0' && String[i - 1] != '.')
+					String[i--] = 0;     // trim trailing zeros away
+				strcat(String, "kHz");
+			}
 			break;
-
+		}
+		
 		case MENU_TX_POWER:
 			strcpy(String, g_sub_MENU_TX_POWER[g_sub_menu_selection]);
 			break;

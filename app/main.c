@@ -340,8 +340,8 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		return;
 	}
 
-	if (key_pressed)
-	{	// key is pressed
+	if (key_pressed && !key_held)
+	{	// key just pressed
 		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;                                    // don't use the key till it's released
 	}
@@ -519,8 +519,8 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 {
-	if (!key_held && key_pressed)
-	{	// exit key pressed
+	if (key_pressed && !key_held)
+	{	// key just pressed
 
 		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
@@ -586,9 +586,10 @@ void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 {
 	if (key_pressed && !key_held)
-		// menu key pressed
+	{	// key just pressed
 		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-
+	}
+	
 	if (key_held)
 	{	// menu key held down (long press)
 
@@ -685,10 +686,8 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 {
 	if (g_input_box_index > 0)
 	{	// entering a channel, frequency or DTMF string
-
 		if (!key_held && key_pressed)
 			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-
 		return;
 	}
 
@@ -763,6 +762,11 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 
 	uint8_t Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
 
+	if (key_pressed && !key_held)
+	{	// key just pressed
+		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+	}
+
 	if (!key_pressed &&
 	     g_scan_state_dir == SCAN_STATE_DIR_OFF &&
 	     IS_NOT_NOAA_CHANNEL(Channel) &&
@@ -831,7 +835,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 				const frequency_band_t old_band = FREQUENCY_GetBand(g_tx_vfo->freq_config_rx.frequency);
 				const uint32_t frequency = APP_set_frequency_by_step(g_tx_vfo, Direction);
 
-				if (RX_freq_check(frequency) < 0)
+				if (FREQUENCY_rx_freq_check(frequency) < 0)
 				{	// frequency not allowed
 					g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 					return;

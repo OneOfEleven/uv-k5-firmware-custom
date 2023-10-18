@@ -57,7 +57,6 @@ ENABLE_BIG_FREQ                  := 0       big font frequencies (like original 
 ENABLE_SMALL_BOLD                := 1       bold channel name/no. (when name + freq channel display mode)
 ENABLE_KEEP_MEM_NAME             := 1       maintain channel name when (re)saving memory channel
 ENABLE_WIDE_RX                   := 1       full 18MHz to 1300MHz RX (though front-end/PA not designed for full range)
-ENABLE_1250HZ_STEP               := 1       enable smaller 1.25kHz frequency steps
 ENABLE_TX_WHEN_AM                := 0       allow TX (always FM) when RX is set to AM
 ENABLE_F_CAL_MENU                := 0       enable/disable the radios hidden frequency calibration menu
 ENABLE_TX_UNLOCK                 := 0       allow TX everywhere EXCEPT airband (108~136) .. TX harmonic content will cause interference to other services, do so entirely at your own risk !
