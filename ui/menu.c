@@ -749,22 +749,22 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_350_EN:
-			strcpy(String, "350 ~ 400\n");
+			strcpy(String, "350~400\n");
 			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
 			break;
 
 		case MENU_350_TX:
-			strcpy(String, "TX\n350 ~ 400\n");
+			strcpy(String, "TX\n350~400\n");
 			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
 			break;
 
 		case MENU_174_TX:
-			strcpy(String, "TX\n174 ~ 350\n");
+			strcpy(String, "TX\n174~350\n");
 			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
 			break;
 
 		case MENU_470_TX:
-			strcpy(String, "TX\n470 ~ 600\n");
+			strcpy(String, "TX\n470~600\n");
 			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
 			break;
 
@@ -1068,7 +1068,7 @@ void UI_DisplayMenu(void)
 					break;
 				#ifdef ENABLE_TX_UNLOCK
 					case FREQ_LOCK_TX_UNLOCK:
-						sprintf(String, "UNLOCKED\n%u ~ %u", BX4819_BAND1.lower / 100000, BX4819_BAND2.upper / 100000);
+						sprintf(String, "UNLOCKED\n%u~%u", BX4819_BAND1.lower / 100000, BX4819_BAND2.upper / 100000);
 						break;
 				#endif
 			}

@@ -208,7 +208,13 @@ int TX_freq_check(const uint32_t Frequency)
 
 		#ifdef ENABLE_TX_UNLOCK
 			case FREQ_LOCK_TX_UNLOCK:
-				return 0;
+			{
+				unsigned int i;
+				for (i = 0; i < ARRAY_SIZE(FREQ_BAND_TABLE); i++)
+					if (Frequency >= FREQ_BAND_TABLE[i].lower && Frequency < FREQ_BAND_TABLE[i].upper)
+						return 0;
+				break;
+			}
 		#endif
 	}
 

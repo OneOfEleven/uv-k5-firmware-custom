@@ -139,11 +139,11 @@ enum
 
 	MENU_SCRAMBLER_EN, // scrambler enable/disable
 	MENU_FREQ_LOCK,    // lock to a selected region
-	MENU_174_TX,       // 174~350MHz TX enable/disable
 	MENU_350_EN,       // 350~400MHz enable/disable
+	MENU_174_TX,       // 174~350MHz TX enable/disable
 	MENU_350_TX,       // 350~400MHz TX enable/disable
 	MENU_470_TX,       // 470MHz and up TX enable/disable
-	MENU_TX_EN,        // can disable the TX entirely
+	MENU_TX_EN,        // disable the TX entirely
 
 	// ************************************
 	// ************************************
