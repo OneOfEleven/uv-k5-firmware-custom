@@ -1138,8 +1138,7 @@ void RADIO_tx_eot(void)
 		{
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 			g_enable_speaker = true;
-//			SYSTEM_DelayMs(60);
-			SYSTEM_DelayMs(5);
+			SYSTEM_DelayMs(60);
 		}
 		BK4819_EnterDTMF_TX(g_eeprom.dtmf_side_tone);
 		BK4819_PlayDTMFString(

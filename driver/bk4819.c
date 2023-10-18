@@ -1043,8 +1043,8 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 	if (set_dac)
 	{
 		BK4819_WriteRegister(BK4819_REG_30, 0);
-		BK4819_WriteRegister(BK4819_REG_30, BK4819_REG_30_ENABLE_AF_DAC | BK4819_REG_30_ENABLE_DISC_MODE | BK4819_REG_30_ENABLE_TX_DSP);
-		//BK4819_EnableTXLink();
+		//BK4819_WriteRegister(BK4819_REG_30, BK4819_REG_30_ENABLE_AF_DAC | BK4819_REG_30_ENABLE_DISC_MODE | BK4819_REG_30_ENABLE_TX_DSP);
+		BK4819_EnableTXLink();
 	}
 
 	BK4819_WriteRegister(BK4819_REG_71, scale_freq(frequency));

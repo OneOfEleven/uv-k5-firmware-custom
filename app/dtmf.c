@@ -391,9 +391,9 @@ void DTMF_HandleRequest(void)
 
 bool DTMF_Reply(void)
 {
-	uint16_t    Delay;
-	char        String[20];
-	const char *pString = NULL;
+	const uint16_t Delay   = (g_eeprom.dtmf_preload_time < 150) ? 150 : g_eeprom.dtmf_preload_time;
+	const char    *pString = NULL;
+	char           String[20];
 
 	switch (g_dtmf_reply_state)
 	{
@@ -438,8 +438,6 @@ bool DTMF_Reply(void)
 
 	if (pString == NULL)
 		return false;
-
-	Delay = (g_eeprom.dtmf_preload_time < 200) ? 200 : g_eeprom.dtmf_preload_time;
 
 	if (g_eeprom.dtmf_side_tone)
 	{	// the user will also hear the transmitted tones
