@@ -248,7 +248,7 @@ void processFKeyFunction(const key_code_t Key)
 
 		case KEY_6:    // H/M/L
 
-			if (g_scan_state_dir == SCAN_STATE_DIR_OFF)
+			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 			{
 				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 				return;
@@ -474,7 +474,6 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			}
 
 			g_tx_vfo->freq_config_rx.frequency = Frequency;
-
 			// 1of11 .. test to prevent the monitor being turned off
 //			g_request_save_channel = 1;
 			SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
