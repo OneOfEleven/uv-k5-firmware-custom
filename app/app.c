@@ -2827,7 +2827,7 @@ Skip:
 		g_vfo_rssi_bar_level[0] = 0;
 		g_vfo_rssi_bar_level[1] = 0;
 
-		g_flag_reconfigure_vfos= false;
+		g_flag_reconfigure_vfos = false;
 
 		if (g_monitor_enabled)
 			ACTION_Monitor();   // 1of11

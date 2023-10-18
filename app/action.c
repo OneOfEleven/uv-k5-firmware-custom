@@ -81,6 +81,7 @@ void ACTION_Monitor(void)
 			if (g_rx_vfo->channel_save >= NOAA_CHANNEL_FIRST && g_is_noaa_mode)
 				g_noaa_channel = g_rx_vfo->channel_save - NOAA_CHANNEL_FIRST;
 		#endif
+		g_monitor_enabled = true;
 		RADIO_setup_registers(true);
 		APP_start_listening(FUNCTION_MONITOR, false);
 		return;

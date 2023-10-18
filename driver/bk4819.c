@@ -753,7 +753,8 @@ void BK4819_set_rf_frequency(const uint32_t frequency, const bool trigger_update
 		// trigger a PLL/VCO update
 		//
 		const uint16_t reg = BK4819_ReadRegister(BK4819_REG_30);
-		BK4819_WriteRegister(BK4819_REG_30, reg & ~(1u << 15) & (15u << 4));
+//		BK4819_WriteRegister(BK4819_REG_30, reg & ~(1u << 15) & (15u << 4));
+		BK4819_WriteRegister(BK4819_REG_30, 0x0200);
 		BK4819_WriteRegister(BK4819_REG_30, reg);
 	}
 }

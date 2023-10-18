@@ -475,7 +475,11 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 			g_tx_vfo->freq_config_rx.frequency = Frequency;
 
-			g_request_save_channel = 1;
+			// 1of11 .. test to prevent the monitor being turned off
+//			g_request_save_channel = 1;
+			SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
+			RADIO_setup_registers(true);
+
 			return;
 		}
 
@@ -807,7 +811,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 		#endif
 
 		// only update eeprom when the key is released - saves a LOT of wear and tear on the little eeprom
-		g_flag_save_channel = 1;
+		SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //			UART_printf("save chan\r\n");
@@ -876,7 +880,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 					g_request_save_channel = 1;
 				}
 				else
-				{	// don't need to go through all the other stuff .. lets speed things up !!
+				{	// don't need to go through all the other stuff .. lets speed things up !
 
 					#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
 						if (!key_held && key_pressed)
