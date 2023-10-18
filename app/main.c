@@ -24,6 +24,9 @@
 #include "app/generic.h"
 #include "app/main.h"
 #include "app/search.h"
+#ifdef ENABLE_SPECTRUM
+//	#include "app/spectrum.h"
+#endif
 #include "audio.h"
 #include "board.h"
 #include "driver/bk4819.h"
@@ -35,9 +38,7 @@
 #include "settings.h"
 #include "ui/inputbox.h"
 #include "ui/ui.h"
-#ifdef ENABLE_SPECTRUM
-//	#include "app/spectrum.h"
-#endif
+#include "ui/menu.h"
 
 void toggle_chan_scanlist(void)
 {	// toggle the selected channels scanlist setting
@@ -587,7 +588,7 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 {
 	if (key_pressed && !key_held)
 	{	// key just pressed
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+		AUDIO_PlayBeep(BEEP_1KHZ_60MS_OPTIONAL);
 	}
 	
 	if (key_held)
@@ -609,21 +610,14 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 				g_fkey_pressed  = false;
 				g_update_status = true;
 
-				#ifdef ENABLE_COPY_CHAN_TO_VFO
+				#ifdef ENABLE_COPY_CHAN_TO_VFO_TO_CHAN
 
-					if (g_eeprom.vfo_open && g_css_scan_mode == CSS_SCAN_MODE_OFF)
-					{
-
-						if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-						{
-							if (g_current_function != FUNCTION_INCOMING ||
-							    g_rx_reception_mode == RX_MODE_NONE ||
-								g_scan_pause_10ms == 0)
-							{	// scan is running (not paused)
-								return;
-							}
-						}
-
+					if (g_scan_state_dir == SCAN_STATE_DIR_OFF &&
+					    g_css_scan_mode == CSS_SCAN_MODE_OFF   &&
+					    g_eeprom.dual_watch == DUAL_WATCH_OFF  &&
+					    g_eeprom.vfo_open)
+					{	// not scanning
+				
 						const unsigned int vfo = get_RX_VFO();
 
 						if (IS_USER_CHANNEL(g_eeprom.screen_channel[vfo]))
@@ -646,6 +640,21 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 
 							g_update_status  = true;
 							g_update_display = true;
+						}
+						else
+						if (IS_FREQ_CHANNEL(g_eeprom.screen_channel[vfo]))
+						{	// copy VFO to channel
+
+							#ifdef ENABLE_VOICE
+								g_another_voice_id   = VOICE_ID_MENU;
+							#endif
+							
+//							g_request_display_screen = DISPLAY_MENU;
+							GUI_SelectNextDisplay(DISPLAY_MENU);
+							g_menu_cursor          = MENU_MEM_SAVE;
+							g_flag_refresh_menu    = true;
+							g_ask_for_confirmation = 0;
+							g_is_in_sub_menu       = true;
 						}
 					}
 					else
@@ -671,6 +680,7 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 		{
 			g_flag_refresh_menu = true;
 			g_request_display_screen = DISPLAY_MENU;
+
 			#ifdef ENABLE_VOICE
 				g_another_voice_id   = VOICE_ID_MENU;
 			#endif

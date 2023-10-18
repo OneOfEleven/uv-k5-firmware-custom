@@ -75,28 +75,28 @@ beep_type_t g_beep_to_play = BEEP_NONE;
 
 void AUDIO_PlayBeep(beep_type_t Beep)
 {
-	uint16_t ToneConfig;
-	uint16_t ToneFrequency;
-	uint16_t Duration;
+	const uint16_t ToneConfig = BK4819_ReadRegister(BK4819_REG_71);
+	uint16_t       ToneFrequency;
+	uint16_t       Duration;
 
-	if (Beep != BEEP_880HZ_60MS_TRIPLE_BEEP &&
-	    Beep != BEEP_500HZ_60MS_DOUBLE_BEEP &&
-	    Beep != BEEP_440HZ_500MS &&
-	    Beep != BEEP_880HZ_200MS &&
-	    Beep != BEEP_880HZ_500MS &&
-	   !g_eeprom.beep_control)
-		return;
+	if (!g_eeprom.beep_control)
+	{	// beep not enabled
+		if (Beep != BEEP_880HZ_60MS_TRIPLE_BEEP &&
+			Beep != BEEP_500HZ_60MS_DOUBLE_BEEP &&
+			Beep != BEEP_440HZ_500MS &&
+			Beep != BEEP_880HZ_200MS &&
+			Beep != BEEP_880HZ_500MS)
+		{
+			return;
+		}
+	}
 
 	#ifdef ENABLE_AIRCOPY
 //		if (g_screen_to_display == DISPLAY_AIRCOPY || g_aircopy_state != AIRCOPY_READY)
 //				return;
 	#endif
-	if (g_current_function == FUNCTION_RECEIVE)
+	if (g_current_function == FUNCTION_RECEIVE || g_current_function == FUNCTION_MONITOR)
 		return;
-	if (g_current_function == FUNCTION_MONITOR)
-		return;
-
-	ToneConfig = BK4819_ReadRegister(BK4819_REG_71);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
@@ -110,7 +110,9 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		#endif
 	#endif
 
-	SYSTEM_DelayMs(20);
+	// whats this for ?
+//	SYSTEM_DelayMs(20);
+	SYSTEM_DelayMs(2);
 
 	switch (Beep)
 	{
@@ -118,17 +120,21 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		case BEEP_NONE:
 			ToneFrequency = 220;
 			break;
+
 		case BEEP_1KHZ_60MS_OPTIONAL:
 			ToneFrequency = 1000;
 			break;
+
 		case BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL:
 		case BEEP_500HZ_60MS_DOUBLE_BEEP:
 			ToneFrequency = 500;
 			break;
+
 		case BEEP_440HZ_40MS_OPTIONAL:
 		case BEEP_440HZ_500MS:
 			ToneFrequency = 440;
 			break;
+
 		case BEEP_880HZ_40MS_OPTIONAL:
 		case BEEP_880HZ_60MS_TRIPLE_BEEP:
 		case BEEP_880HZ_200MS:
@@ -138,9 +144,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	}
 
 	BK4819_StartTone1(ToneFrequency, 96, true);
-
 	SYSTEM_DelayMs(2);
-
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	SYSTEM_DelayMs(60);
@@ -190,18 +194,25 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	#pragma GCC diagnostic pop
 
 	SYSTEM_DelayMs(Duration);
-	BK4819_EnterTxMute();
-	SYSTEM_DelayMs(20);
 
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	BK4819_EnterTxMute();
+
+//	SYSTEM_DelayMs(20);
+	SYSTEM_DelayMs(2);
 
 	#ifdef ENABLE_VOX
 		g_vox_resume_count_down = 80;
 	#endif
 
-	SYSTEM_DelayMs(5);
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	
+//	SYSTEM_DelayMs(5);
+	SYSTEM_DelayMs(2);
 	BK4819_TurnsOffTones_TurnsOnRX();
-	SYSTEM_DelayMs(5);
+//	SYSTEM_DelayMs(5);
+	SYSTEM_DelayMs(2);
+
+	// restore the register
 	BK4819_WriteRegister(BK4819_REG_71, ToneConfig);
 
 	if (g_enable_speaker)
@@ -224,7 +235,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 
 		if (g_eeprom.voice_prompt == VOICE_PROMPT_OFF)
 			return;
-		
+
 		GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_VOICE_0);
 		SYSTEM_DelayMs(20);
 		GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_VOICE_0);
@@ -273,7 +284,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			if (g_current_function == FUNCTION_RECEIVE || g_current_function == FUNCTION_MONITOR)
 				BK4819_SetAF(BK4819_AF_MUTE);
 		#endif
-			
+
 		#ifdef ENABLE_FMRADIO
 			#ifdef MUTE_AUDIO_FOR_VOICE
 				if (g_fm_radio_mode)
@@ -288,7 +299,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		#endif
 
 		SYSTEM_DelayMs(5);
-		
+
 		AUDIO_PlayVoice(VoiceID);
 
 		if (g_voice_write_index == 1)
@@ -445,10 +456,10 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 
 		// ***********************
 		// unmute the radios audio
-		
+
 		if (g_current_function == FUNCTION_RECEIVE || g_current_function == FUNCTION_MONITOR)
 			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
-		
+
 		#ifdef ENABLE_FMRADIO
 			if (g_fm_radio_mode)
 				BK1080_Mute(false);
@@ -458,7 +469,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 		// **********************
-		
+
 		#ifdef ENABLE_VOX
 			g_vox_resume_count_down = 80;
 		#endif

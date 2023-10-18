@@ -77,7 +77,7 @@ ENABLE_FASTER_CHANNEL_SCAN       := 1       increases the channel scan speed, bu
 ENABLE_RX_SIGNAL_BAR             := 1       enable a dBm/Sn RSSI bar graph level inplace of the little antenna symbols
 ENABLE_TX_TIMEOUT_BAR            := 0       show the remainng TX time
 ENABLE_TX_AUDIO_BAR              := 1       enable TX audio level bar, includes remaining TX time (in seconds)
-ENABLE_COPY_CHAN_TO_VFO          := 1       copy current channel into the other VFO. Long press Menu key ('M')
+ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1       long press M, copy channel to VFO, or VFO to channel
 #ENABLE_BAND_SCOPE               := 0       not yet implemented - spectrum/pan-adapter
 #ENABLE_SINGLE_VFO_CHAN          := 0       not yet implemented - single VFO on display when possible
 ```

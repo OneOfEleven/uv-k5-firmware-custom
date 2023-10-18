@@ -1234,14 +1234,17 @@ void UI_DisplayMenu(void)
 
 	if (g_menu_cursor == MENU_RX_CTCSS ||
 	    g_menu_cursor == MENU_TX_CTCSS ||
-	    g_menu_cursor == MENU_RX_CDCSS  ||
-	    g_menu_cursor == MENU_TX_CDCSS  ||
+	    g_menu_cursor == MENU_RX_CDCSS ||
+	    g_menu_cursor == MENU_TX_CDCSS ||
 	    g_menu_cursor == MENU_DTMF_LIST)
 	{
-		unsigned int Offset;
-		NUMBER_ToDigits(g_sub_menu_selection, String);
-		Offset = (g_menu_cursor == MENU_DTMF_LIST) ? 2 : 3;
-		UI_Displaysmall_digits(Offset, String + (8 - Offset), 105, 0, false);
+		if (g_is_in_sub_menu)
+		{
+			unsigned int Offset;
+			NUMBER_ToDigits(g_sub_menu_selection, String);
+			Offset = (g_menu_cursor == MENU_DTMF_LIST) ? 2 : 3;
+			UI_Displaysmall_digits(Offset, String + (8 - Offset), 105, 0, false);
+		}
 	}
 
 	if ((g_menu_cursor == MENU_RESET    ||
