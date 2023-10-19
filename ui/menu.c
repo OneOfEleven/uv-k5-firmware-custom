@@ -548,6 +548,8 @@ void UI_DisplayMenu(void)
 				strcpy(String, "USE\nMAIN SQL");
 			else
 				sprintf(String, "%d", g_sub_menu_selection);
+//			g_tx_vfo->squelch_level = g_sub_menu_selection;
+//			RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
 			break;
 
 		case MENU_MIC_GAIN:

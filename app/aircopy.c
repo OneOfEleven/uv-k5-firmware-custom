@@ -529,27 +529,24 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		if (eeprom_addr == 0x0E98)
 		{	// power-on password .. wipe it
 			//#ifndef ENABLE_PWRON_PASSWORD
-				data[0] = 0xffff;
-				data[1] = 0xffff;
+				memset(data, 0xff, 4);
 			//#endif
 		}
 		else
-		if (eeprom_addr == 0x0F30)
+		if (eeprom_addr == 0x0F30 || eeprom_addr == 0x0F38)
 		{	// AES key .. wipe it
 			//#ifdef ENABLE_RESET_AES_KEY
-				data[0] = 0xffff;
-				data[1] = 0xffff;
-				data[2] = 0xffff;
-				data[3] = 0xffff;
+				memset(data, 0xff, 8);
 			//#endif
 		}
 		else
 		if (eeprom_addr == 0x0F40)
-		{	// killed flag is here
-			data[2] = false;	// remove it
+		{	// killed flag, wipe it
+			data[2] = 0;
 		}
 
 		EEPROM_WriteBuffer8(eeprom_addr, data);   // 8 bytes at a time
+
 		data        += write_size / sizeof(data[0]);
 		eeprom_addr += write_size;
 	}
