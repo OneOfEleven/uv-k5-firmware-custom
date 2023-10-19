@@ -261,24 +261,20 @@ typedef struct {
 	t_channel channel[200];                         // unused channels are set to all '0xff'
 
 	// 0x0C80
-	#if 0
-		t_channel vfo[14];                          // 2 VFO's (upper/lower) per band, 7 frequency bands
-	#else
-		union {                                     // 2 VFO's (upper/lower) per band, 7 frequency bands
-			t_channel vfo[14];                      //
-			struct {                                //
-				t_channel a;                        //
-				t_channel b;                        //
-			} __attribute__((packed)) vfo_band[7];  //
-		} __attribute__((packed));                  //
-	#endif
+	union {                                         // 2 VFO's (upper/lower) per band, 7 frequency bands
+		t_channel vfo[14];                          //
+		struct {                                    //
+			t_channel a;                            //
+			t_channel b;                            //
+		} __attribute__((packed)) vfo_band[7];      //
+	} __attribute__((packed));                      //
 
 	// 0x0D60
 	struct {                                        // these channel attribute settings could have been in the t_channel structure !
-		uint8_t    band:4;                          // why do QS have these bits ? .. band can/is computed from the frequency
+		uint8_t    band:4;                          // why do QS have these bits ?  band can/is computed from the frequency
 		uint8_t    unused:2;                        //
-		uint8_t    scanlist2:1;                     // set if is in scan list 2
-		uint8_t    scanlist1:1;                     // set if is in scan list 1
+		uint8_t    scanlist2:1;                     // set if in scan list 2
+		uint8_t    scanlist1:1;                     // set if in scan list 1
 	} __attribute__((packed)) channel_attr[200];    //
 
 	uint8_t        unused1[8];                      // 0xff's
@@ -292,7 +288,7 @@ typedef struct {
 
 	// 0x0E70
 	uint8_t        call1;                           //
-	uint8_t        squelch;                         //
+	uint8_t        squelch_level;                   //
 	uint8_t        tx_timeout;                      //
 	uint8_t        noaa_auto_scan;                  //
 	uint8_t        key_lock;                        //
@@ -306,9 +302,9 @@ typedef struct {
 	#endif
 	uint8_t        channel_display_mode;            //
 	uint8_t        cross_vfo;                       //
-	uint8_t        battery_save;                    //
+	uint8_t        battery_save_ratio;              //
 	uint8_t        dual_watch;                      //
-	uint8_t        backlight;                       //
+	uint8_t        backlight_time;                  //
 	uint8_t        tail_tone_elimination;           //
 	uint8_t        vfo_open;                        //
 
@@ -387,7 +383,7 @@ typedef struct {
 	uint8_t        unused10;                        // 0xff's
 
 	// 0x0F20
-	uint8_t        unused11[8];                     // 0xff's
+	uint8_t        unused11[16];                    // 0xff's
 
 	// 0x0F30
 	uint8_t        aes_key[16];                     // disabled = all 0xff
@@ -429,7 +425,7 @@ typedef struct {
 		char       name[10];
 		uint8_t    unused[6];             // 0xff's
 	} __attribute__((packed)) channel_name[200];
-	
+
 	// 0x1BD0
 	uint8_t        unused13[16 * 3];      // 0xff's .. free to use
 

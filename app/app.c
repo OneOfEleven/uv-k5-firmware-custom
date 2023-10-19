@@ -668,9 +668,9 @@ void APP_stop_scan(void)
 
 static void APP_next_freq(void)
 {
-	frequency_band_t new_band;
-	const frequency_band_t old_band = FREQUENCY_GetBand(g_rx_vfo->freq_config_rx.frequency);
-	const uint32_t frequency = APP_set_frequency_by_step(g_rx_vfo, g_scan_state_dir);
+	frequency_band_t       new_band;
+	const frequency_band_t old_band  = FREQUENCY_GetBand(g_rx_vfo->freq_config_rx.frequency);
+	const uint32_t         frequency = APP_set_frequency_by_step(g_rx_vfo, g_scan_state_dir);
 
 	new_band = FREQUENCY_GetBand(frequency);
 

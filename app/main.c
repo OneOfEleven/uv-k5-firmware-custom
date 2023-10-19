@@ -883,9 +883,9 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 			if (IS_FREQ_CHANNEL(Channel))
 			{	// step/down in frequency
 
-				frequency_band_t new_band;
-				const frequency_band_t old_band = FREQUENCY_GetBand(g_tx_vfo->freq_config_rx.frequency);
-				const uint32_t frequency = APP_set_frequency_by_step(g_tx_vfo, Direction);
+				frequency_band_t       new_band;
+				const frequency_band_t old_band  = FREQUENCY_GetBand(g_tx_vfo->freq_config_rx.frequency);
+				const uint32_t         frequency = APP_set_frequency_by_step(g_tx_vfo, Direction);
 
 				if (FREQUENCY_rx_freq_check(frequency) < 0)
 				{	// frequency not allowed
@@ -893,12 +893,17 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 					return;
 				}
 
+				// compute the frequency band for the frequency
 				new_band = FREQUENCY_GetBand(frequency);
 
+				// save the new frequency into the VFO
 				g_tx_vfo->freq_config_rx.frequency = frequency;
 
 				// find the first channel that contains this frequency
-				// currently takes to long to scan all the channels
+				//
+				// this currently takes to long to look through all the channels (200)
+				// with every frequency step, because we have to read each channel from eeprom
+				// before checking the channels frequency
 				//
 				// TODO: include this once we have the entire eeprom loaded
 				//
@@ -909,7 +914,9 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 					g_request_save_channel = 1;
 				}
 				else
-				{	// don't need to go through all the other stuff .. lets speed things up !
+				{	// don't need to go through all the other stuff
+					// lets speed things up by simply setting the VCO/PLL frequency
+					// and the RF filter path (LNA and PA)
 
 					#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
 						if (!key_held && key_pressed)
@@ -922,8 +929,8 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 						}
 					#endif
 
-					BK4819_set_rf_frequency(frequency, true);
-					BK4819_set_rf_filter_path(frequency);
+					BK4819_set_rf_frequency(frequency, true);  // set the VCO/PLL
+					BK4819_set_rf_filter_path(frequency);      // set the proper LNA/PA filter path
 				}
 
 				return;

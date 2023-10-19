@@ -219,6 +219,10 @@ void ACTION_Scan(bool bRestart)
 
 			// start scanning
 	
+			// disable monitor mode
+			g_monitor_enabled = false;
+			RADIO_setup_registers(true);
+
 			APP_channel_next(true, SCAN_STATE_DIR_FORWARD);
 
 			g_scan_pause_10ms = 0;   // go NOW
