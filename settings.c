@@ -388,7 +388,7 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, c
 //		m_channel.unused6:4
 		m_channel.step_setting         = p_vfo->step_setting;
 		m_channel.scrambler            = p_vfo->scrambling_type;
-		m_channel.squelch_level        = 0;
+		m_channel.squelch_level        = p_vfo->squelch_level;
 	}
 	else
 	if (channel <= USER_CHANNEL_LAST)

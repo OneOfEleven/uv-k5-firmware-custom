@@ -553,7 +553,7 @@ void UI_DisplayMenu(void)
 		case MENU_MIC_GAIN:
 			{	// display the mic gain in actual dB rather than just an index number
 				const uint8_t mic = g_mic_gain_dB_2[g_sub_menu_selection];
-				sprintf(String, "+%u.%01udB", mic / 2, mic % 2);
+				sprintf(String, "+%u.%udB", mic / 2, mic % 2);
 			}
 			break;
 

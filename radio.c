@@ -116,29 +116,33 @@ uint8_t RADIO_FindNextChannel(uint8_t Channel, scan_state_dir_t Direction, bool 
 	return 0xFF;
 }
 
-void RADIO_InitInfo(vfo_info_t *pInfo, const uint8_t ChannelSave, const uint32_t Frequency)
+void RADIO_InitInfo(vfo_info_t *p_vfo, const uint8_t ChannelSave, const uint32_t Frequency)
 {
-	memset(pInfo, 0, sizeof(*pInfo));
+	if (p_vfo == NULL)
+		return;
+	
+	memset(p_vfo, 0, sizeof(*p_vfo));
 
-	pInfo->band                     = FREQUENCY_GetBand(Frequency);
-	pInfo->scanlist_1_participation = 1;
-	pInfo->scanlist_2_participation = 1;
-	pInfo->step_setting             = STEP_12_5kHz;
-	pInfo->step_freq                = STEP_FREQ_TABLE[pInfo->step_setting];
-	pInfo->channel_save             = ChannelSave;
-	pInfo->frequency_reverse        = false;
-	pInfo->output_power             = OUTPUT_POWER_LOW;
-	pInfo->freq_config_rx.frequency = Frequency;
-	pInfo->freq_config_tx.frequency = Frequency;
-	pInfo->p_rx                     = &pInfo->freq_config_rx;
-	pInfo->p_tx                     = &pInfo->freq_config_tx;
-	pInfo->compand                  = 0;  // off
-	pInfo->frequency_channel        = 0xff;
+	p_vfo->band                     = FREQUENCY_GetBand(Frequency);
+	p_vfo->scanlist_1_participation = 1;
+	p_vfo->scanlist_2_participation = 1;
+	p_vfo->step_setting             = STEP_12_5kHz;
+	p_vfo->step_freq                = STEP_FREQ_TABLE[p_vfo->step_setting];
+	p_vfo->channel_save             = ChannelSave;
+	p_vfo->frequency_reverse        = false;
+	p_vfo->output_power             = OUTPUT_POWER_LOW;
+	p_vfo->freq_config_rx.frequency = Frequency;
+	p_vfo->freq_config_tx.frequency = Frequency;
+	p_vfo->p_rx                     = &p_vfo->freq_config_rx;
+	p_vfo->p_tx                     = &p_vfo->freq_config_tx;
+	p_vfo->compand                  = 0;  // off
+	p_vfo->squelch_level            = 0;  // use main squelch
+	p_vfo->frequency_channel        = 0xff;
 
 	if (ChannelSave == (FREQ_CHANNEL_FIRST + BAND2_108MHz))
-		pInfo->am_mode = 1;
+		p_vfo->am_mode = 1;
 
-	RADIO_ConfigureSquelchAndOutputPower(pInfo);
+	RADIO_ConfigureSquelchAndOutputPower(p_vfo);
 }
 
 void RADIO_configure_channel(const unsigned int VFO, const unsigned int configure)
@@ -382,57 +386,60 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		p_vfo->frequency_channel = BOARD_find_channel(Frequency); // remember if a channel has this frequency
 }
 
-void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *pInfo)
+void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 {
 	uint8_t          TX_power[3];
 	uint16_t         Base;
 	frequency_band_t Band;
+	uint8_t          squelch_level;
 
 	// *******************************
 	// squelch
 
-	Band = FREQUENCY_GetBand(pInfo->p_rx->frequency);
+	Band = FREQUENCY_GetBand(p_vfo->p_rx->frequency);
 	Base = (Band < BAND4_174MHz) ? 0x1E60 : 0x1E00;
 
+	squelch_level = (p_vfo->squelch_level > 0) ? p_vfo->squelch_level : g_eeprom.squelch_level;
+	
 	// note that 'noise' and 'glitch' values are inverted compared to 'rssi' values
 
-	if (g_eeprom.squelch_level == 0)
+	if (squelch_level == 0)
 	{	// squelch == 0 (off)
-		pInfo->squelch_open_rssi_thresh    = 0;     // 0 ~ 255
-		pInfo->squelch_close_rssi_thresh   = 0;     // 0 ~ 255
+		p_vfo->squelch_open_rssi_thresh    = 0;     // 0 ~ 255
+		p_vfo->squelch_close_rssi_thresh   = 0;     // 0 ~ 255
 
-		pInfo->squelch_open_noise_thresh   = 127;   // 127 ~ 0
-		pInfo->squelch_close_noise_thresh  = 127;   // 127 ~ 0
+		p_vfo->squelch_open_noise_thresh   = 127;   // 127 ~ 0
+		p_vfo->squelch_close_noise_thresh  = 127;   // 127 ~ 0
 
-		pInfo->squelch_close_glitch_thresh = 255;   // 255 ~ 0
-		pInfo->squelch_open_glitch_thresh  = 255;   // 255 ~ 0
+		p_vfo->squelch_close_glitch_thresh = 255;   // 255 ~ 0
+		p_vfo->squelch_open_glitch_thresh  = 255;   // 255 ~ 0
 	}
 	else
 	{	// squelch >= 1
-		Base += g_eeprom.squelch_level;                                          // my eeprom squelch-1
+		Base += squelch_level;                                                   // my eeprom squelch-1
 		                                                                         // VHF   UHF
-		EEPROM_ReadBuffer(Base + 0x00, &pInfo->squelch_open_rssi_thresh,    1);  //  50    10
-		EEPROM_ReadBuffer(Base + 0x10, &pInfo->squelch_close_rssi_thresh,   1);  //  40     5
+		EEPROM_ReadBuffer(Base + 0x00, &p_vfo->squelch_open_rssi_thresh,    1);  //  50    10
+		EEPROM_ReadBuffer(Base + 0x10, &p_vfo->squelch_close_rssi_thresh,   1);  //  40     5
 
-		EEPROM_ReadBuffer(Base + 0x20, &pInfo->squelch_open_noise_thresh,   1);  //  65    90
-		EEPROM_ReadBuffer(Base + 0x30, &pInfo->squelch_close_noise_thresh,  1);  //  70   100
+		EEPROM_ReadBuffer(Base + 0x20, &p_vfo->squelch_open_noise_thresh,   1);  //  65    90
+		EEPROM_ReadBuffer(Base + 0x30, &p_vfo->squelch_close_noise_thresh,  1);  //  70   100
 
-		EEPROM_ReadBuffer(Base + 0x40, &pInfo->squelch_close_glitch_thresh, 1);  //  90    90
-		EEPROM_ReadBuffer(Base + 0x50, &pInfo->squelch_open_glitch_thresh,  1);  // 100   100
+		EEPROM_ReadBuffer(Base + 0x40, &p_vfo->squelch_close_glitch_thresh, 1);  //  90    90
+		EEPROM_ReadBuffer(Base + 0x50, &p_vfo->squelch_open_glitch_thresh,  1);  // 100   100
 
 		// *********
 
 		// used in AM mode
-		int16_t rssi_open    = pInfo->squelch_open_rssi_thresh;      // 0 ~ 255
-		int16_t rssi_close   = pInfo->squelch_close_rssi_thresh;     // 0 ~ 255
+		int16_t rssi_open    = p_vfo->squelch_open_rssi_thresh;      // 0 ~ 255
+		int16_t rssi_close   = p_vfo->squelch_close_rssi_thresh;     // 0 ~ 255
 
 		// used in FM mode
-		int16_t noise_open   = pInfo->squelch_open_noise_thresh;     // 127 ~ 0
-		int16_t noise_close  = pInfo->squelch_close_noise_thresh;    // 127 ~ 0
+		int16_t noise_open   = p_vfo->squelch_open_noise_thresh;     // 127 ~ 0
+		int16_t noise_close  = p_vfo->squelch_close_noise_thresh;    // 127 ~ 0
 
 		// used in both modes ?
-		int16_t glitch_open  = pInfo->squelch_open_glitch_thresh;    // 255 ~ 0
-		int16_t glitch_close = pInfo->squelch_close_glitch_thresh;   // 255 ~ 0
+		int16_t glitch_open  = p_vfo->squelch_open_glitch_thresh;    // 255 ~ 0
+		int16_t glitch_close = p_vfo->squelch_close_glitch_thresh;   // 255 ~ 0
 
 		// *********
 
@@ -484,14 +491,14 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *pInfo)
 
 		// *********
 
-		pInfo->squelch_open_rssi_thresh    = (rssi_open    > 255) ? 255 : (rssi_open    < 0) ? 0 : rssi_open;
-		pInfo->squelch_close_rssi_thresh   = (rssi_close   > 255) ? 255 : (rssi_close   < 0) ? 0 : rssi_close;
+		p_vfo->squelch_open_rssi_thresh    = (rssi_open    > 255) ? 255 : (rssi_open    < 0) ? 0 : rssi_open;
+		p_vfo->squelch_close_rssi_thresh   = (rssi_close   > 255) ? 255 : (rssi_close   < 0) ? 0 : rssi_close;
 
-		pInfo->squelch_open_noise_thresh   = (noise_open   > 127) ? 127 : (noise_open   < 0) ? 0 : noise_open;
-		pInfo->squelch_close_noise_thresh  = (noise_close  > 127) ? 127 : (noise_close  < 0) ? 0 : noise_close;
+		p_vfo->squelch_open_noise_thresh   = (noise_open   > 127) ? 127 : (noise_open   < 0) ? 0 : noise_open;
+		p_vfo->squelch_close_noise_thresh  = (noise_close  > 127) ? 127 : (noise_close  < 0) ? 0 : noise_close;
 
-		pInfo->squelch_open_glitch_thresh  = (glitch_open  > 255) ? 255 : (glitch_open  < 0) ? 0 : glitch_open;
-		pInfo->squelch_close_glitch_thresh = (glitch_close > 255) ? 255 : (glitch_close < 0) ? 0 : glitch_close;
+		p_vfo->squelch_open_glitch_thresh  = (glitch_open  > 255) ? 255 : (glitch_open  < 0) ? 0 : glitch_open;
+		p_vfo->squelch_close_glitch_thresh = (glitch_close > 255) ? 255 : (glitch_close < 0) ? 0 : glitch_close;
 	}
 
 	// *******************************
@@ -507,20 +514,20 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *pInfo)
 	// 1F20    5A 5A 5A   64 64 64   8F 91 8A   FF FF FF FF FF FF FF .. 400 MHz
 	// 1F30    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 470 MHz
 
-	Band = FREQUENCY_GetBand(pInfo->p_tx->frequency);
+	Band = FREQUENCY_GetBand(p_vfo->p_tx->frequency);
 
-	EEPROM_ReadBuffer(0x1ED0 + (Band * 16) + (pInfo->output_power * 3), TX_power, 3);
+	EEPROM_ReadBuffer(0x1ED0 + (Band * 16) + (p_vfo->output_power * 3), TX_power, 3);
 
 	#ifdef ENABLE_REDUCE_LOW_MID_TX_POWER
 		// make low and mid even lower
-		if (pInfo->output_power == OUTPUT_POWER_LOW)
+		if (p_vfo->output_power == OUTPUT_POWER_LOW)
 		{
 			TX_power[0] /= 5;
 			TX_power[1] /= 5;
 			TX_power[2] /= 5;
 		}
 		else
-		if (pInfo->output_power == OUTPUT_POWER_MID)
+		if (p_vfo->output_power == OUTPUT_POWER_MID)
 		{
 			TX_power[0] /= 3;
 			TX_power[1] /= 3;
@@ -528,31 +535,31 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *pInfo)
 		}
 	#endif
 
-	pInfo->txp_calculated_setting = FREQUENCY_CalculateOutputPower(
+	p_vfo->txp_calculated_setting = FREQUENCY_CalculateOutputPower(
 		TX_power[0],
 		TX_power[1],
 		TX_power[2],
 		 FREQ_BAND_TABLE[Band].lower,
 		(FREQ_BAND_TABLE[Band].lower + FREQ_BAND_TABLE[Band].upper) / 2,
 		 FREQ_BAND_TABLE[Band].upper,
-		pInfo->p_tx->frequency);
+		p_vfo->p_tx->frequency);
 
 	// *******************************
 }
 
-void RADIO_ApplyOffset(vfo_info_t *pInfo)
+void RADIO_ApplyOffset(vfo_info_t *p_vfo)
 {
-	uint32_t Frequency = pInfo->freq_config_rx.frequency;
+	uint32_t Frequency = p_vfo->freq_config_rx.frequency;
 
-	switch (pInfo->tx_offset_freq_dir)
+	switch (p_vfo->tx_offset_freq_dir)
 	{
 		case TX_OFFSET_FREQ_DIR_OFF:
 			break;
 		case TX_OFFSET_FREQ_DIR_ADD:
-			Frequency += pInfo->tx_offset_freq;
+			Frequency += p_vfo->tx_offset_freq;
 			break;
 		case TX_OFFSET_FREQ_DIR_SUB:
-			Frequency -= pInfo->tx_offset_freq;
+			Frequency -= p_vfo->tx_offset_freq;
 			break;
 	}
 
@@ -562,7 +569,7 @@ void RADIO_ApplyOffset(vfo_info_t *pInfo)
 	if (Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
 		Frequency = FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper;
 
-	pInfo->freq_config_tx.frequency = Frequency;
+	p_vfo->freq_config_tx.frequency = Frequency;
 }
 
 static void RADIO_SelectCurrentVfo(void)
