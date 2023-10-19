@@ -395,21 +395,20 @@ void MENU_AcceptSetting(void)
 
 		case MENU_CHAN_SQL:
 			g_tx_vfo->squelch_level = g_sub_menu_selection;
-			g_vfo_configure_mode    = VFO_CONFIGURE;
-			break;
+			g_request_save_channel  = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
+			g_vfo_configure_mode    = VFO_CONFIGURE_RELOAD;
+			return;
 
 		case MENU_STEP:
 			g_tx_vfo->step_setting = step_freq_table_sorted[g_sub_menu_selection];
-			if (IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
-			{
-				g_request_save_channel = 1;
-				return;
-			}
+			g_request_save_channel = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
+			g_vfo_configure_mode   = VFO_CONFIGURE_RELOAD;
 			return;
 
 		case MENU_TX_POWER:
 			g_tx_vfo->output_power = g_sub_menu_selection;
-			g_request_save_channel = 1;
+			g_request_save_channel = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
+			g_vfo_configure_mode   = VFO_CONFIGURE_RELOAD;
 			return;
 
 		case MENU_TX_CDCSS:
@@ -479,17 +478,17 @@ void MENU_AcceptSetting(void)
 
 		case MENU_SHIFT_DIR:
 			g_tx_vfo->tx_offset_freq_dir = g_sub_menu_selection;
-			g_request_save_channel       = 1;
+			g_request_save_channel       = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
 			return;
 
 		case MENU_OFFSET:
 			g_tx_vfo->tx_offset_freq = g_sub_menu_selection;
-			g_request_save_channel   = 1;
+			g_request_save_channel   = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
 			return;
 
 		case MENU_BANDWIDTH:
 			g_tx_vfo->channel_bandwidth = g_sub_menu_selection;
-			g_request_save_channel      = 1;
+			g_request_save_channel      = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
 			return;
 
 		case MENU_SCRAMBLER:
@@ -500,12 +499,12 @@ void MENU_AcceptSetting(void)
 				else
 					BK4819_DisableScramble();
 			#endif
-			g_request_save_channel= 1;
+			g_request_save_channel = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
 			return;
 
 		case MENU_BUSY_CHAN_LOCK:
 			g_tx_vfo->busy_channel_lock = g_sub_menu_selection;
-			g_request_save_channel      = 1;
+			g_request_save_channel      = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
 			return;
 
 		case MENU_MEM_SAVE:
@@ -700,7 +699,6 @@ void MENU_AcceptSetting(void)
 
 		case MENU_PTT_ID:
 			g_tx_vfo->dtmf_ptt_id_tx_mode = g_sub_menu_selection;
-			g_request_save_channel = 1;
 			if (g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN ||
 			    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_BOTH    ||
 			    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
@@ -708,6 +706,7 @@ void MENU_AcceptSetting(void)
 				g_eeprom.roger_mode = ROGER_MODE_OFF;
 				break;
 			}
+			g_request_save_channel = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
 			return;
 
 		case MENU_BAT_TXT:
@@ -717,7 +716,7 @@ void MENU_AcceptSetting(void)
 		case MENU_DTMF_DCD:
 			g_tx_vfo->dtmf_decoding_enable = g_sub_menu_selection;
 			DTMF_clear_RX();
-			g_request_save_channel = 1;
+			g_request_save_channel = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
 			return;
 
 		case MENU_DTMF_LIVE_DEC:
@@ -755,15 +754,15 @@ void MENU_AcceptSetting(void)
 				    g_tx_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 				{
 					g_tx_vfo->dtmf_ptt_id_tx_mode = PTT_ID_OFF;  // // disable PTT ID tail
-					g_request_save_channel = 1;
+					g_request_save_channel = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
 				}
 			}
 			break;
 
 		case MENU_MOD_MODE:
 			g_tx_vfo->am_mode      = g_sub_menu_selection;
-			g_request_save_channel = 1;
-			return;
+			g_request_save_channel = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
+		return;
 
 		#ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:

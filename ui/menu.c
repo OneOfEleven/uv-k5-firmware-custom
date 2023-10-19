@@ -547,7 +547,7 @@ void UI_DisplayMenu(void)
 			if (g_sub_menu_selection == 0)
 				strcpy(String, "USE\nMAIN SQL");
 			else
-				sprintf(String, "%d\n ", g_sub_menu_selection);
+				sprintf(String, "\n ", g_sub_menu_selection);
 			break;
 
 		case MENU_MIC_GAIN:
