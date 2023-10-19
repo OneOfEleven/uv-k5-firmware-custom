@@ -395,12 +395,12 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, c
 	{	// user channel
 		memset(&m_channel, 0xff, sizeof(m_channel));
 	}
-	
+
 	EEPROM_WriteBuffer8(eeprom_addr + 0, (uint8_t *)(&m_channel) + 0);
 	EEPROM_WriteBuffer8(eeprom_addr + 8, (uint8_t *)(&m_channel) + 8);
 
 	// ****************
-	
+
 	SETTINGS_save_chan_attribs_name(channel, p_vfo);
 
 	if (channel <= USER_CHANNEL_LAST)
@@ -448,12 +448,13 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 		EEPROM_WriteBuffer8(0x0D60 + index, g_user_channel_attributes + index);
 	}
 	else
-	{
+	if (channel <= USER_CHANNEL_LAST)
+	{	// user channel
 		const unsigned int index = channel & ~7ul;      // eeprom writes are always 8 bytes in length
 		g_user_channel_attributes[channel] = 0xff;
 		EEPROM_WriteBuffer8(0x0D60 + index, g_user_channel_attributes + index);
 	}
-	
+
 	if (channel <= USER_CHANNEL_LAST)
 	{	// user memory channel
 		const unsigned int index = channel * 16;
@@ -468,7 +469,7 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 		{
 			memset(name, 0xff, sizeof(name));
 		}
-		
+
 		EEPROM_WriteBuffer8(0x0F50 + 0 + index, name + 0);
 		EEPROM_WriteBuffer8(0x0F50 + 8 + index, name + 8);
 	}
