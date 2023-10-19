@@ -444,7 +444,7 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 			((p_vfo->band & 7u)                     << 0);
 
 		const unsigned int index = channel & ~7ul;      // eeprom writes are always 8 bytes in length
-		g_user_channel_attributes[channel] = attribs;  // remember new attributes
+		g_user_channel_attributes[channel] = attribs;   // remember new attributes
 		EEPROM_WriteBuffer8(0x0D60 + index, g_user_channel_attributes + index);
 	}
 	else
