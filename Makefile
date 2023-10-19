@@ -410,10 +410,11 @@ LIBS =
 
 DEPS = $(OBJS:.o=.d)
 
+PYTHON=$(shell which python || which python3)
+
 all: $(TARGET)
 	$(OBJCOPY) -O binary $< $<.bin
-	-python fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
-	-python3 fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+	-$(PYTHON) fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
 	$(SIZE) $<
 
 debug:
