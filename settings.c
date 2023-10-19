@@ -27,7 +27,7 @@
 eeprom_config_t g_eeprom;
 
 #ifdef ENABLE_FMRADIO
-	void SETTINGS_SaveFM(void)
+	void SETTINGS_save_fm(void)
 	{
 		unsigned int i;
 
@@ -51,7 +51,7 @@ eeprom_config_t g_eeprom;
 	}
 #endif
 
-void SETTINGS_SaveVfoIndices(void)
+void SETTINGS_save_vfo_indices(void)
 {
 	uint8_t State[8];
 
@@ -188,10 +188,10 @@ void SETTINGS_restore_calibration(void)
 
 // *************************************************
 
-void SETTINGS_SaveSettings(void)
+void SETTINGS_save(void)
 {
 	uint8_t State[8];
-
+	
 	State[0] = g_eeprom.chan_1_call;
 	State[1] = g_eeprom.squelch_level;
 	State[2] = g_eeprom.tx_timeout_timer;
@@ -336,118 +336,107 @@ void SETTINGS_SaveSettings(void)
 	#endif
 	State[7] = (State[7] & ~(3u << 6)) | ((g_setting_backlight_on_tx_rx & 3u) << 6);
 	EEPROM_WriteBuffer(0x0F40, State);
-	
+
 	memset(State, 0xFF, sizeof(State));
 	State[0] = g_eeprom.scan_hold_time_500ms;
 	EEPROM_WriteBuffer(0x0F48, State);
 }
 
-void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, uint8_t Mode)
+void SETTINGS_save_channel(const uint8_t channel, const uint8_t vfo, const vfo_info_t *p_vfo, const uint8_t mode)
 {
-	const uint16_t OffsetMR  = Channel * 16;
-	      uint16_t OffsetVFO = OffsetMR;
-	      uint8_t  State[8];
+	const uint16_t offset_mem = channel * 16;
+	uint16_t       offset_vfo = offset_mem;
+	uint8_t        state[16];
+//	t_channel      channel_data;
 
-	if (IS_NOAA_CHANNEL(Channel))
+	if (p_vfo == NULL || IS_NOAA_CHANNEL(channel))
 		return;
 
-	if (IS_FREQ_CHANNEL(Channel))
+	if (IS_FREQ_CHANNEL(channel))
 	{	// it's a VFO
-		OffsetVFO  = (VFO == 0) ? 0x0C80 : 0x0C90;
-		OffsetVFO += (Channel - FREQ_CHANNEL_FIRST) * 32;
+		offset_vfo  = (vfo == 0) ? 0x0C80 : 0x0C90;
+		offset_vfo += (channel - FREQ_CHANNEL_FIRST) * 16 * 2;
 	}
 
-	if (Mode < 2 && Channel <= USER_CHANNEL_LAST)
+	if (mode < 2 && channel <= USER_CHANNEL_LAST)
 		return;
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//		UART_printf("sav_chan %u %u %u\r\n", Channel, VFO, Mode);
+//		UART_printf("sav_chan %u %u %u\r\n", channel, vfo, mode);
 	#endif
 
-	((uint32_t *)State)[0] = pVFO->freq_config_rx.frequency;
-	((uint32_t *)State)[1] = pVFO->tx_offset_freq;
-	EEPROM_WriteBuffer(OffsetVFO + 0, State);
+	((uint32_t *)state)[0] = p_vfo->freq_config_rx.frequency;
+	((uint32_t *)state)[1] = p_vfo->tx_offset_freq;
+	EEPROM_WriteBuffer(offset_vfo, state);
 
-	State[0] =  pVFO->freq_config_rx.code;
-	State[1] =  pVFO->freq_config_tx.code;
-	State[2] = (pVFO->freq_config_tx.code_type << 4) | pVFO->freq_config_rx.code_type;
-	State[3] = ((pVFO->am_mode & 1u)           << 4) | pVFO->tx_offset_freq_dir;
-	State[4] =
-		(pVFO->compand           << 6) |
-		(pVFO->busy_channel_lock << 4) |
-		(pVFO->output_power      << 2) |
-		(pVFO->channel_bandwidth << 1) |
-		(pVFO->frequency_reverse  << 0);
-	State[5] = ((pVFO->dtmf_ptt_id_tx_mode & 7u) << 1) | ((pVFO->dtmf_decoding_enable & 1u) << 0);
-	State[6] =  pVFO->step_setting;
-	State[7] =  pVFO->scrambling_type;
-	EEPROM_WriteBuffer(OffsetVFO + 8, State);
+	state[0] =  p_vfo->freq_config_rx.code;
+	state[1] =  p_vfo->freq_config_tx.code;
+	state[2] = (p_vfo->freq_config_tx.code_type << 4) | p_vfo->freq_config_rx.code_type;
+	state[3] = ((p_vfo->am_mode & 1u)           << 4) | p_vfo->tx_offset_freq_dir;
+	state[4] =
+		((p_vfo->compand & 3u)           << 6) |
+		((p_vfo->busy_channel_lock & 3u) << 4) |
+		((p_vfo->output_power & 1u)      << 2) |
+		((p_vfo->channel_bandwidth & 1u) << 1) |
+		((p_vfo->frequency_reverse & 1u) << 0);
+	state[5] = ((p_vfo->dtmf_ptt_id_tx_mode & 7u) << 1) | ((p_vfo->dtmf_decoding_enable & 1u) << 0);
+	state[6] = p_vfo->step_setting;
+	state[7] = p_vfo->scrambling_type;
+	EEPROM_WriteBuffer(offset_vfo + 8, state);
 
-	SETTINGS_UpdateChannel(Channel, pVFO, true);
+	SETTINGS_save_chan_attribs_name(channel, p_vfo);
 
-	if (Channel > USER_CHANNEL_LAST)
+	if (channel > USER_CHANNEL_LAST)
 		return;	                       // it's not a user memory channel
 
 	#ifndef ENABLE_KEEP_MEM_NAME
-		// clear/reset the channel name
-		memset(&State, 0, sizeof(State));
-		EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-		EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
+	{	// clear/reset the channel name
+		memset(&state, 0, sizeof(state));
+		EEPROM_WriteBuffer(0x0F50 + 0 + offset_mem, state + 0);
+		EEPROM_WriteBuffer(0x0F50 + 8 + offset_mem, state + 8);
+	}
 	#else
-		if (Mode >= 3)
+		if (mode >= 3)
 		{	// save the channel name
-			memmove(State, pVFO->name + 0, 8);
-			EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-			memset(State, 0, sizeof(State));
-			memmove(State, pVFO->name + 8, 2);
-			EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
+			memset(state, 0, sizeof(state));
+			memmove(state, p_vfo->name, 10);
+
+			EEPROM_WriteBuffer(0x0F50 + 0 + offset_mem, state + 0);
+			EEPROM_WriteBuffer(0x0F50 + 8 + offset_mem, state + 8);
 		}
 	#endif
 }
 
-void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep)
+void SETTINGS_save_chan_attribs_name(const uint8_t channel, const vfo_info_t *p_vfo)
 {
-	uint8_t  State[8];
-	uint8_t  Attributes = 0xFF;        // default attributes
-	uint16_t Offset = 0x0D60 + (Channel & ~7u);
-
-	if (IS_NOAA_CHANNEL(Channel))
+	if (p_vfo == NULL || channel >= ARRAY_SIZE(g_user_channel_attributes))
 		return;
 
-	EEPROM_ReadBuffer(Offset, State, sizeof(State));
+	if (IS_NOAA_CHANNEL(channel))
+		return;
 
-	if (keep)
-	{
-		Attributes = (pVFO->scanlist_1_participation << 7) | (pVFO->scanlist_2_participation << 6) | (pVFO->band << 0);
-		if (State[Channel & 7u] == Attributes)
-			return; // no change in the attributes .. don't place wear on the eeprom
+	{	// channel attributes
+
+		const uint8_t attribs =
+			((p_vfo->scanlist_1_participation & 1u) << 7) |
+			((p_vfo->scanlist_2_participation & 1u) << 6) |
+			((3u)                                   << 4) |
+			((p_vfo->band & 7u)                     << 0);
+
+		const unsigned int index = channel & ~7u;      // eeprom writes are always 8 bytes in length
+		g_user_channel_attributes[channel] = attribs;  // remember new attributes
+		EEPROM_WriteBuffer(0x0D60 + index, g_user_channel_attributes + index);
 	}
+	
+	if (channel <= USER_CHANNEL_LAST)
+	{	// user memory channel
+		const unsigned int index = channel * 16;
+		uint8_t            name[16];
 
-	State[Channel & 7u] = Attributes;
+		memset(name, 0, sizeof(name));
+		memmove(name, p_vfo->name, 10);
 
-	EEPROM_WriteBuffer(Offset, State);
-
-	g_user_channel_attributes[Channel] = Attributes;
-
-//	#ifndef ENABLE_KEEP_MEM_NAME
-		if (Channel <= USER_CHANNEL_LAST)
-		{	// user memory channel
-
-			const uint16_t OffsetMR = Channel * 16;
-			if (!keep)
-			{	// clear/reset the channel name
-				memset(&State, 0, sizeof(State));
-				EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-				EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
-			}
-//			else
-//			{	// update the channel name
-//				memmove(State, pVFO->name + 0, 8);
-//				EEPROM_WriteBuffer(0x0F50 + OffsetMR, State);
-//				memset(State, 0, sizeof(State));
-//				memmove(State, pVFO->name + 8, 2);
-//				EEPROM_WriteBuffer(0x0F58 + OffsetMR, State);
-//			}
-		}
-//	#endif
+		EEPROM_WriteBuffer(0x0F50 + 0 + index, name + 0);
+		EEPROM_WriteBuffer(0x0F50 + 8 + index, name + 8);
+	}
 }

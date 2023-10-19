@@ -240,39 +240,39 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 		{
 //			const int16_t      s0_dBm       = -127;                  // S0 .. base level
 			const int16_t      s0_dBm       = -147;                  // S0 .. base level
-	
+
 			const int16_t      s9_dBm       = s0_dBm + (6 * 9);      // S9 .. 6dB/S-Point
 			const int16_t      bar_max_dBm  = s9_dBm + 30;           // S9+30dB
 //			const int16_t      bar_min_dBm  = s0_dBm + (6 * 0);      // S0
 			const int16_t      bar_min_dBm  = s0_dBm + (6 * 4);      // S4
-	
+
 			// ************
-	
+
 			const unsigned int txt_width    = 7 * 8;                 // 8 text chars
 			const unsigned int bar_x        = 2 + txt_width + 4;     // X coord of bar graph
 			const unsigned int bar_width    = LCD_WIDTH - 1 - bar_x;
-	
+
 			const int16_t      rssi_dBm     = (rssi / 2) - 160;
 			const int16_t      clamped_dBm  = (rssi_dBm <= bar_min_dBm) ? bar_min_dBm : (rssi_dBm >= bar_max_dBm) ? bar_max_dBm : rssi_dBm;
 			const unsigned int bar_range_dB = bar_max_dBm - bar_min_dBm;
 			const unsigned int len          = ((clamped_dBm - bar_min_dBm) * bar_width) / bar_range_dB;
-	
+
 			const unsigned int line         = 3;
 			uint8_t           *p_line        = g_frame_buffer[line];
-	
+
 			char               s[16];
-	
+
 			if (g_eeprom.key_lock && g_keypad_locked > 0)
 				return false;     // display is in use
-	
+
 			if (g_current_function == FUNCTION_TRANSMIT ||
 				g_screen_to_display != DISPLAY_MAIN ||
 				g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 				return false;     // display is in use
-	
+
 			if (now)
 				memset(p_line, 0, LCD_WIDTH);
-	
+
 			if (rssi_dBm >= (s9_dBm + 6))
 			{	// S9+XXdB, 1dB increment
 				const char *fmt[] = {"%3d 9+%u  ", "%3d 9+%2u "};
@@ -285,12 +285,12 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 				sprintf(s, "%4d S%u ", rssi_dBm, s_level);
 			}
 			UI_PrintStringSmall(s, 2, 0, line);
-	
+
 			draw_bar(p_line + bar_x, len, bar_width);
-	
+
 			if (now)
 				ST7565_BlitFullScreen();
-			
+
 			return true;
 		}
 
@@ -643,28 +643,13 @@ void UI_DisplayMain(void)
 
 			if (g_eeprom.screen_channel[vfo_num] <= USER_CHANNEL_LAST)
 			{	// it's a channel
-
-				// show the channel symbols
-				const uint8_t attributes = g_user_channel_attributes[g_eeprom.screen_channel[vfo_num]];
-				if (attributes & USER_CH_SCANLIST1)
-					memmove(p_line0 + 113, BITMAP_SCANLIST1, sizeof(BITMAP_SCANLIST1));
-				if (attributes & USER_CH_SCANLIST2)
-					memmove(p_line0 + 120, BITMAP_SCANLIST2, sizeof(BITMAP_SCANLIST2));
-				#ifndef ENABLE_BIG_FREQ
-					if (g_eeprom.vfo_info[vfo_num].compand)
-						memmove(p_line0 + 120 + LCD_WIDTH, BITMAP_COMPAND, sizeof(BITMAP_COMPAND));
-				#else
-
-					// TODO:  // find somewhere else to put the symbol
-
-				#endif
-
 				#pragma GCC diagnostic push
 				#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
 				switch (g_eeprom.channel_display_mode)
 				{
-					case MDF_FREQUENCY:	// show the channel frequency
+					case MDF_FREQUENCY:	// just channel frequency
+
 						#ifdef ENABLE_BIG_FREQ
 							NUMBER_ToDigits(frequency, String);
 							// show the main large frequency digits
@@ -676,35 +661,41 @@ void UI_DisplayMain(void)
 							sprintf(String, "%03u.%05u", frequency / 100000, frequency % 100000);
 							UI_PrintString(String, 32, 0, line, 8);
 						#endif
+
 						break;
 
-					case MDF_CHANNEL:	// show the channel number
+					case MDF_CHANNEL:	// just channel number
+
 						sprintf(String, "CH-%03u", g_eeprom.screen_channel[vfo_num] + 1);
 						UI_PrintString(String, 32, 0, line, 8);
+
 						break;
 
-					case MDF_NAME:		// show the channel name
-					case MDF_NAME_FREQ:	// show the channel name and frequency
+					case MDF_NAME:		// channel name
+					case MDF_NAME_FREQ:	// channel name and frequency
 
 						BOARD_fetchChannelName(String, g_eeprom.screen_channel[vfo_num]);
+
 						if (String[0] == 0)
-						{	// no channel name, show the channel number instead
+						{	// no channel name available, channel number instead
 							sprintf(String, "CH-%03u", g_eeprom.screen_channel[vfo_num] + 1);
 						}
 
 						if (g_eeprom.channel_display_mode == MDF_NAME)
-						{
+						{	// just the name
 							UI_PrintString(String, 32, 0, line, 8);
 						}
 						else
-						{
+						{	// name & frequency
+
+							// name
 							#ifdef ENABLE_SMALL_BOLD
 								UI_PrintStringSmallBold(String, 32 + 4, 0, line);
 							#else
 								UI_PrintStringSmall(String, 32 + 4, 0, line);
 							#endif
 
-							// show the channel frequency below the channel number/name
+							// frequency
 							sprintf(String, "%03u.%05u", frequency / 100000, frequency % 100000);
 							UI_PrintStringSmall(String, 32 + 4, 0, line + 1);
 						}
@@ -715,6 +706,7 @@ void UI_DisplayMain(void)
 				#pragma GCC diagnostic pop
 			}
 			else
+//			if (IS_FREQ_CHANNEL(g_eeprom.screen_channel[vfo_num]))
 			{	// frequency mode
 				#ifdef ENABLE_BIG_FREQ
 					NUMBER_ToDigits(frequency, String);  // 8 digits
@@ -727,16 +719,48 @@ void UI_DisplayMain(void)
 					sprintf(String, "%03u.%05u", frequency / 100000, frequency % 100000);
 					UI_PrintString(String, 32, 0, line, 8);
 				#endif
-
-				// show the channel symbols
-				//const uint8_t attributes = g_user_channel_attributes[g_eeprom.screen_channel[vfo_num]];
-				if (g_eeprom.vfo_info[vfo_num].compand)
-					#ifdef ENABLE_BIG_FREQ
-						memmove(p_line0 + 120, BITMAP_COMPAND, sizeof(BITMAP_COMPAND));
-					#else
-						memmove(p_line0 + 120 + LCD_WIDTH, BITMAP_COMPAND, sizeof(BITMAP_COMPAND));
-					#endif
 			}
+
+			// show channel symbols
+
+			//if (g_eeprom.screen_channel[vfo_num] <= USER_CHANNEL_LAST)
+			if (IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[vfo_num]))
+			{	// it's a user channel or VFO
+
+				unsigned int x = LCD_WIDTH - 1 - sizeof(BITMAP_SCANLIST2) - sizeof(BITMAP_SCANLIST1);
+
+				const uint8_t attributes = g_user_channel_attributes[g_eeprom.screen_channel[vfo_num]];
+
+				if (attributes & USER_CH_SCANLIST1)
+					memmove(p_line0 + x, BITMAP_SCANLIST1, sizeof(BITMAP_SCANLIST1));
+				x += sizeof(BITMAP_SCANLIST1);
+
+				if (attributes & USER_CH_SCANLIST2)
+					memmove(p_line0 + x, BITMAP_SCANLIST2, sizeof(BITMAP_SCANLIST2));
+				//x += sizeof(BITMAP_SCANLIST2);
+			}
+
+			#ifdef ENABLE_BIG_FREQ
+
+				// no room for these symbols
+
+			#else
+			{
+				unsigned int x = LCD_WIDTH + LCD_WIDTH - 1 - sizeof(BITMAP_FREQ_CHAN) - sizeof(BITMAP_COMPAND);
+
+				if (g_eeprom.vfo_info[vfo_num].compand)
+					memmove(p_line0 + x, BITMAP_COMPAND, sizeof(BITMAP_COMPAND));
+				x += sizeof(BITMAP_COMPAND);
+
+				if (IS_FREQ_CHANNEL(g_eeprom.screen_channel[vfo_num]))
+				{
+					//g_eeprom.vfo_info[vfo_num].frequency_channel = BOARD_find_channel(frequency);
+					if (g_eeprom.vfo_info[vfo_num].frequency_channel <= USER_CHANNEL_LAST)
+						memmove(p_line0 + x, BITMAP_FREQ_CHAN, sizeof(BITMAP_FREQ_CHAN));
+					//x += sizeof(BITMAP_FREQ_CHAN);
+				}
+			}
+			#endif
 		}
 
 		// ************

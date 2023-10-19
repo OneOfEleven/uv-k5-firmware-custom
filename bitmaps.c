@@ -400,3 +400,13 @@ const uint8_t BITMAP_COMPAND[6] =
 	__extension__ 0b01000010,
 	__extension__ 0b00100100
 };
+
+const uint8_t BITMAP_FREQ_CHAN[6] =
+{
+	__extension__ 0b00000000,
+	__extension__ 0b01111110,
+	__extension__ 0b00010010,
+	__extension__ 0b00010010,
+	__extension__ 0b00000010,
+	__extension__ 0b00000010
+};

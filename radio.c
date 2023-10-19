@@ -22,6 +22,7 @@
 	#include "app/fm.h"
 #endif
 #include "audio.h"
+#include "board.h"
 #include "bsp/dp32g030/gpio.h"
 #include "dcs.h"
 #include "driver/bk4819.h"
@@ -120,8 +121,8 @@ void RADIO_InitInfo(vfo_info_t *pInfo, const uint8_t ChannelSave, const uint32_t
 	memset(pInfo, 0, sizeof(*pInfo));
 
 	pInfo->band                     = FREQUENCY_GetBand(Frequency);
-	pInfo->scanlist_1_participation = true;
-	pInfo->scanlist_2_participation = true;
+	pInfo->scanlist_1_participation = 1;
+	pInfo->scanlist_2_participation = 1;
 	pInfo->step_setting             = STEP_12_5kHz;
 	pInfo->step_freq                = STEP_FREQ_TABLE[pInfo->step_setting];
 	pInfo->channel_save             = ChannelSave;
@@ -132,6 +133,7 @@ void RADIO_InitInfo(vfo_info_t *pInfo, const uint8_t ChannelSave, const uint32_t
 	pInfo->p_rx                     = &pInfo->freq_config_rx;
 	pInfo->p_tx                     = &pInfo->freq_config_tx;
 	pInfo->compand                  = 0;  // off
+	pInfo->frequency_channel        = 0xff;
 
 	if (ChannelSave == (FREQ_CHANNEL_FIRST + BAND2_108MHz))
 		pInfo->am_mode = 1;
@@ -144,10 +146,8 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	uint8_t     Channel;
 	uint8_t     Attributes;
 	uint8_t     Band;
-	bool        bParticipation2;
 	uint16_t    Base;
 	uint32_t    Frequency;
-	vfo_info_t *pRadio = &g_eeprom.vfo_info[VFO];
 
 	if (!g_setting_350_enable)
 	{
@@ -160,12 +160,14 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 	Channel = g_eeprom.screen_channel[VFO];
 
+	g_eeprom.vfo_info[VFO].frequency_channel = 0xff;
+
 	if (IS_VALID_CHANNEL(Channel))
 	{
 		#ifdef ENABLE_NOAA
 			if (Channel >= NOAA_CHANNEL_FIRST)
 			{
-				RADIO_InitInfo(pRadio, g_eeprom.screen_channel[VFO], NOAA_FREQUENCY_TABLE[Channel - NOAA_CHANNEL_FIRST]);
+				RADIO_InitInfo(&g_eeprom.vfo_info[VFO], g_eeprom.screen_channel[VFO], NOAA_FREQUENCY_TABLE[Channel - NOAA_CHANNEL_FIRST]);
 				if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_OFF)
 					return;
 				g_eeprom.cross_vfo_rx_tx = CROSS_BAND_OFF;
@@ -206,32 +208,36 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 		Index = Channel - FREQ_CHANNEL_FIRST;
 
-		RADIO_InitInfo(pRadio, Channel, FREQ_BAND_TABLE[Index].lower);
+		RADIO_InitInfo(&g_eeprom.vfo_info[VFO], Channel, FREQ_BAND_TABLE[Index].lower);
 		return;
 	}
 
 	Band = Attributes & USER_CH_BAND_MASK;
 	if (Band > BAND7_470MHz)
-	{
 		Band = BAND6_400MHz;
-	}
 
 	if (Channel <= USER_CHANNEL_LAST)
-	{
+	{	// user channel
 		g_eeprom.vfo_info[VFO].band                     = Band;
-		g_eeprom.vfo_info[VFO].scanlist_1_participation = (Attributes & USER_CH_SCANLIST1) ? true : false;
-		bParticipation2                                 = (Attributes & USER_CH_SCANLIST2) ? true : false;
+		g_eeprom.vfo_info[VFO].scanlist_2_participation = (Attributes & USER_CH_SCANLIST2) ? 1 : 0;
+		g_eeprom.vfo_info[VFO].scanlist_1_participation = (Attributes & USER_CH_SCANLIST1) ? 1 : 0;
 	}
 	else
-	{
+	if (IS_FREQ_CHANNEL(Channel))
+	{	// VFO channel
 		Band                                            = Channel - FREQ_CHANNEL_FIRST;
-		g_eeprom.vfo_info[VFO].band                     = Band;
-		bParticipation2                                 = true;
-		g_eeprom.vfo_info[VFO].scanlist_1_participation = true;
+		g_eeprom.vfo_info[VFO].band                     = Band; // shouldn't this be  "Band / 2" ? .. two VFO's per band
+		#if 0
+			g_eeprom.vfo_info[VFO].scanlist_2_participation = 1;
+			g_eeprom.vfo_info[VFO].scanlist_1_participation = 1;
+		#else
+			// allowing the vfo's to be included in the scanning
+			g_eeprom.vfo_info[VFO].scanlist_2_participation = (Attributes & USER_CH_SCANLIST2) ? 1 : 0;
+			g_eeprom.vfo_info[VFO].scanlist_1_participation = (Attributes & USER_CH_SCANLIST1) ? 1 : 0;
+		#endif
 	}
 
-	g_eeprom.vfo_info[VFO].scanlist_2_participation = bParticipation2;
-	g_eeprom.vfo_info[VFO].channel_save             = Channel;
+	g_eeprom.vfo_info[VFO].channel_save = Channel;
 
 	if (Channel <= USER_CHANNEL_LAST)
 		Base = Channel * 16;
@@ -353,7 +359,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 		EEPROM_ReadBuffer(Base, &info, sizeof(info));
 
-		pRadio->freq_config_rx.frequency = info.frequency;
+		g_eeprom.vfo_info[VFO].freq_config_rx.frequency = info.frequency;
 
 		if (info.offset >= 100000000)
 			info.offset = 1000000;
@@ -362,11 +368,14 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		// ***************
 	}
 
-	Frequency = pRadio->freq_config_rx.frequency;
+	Frequency = g_eeprom.vfo_info[VFO].freq_config_rx.frequency;
 
 #if 1
-	// fix previously set incorrect band
+	// fix previously maybe incorrect set band
+
 	Band = FREQUENCY_GetBand(Frequency);
+	g_eeprom.vfo_info[VFO].band = Band;
+	
 #endif
 
 	if (Frequency < FREQ_BAND_TABLE[Band].lower)
@@ -378,21 +387,23 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	if (Channel >= FREQ_CHANNEL_FIRST)
 		Frequency = FREQUENCY_FloorToStep(Frequency, g_eeprom.vfo_info[VFO].step_freq, FREQ_BAND_TABLE[Band].lower);
 
-	pRadio->freq_config_rx.frequency = Frequency;
+	g_eeprom.vfo_info[VFO].freq_config_rx.frequency = Frequency;
 
 	if (Frequency >= 10800000 && Frequency < 13600000)
-		g_eeprom.vfo_info[VFO].tx_offset_freq_dir = TX_OFFSET_FREQ_DIR_OFF;
+		g_eeprom.vfo_info[VFO].tx_offset_freq_dir = TX_OFFSET_FREQ_DIR_OFF; // air band
 	else
 	if (Channel > USER_CHANNEL_LAST)
 		g_eeprom.vfo_info[VFO].tx_offset_freq = FREQUENCY_FloorToStep(g_eeprom.vfo_info[VFO].tx_offset_freq, g_eeprom.vfo_info[VFO].step_freq, 0);
 
-	RADIO_ApplyOffset(pRadio);
+	if (IS_FREQ_CHANNEL(Channel))
+		g_eeprom.vfo_info[VFO].frequency_channel = BOARD_find_channel(Frequency); // remember if a channel has this frequency
+
+	RADIO_ApplyOffset(&g_eeprom.vfo_info[VFO]);
 
 	memset(g_eeprom.vfo_info[VFO].name, 0, sizeof(g_eeprom.vfo_info[VFO].name));
-	if (Channel < USER_CHANNEL_LAST)
-	{	// 16 bytes allocated to the channel name but only 10 used, the rest are 0's
-		EEPROM_ReadBuffer(0x0F50 + (Channel * 16), g_eeprom.vfo_info[VFO].name + 0, 8);
-		EEPROM_ReadBuffer(0x0F58 + (Channel * 16), g_eeprom.vfo_info[VFO].name + 8, 2);
+	if (Channel <= USER_CHANNEL_LAST)
+	{	// only 10 bytes used
+		EEPROM_ReadBuffer(0x0F50 + (Channel * 16), g_eeprom.vfo_info[VFO].name, 10);
 	}
 
 	if (!g_eeprom.vfo_info[VFO].frequency_reverse)
@@ -421,7 +432,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		g_eeprom.vfo_info[VFO].freq_config_tx.code_type = CODE_TYPE_NONE;
 	}
 
-	RADIO_ConfigureSquelchAndOutputPower(pRadio);
+	RADIO_ConfigureSquelchAndOutputPower(&g_eeprom.vfo_info[VFO]);
 }
 
 void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *pInfo)

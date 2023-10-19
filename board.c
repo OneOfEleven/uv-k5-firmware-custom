@@ -992,7 +992,7 @@ void BOARD_FactoryReset(bool bIsAll)
 			g_rx_vfo->freq_config_rx.frequency = Frequency;
 			g_rx_vfo->freq_config_tx.frequency = Frequency;
 			g_rx_vfo->band                     = FREQUENCY_GetBand(Frequency);
-			SETTINGS_SaveChannel(USER_CHANNEL_FIRST + i, 0, g_rx_vfo, 2);
+			SETTINGS_save_channel(USER_CHANNEL_FIRST + i, 0, g_rx_vfo, 2);
 		}
 	}
 }

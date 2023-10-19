@@ -43,8 +43,14 @@
 void toggle_chan_scanlist(void)
 {	// toggle the selected channels scanlist setting
 
+//	if (IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
+	if (IS_NOAA_CHANNEL(g_tx_vfo->channel_save))
+	{
+		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+		return;
+	}
+
 	if (g_screen_to_display != DISPLAY_MAIN     ||
-	   !IS_USER_CHANNEL(g_tx_vfo->channel_save) ||
 		g_current_function == FUNCTION_TRANSMIT ||
 		g_current_function == FUNCTION_PANADAPTER)
 	{
@@ -76,7 +82,7 @@ void toggle_chan_scanlist(void)
 			g_tx_vfo->scanlist_1_participation = 1;
 	}
 
-	SETTINGS_UpdateChannel(g_tx_vfo->channel_save, g_tx_vfo, true);
+	SETTINGS_save_chan_attribs_name(g_tx_vfo->channel_save, g_tx_vfo);
 
 	g_vfo_configure_mode = VFO_CONFIGURE;
 	g_flag_reset_vfos    = true;
@@ -406,9 +412,6 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		return;
 	}
 
-//	#ifdef ENABLE_NOAA
-//		if (IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
-//	#endif
 	if (IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
 	{	// user is entering a frequency
 
@@ -457,13 +460,13 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				g_eeprom.screen_channel[Vfo] = band + FREQ_CHANNEL_FIRST;
 				g_eeprom.freq_channel[Vfo]   = band + FREQ_CHANNEL_FIRST;
 
-				SETTINGS_SaveVfoIndices();
+				SETTINGS_save_vfo_indices();
 
 				RADIO_configure_channel(Vfo, VFO_CONFIGURE_RELOAD);
 			}
 
 //			Frequency += 75;                        // is this meant to be rounding ?
-			Frequency += g_tx_vfo->step_freq / 2; // no idea, but this is
+			Frequency += g_tx_vfo->step_freq / 2;   // no idea, but this is
 
 			Frequency = FREQUENCY_FloorToStep(Frequency, g_tx_vfo->step_freq, FREQ_BAND_TABLE[g_tx_vfo->band].lower);
 
@@ -474,10 +477,18 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			}
 
 			g_tx_vfo->freq_config_rx.frequency = Frequency;
-			// 1of11 .. test to prevent the monitor being turned off
-//			g_request_save_channel = 1;
-			SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
-			RADIO_setup_registers(true);
+
+			// find the first channel that contains this frequency
+			g_tx_vfo->frequency_channel = BOARD_find_channel(Frequency);
+
+			// 1of11 .. test to prevent monitor mode being turned off
+			#if 0
+				// this currently also turns monitor mode off :(
+				g_request_save_channel = 1;
+			#else
+				SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
+				RADIO_setup_registers(true);
+			#endif
 
 			return;
 		}
@@ -615,9 +626,9 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 
 				#ifdef ENABLE_COPY_CHAN_TO_VFO_TO_CHAN
 
-					if (g_scan_state_dir == SCAN_STATE_DIR_OFF &&
-					    g_css_scan_mode == CSS_SCAN_MODE_OFF   &&
-					    g_eeprom.dual_watch == DUAL_WATCH_OFF  &&
+					if (g_scan_state_dir    == SCAN_STATE_DIR_OFF &&
+					    g_css_scan_mode     == CSS_SCAN_MODE_OFF  &&
+					    g_eeprom.dual_watch == DUAL_WATCH_OFF     &&
 					    g_eeprom.vfo_open)
 					{	// not scanning
 				
@@ -647,27 +658,35 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 							g_update_display = true;
 						}
 						else
-						if (IS_FREQ_CHANNEL(g_eeprom.screen_channel[vfo]))
-						{	// copy VFO to channel
+						if (IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[vfo]))
+						{	// copy VFO to a channel
 
 							// search the channels to see if the frequency is already present
-							const unsigned int chan = BOARD_find_channel(g_eeprom.vfo_info[vfo].p_tx->frequency);
+							unsigned int chan = BOARD_find_channel(g_eeprom.vfo_info[vfo].p_tx->frequency);
+							if (chan > USER_CHANNEL_LAST)
+							{	// find next next free channel
+								//for (chan = g_eeprom.screen_channel[vfo]; chan <= USER_CHANNEL_LAST; chan++)
+								for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
+									if (!RADIO_CheckValidChannel(chan, false, vfo))
+										break;
+							}
 
 							g_screen_to_display = DISPLAY_INVALID;
 							GUI_SelectNextDisplay(DISPLAY_MENU);
-	
-							g_flag_refresh_menu = false;
 							g_menu_cursor       = MENU_MEM_SAVE;
 							g_is_in_sub_menu    = true;
-
 							if (chan <= USER_CHANNEL_LAST)
-							{	// go straight to the channel that holds the same frequency
+							{
+								#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+									UART_printf("vfo to mem %u\r\n", chan);
+								#endif
+								
 								g_sub_menu_selection = chan;
+								g_flag_refresh_menu  = false;
+								g_screen_to_display  = DISPLAY_MENU;
+								g_update_display     = false;
+								UI_DisplayMenu();
 							}
-
-							g_screen_to_display = DISPLAY_MENU;
-							g_update_display    = false;
-							UI_DisplayMenu();
 
 							#ifdef ENABLE_VOICE
 								g_another_voice_id = VOICE_ID_MENU;
@@ -796,27 +815,31 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 	}
 
-	if (!key_pressed &&
-	     g_scan_state_dir == SCAN_STATE_DIR_OFF &&
-	     IS_NOT_NOAA_CHANNEL(Channel) &&
-	     IS_FREQ_CHANNEL(Channel))
-	{	// key released in frequency mode
-		#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
-			if (key_held && !monitor_was_enabled && g_current_function == FUNCTION_MONITOR)
-			{	// re-enable the squelch
-				APP_start_listening(FUNCTION_RECEIVE, false);
-				g_monitor_enabled = false;
-			}
-		#endif
+	if (!key_pressed)
+	{
+		if (g_scan_state_dir == SCAN_STATE_DIR_OFF && IS_FREQ_CHANNEL(Channel))
+		{	// key released in frequency mode
 
-		// only update eeprom when the key is released - saves a LOT of wear and tear on the little eeprom
-		SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
+			#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
+				if (key_held && !monitor_was_enabled && g_current_function == FUNCTION_MONITOR)
+				{	// re-enable the squelch
+					APP_start_listening(FUNCTION_RECEIVE, false);
+					g_monitor_enabled = false;
+				}
+			#endif
 
-		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//			UART_printf("save chan\r\n");
-		#endif
+			// find the first channel that contains this frequency
+			g_tx_vfo->frequency_channel = BOARD_find_channel(g_tx_vfo->freq_config_rx.frequency);
+				
+			// only update eeprom when the key is released - saves a LOT of wear and tear on the little eeprom
+			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
+	
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//				UART_printf("save chan\r\n");
+			#endif
+		}
 	}
-
+	
 	if (key_held || !key_pressed)
 	{	// long press
 
@@ -873,6 +896,13 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 				new_band = FREQUENCY_GetBand(frequency);
 
 				g_tx_vfo->freq_config_rx.frequency = frequency;
+
+				// find the first channel that contains this frequency
+				// currently takes to long to scan all the channels
+				//
+				// TODO: include this once we have the entire eeprom loaded
+				//
+				//g_tx_vfo->frequency_channel = BOARD_find_channel(frequency);
 
 				if (new_band != old_band)
 				{	// original slow method

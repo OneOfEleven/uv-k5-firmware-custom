@@ -244,7 +244,7 @@ void DTMF_HandleRequest(void)
 	
 					DTMF_clear_RX();
 	
-					SETTINGS_SaveSettings();
+					SETTINGS_save();
 	
 					g_dtmf_reply_state = DTMF_REPLY_AB;
 	
@@ -283,7 +283,7 @@ void DTMF_HandleRequest(void)
 	
 				DTMF_clear_RX();
 	
-				SETTINGS_SaveSettings();
+				SETTINGS_save();
 	
 				g_dtmf_reply_state = DTMF_REPLY_AB;
 				g_dtmf_call_state  = DTMF_CALL_STATE_NONE;

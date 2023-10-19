@@ -163,7 +163,7 @@ void FM_PlayAndUpdate(void)
 
 	FM_ConfigureChannelState();
 	BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
-	SETTINGS_SaveFM();
+	SETTINGS_save_fm();
 
 	g_fm_play_count_down_10ms = 0;
 	g_schedule_fm             = false;

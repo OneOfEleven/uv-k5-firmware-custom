@@ -652,11 +652,11 @@ void APP_stop_scan(void)
 		{	// frequency mode
 			RADIO_ApplyOffset(g_rx_vfo);
 			RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
-			SETTINGS_SaveChannel(g_rx_vfo->channel_save, g_eeprom.rx_vfo, g_rx_vfo, 1);
+			SETTINGS_save_channel(g_rx_vfo->channel_save, g_eeprom.rx_vfo, g_rx_vfo, 1);
 			return;
 		}
 
-		SETTINGS_SaveVfoIndices();
+		SETTINGS_save_vfo_indices();
 	}
 
 	#ifdef ENABLE_VOICE
@@ -1549,27 +1549,27 @@ void APP_time_slice_10ms(void)
 
 	if (g_flag_save_vfo)
 	{
-		SETTINGS_SaveVfoIndices();
+		SETTINGS_save_vfo_indices();
 		g_flag_save_vfo = false;
 	}
 
 	if (g_flag_save_settings)
 	{
-		SETTINGS_SaveSettings();
+		SETTINGS_save();
 		g_flag_save_settings = false;
 	}
 
 	#ifdef ENABLE_FMRADIO
 		if (g_flag_save_fm)
 		{
-			SETTINGS_SaveFM();
+			SETTINGS_save_fm();
 			g_flag_save_fm = false;
 		}
 	#endif
 
 	if (g_flag_save_channel)
 	{
-		SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_flag_save_channel ? 1 : 0);
+		SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_flag_save_channel ? 1 : 0);
 		g_flag_save_channel = false;
 
 		RADIO_configure_channel(g_eeprom.tx_vfo, VFO_CONFIGURE);
@@ -2734,7 +2734,7 @@ Skip:
 	if (g_request_save_settings)
 	{
 		if (!key_held)
-			SETTINGS_SaveSettings();
+			SETTINGS_save();
 		else
 			g_flag_save_settings = 1;
 
@@ -2746,7 +2746,7 @@ Skip:
 		if (g_request_save_fm)
 		{
 			if (!key_held)
-				SETTINGS_SaveFM();
+				SETTINGS_save_fm();
 			else
 				g_flag_save_fm = true;
 
@@ -2757,7 +2757,7 @@ Skip:
 	if (g_request_save_vfo)
 	{
 		if (!key_held)
-			SETTINGS_SaveVfoIndices();
+			SETTINGS_save_vfo_indices();
 		else
 			g_flag_save_vfo = true;
 
@@ -2768,7 +2768,7 @@ Skip:
 	{
 		if (!key_held)
 		{
-			SETTINGS_SaveChannel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_request_save_channel);
+			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, g_request_save_channel);
 
 			if (g_screen_to_display != DISPLAY_SEARCH)
 				if (g_vfo_configure_mode == VFO_CONFIGURE_NONE)  // don't wipe previous variable setting
@@ -2787,10 +2787,6 @@ Skip:
 
 	if (g_vfo_configure_mode != VFO_CONFIGURE_NONE)
 	{
-		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("audio gap\r\n");
-		#endif
-
 		if (g_flag_reset_vfos)
 		{
 			RADIO_configure_channel(0, g_vfo_configure_mode);
@@ -2818,6 +2814,8 @@ Skip:
 		#endif
 
 		RADIO_setup_registers(true);
+
+//		g_tx_vfo->frequency_channel = BOARD_find_channel(frequency);
 
 		g_dtmf_auto_reset_time_500ms    = 0;
 		g_dtmf_call_state               = DTMF_CALL_STATE_NONE;

@@ -268,8 +268,8 @@ typedef struct {
 
 	// 0x0D60
 	struct {                                        // these channel attribute settings could have been in the t_channel structure !
-		uint8_t    band:4;                          // why do QS have these 4 bits ? .. band can/is computed from the frequency
-		uint8_t    unused:2;                        // 0's
+		uint8_t    band:4;                          // why do QS have these bits ? .. band can/is computed from the frequency
+		uint8_t    unused:2;                        //
 		uint8_t    scanlist2:1;                     // set if is in scan list 2
 		uint8_t    scanlist1:1;                     // set if is in scan list 1
 	} __attribute__((packed)) channel_attr[200];    //
@@ -559,12 +559,12 @@ typedef struct {
 extern eeprom_config_t g_eeprom;
 
 #ifdef ENABLE_FMRADIO
-	void SETTINGS_SaveFM(void);
+	void SETTINGS_save_fm(void);
 #endif
-void SETTINGS_SaveVfoIndices(void);
+void SETTINGS_save_vfo_indices(void);
 //void SETTINGS_restore_calibration(void);
-void SETTINGS_SaveSettings(void);
-void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, uint8_t Mode);
-void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep);
+void SETTINGS_save(void);
+void SETTINGS_save_channel(const uint8_t channel, const uint8_t vfo, const vfo_info_t *p_vfo, const uint8_t mode);
+void SETTINGS_save_chan_attribs_name(const uint8_t channel, const vfo_info_t *p_vfo);
 
 #endif

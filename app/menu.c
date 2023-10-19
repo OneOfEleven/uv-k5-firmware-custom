@@ -527,7 +527,7 @@ void MENU_AcceptSetting(void)
 			// save the channel name
 			memset(g_tx_vfo->name, 0, sizeof(g_tx_vfo->name));
 			memmove(g_tx_vfo->name, g_edit, 10);
-			SETTINGS_SaveChannel(g_sub_menu_selection, g_eeprom.tx_vfo, g_tx_vfo, 3);
+			SETTINGS_save_channel(g_sub_menu_selection, g_eeprom.tx_vfo, g_tx_vfo, 3);
 			g_flag_reconfigure_vfos = true;
 			return;
 
@@ -614,14 +614,14 @@ void MENU_AcceptSetting(void)
 
 		case MENU_S_ADD1:
 			g_tx_vfo->scanlist_1_participation = g_sub_menu_selection;
-			SETTINGS_UpdateChannel(g_tx_vfo->channel_save, g_tx_vfo, true);
+			SETTINGS_save_chan_attribs_name(g_tx_vfo->channel_save, g_tx_vfo);
 			g_vfo_configure_mode = VFO_CONFIGURE;
 			g_flag_reset_vfos    = true;
 			return;
 
 		case MENU_S_ADD2:
 			g_tx_vfo->scanlist_2_participation = g_sub_menu_selection;
-			SETTINGS_UpdateChannel(g_tx_vfo->channel_save, g_tx_vfo, true);
+			SETTINGS_save_chan_attribs_name(g_tx_vfo->channel_save, g_tx_vfo);
 			g_vfo_configure_mode = VFO_CONFIGURE;	
 			g_flag_reset_vfos    = true;
 			return;
@@ -657,7 +657,7 @@ void MENU_AcceptSetting(void)
 			#if 1
 				g_request_save_channel = 1;
 			#else
-				SETTINGS_SaveChannel(g_sub_menu_selection, g_eeprom.tx_vfo, g_tx_vfo, 3);
+				SETTINGS_save_channel(g_sub_menu_selection, g_eeprom.tx_vfo, g_tx_vfo, 3);
 				g_flag_reconfigure_vfos = true;
 			#endif
 			return;
@@ -783,7 +783,7 @@ void MENU_AcceptSetting(void)
 		#endif
 
 		case MENU_MEM_DEL:
-			SETTINGS_UpdateChannel(g_sub_menu_selection, NULL, false);
+			SETTINGS_save_chan_attribs_name(g_sub_menu_selection, NULL);
 			g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 			g_flag_reset_vfos    = true;
 			return;
