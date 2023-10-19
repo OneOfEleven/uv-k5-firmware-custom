@@ -410,7 +410,11 @@ LIBS =
 
 DEPS = $(OBJS:.o=.d)
 
+ifeq ($(OS), Windows_NT)
+PYTHON=$(word 1, $(shell where python 2>NUL || where python3 2>NUL))
+else
 PYTHON=$(shell which python || which python3)
+endif
 
 all: $(TARGET)
 	$(OBJCOPY) -O binary $< $<.bin
