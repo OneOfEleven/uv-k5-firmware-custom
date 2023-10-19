@@ -113,7 +113,7 @@ typedef struct vfo_info_t
 
 	uint8_t        compand;
 
-	uint8_t        frequency_channel; // channel number if a channel is set to this vfo's frequency
+	uint8_t        frequency_channel; // channel number if the VFO's frequency is found stored in a channel
 
 	char           name[16];
 } vfo_info_t;

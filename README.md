@@ -125,6 +125,10 @@ buttons to find them.
 * AIRCOPY RX'ing radio now requests packet resends from TX'ing radio if RX'ed packet is lost/corrupted
 * ..
 
+# Symbol information
+
+<img src="/images/symbols.png" />
+
 # Compiler
 
 arm-none-eabi GCC version 10.3.1 is recommended, which is the current version on Ubuntu 22.04.03 LTS.
