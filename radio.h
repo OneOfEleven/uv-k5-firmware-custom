@@ -84,6 +84,8 @@ typedef struct vfo_info_t
 
 	uint8_t        tx_offset_freq_dir;
 
+	uint8_t        squelch_level;   // per channel squelch level
+	
 	uint8_t        squelch_open_rssi_thresh;
 	uint8_t        squelch_open_noise_thresh;
 	uint8_t        squelch_close_glitch_thresh;

@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 void EEPROM_ReadBuffer(const uint16_t address, void *p_buffer, const unsigned int size);
-void EEPROM_WriteBuffer(const uint16_t address, const void *p_buffer);
+void EEPROM_WriteBuffer8(const uint16_t address, const void *p_buffer);
 
 #endif
 

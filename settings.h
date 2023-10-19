@@ -158,8 +158,10 @@ typedef struct {
 	uint8_t  tx_power:2;             // 0, 1 or 2 .. L, M or H
 	uint8_t  busy_channel_lock:1;    //
 	#if 0
+		// QS
 		uint8_t unused5:3;           //
 	#else
+		// 1of11
 		uint8_t unused5:1;           //
 		uint8_t compand:2;           // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
 	#endif
@@ -168,11 +170,16 @@ typedef struct {
 	uint8_t  dtmf_ptt_id_tx_mode:3;  //
 	uint8_t  unused6:4;              //
 	// [14]
-	uint8_t  step_setting:3;         //
-	uint8_t  unused7:5;              //
+	uint8_t  step_setting;           //
 	// [15]
 	uint8_t  scrambler:4;            //
-	uint8_t  unused8:4;              //
+	#if 0
+		// QS
+		uint8_t unused7:4;           //
+	#else
+		// 1of11
+		uint8_t squelch_level:4;     // 0 ~ 9 per channel squelch, 0 = use main squelch level
+	#endif
 } __attribute__((packed)) t_channel; //
 
 // 512 bytes
@@ -564,7 +571,7 @@ extern eeprom_config_t g_eeprom;
 void SETTINGS_save_vfo_indices(void);
 //void SETTINGS_restore_calibration(void);
 void SETTINGS_save(void);
-void SETTINGS_save_channel(const uint8_t channel, const uint8_t vfo, const vfo_info_t *p_vfo, const uint8_t mode);
-void SETTINGS_save_chan_attribs_name(const uint8_t channel, const vfo_info_t *p_vfo);
+void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, const vfo_info_t *p_vfo, const unsigned int mode);
+void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_t *p_vfo);
 
 #endif

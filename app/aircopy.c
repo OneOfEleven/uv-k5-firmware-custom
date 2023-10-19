@@ -549,7 +549,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 			data[2] = false;	// remove it
 		}
 
-		EEPROM_WriteBuffer(eeprom_addr, data);   // 8 bytes at a time
+		EEPROM_WriteBuffer8(eeprom_addr, data);   // 8 bytes at a time
 		data        += write_size / sizeof(data[0]);
 		eeprom_addr += write_size;
 	}

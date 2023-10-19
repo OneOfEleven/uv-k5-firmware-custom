@@ -115,7 +115,7 @@ void FM_EraseChannels(void)
 
 	memset(Template, 0xFF, sizeof(Template));
 	for (i = 0; i < 5; i++)
-		EEPROM_WriteBuffer(0x0E40 + (i * 8), Template);
+		EEPROM_WriteBuffer8(0x0E40 + (i * 8), Template);
 
 	memset(g_fm_channels, 0xFF, sizeof(g_fm_channels));
 }

@@ -782,7 +782,7 @@ void BOARD_EEPROM_load(void)
 		uint8_t *p_aes = (uint8_t*)&g_custom_aes_key;
 		memset(p_aes, 0xff, sizeof(g_custom_aes_key));
 		for (i = 0; i < sizeof(g_custom_aes_key); i += 8)
-			EEPROM_WriteBuffer(0x0F30 + i, &p_aes[i]);
+			EEPROM_WriteBuffer8(0x0F30 + i, &p_aes[i]);
 		g_has_custom_aes_key = false;
 	}
 #endif
@@ -977,7 +977,7 @@ void BOARD_FactoryReset(bool bIsAll)
 				))
 			)
 		{
-			EEPROM_WriteBuffer(i, Template);
+			EEPROM_WriteBuffer8(i, Template);
 		}
 	}
 

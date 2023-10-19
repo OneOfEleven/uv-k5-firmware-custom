@@ -359,11 +359,11 @@ static void cmd_051D(const uint8_t *pBuffer)
 
 			#ifdef ENABLE_PWRON_PASSWORD
 				if ((Offset < 0x0E98 || Offset >= 0x0E9C) || !g_password_locked || pCmd->allow_password)
-					EEPROM_WriteBuffer(Offset, data);
+					EEPROM_WriteBuffer8(Offset, data);
 			#else
 				if (Offset == 0x0E98)
 					memset(data, 0xff, 4);   // wipe the password 
-				EEPROM_WriteBuffer(Offset, data);
+				EEPROM_WriteBuffer8(Offset, data);
 			#endif
 		}
 

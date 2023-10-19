@@ -71,7 +71,7 @@
 			//
 			EEPROM_ReadBuffer(0x1F88, &misc, 8);
 			misc.BK4819_XtalFreqLow = value;
-			EEPROM_WriteBuffer(0x1F88, &misc);
+			EEPROM_WriteBuffer8(0x1F88, &misc);
 		}
 	}
 #endif
@@ -103,6 +103,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 	switch (Cursor)
 	{
 		case MENU_SQL:
+		case MENU_CHAN_SQL:
 			*pMin = 0;
 			*pMax = 9;
 			break;
@@ -389,7 +390,12 @@ void MENU_AcceptSetting(void)
 
 		case MENU_SQL:
 			g_eeprom.squelch_level = g_sub_menu_selection;
-			g_vfo_configure_mode     = VFO_CONFIGURE;
+			g_vfo_configure_mode   = VFO_CONFIGURE;
+			break;
+
+		case MENU_CHAN_SQL:
+			g_tx_vfo->squelch_level = g_sub_menu_selection;
+			g_vfo_configure_mode    = VFO_CONFIGURE;
 			break;
 
 		case MENU_STEP:
@@ -855,12 +861,12 @@ void MENU_AcceptSetting(void)
 			g_battery_calibration[3] =          g_sub_menu_selection;         // 7.6V,  ~29%, 3 bars above this value
 			g_battery_calibration[4] = (788ul * g_sub_menu_selection) / 760;  // 7.88V, ~65%, 4 bars above this value
 			g_battery_calibration[5] = 2300;
-			EEPROM_WriteBuffer(0x1F40, g_battery_calibration);
+			EEPROM_WriteBuffer8(0x1F40, g_battery_calibration);
 
 			EEPROM_ReadBuffer( 0x1F48, buf, sizeof(buf));
 			buf[0] = g_battery_calibration[4];
 			buf[1] = g_battery_calibration[5];
-			EEPROM_WriteBuffer(0x1F48, buf);
+			EEPROM_WriteBuffer8(0x1F48, buf);
 
 			break;
 		}
@@ -932,6 +938,10 @@ void MENU_ShowCurrentSetting(void)
 	{
 		case MENU_SQL:
 			g_sub_menu_selection = g_eeprom.squelch_level;
+			break;
+
+		case MENU_CHAN_SQL:
+			g_sub_menu_selection = g_tx_vfo->squelch_level;
 			break;
 
 		case MENU_STEP:

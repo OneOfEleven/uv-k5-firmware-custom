@@ -39,7 +39,7 @@ ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
 ENABLE_KILL_REVIVE               := 0
 ENABLE_AM_FIX                    := 1
-ENABLE_AM_FIX_SHOW_DATA          := 0
+ENABLE_AM_FIX_SHOW_DATA          := 1
 ENABLE_SQUELCH_MORE_SENSITIVE    := 1
 ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
 ENABLE_FASTER_CHANNEL_SCAN       := 1
@@ -55,11 +55,12 @@ ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
 TARGET = firmware
 
 GIT_HASH_TMP := $(shell git rev-parse --short HEAD)
-ifeq ($(GIT_HASH_TMP),)
+ifeq ($(GIT_HASH_TMP), )
 	GIT_HASH := "NOGIT"
 else
 	GIT_HASH := $(GIT_HASH_TMP)
 endif
+
 $(info GIT_HASH = $(GIT_HASH))
 
 ifeq ($(ENABLE_UART), 0)
@@ -189,6 +190,8 @@ ifeq ($(OS), Windows_NT)
 else
 	TOP := $(shell pwd)
 endif
+
+$(info TOP = $(TOP))
 
 AS = arm-none-eabi-gcc
 
@@ -410,10 +413,21 @@ LIBS =
 
 DEPS = $(OBJS:.o=.d)
 
+ifeq ($(OS), Windows_NT)
+	PYTHON = $(shell where python 2>NUL || where python3 2>NUL)
+else
+	PYTHON = $(shell which python || which python3)
+endif
+
 all: $(TARGET)
 	$(OBJCOPY) -O binary $< $<.bin
-	-python fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
-	-python3 fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+
+	$(info PYTHON = $(PYTHON))
+
+#	-python fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+#	-python3 fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+	-$(PYTHON) fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+
 	$(SIZE) $<
 
 debug:

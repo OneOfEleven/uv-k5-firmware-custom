@@ -41,6 +41,7 @@ enum
 	// ************************************
 
 	MENU_SQL = 0,
+	MENU_CHAN_SQL,
 	MENU_STEP,
 	MENU_BANDWIDTH,
 	MENU_TX_POWER,
