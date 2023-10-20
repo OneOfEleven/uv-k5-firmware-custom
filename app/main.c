@@ -753,19 +753,19 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 
 		ACTION_Scan(false);
 
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-		return;
-	}
-
-	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_current_function == FUNCTION_TRANSMIT)
-	{	// RF scanning or TX'ing
-		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
 	}
 
 	if (key_pressed)
 	{	// just pressed
 		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+		return;
+	}
+
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_current_function == FUNCTION_TRANSMIT)
+	{	// RF scanning or TX'ing
+//		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
 
