@@ -111,15 +111,17 @@ const uint8_t BITMAP_USB_C[8] =
 	__extension__ 0b00011100
 };
 
-const uint8_t BITMAP_KEYLOCK[6] =
-{	// teeny weeny padlock symbol
-	__extension__ 0b00000000,
-	__extension__ 0b01111100,
-	__extension__ 0b01000110,
-	__extension__ 0b01000101,
-	__extension__ 0b01000110,
-	__extension__ 0b01111100
-};
+#ifdef ENABLE_KEYLOCK
+	const uint8_t BITMAP_KEYLOCK[6] =
+	{	// teeny weeny padlock symbol
+		__extension__ 0b00000000,
+		__extension__ 0b01111100,
+		__extension__ 0b01000110,
+		__extension__ 0b01000101,
+		__extension__ 0b01000110,
+		__extension__ 0b01111100
+	};
+#endif
 
 const uint8_t BITMAP_F_KEY[6] =
 {	// F-Key symbol

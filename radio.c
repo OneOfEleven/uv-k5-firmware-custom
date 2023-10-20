@@ -741,7 +741,6 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 				!g_fm_radio_mode &&
 			#endif
 			g_eeprom.vox_switch &&
-			!g_fm_radio_mode &&
 			IS_NOT_NOAA_CHANNEL(g_current_vfo->channel_save) &&
 			g_current_vfo->am_mode == 0)
 		{

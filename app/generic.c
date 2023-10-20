@@ -51,6 +51,7 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 	if (key_held)
 	{	// f-key held
 
+		#ifdef ENABLE_KEYLOCK
 		if (key_pressed && g_screen_to_display != DISPLAY_MENU && g_current_function != FUNCTION_TRANSMIT)
 		{	// toggle the keyboad lock
 
@@ -66,6 +67,7 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 			g_keypad_locked  = 4;      // 2 second pop-up
 			g_update_display = true;
 		}
+		#endif
 		
 		return;
 	}

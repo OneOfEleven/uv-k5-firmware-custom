@@ -178,6 +178,7 @@ void UI_DisplayStatus(const bool test_display)
 		x += sizeof(BITMAP_VOX);
 	#endif
 
+	#ifdef ENABLE_KEYLOCK
 	// KEY-LOCK indicator
 	if (g_eeprom.key_lock || test_display)
 	{
@@ -186,6 +187,7 @@ void UI_DisplayStatus(const bool test_display)
 		x1 = x;
 	}
 	else
+	#endif
 	if (g_fkey_pressed)
 	{
 		memmove(line + x, BITMAP_F_KEY, sizeof(BITMAP_F_KEY));
