@@ -16,6 +16,9 @@
 
 #include <string.h>
 
+#if defined(ENABLE_AIRCOPY_RX_REBOOT) && !defined(ENABLE_OVERLAY)
+	#include "ARMCM0.h"
+#endif
 #include "app/aircopy.h"
 #include "audio.h"
 #include "bsp/dp32g030/gpio.h"
