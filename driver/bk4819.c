@@ -1930,9 +1930,10 @@ void BK4819_PlayRogerMDC1200(void)
 	uint16_t fsk_reg59;
 
 	#ifdef ENABLE_MDC1200
+
 		const uint8_t  op  = MDC1200_OP_CODE_POST_ID;
 		const uint8_t  arg = 0x00;
-		const uint16_t id  = 0x5678;
+		const uint16_t id  = 0xB183;
 
 		uint8_t packet[8 + 40];
 		memset(packet + 0, 0x00, 4);
@@ -2036,8 +2037,8 @@ void BK4819_PlayRogerMDC1200(void)
 	BK4819_WriteRegister(BK4819_REG_70,   // 0 0000000 1 1100000
 		( 0u << 15) |
 		( 0u <<  8) |
-//		( 1u <<  7) |
-		( 0u <<  7) |
+		( 1u <<  7) |
+//		( 0u <<  7) |
 		(96u <<  0));
 
 	// Set FSK data length
@@ -2100,7 +2101,8 @@ void BK4819_PlayRogerMDC1200(void)
 	// <7:0>  0x55 FSK Sync Byte 1
 	//
 //	BK4819_WriteRegister(BK4819_REG_5A, 0x5555);
-	BK4819_WriteRegister(BK4819_REG_5A, 0xAAAA);
+//	BK4819_WriteRegister(BK4819_REG_5A, 0xAAAA);
+	BK4819_WriteRegister(BK4819_REG_5A, 0);
 
 	// REG_5B
 	// <15:8> 0x55 FSK Sync Byte 2 (Sync Byte 0 first, then 1,2,3)
@@ -2137,8 +2139,8 @@ void BK4819_PlayRogerMDC1200(void)
 	// enable TX
 	BK4819_WriteRegister(BK4819_REG_59, (1u << 11) | fsk_reg59);
 
-	{	// packet takes 175ms long
-		unsigned int timeout = 250 / 5;      // allow up to 250ms for the TX to complete
+	{	// a small packet takes 175ms long
+		unsigned int timeout = 500 / 5;      // allow up to 500ms for the TX to complete
 		while (timeout-- > 0)
 		{
 			SYSTEM_DelayMs(5);

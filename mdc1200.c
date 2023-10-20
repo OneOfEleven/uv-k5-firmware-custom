@@ -2,19 +2,46 @@
 #include <string.h>
 
 #include "mdc1200.h"
+/*
+uint8_t bitReverse8(uint8_t n)
+{
+	n = ((n >> 1) & 0x55u) | ((n << 1) & 0xAAu);
+	n = ((n >> 2) & 0x33u) | ((n << 2) & 0xCCu);
+	n = ((n >> 4) & 0x0Fu) | ((n << 4) & 0xF0u);
+	return n;
+}
 
-uint16_t flip_crc(const uint16_t crc, const unsigned int bit_num)
+uint16_t bitReverse16(uint16_t n)
+{	// untested
+	n = ((n >> 1) & 0x5555u) | ((n << 1) & 0xAAAAu);
+	n = ((n >> 2) & 0x3333u) | ((n << 2) & 0xCCCCu);
+	n = ((n >> 4) & 0x0F0Fu) | ((n << 4) & 0xF0F0u);
+	n = ((n >> 8) & 0x00FFu) | ((n << 8) & 0xFF00u);
+   return n;
+}
+
+uint32_t bitReverse32(uint32_t n)
+{
+	n = ((n >>  1) & 0x55555555u) | ((n <<  1) & 0xAAAAAAAAu);
+	n = ((n >>  2) & 0x33333333u) | ((n <<  2) & 0xCCCCCCCCu);
+	n = ((n >>  4) & 0x0F0F0F0Fu) | ((n <<  4) & 0xF0F0F0F0u);
+	n = ((n >>  8) & 0x00FF00FFu) | ((n <<  8) & 0xFF00FF00u);
+	n = ((n >> 16) & 0x0000FFFFu) | ((n << 16) & 0xFFFF0000u);
+	return n;
+}
+*/
+uint16_t reverse_bits(const uint16_t bits_in, const unsigned int bit_num)
 {
 	uint16_t i;
 	uint16_t bit;
-	uint16_t crc_out;
-	for (i = 1u << (bit_num - 1), bit = 1u, crc_out = 0u; i > 0u; i >>= 1)
+	uint16_t bits_out;
+	for (i = 1u << (bit_num - 1), bit = 1u, bits_out = 0u; i > 0u; i >>= 1)
 	{
-		if (crc & i)
-			 crc_out |= bit;
+		if (bits_in & i)
+			 bits_out |= bit;
 		bit <<= 1;
 	}
-	return crc_out;
+	return bits_out;
 }
 
 uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
@@ -24,20 +51,22 @@ uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
 
 	for (i = 0; i < data_len; i++)
 	{
-		unsigned int mask;
-		const uint16_t c = flip_crc(*data++, 8);
-		for (mask = 0x80; mask > 0; mask >>= 1)
+		uint16_t mask;
+		
+		const uint16_t b = reverse_bits(*data++, 8); // bit reverse each data byte
+		
+		for (mask = 0x0080; mask > 0; mask >>= 1)
 		{
 			uint16_t bit = crc & 0x8000;
 			crc <<= 1;
-			if (c & mask)
+			if (b & mask)
 				bit ^= 0x8000;
 			if (bit)
 				crc ^= 0x1021;
 		}
 	}
 
-	return ~flip_crc(crc, 16);
+	return reverse_bits(crc, 16) ^ 0xffff; // bit reverse and invert the CRC
 }
 
 uint8_t * encode_data(uint8_t *data)
@@ -48,8 +77,7 @@ uint8_t * encode_data(uint8_t *data)
 	int      csr[7];
 	int      lbits[112];
 
-	uint16_t ccrc = compute_crc(data, 4);
-
+	const uint16_t ccrc = compute_crc(data, 4);
 	data[4] = (ccrc >> 0) & 0x00ff;
 	data[5] = (ccrc >> 8) & 0x00ff;
 
@@ -102,41 +130,57 @@ uint8_t * encode_data(uint8_t *data)
 
 const uint8_t header[] = {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x07, 0x09, 0x2a, 0x44, 0x6f};
 
-int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id)
+unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id)
 {
-	memcpy(data, header, sizeof(header));
-	data += sizeof(header);
+	uint8_t *p = data;
 
-	data[0] = op;
-	data[1] = arg;
-	data[2] = (unit_id >> 8) & 0x00ff;
-	data[3] = (unit_id >> 0) & 0x00ff;
+	#if 0
+		memcpy(p, header, sizeof(header));
+		p += sizeof(header);
+	#else
+		memcpy(p + 7, header, sizeof(header));
+		p += sizeof(header) - 7;
+	#endif
 
-	encode_data(data);
+	p[0] = op;
+	p[1] = arg;
+	p[2] = (unit_id >> 8) & 0x00ff;
+	p[3] = (unit_id >> 0) & 0x00ff;
 
-	return 26;
+	p = encode_data(p);
+
+	return (unsigned int)(p - data);
+//	return 26;
 }
 
-int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id, const uint8_t b0, const uint8_t b1, const uint8_t b2, const uint8_t b3)
+unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id, const uint8_t b0, const uint8_t b1, const uint8_t b2, const uint8_t b3)
 {
-	memcpy(data, header, sizeof(header));
-	data += sizeof(header);
+	uint8_t *p = data;
 
-	data[0] = op;
-	data[1] = arg;
-	data[2] = (unit_id >> 8) & 0x00ff;
-	data[3] = (unit_id >> 0) & 0x00ff;
+	#if 0
+		memcpy(p, header, sizeof(header));
+		p += sizeof(header);
+	#else
+		memcpy(p + 7, header, sizeof(header));
+		p += sizeof(header) - 7;
+	#endif
 
-	data = encode_data(data);
+	p[0] = op;
+	p[1] = arg;
+	p[2] = (unit_id >> 8) & 0x00ff;
+	p[3] = (unit_id >> 0) & 0x00ff;
 
-	data[0] = b0;
-	data[1] = b1;
-	data[2] = b2;
-	data[3] = b3;
+	p = encode_data(p);
 
-	encode_data(data);
+	p[0] = b0;
+	p[1] = b1;
+	p[2] = b2;
+	p[3] = b3;
 
-	return 40;
+	p = encode_data(p);
+
+//	return 40;
+	return (unsigned int)(p - data);
 }
 /*
 void test(void)
