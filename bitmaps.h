@@ -59,9 +59,5 @@ extern const uint8_t BITMAP_VFO_NOT_DEFAULT[8];
 extern const uint8_t BITMAP_SCANLIST1[6];
 extern const uint8_t BITMAP_SCANLIST2[6];
 
-extern const uint8_t BITMAP_COMPAND[6];
-
-extern const uint8_t BITMAP_FREQ_CHAN[6];
-
 #endif
 
