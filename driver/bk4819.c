@@ -1930,22 +1930,26 @@ void BK4819_PlayRogerMDC1200(void)
 	uint16_t fsk_reg59;
 
 	#ifdef ENABLE_MDC1200
-		const uint8_t  op  = 0x12;
-		const uint8_t  arg = 0x34;
+		const uint8_t  op  = MDC1200_OP_CODE_POST_ID;
+		const uint8_t  arg = 0x00;
 		const uint16_t id  = 0x5678;
 
 		uint8_t packet[8 + 40];
 		memset(packet + 0, 0x00, 4);
 		memset(packet + 4, 0xff, 4);
-		const unsigned int size = MDC1200_encode_single_packet(packet + 8, op, arg, id);
+		const unsigned int size = 8 + MDC1200_encode_single_packet(packet + 8, op, arg, id);
 
 	#else
+		
 		static const uint8_t packet[] = {
 			0x00, 0x00, 0x00, 0x00,
 			0xff, 0xff, 0xff, 0xff,
 			// this needs properly computing for MDC1200
 			0xA2, 0xF1, 0x46, 0x74, 0xA4, 0x61, 0x44, 0x65, 0x8A, 0x4E, 0x44, 0xE0, 0x84, 0xEA
+		};
+		
 		const unsigned int size = sizeof(packet);
+		
 	};
 	#endif
 
