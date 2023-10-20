@@ -4,29 +4,30 @@
 # 1 = include code
 
 # When testing the extra options, be careful not to exceed the
-# 64 kb flash memory limit.
+# 64 kB flash memory limit.
 
 ENABLE_CLANG                     := 0
 ENABLE_SWD                       := 0
 ENABLE_OVERLAY                   := 0
 ENABLE_LTO                       := 1
-# UART Programming 2.9 kb
+# UART Programming 2.9 kB
 ENABLE_UART                      := 1
 ENABLE_UART_DEBUG                := 0
+# AirCopy 2.5 kB
 ENABLE_AIRCOPY                   := 1
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
-# FM Radio 4.2 kb
+# FM Radio 4.2 kB
 ENABLE_FMRADIO                   := 1
-# NOAA 1.2 kb
+# NOAA 1.2 kB
 ENABLE_NOAA                      := 0
-# Voice 1.7 kb
+# Voice 1.7 kB
 ENABLE_VOICE                     := 0
-ENABLE_MUTE_RADIO_FOR_VOICE      := 1
-# Tx on Voice 1.0 kb
+ENABLE_MUTE_RADIO_FOR_VOICE      := 0
+# Tx on Voice 1.0 kB
 ENABLE_VOX                       := 0
 ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
-# Tx Alarm 0.6 kb
+# Tx Alarm 0.6 kB
 ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 0
 ENABLE_PWRON_PASSWORD            := 0
@@ -46,24 +47,24 @@ ENABLE_SHOW_CHARGE_LEVEL         := 0
 ENABLE_REVERSE_BAT_SYMBOL        := 1
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
-# Kill and Revive 0.4 kb
+# Kill and Revive 0.4 kB
 ENABLE_KILL_REVIVE               := 0
-# AM Fix 0.8 kb
+# AM Fix 0.8 kB
 ENABLE_AM_FIX                    := 1
 ENABLE_AM_FIX_SHOW_DATA          := 0
 ENABLE_SQUELCH_MORE_SENSITIVE    := 1
 ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
 ENABLE_FASTER_CHANNEL_SCAN       := 1
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
-# Rx Signal Bar 0.4 kb
+# Rx Signal Bar 0.4 kB
 ENABLE_RX_SIGNAL_BAR             := 1
-# Tx Timeout Bar 0.2 kb
+# Tx Timeout Bar 0.2 kB
 ENABLE_TX_TIMEOUT_BAR            := 0
-# Tx Audio Bar 0.3 kb
+# Tx Audio Bar 0.3 kB
 ENABLE_TX_AUDIO_BAR              := 1
-# Side Button Menu 0.3 kb
+# Side Button Menu 0.3 kB
 ENABLE_SIDE_BUTT_MENU            := 1
-# Key Lock 0.4 kb
+# Key Lock 0.4 kB
 ENABLE_KEYLOCK                   := 1
 #ENABLE_PANADAPTER               := 0
 #ENABLE_SINGLE_VFO_CHAN          := 0
