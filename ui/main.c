@@ -262,8 +262,10 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 			char               s[16];
 
+			#ifdef ENABLE_KEYLOCK
 			if (g_eeprom.key_lock && g_keypad_locked > 0)
 				return false;     // display is in use
+			#endif
 
 			if (g_current_function == FUNCTION_TRANSMIT ||
 				g_screen_to_display != DISPLAY_MAIN ||
@@ -370,8 +372,10 @@ void UI_update_rssi(const int16_t rssi, const int vfo)
 
 		// **********************************************************
 
+		#ifdef ENABLE_KEYLOCK
 		if (g_eeprom.key_lock && g_keypad_locked > 0)
 			return;    // display is in use
+		#endif
 
 		if (g_current_function == FUNCTION_TRANSMIT || g_screen_to_display != DISPLAY_MAIN)
 			return;    // display is in use
@@ -420,6 +424,7 @@ void UI_DisplayMain(void)
 		return;
 	}
 
+	#ifdef ENABLE_KEYLOCK
 	if (g_eeprom.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
 		backlight_turn_on(10);     // 5 seconds
@@ -428,6 +433,7 @@ void UI_DisplayMain(void)
 		ST7565_BlitFullScreen();
 		return;
 	}
+	#endif
 
 	for (vfo_num = 0; vfo_num < 2; vfo_num++)
 	{

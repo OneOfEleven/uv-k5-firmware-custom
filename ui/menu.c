@@ -82,7 +82,9 @@ const t_menu_item g_menu_list[] =
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE                 },
 #endif
 	{"SC REV", VOICE_ID_INVALID,                       MENU_SCAN_CAR_RESUME       }, // was "SC_REV"
+#ifdef ENABLE_KEYLOCK
 	{"KeyLOC", VOICE_ID_INVALID,                       MENU_AUTO_KEY_LOCK         }, // was "AUTOLk"
+#endif
 	{"S ADD1", VOICE_ID_INVALID,                       MENU_S_ADD1                },
 	{"S ADD2", VOICE_ID_INVALID,                       MENU_S_ADD2                },
 	{"STE",    VOICE_ID_INVALID,                       MENU_STE                   },
@@ -716,12 +718,14 @@ void UI_DisplayMenu(void)
 				break;
 		#endif
 
+		#ifdef ENABLE_KEYLOCK
 		case MENU_AUTO_KEY_LOCK:
 			if (g_sub_menu_selection == 0)
 				strcpy(String, "OFF");
 			else
 				sprintf(String, "%u secs", key_lock_timeout_500ms / 2);
 			break;
+		#endif
 
 		case MENU_COMPAND:
 			strcpy(String, g_sub_menu_rx_tx[g_sub_menu_selection]);

@@ -249,7 +249,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#endif
 		case MENU_BUSY_CHAN_LOCK:
 		case MENU_BEEP:
+		#ifdef ENABLE_KEYLOCK
 		case MENU_AUTO_KEY_LOCK:
+		#endif
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
 		case MENU_STE:
@@ -614,10 +616,12 @@ void MENU_AcceptSetting(void)
 			g_eeprom.channel_display_mode = g_sub_menu_selection;
 			break;
 
+		#ifdef ENABLE_KEYLOCK
 		case MENU_AUTO_KEY_LOCK:
 			g_eeprom.auto_keypad_lock   = g_sub_menu_selection;
 			g_key_lock_count_down_500ms = key_lock_timeout_500ms;
 			break;
+		#endif
 
 		case MENU_S_ADD1:
 			g_tx_vfo->scanlist_1_participation = g_sub_menu_selection;
@@ -1091,9 +1095,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.channel_display_mode;
 			break;
 
+		#ifdef ENABLE_KEYLOCK
 		case MENU_AUTO_KEY_LOCK:
 			g_sub_menu_selection = g_eeprom.auto_keypad_lock;
 			break;
+		#endif
 
 		case MENU_S_ADD1:
 			g_sub_menu_selection = g_tx_vfo->scanlist_1_participation;

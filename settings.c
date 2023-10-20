@@ -200,7 +200,12 @@ void SETTINGS_save(void)
 	#else
 		State[3] = false;
 	#endif
-	State[4] = g_eeprom.key_lock;
+	
+	#ifdef ENABLE_KEYLOCK
+		State[4] = g_eeprom.key_lock;
+	#else
+		State[4] = false;
+	#endif
 	#ifdef ENABLE_VOX
 		State[5] = g_eeprom.vox_switch;
 		State[6] = g_eeprom.vox_level;

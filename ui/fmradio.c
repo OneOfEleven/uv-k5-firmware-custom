@@ -34,6 +34,7 @@ void UI_DisplayFM(void)
 
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
+	#ifdef ENABLE_KEYLOCK
 	if (g_eeprom.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
 		backlight_turn_on(0);
@@ -42,6 +43,7 @@ void UI_DisplayFM(void)
 		ST7565_BlitFullScreen();
 		return;
 	}
+	#endif
 
 	// *************************************
 	// upper text line

@@ -12,7 +12,9 @@ extern const uint8_t BITMAP_BATTERY_LEVEL[17];
 
 extern const uint8_t BITMAP_USB_C[8];
 
-extern const uint8_t BITMAP_KEYLOCK[6];
+#ifdef ENABLE_KEYLOCK
+	extern const uint8_t BITMAP_KEYLOCK[6];
+#endif
 
 extern const uint8_t BITMAP_F_KEY[6];
 

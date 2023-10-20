@@ -476,7 +476,9 @@ typedef struct {
 
 	uint8_t               squelch_level;
 	uint8_t               tx_timeout_timer;
-	bool                  key_lock;
+	#ifdef ENABLE_KEYLOCK
+		bool                  key_lock;
+	#endif
 	bool                  vox_switch;
 	uint8_t               vox_level;
 	#ifdef ENABLE_VOICE
