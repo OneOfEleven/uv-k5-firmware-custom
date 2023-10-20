@@ -88,6 +88,86 @@ void toggle_chan_scanlist(void)
 	g_flag_reset_vfos    = true;
 }
 
+#ifdef ENABLE_COPY_CHAN_TO_VFO_TO_CHAN
+	void MAIN_copy_mem_vfo_mem(void)
+	{		
+		//const unsigned int vfo = get_RX_VFO();
+		const unsigned int vfo = g_eeprom.tx_vfo;
+
+		if (g_scan_state_dir    != SCAN_STATE_DIR_OFF ||
+		    g_css_scan_mode     != CSS_SCAN_MODE_OFF  ||
+		    g_eeprom.dual_watch != DUAL_WATCH_OFF     ||
+		    !g_eeprom.vfo_open)
+		{	// scanning
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			return;
+		}
+	
+		if (IS_USER_CHANNEL(g_eeprom.screen_channel[vfo]))
+		{	// copy channel to VFO, then swap to the VFO
+		
+			const unsigned int channel = FREQ_CHANNEL_FIRST + g_eeprom.vfo_info[vfo].band;
+		
+			g_eeprom.screen_channel[vfo]        = channel;
+			g_eeprom.vfo_info[vfo].channel_save = channel;
+			g_eeprom.tx_vfo                     = vfo;
+		
+			RADIO_select_vfos();
+			RADIO_ApplyOffset(g_tx_vfo);
+			RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
+			RADIO_setup_registers(true);
+
+			// find the first channel that contains this frequency
+			g_tx_vfo->frequency_channel = BOARD_find_channel(g_tx_vfo->freq_config_tx.frequency);
+
+			g_request_save_vfo = true;
+		
+			g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
+			//g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+		
+			g_update_status  = true;
+			g_update_display = true;
+		}
+		else
+		if (IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[vfo]))
+		{	// copy VFO to a channel
+		
+			// search the channels to see if the frequency is already present
+			unsigned int chan = BOARD_find_channel(g_eeprom.vfo_info[vfo].p_tx->frequency);
+			if (chan > USER_CHANNEL_LAST)
+			{	// find next next free channel
+				//for (chan = g_eeprom.screen_channel[vfo]; chan <= USER_CHANNEL_LAST; chan++)
+				for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
+					if (!RADIO_CheckValidChannel(chan, false, vfo))
+						break;
+			}
+		
+			g_screen_to_display = DISPLAY_INVALID;
+			GUI_SelectNextDisplay(DISPLAY_MENU);
+			g_menu_cursor       = MENU_MEM_SAVE;
+			g_is_in_sub_menu    = true;
+			if (chan <= USER_CHANNEL_LAST)
+			{
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("vfo to mem %u\r\n", chan);
+				#endif
+				
+				g_sub_menu_selection = chan;
+				g_flag_refresh_menu  = false;
+				g_screen_to_display  = DISPLAY_MENU;
+				g_update_display     = false;
+				UI_DisplayMenu();
+			}
+		
+			#ifdef ENABLE_VOICE
+				g_another_voice_id = VOICE_ID_MENU;
+			#endif
+		
+			g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
+		}
+	}
+#endif
+
 void processFKeyFunction(const key_code_t Key)
 {
 	uint8_t Band;
@@ -625,81 +705,7 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 				g_update_status = true;
 
 				#ifdef ENABLE_COPY_CHAN_TO_VFO_TO_CHAN
-
-					if (g_scan_state_dir    == SCAN_STATE_DIR_OFF &&
-					    g_css_scan_mode     == CSS_SCAN_MODE_OFF  &&
-					    g_eeprom.dual_watch == DUAL_WATCH_OFF     &&
-					    g_eeprom.vfo_open)
-					{	// not scanning
-				
-						//const unsigned int vfo = get_RX_VFO();
-						const unsigned int vfo = g_eeprom.tx_vfo;
-
-						if (IS_USER_CHANNEL(g_eeprom.screen_channel[vfo]))
-						{	// copy channel to VFO, then swap to the VFO
-
-							const unsigned int channel = FREQ_CHANNEL_FIRST + g_eeprom.vfo_info[vfo].band;
-
-							g_eeprom.screen_channel[vfo]        = channel;
-							g_eeprom.vfo_info[vfo].channel_save = channel;
-							g_eeprom.tx_vfo                     = vfo;
-
-							RADIO_select_vfos();
-							RADIO_ApplyOffset(g_rx_vfo);
-							RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
-							RADIO_setup_registers(true);
-
-							g_request_save_vfo = true;
-
-							g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
-							//g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-
-							g_update_status  = true;
-							g_update_display = true;
-						}
-						else
-						if (IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[vfo]))
-						{	// copy VFO to a channel
-
-							// search the channels to see if the frequency is already present
-							unsigned int chan = BOARD_find_channel(g_eeprom.vfo_info[vfo].p_tx->frequency);
-							if (chan > USER_CHANNEL_LAST)
-							{	// find next next free channel
-								//for (chan = g_eeprom.screen_channel[vfo]; chan <= USER_CHANNEL_LAST; chan++)
-								for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
-									if (!RADIO_CheckValidChannel(chan, false, vfo))
-										break;
-							}
-
-							g_screen_to_display = DISPLAY_INVALID;
-							GUI_SelectNextDisplay(DISPLAY_MENU);
-							g_menu_cursor       = MENU_MEM_SAVE;
-							g_is_in_sub_menu    = true;
-							if (chan <= USER_CHANNEL_LAST)
-							{
-								#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-									UART_printf("vfo to mem %u\r\n", chan);
-								#endif
-								
-								g_sub_menu_selection = chan;
-								g_flag_refresh_menu  = false;
-								g_screen_to_display  = DISPLAY_MENU;
-								g_update_display     = false;
-								UI_DisplayMenu();
-							}
-
-							#ifdef ENABLE_VOICE
-								g_another_voice_id = VOICE_ID_MENU;
-							#endif
-
-							g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
-						}
-					}
-					else
-					{
-						g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-					}
-
+					MAIN_copy_mem_vfo_mem();
 				#endif
 			}
 		}
@@ -747,19 +753,19 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 
 		ACTION_Scan(false);
 
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-		return;
-	}
-
-	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_current_function == FUNCTION_TRANSMIT)
-	{	// RF scanning or TX'ing
-		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
 	}
 
 	if (key_pressed)
 	{	// just pressed
 		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+		return;
+	}
+
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_current_function == FUNCTION_TRANSMIT)
+	{	// RF scanning or TX'ing
+//		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
 

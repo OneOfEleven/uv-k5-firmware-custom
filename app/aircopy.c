@@ -36,6 +36,11 @@
 
 // **********************
 
+// aircopy packet format is very simple ..
+//
+//  payloads ................ 0xABCD + 2 byte eeprom address + 64 byte payload + 2 byte CRC + 0xDCBA
+//  1of11 req/ack additon ... 0xBCDA + 2 byte eeprom address +                   2 byte CRC + 0xCDBA
+
 #define AIRCOPY_MAGIC_START_REQ    0xBCDA   // used to request a block resend
 #define AIRCOPY_MAGIC_END_REQ      0xCDBA   // used to request a block resend
 
@@ -44,11 +49,11 @@
 
 #define AIRCOPY_LAST_EEPROM_ADDR   0x1E00   // size of eeprom transferred
 
-// FSK Data Length .. 0xABCD + 2 byte eeprom address + 64 byte payload + 2 byte CRC + 0xDCBA
+// FSK payload data length
 #define AIRCOPY_DATA_PACKET_SIZE   (2 + 2 + 64 + 2 + 2)
 
-// FSK Data Length .. 0xBCDA + 2 byte eeprom address + 2 byte CRC + 0xCDBA
-#define AIRCOPY_REQ_PACKET_SIZE    (2 + 2 + 64 + 2 + 2)
+// FSK req/ack data length .. 0xBCDA + 2 byte eeprom address + 2 byte CRC + 0xCDBA
+#define AIRCOPY_REQ_PACKET_SIZE    (2 + 2 + 2 + 2)
 
 // **********************
 

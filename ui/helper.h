@@ -23,10 +23,12 @@
 void UI_GenerateChannelString(char *pString, const uint8_t Channel, const char separating_char);
 void UI_GenerateChannelStringEx(char *pString, const char *prefix, const uint8_t ChannelNumber);
 void UI_PrintString(const char *pString, uint8_t Start, uint8_t End, uint8_t Line, uint8_t Width);
-void UI_PrintStringSmall(const char *pString, uint8_t Start, uint8_t End, uint8_t Line);
+void UI_PrintStringSmall(const char *str, const unsigned int start, const unsigned int end, const unsigned int line);
 #ifdef ENABLE_SMALL_BOLD
-	void UI_PrintStringSmallBold(const char *pString, uint8_t Start, uint8_t End, uint8_t Line);
+	void UI_PrintStringSmallBold(const char *str, const unsigned int start, const unsigned int end, const unsigned int line);
 #endif
+//void UI_PrintStringSmall4x5(const char *str, const unsigned int start, const unsigned int end, const unsigned int line);
+void UI_PrintStringSmallest(const void *pString, unsigned int x, const unsigned int y, const bool statusbar, const bool fill);
 void UI_PrintStringSmallBuffer(const char *pString, uint8_t *buffer);
 void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero, bool flag);
 void UI_DisplayFrequencySmall(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero);

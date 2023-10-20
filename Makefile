@@ -12,8 +12,7 @@ ENABLE_OVERLAY                   := 0
 ENABLE_LTO                       := 1
 # UART Programming 2.9 kb
 ENABLE_UART                      := 1
-ENABLE_UART_DEBUG                := 1
-# Air Copy 3.1 kb
+ENABLE_UART_DEBUG                := 0
 ENABLE_AIRCOPY                   := 1
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
@@ -33,8 +32,7 @@ ENABLE_TX1750                    := 0
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
 ENABLE_BIG_FREQ                  := 0
-# Small Bold Font 0.6 kb
-ENABLE_SMALL_BOLD                := 1
+ENABLE_SMALL_BOLD                := 0
 ENABLE_KEEP_MEM_NAME             := 1
 ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
@@ -52,7 +50,7 @@ ENABLE_CODE_SEARCH_TIMEOUT       := 0
 ENABLE_KILL_REVIVE               := 0
 # AM Fix 0.8 kb
 ENABLE_AM_FIX                    := 1
-ENABLE_AM_FIX_SHOW_DATA          := 1
+ENABLE_AM_FIX_SHOW_DATA          := 0
 ENABLE_SQUELCH_MORE_SENSITIVE    := 1
 ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
 ENABLE_FASTER_CHANNEL_SCAN       := 1

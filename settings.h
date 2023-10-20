@@ -135,52 +135,59 @@ typedef enum mdf_display_mode_e mdf_display_mode_t;
 // 16 bytes
 typedef struct {
 	// [0]
-	uint32_t frequency;              //
+	uint32_t frequency;                      //
 	// [4]
-	uint32_t offset;                 //
+	uint32_t offset;                         //
 	// [8]
-	uint8_t  rx_ctcss_cdcss_code;    //
+	uint8_t  rx_ctcss_cdcss_code;            //
 	// [9]
-	uint8_t  tx_ctcss_cdcss_code;    //
+	uint8_t  tx_ctcss_cdcss_code;            //
 	// [10]
-	uint8_t  rx_ctcss_cdcss_type:2;  //
-	uint8_t  unused1:2;              //
-	uint8_t  tx_ctcss_cdcss_type:2;  //
-	uint8_t  unused2:2;              //
+	uint8_t  rx_ctcss_cdcss_type:2;          //
+	uint8_t  unused1:2;                      //
+	uint8_t  tx_ctcss_cdcss_type:2;          //
+	uint8_t  unused2:2;                      //
 	// [11]
-	uint8_t  tx_offset_dir:2;        //
-	uint8_t  unused3:2;              //
-	uint8_t  am_mode:1;              //
-	uint8_t  unused4:3;              //
+	uint8_t  tx_offset_dir:2;                //
+	uint8_t  unused3:2;                      //
+	uint8_t  am_mode:1;                      //
+	uint8_t  unused4:3;                      //
 	// [12]
-	uint8_t  frequency_reverse:1;    // reverse repeater
-	uint8_t  channel_bandwidth:1;    // wide/narrow
-	uint8_t  tx_power:2;             // 0, 1 or 2 .. L, M or H
-	uint8_t  busy_channel_lock:1;    //
+	uint8_t  frequency_reverse:1;            // reverse repeater
+	uint8_t  channel_bandwidth:1;            // wide/narrow
+	uint8_t  tx_power:2;                     // 0, 1 or 2 .. L, M or H
+	uint8_t  busy_channel_lock:1;            //
 	#if 0
 		// QS
-		uint8_t unused5:3;           //
+		uint8_t unused5:3;                   //
 	#else
 		// 1of11
-		uint8_t unused5:1;           //
-		uint8_t compand:2;           // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
+		uint8_t unused5:1;                   //
+		uint8_t compand:2;                   // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
 	#endif
 	// [13]
-	uint8_t  dtmf_decoding_enable:1; //
-	uint8_t  dtmf_ptt_id_tx_mode:3;  //
-	uint8_t  unused6:4;              //
+	uint8_t  dtmf_decoding_enable:1;         //
+	uint8_t  dtmf_ptt_id_tx_mode:3;          //
+	uint8_t  unused6:4;                      //
 	// [14]
-	uint8_t  step_setting;           //
+	uint8_t  step_setting;                   //
 	// [15]
-	uint8_t  scrambler:4;            //
+	uint8_t  scrambler:4;                    //
 	#if 0
 		// QS
-		uint8_t unused7:4;           //
+		uint8_t unused7:4;                   //
 	#else
 		// 1of11
-		uint8_t squelch_level:4;     // 0 ~ 9 per channel squelch, 0 = use main squelch level
+		uint8_t squelch_level:4;             // 0 ~ 9 per channel squelch, 0 = use main squelch level
 	#endif
-} __attribute__((packed)) t_channel; //
+} __attribute__((packed)) t_channel;         //
+
+typedef struct {
+	uint8_t    band:4;                       // why do QS have these bits ?  band can/is computed from the frequency
+	uint8_t    unused:2;                     //
+	uint8_t    scanlist2:1;                  // set if in scan list 2
+	uint8_t    scanlist1:1;                  // set if in scan list 1
+} __attribute__((packed)) t_channel_attr;    //
 
 // 512 bytes
 typedef struct {
@@ -270,12 +277,7 @@ typedef struct {
 	} __attribute__((packed));                      //
 
 	// 0x0D60
-	struct {                                        // these channel attribute settings could have been in the t_channel structure !
-		uint8_t    band:4;                          // why do QS have these bits ?  band can/is computed from the frequency
-		uint8_t    unused:2;                        //
-		uint8_t    scanlist2:1;                     // set if in scan list 2
-		uint8_t    scanlist1:1;                     // set if in scan list 1
-	} __attribute__((packed)) channel_attr[200];    //
+	t_channel_attr channel_attr[200];               //
 
 	uint8_t        unused1[8];                      // 0xff's
 
@@ -412,10 +414,10 @@ typedef struct {
 		uint8_t    dtmf_live_decoder:1;   // 1 = enable on-screen live DTMF decoder
 		uint8_t    battery_text:2;        // 0 = no battery text, 1 = voltage, 2 = percent .. on the status bar
 		uint8_t    mic_bar:1;             // 1 = on-screen TX audio level
-		uint8_t    am_fix:1;              // 1 = RX AM fix
+		uint8_t    am_fix:1;              // 1 = enable RX AM fix
 		uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when TX, 2 = when RX, 3 = both RX/TX
 
-		uint8_t    scan_hold_time;        // ticks we stay paused on a signal when scanning
+		uint8_t    scan_hold_time;        // ticks we stay paused for on an RX'ed signal when scanning
 
 		uint8_t    unused12[7];           // 0xff's
 	#endif
