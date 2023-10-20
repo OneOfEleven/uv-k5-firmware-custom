@@ -1538,12 +1538,14 @@ void APP_time_slice_10ms(void)
 {
 	g_flash_light_blink_counter++;
 
+#ifdef ENABLE_UART
 	if (UART_IsCommandAvailable())
 	{
 		__disable_irq();
 		UART_HandleCommand();
 		__enable_irq();
 	}
+#endif
 
 	// ***********
 

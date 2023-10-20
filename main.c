@@ -65,7 +65,9 @@ void Main(void)
 		| SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE;
 
 	SYSTICK_Init();
+#ifdef ENABLE_UART
 	UART_Init();
+#endif
 	BOARD_Init();
 
 	#if defined(ENABLE_UART)
