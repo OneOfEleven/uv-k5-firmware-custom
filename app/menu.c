@@ -1320,11 +1320,11 @@ void MENU_ShowCurrentSetting(void)
 
 static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 {
-	uint8_t  Offset;
-	int32_t  Min;
-	int32_t  Max;
-	uint16_t Value = 0;
-
+	unsigned int index;
+	int32_t      min;
+	int32_t      max;
+	uint32_t     value = 0;
+	
 	if (key_held || !key_pressed)
 		return;
 
@@ -1357,11 +1357,11 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		return;
 	}
 
-	INPUTBOX_Append(Key);
+	INPUTBOX_append(Key);
 
 	g_request_display_screen = DISPLAY_MENU;
 
-	if (!g_is_in_sub_menu)
+	if (!g_in_sub_menu)
 	{
 		#pragma GCC diagnostic push
 		#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
@@ -1371,26 +1371,26 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 			case 2:
 				g_input_box_index = 0;
 
-				Value = (g_input_box[0] * 10) + g_input_box[1];
+				value = (g_input_box[0] * 10) + g_input_box[1];
 
-				if (Value > 0 && Value <= g_menu_list_count)
+				if (value > 0 && value <= g_menu_list_count)
 				{
-					g_menu_cursor       = Value - 1;
+					g_menu_cursor       = value - 1;
 					g_flag_refresh_menu = true;
 					return;
 				}
 
-				if (Value <= g_menu_list_count)
+				if (value <= g_menu_list_count)
 					break;
 
 				g_input_box[0]    = g_input_box[1];
 				g_input_box_index = 1;
 
 			case 1:
-				Value = g_input_box[0];
-				if (Value > 0 && Value <= g_menu_list_count)
+				value = g_input_box[0];
+				if (value > 0 && value <= g_menu_list_count)
 				{
-					g_menu_cursor       = Value - 1;
+					g_menu_cursor       = value - 1;
 					g_flag_refresh_menu = true;
 					return;
 				}
@@ -1410,19 +1410,39 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		uint32_t Frequency;
 
 		if (g_input_box_index < 6)
-		{	// invalid frequency
-#ifdef ENABLE_VOICE
+		{	// not yet enough characters
+			#ifdef ENABLE_VOICE
 				g_another_voice_id = (voice_id_t)Key;
-#endif
+			#endif
 			return;
 		}
 
-#ifdef ENABLE_VOICE
+		#ifdef ENABLE_VOICE
 			g_another_voice_id = (voice_id_t)Key;
-#endif
+		#endif
 
 		NUMBER_Get(g_input_box, &Frequency);
-		g_sub_menu_selection = FREQUENCY_FloorToStep(Frequency + 75, g_tx_vfo->step_freq, 0);
+		g_input_box_index = 0;
+
+		g_sub_menu_selection = FREQUENCY_FloorToStep(Frequency + (g_tx_vfo->step_freq / 2), g_tx_vfo->step_freq, 0);
+		return;
+	}
+
+	if (g_menu_cursor == MENU_BAT_CAL)
+	{
+		g_sub_menu_selection = INPUTBOX_value();   // get the current value from the input box
+
+		if (g_input_box_index < 4)
+		{	// not yet enough characters
+			#ifdef ENABLE_VOICE
+				g_another_voice_id = (voice_id_t)Key;
+			#endif
+			return;
+		}
+
+		#ifdef ENABLE_VOICE
+			g_another_voice_id = (voice_id_t)Key;
+		#endif
 
 		g_input_box_index = 0;
 		return;
@@ -1436,23 +1456,23 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 		if (g_input_box_index < 3)
 		{
-#ifdef ENABLE_VOICE
+			#ifdef ENABLE_VOICE
 				g_another_voice_id   = (voice_id_t)Key;
-#endif
+			#endif
 			g_request_display_screen = DISPLAY_MENU;
 			return;
 		}
 
 		g_input_box_index = 0;
 
-		Value = ((g_input_box[0] * 100) + (g_input_box[1] * 10) + g_input_box[2]) - 1;
+		value = ((g_input_box[0] * 100) + (g_input_box[1] * 10) + g_input_box[2]) - 1;
 
-		if (Value <= USER_CHANNEL_LAST)
+		if (value <= USER_CHANNEL_LAST)
 		{	// user channel
-#ifdef ENABLE_VOICE
+			#ifdef ENABLE_VOICE
 				g_another_voice_id = (voice_id_t)Key;
-#endif
-			g_sub_menu_selection = Value;
+			#endif
+			g_sub_menu_selection = value;
 			return;
 		}
 
@@ -1460,34 +1480,37 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		return;
 	}
 
-	if (MENU_GetLimits(g_menu_cursor, &Min, &Max))
+	if (MENU_GetLimits(g_menu_cursor, &min, &max))
 	{
 		g_input_box_index = 0;
 		g_beep_to_play    = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
 
-	Offset = (Max >= 100) ? 3 : (Max >= 10) ? 2 : 1;
-
+	index = (max >= 100000) ? 6 : (max >= 10000) ? 5 : (max >= 1000) ? 4 : (max >= 100) ? 3 : (max >= 10) ? 2 : 1;
+//	NUMBER_Get(g_input_box, &value);
 	switch (g_input_box_index)
 	{
 		case 1:
-			Value = g_input_box[0];
+			value = g_input_box[0];
 			break;
 		case 2:
-			Value = (g_input_box[0] *  10) + g_input_box[1];
+			value = (g_input_box[0] * 10) + g_input_box[1];
 			break;
 		case 3:
-			Value = (g_input_box[0] * 100) + (g_input_box[1] * 10) + g_input_box[2];
+			value = (g_input_box[0] * 100) + (g_input_box[1] * 10) + g_input_box[2];
+			break;
+		case 4:
+			value = (g_input_box[0] * 1000) + (g_input_box[1] * 100) + (g_input_box[2] * 10) + g_input_box[3];
 			break;
 	}
 
-	if (Offset == g_input_box_index)
+	if (index == g_input_box_index)
 		g_input_box_index = 0;
 
-	if (Value <= Max)
+	if ((int32_t)value <= max)
 	{
-		g_sub_menu_selection = Value;
+		g_sub_menu_selection = value;
 		return;
 	}
 
@@ -1503,12 +1526,12 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 
 	if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
 	{
-		if (g_is_in_sub_menu)
+		if (g_in_sub_menu)
 		{
 			if (g_input_box_index == 0 || g_menu_cursor != MENU_OFFSET)
 			{
 				g_ask_for_confirmation = 0;
-				g_is_in_sub_menu       = false;
+				g_in_sub_menu       = false;
 				g_input_box_index      = 0;
 				g_flag_refresh_menu    = true;
 
@@ -1559,7 +1582,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 	g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
 	g_request_display_screen = DISPLAY_MENU;
 
-	if (!g_is_in_sub_menu)
+	if (!g_in_sub_menu)
 	{
 #ifdef ENABLE_VOICE
 			if (g_menu_cursor != MENU_SCRAMBLER)
@@ -1573,7 +1596,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 #endif
 
 		g_ask_for_confirmation = 0;
-		g_is_in_sub_menu       = true;
+		g_in_sub_menu       = true;
 
 //		if (g_menu_cursor != MENU_DTMF_LIST)
 		{
@@ -1616,7 +1639,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 			if (memcmp(g_edit_original, g_edit, sizeof(g_edit_original)) == 0)
 			{	// no change - drop it
 				g_flag_accept_setting  = false;
-				g_is_in_sub_menu        = false;
+				g_in_sub_menu        = false;
 				g_ask_for_confirmation = 0;
 			}
 			else
@@ -1629,7 +1652,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 
 	// exiting the sub menu
 
-	if (g_is_in_sub_menu)
+	if (g_in_sub_menu)
 	{
 		if (g_menu_cursor == MENU_RESET  ||
 			g_menu_cursor == MENU_MEM_SAVE ||
@@ -1664,14 +1687,14 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 					}
 
 					g_flag_accept_setting  = true;
-					g_is_in_sub_menu        = false;
+					g_in_sub_menu        = false;
 					g_ask_for_confirmation = 0;
 			}
 		}
 		else
 		{
 			g_flag_accept_setting = true;
-			g_is_in_sub_menu       = false;
+			g_in_sub_menu       = false;
 		}
 	}
 
@@ -1757,7 +1780,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 	uint8_t Channel;
 	bool    bCheckScanList;
 
-	if (g_menu_cursor == MENU_MEM_NAME && g_is_in_sub_menu && g_edit_index >= 0)
+	if (g_menu_cursor == MENU_MEM_NAME && g_in_sub_menu && g_edit_index >= 0)
 	{	// change the character
 		if (key_pressed && g_edit_index < 10 && Direction != 0)
 		{
@@ -1801,7 +1824,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 		return;
 	}
 
-	if (!g_is_in_sub_menu)
+	if (!g_in_sub_menu)
 	{
 		g_menu_cursor = NUMBER_AddWithWraparound(g_menu_cursor, -Direction, 0, g_menu_list_count - 1);
 

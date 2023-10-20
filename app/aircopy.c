@@ -621,7 +621,7 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		uint32_t      Frequency;
 		unsigned int  i;
 
-		INPUTBOX_Append(Key);
+		INPUTBOX_append(Key);
 
 		g_request_display_screen = DISPLAY_AIRCOPY;
 

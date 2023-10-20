@@ -191,7 +191,7 @@ extern const char         g_sub_MENU_SCRAMBLERAMBLER[11][7];
 	extern const char         g_sub_menu_SIDE_BUTT[9][16];
 #endif
 						  
-extern bool               g_is_in_sub_menu;
+extern bool               g_in_sub_menu;
 						  
 extern uint8_t            g_menu_cursor;
 extern int8_t             g_menu_scroll_direction;

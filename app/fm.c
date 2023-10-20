@@ -261,7 +261,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			State = g_eeprom.fm_is_channel_mode ? STATE_USER_MODE : STATE_FREQ_MODE;
 		}
 
-		INPUTBOX_Append(Key);
+		INPUTBOX_append(Key);
 
 		g_request_display_screen = DISPLAY_FM;
 

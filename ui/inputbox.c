@@ -21,7 +21,23 @@
 char    g_input_box[8];
 uint8_t g_input_box_index;
 
-void INPUTBOX_Append(const key_code_t Digit)
+uint32_t INPUTBOX_value(void)
+{
+	int i = g_input_box_index;
+	uint32_t val = 0;
+	uint32_t mul = 1;
+	while (--i >= 0)
+	{
+		if (g_input_box[i] < 10)
+		{
+			val += (uint32_t)g_input_box[i] * mul;
+			mul *= 10;
+		}
+	}
+	return val;
+}
+
+void INPUTBOX_append(const key_code_t Digit)
 {
 	if (g_input_box_index >= sizeof(g_input_box))
 		return;

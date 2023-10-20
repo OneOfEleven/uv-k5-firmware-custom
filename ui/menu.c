@@ -381,7 +381,7 @@ const char g_sub_menu_SIDE_BUTT[9][16] =
 
 uint8_t g_menu_list_sorted[ARRAY_SIZE(g_menu_list)];
 
-bool    g_is_in_sub_menu;
+bool    g_in_sub_menu;
 uint8_t g_menu_cursor;
 int8_t  g_menu_scroll_direction;
 int32_t g_sub_menu_selection;
@@ -478,7 +478,7 @@ void UI_DisplayMenu(void)
 			g_frame_buffer[i][(8 * menu_list_width) + 1] = 0xAA;
 
 		// draw the little sub-menu triangle marker
-		if (g_is_in_sub_menu)
+		if (g_in_sub_menu)
 			memmove(g_frame_buffer[0] + (8 * menu_list_width) + 1, BITMAP_CurrentIndicator, sizeof(BITMAP_CurrentIndicator));
 
 		// draw the menu index number/count
@@ -491,7 +491,7 @@ void UI_DisplayMenu(void)
 		const int menu_index = g_menu_cursor;  // current selected menu item
 		i = 1;
 
-		if (!g_is_in_sub_menu)
+		if (!g_in_sub_menu)
 		{
 			while (i < 2)
 			{	// leading menu items - small text
@@ -647,7 +647,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_OFFSET:
-			if (!g_is_in_sub_menu || g_input_box_index == 0)
+			if (!g_in_sub_menu || g_input_box_index == 0)
 			{
 				sprintf(String, "%d.%05u", g_sub_menu_selection / 100000, abs(g_sub_menu_selection) % 100000);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
@@ -655,7 +655,7 @@ void UI_DisplayMenu(void)
 			else
 			{
 				for (i = 0; i < 3; i++)
-					String[i    ] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
+					String[i + 0] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
 				String[3] = '.';
 				for (i = 3; i < 6; i++)
 					String[i + 1] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
@@ -844,7 +844,7 @@ void UI_DisplayMenu(void)
 		case MENU_MEM_NAME:
 		{
 			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
-			const unsigned int y = (!g_is_in_sub_menu || g_edit_index < 0) ? 1 : 0;
+			const unsigned int y = (!g_in_sub_menu || g_edit_index < 0) ? 1 : 0;
 
 			UI_GenerateChannelStringEx(String, valid ? "CH-" : "", g_sub_menu_selection);
 			UI_PrintString(String, menu_item_x1, menu_item_x2, y, 8);
@@ -853,7 +853,7 @@ void UI_DisplayMenu(void)
 			{
 				const uint32_t frequency = BOARD_fetchChannelFrequency(g_sub_menu_selection);
 
-				if (!g_is_in_sub_menu || g_edit_index < 0)
+				if (!g_in_sub_menu || g_edit_index < 0)
 				{	// show the channel name
 					BOARD_fetchChannelName(String, g_sub_menu_selection);
 					if (String[0] == 0)
@@ -870,7 +870,7 @@ void UI_DisplayMenu(void)
 				if (!g_ask_for_confirmation)
 				{	// show the frequency so that the user knows the channels frequency
 					sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
-					if (!g_is_in_sub_menu || g_edit_index < 0)
+					if (!g_in_sub_menu || g_edit_index < 0)
 						UI_PrintString(String, menu_item_x1, menu_item_x2, y + 4, 8);
 					else
 						UI_PrintString(String, menu_item_x1, menu_item_x2, y + 5, 8);
@@ -1116,7 +1116,7 @@ void UI_DisplayMenu(void)
 			}
 			break;
 
-#ifdef ENABLE_F_CAL_MENU
+		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
 				{
 					const uint32_t value   = 22656 + g_sub_menu_selection;
@@ -1129,12 +1129,15 @@ void UI_DisplayMenu(void)
 						xtal_Hz / 1000000, xtal_Hz % 1000000);
 				}
 				break;
-#endif
+		#endif
 
 		case MENU_BAT_CAL:
 		{
 			const uint16_t vol = (uint32_t)g_battery_voltage_average * g_battery_calibration[3] / g_sub_menu_selection;
-			sprintf(String, "%u.%02uV\n%u", vol / 100, vol % 100, g_sub_menu_selection);
+			if (!g_in_sub_menu || g_input_box_index == 0)
+				sprintf(String, "%u.%02uV\n%d", vol / 100, vol % 100, g_sub_menu_selection);
+			else
+				sprintf(String, "%u.%02uV\n%d\n%04d", vol / 100, vol % 100, g_battery_calibration[3], g_sub_menu_selection);
 			break;
 		}
 	}
@@ -1259,7 +1262,7 @@ void UI_DisplayMenu(void)
 	    g_menu_cursor == MENU_TX_CDCSS ||
 	    g_menu_cursor == MENU_DTMF_LIST)
 	{
-		if (g_is_in_sub_menu)
+		if (g_in_sub_menu)
 		{
 			unsigned int Offset;
 			NUMBER_ToDigits(g_sub_menu_selection, String);
