@@ -81,7 +81,7 @@ void MENU_start_css_scan(int8_t Direction)
 	g_css_scan_mode  = CSS_SCAN_MODE_SCANNING;
 	g_update_status = true;
 
-	g_MENU_SCRAMBLERoll_direction = Direction;
+	g_menu_scroll_direction = Direction;
 
 	RADIO_select_vfos();
 
@@ -895,7 +895,7 @@ void MENU_SelectNextCode(void)
 	else
 		return;
 
-	g_sub_menu_selection = NUMBER_AddWithWraparound(g_sub_menu_selection, g_MENU_SCRAMBLERoll_direction, 1, UpperLimit);
+	g_sub_menu_selection = NUMBER_AddWithWraparound(g_sub_menu_selection, g_menu_scroll_direction, 1, UpperLimit);
 
 	if (g_menu_cursor == MENU_RX_CDCSS)
 	{
@@ -1934,7 +1934,7 @@ void MENU_process_key(key_code_t Key, bool key_pressed, bool key_held)
 	{
 		if (g_menu_cursor == MENU_VOLTAGE ||
 #ifdef ENABLE_F_CAL_MENU
-				g_menu_cursor == MENU_F_CALI ||
+			g_menu_cursor == MENU_F_CALI ||
 #endif
 			g_menu_cursor == MENU_BAT_CAL)
 		{

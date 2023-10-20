@@ -400,7 +400,9 @@ void UI_update_rssi(const int16_t rssi, const int vfo)
 
 void UI_DisplayMain(void)
 {
-	const unsigned int smallest_char_spacing = ARRAY_SIZE(g_font3x5[0]) + 1;
+	#ifndef ENABLE_BIG_FREQ
+		const unsigned int smallest_char_spacing = ARRAY_SIZE(g_font3x5[0]) + 1;
+	#endif
 	const unsigned int line0 = 0;  // text screen line
 	const unsigned int line1 = 4;
 	char               String[17];
