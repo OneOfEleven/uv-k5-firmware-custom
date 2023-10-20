@@ -383,7 +383,7 @@ uint8_t g_menu_list_sorted[ARRAY_SIZE(g_menu_list)];
 
 bool    g_is_in_sub_menu;
 uint8_t g_menu_cursor;
-int8_t  g_MENU_SCRAMBLERoll_direction;
+int8_t  g_menu_scroll_direction;
 int32_t g_sub_menu_selection;
 
 // edit box

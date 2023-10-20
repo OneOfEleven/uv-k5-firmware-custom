@@ -194,7 +194,7 @@ extern const char         g_sub_MENU_SCRAMBLERAMBLER[11][7];
 extern bool               g_is_in_sub_menu;
 						  
 extern uint8_t            g_menu_cursor;
-extern int8_t             g_MENU_SCRAMBLERoll_direction;
+extern int8_t             g_menu_scroll_direction;
 extern int32_t            g_sub_menu_selection;
 						  
 extern char               g_edit_original[17];

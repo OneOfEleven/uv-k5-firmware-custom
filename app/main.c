@@ -913,10 +913,10 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 				//
 				// TODO: include this once we have the entire eeprom loaded
 				//
-				if (!key_held && key_pressed)
-					g_tx_vfo->frequency_channel = BOARD_find_channel(frequency);
-				else
-				if (key_held && key_pressed)
+				//if (!key_held && key_pressed)
+				//	g_tx_vfo->frequency_channel = BOARD_find_channel(frequency);
+				//else
+				//if (key_held && key_pressed)
 					g_tx_vfo->frequency_channel = 0xff;
 
 				if (new_band != old_band)

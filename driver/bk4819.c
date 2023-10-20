@@ -2015,7 +2015,8 @@ void BK4819_PlayRogerMDC1200(void)
 	BK4819_WriteRegister(BK4819_REG_70,   // 0 0000000 1 1100000
 		( 0u << 15) |
 		( 0u <<  8) |
-		( 1u <<  7) |
+//		( 1u <<  7) |
+		( 0u <<  7) |
 		(96u <<  0));
 
 	// Set FSK data length
