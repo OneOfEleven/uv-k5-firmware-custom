@@ -31,6 +31,7 @@ ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
 # Tx Alarm 0.6 kB
 ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 0
+ENABLE_MDC1200                   := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
 ENABLE_BIG_FREQ                  := 0
@@ -180,6 +181,9 @@ OBJS += frequencies.o
 OBJS += functions.o
 OBJS += helper/battery.o
 OBJS += helper/boot.o
+ifeq ($(ENABLE_MDC1200),1)
+	OBJS += mdc1200.o
+endif
 OBJS += misc.o
 OBJS += radio.o
 OBJS += scheduler.o
@@ -316,6 +320,9 @@ ifeq ($(ENABLE_ALARM),1)
 endif
 ifeq ($(ENABLE_TX1750),1)
 	CFLAGS  += -DENABLE_TX1750
+endif
+ifeq ($(ENABLE_MDC1200),1)
+	CFLAGS  += -DENABLE_MDC1200
 endif
 ifeq ($(ENABLE_PWRON_PASSWORD),1)
 	CFLAGS  += -DENABLE_PWRON_PASSWORD

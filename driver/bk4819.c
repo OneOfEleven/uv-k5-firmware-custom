@@ -14,7 +14,7 @@
  *     limitations under the License.
  */
 
-#include <stdio.h>   // NULL
+#include <string.h>   // NULL and memset
 
 #include "bk4819.h"
 #include "bsp/dp32g030/gpio.h"
@@ -23,6 +23,9 @@
 #include "driver/system.h"
 #include "driver/systick.h"
 #include "misc.h"
+#ifdef ENABLE_MDC1200
+	#include "mdc1200.h"
+#endif
 
 #ifndef ARRAY_SIZE
 	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
@@ -1924,13 +1927,27 @@ void BK4819_start_fsk_rx(const unsigned int packet_size)
 
 void BK4819_PlayRogerMDC1200(void)
 {
-	static const uint8_t MDC1200_DATA[] = {
-		0x00, 0x00, 0x00, 0x00,
-		0xff, 0xff, 0xff, 0xff,
-		// this needs properly computing for MDC1200
-		0xA2, 0xF1, 0x46, 0x74, 0xA4, 0x61, 0x44, 0x65, 0x8A, 0x4E, 0x44, 0xE0, 0x84, 0xEA
-	};
 	uint16_t fsk_reg59;
+
+	#ifdef ENABLE_MDC1200
+		const uint8_t  op  = 0x12;
+		const uint8_t  arg = 0x34;
+		const uint16_t id  = 0x5678;
+
+		uint8_t packet[8 + 40];
+		memset(packet + 0, 0x00, 4);
+		memset(packet + 4, 0xff, 4);
+		const unsigned int size = MDC1200_encode_single_packet(packet + 8, op, arg, id);
+
+	#else
+		static const uint8_t packet[] = {
+			0x00, 0x00, 0x00, 0x00,
+			0xff, 0xff, 0xff, 0xff,
+			// this needs properly computing for MDC1200
+			0xA2, 0xF1, 0x46, 0x74, 0xA4, 0x61, 0x44, 0x65, 0x8A, 0x4E, 0x44, 0xE0, 0x84, 0xEA
+		const unsigned int size = sizeof(packet);
+	};
+	#endif
 
 	BK4819_SetAF(BK4819_AF_MUTE);
 //	BK4819_SetAF(BK4819_AF_BEEP);
@@ -2020,7 +2037,7 @@ void BK4819_PlayRogerMDC1200(void)
 		(96u <<  0));
 
 	// Set FSK data length
-	BK4819_WriteRegister(BK4819_REG_5D, ((sizeof(MDC1200_DATA) - 1) << 8));
+	BK4819_WriteRegister(BK4819_REG_5D, ((size - 1) << 8));
 
 	// REG_59
 	//
@@ -2103,10 +2120,10 @@ void BK4819_PlayRogerMDC1200(void)
 	//
 	BK4819_WriteRegister(BK4819_REG_5C, 0xAA30);   // 101010100 0 110000
 
-	{	// load the packet data
-		unsigned int    i;
-		const uint16_t *p = (const uint16_t *)MDC1200_DATA;
-		for (i = 0; i < (sizeof(MDC1200_DATA) / 2); i++)
+	{	// load the packet data into the TX FIFO buffer
+		unsigned int i;
+		const uint16_t *p = (const uint16_t *)packet;
+		for (i = 0; i < (size / 2); i++)
 			BK4819_WriteRegister(BK4819_REG_5F, p[i]);
 	}
 
@@ -2116,8 +2133,8 @@ void BK4819_PlayRogerMDC1200(void)
 	// enable TX
 	BK4819_WriteRegister(BK4819_REG_59, (1u << 11) | fsk_reg59);
 
-	{	// packet is 175ms long
-		unsigned int timeout = 250 / 5;             // allow up to 250ms for the TX to complete
+	{	// packet takes 175ms long
+		unsigned int timeout = 250 / 5;      // allow up to 250ms for the TX to complete
 		while (timeout-- > 0)
 		{
 			SYSTEM_DelayMs(5);
