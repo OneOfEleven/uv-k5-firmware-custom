@@ -18,7 +18,7 @@ ENABLE_AIRCOPY                   := 1
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
 # FM Radio 4.2 kb
-ENABLE_FMRADIO                   := 0
+ENABLE_FMRADIO                   := 1
 # NOAA 1.2 kb
 ENABLE_NOAA                      := 0
 # Voice 1.7 kb
