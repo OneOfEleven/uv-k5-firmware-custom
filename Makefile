@@ -7,15 +7,21 @@ ENABLE_CLANG                     := 0
 ENABLE_SWD                       := 0
 ENABLE_OVERLAY                   := 0
 ENABLE_LTO                       := 1
+# UART Programming 2.9 kb
 ENABLE_UART                      := 1
 ENABLE_UART_DEBUG                := 1
+# Air Copy 3.1 kb
 ENABLE_AIRCOPY                   := 1
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
-ENABLE_FMRADIO                   := 1
+# FM Radio 4.2 kb
+ENABLE_FMRADIO                   := 0
+# NOAA 1.2 kb
 ENABLE_NOAA                      := 0
+# Voice 1.7 kb
 ENABLE_VOICE                     := 0
 ENABLE_MUTE_RADIO_FOR_VOICE      := 1
+# Tx on Voice 1.0 kb
 ENABLE_VOX                       := 0
 ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
 ENABLE_ALARM                     := 0
