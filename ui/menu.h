@@ -119,11 +119,15 @@ enum
 #ifdef ENABLE_VOICE
 	MENU_VOICE,
 #endif
+#ifdef ENABLE_KEYLOCK
 	MENU_AUTO_KEY_LOCK,
+#endif
+#ifdef ENABLE_SIDE_BUTT_MENU
 	MENU_SIDE1_SHORT,
 	MENU_SIDE1_LONG,
 	MENU_SIDE2_SHORT,
 	MENU_SIDE2_LONG,
+#endif
 	MENU_VERSION,
 	MENU_RESET,
 
@@ -133,7 +137,7 @@ enum
 	// items after here are normally hidden
 
 	MENU_BAT_CAL,      // battery voltage calibration
-	
+
 #ifdef ENABLE_F_CAL_MENU
 	MENU_F_CALI,       // 26MHz reference xtal calibration
 #endif
@@ -183,7 +187,9 @@ extern const char         g_sub_menu_rx_tx[4][6];
 extern const char         g_sub_menu_BAT_TXT[3][8];
 extern const char         g_sub_menu_DIS_EN[2][9];
 extern const char         g_sub_MENU_SCRAMBLERAMBLER[11][7];
-extern const char         g_sub_menu_SIDE_BUTT[9][16];
+#ifdef ENABLE_SIDE_BUTT_MENU
+	extern const char         g_sub_menu_SIDE_BUTT[9][16];
+#endif
 						  
 extern bool               g_is_in_sub_menu;
 						  

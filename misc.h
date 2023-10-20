@@ -129,7 +129,10 @@ extern const uint8_t         dtmf_txstop_countdown_500ms;
 extern const uint8_t         serial_config_count_down_500ms;
 
 extern const uint8_t         key_input_timeout_500ms;
-extern const uint8_t         key_lock_timeout_500ms;
+
+#ifdef ENABLE_KEYLOCK
+	extern const uint8_t         key_lock_timeout_500ms;
+#endif
 
 extern const uint8_t         key_debounce_10ms;
 extern const uint8_t         key_long_press_10ms;
@@ -245,7 +248,11 @@ extern volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 #endif
 extern bool                  g_enable_speaker;
 extern uint8_t               g_key_input_count_down;
-extern uint8_t               g_key_lock_count_down_500ms;
+
+#ifdef ENABLE_KEYLOCK
+	extern uint8_t               g_key_lock_count_down_500ms;
+#endif
+
 extern uint8_t               g_rtte_count_down;
 extern bool                  g_password_locked;
 extern uint8_t               g_update_status;

@@ -201,13 +201,15 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 				break;
 		#endif
 
-		case MENU_SIDE1_SHORT:
-		case MENU_SIDE1_LONG:
-		case MENU_SIDE2_SHORT:
-		case MENU_SIDE2_LONG:
-			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_SIDE_BUTT) - 1;
-			break;
+		#ifdef ENABLE_SIDE_BUTT_MENU
+			case MENU_SIDE1_SHORT:
+			case MENU_SIDE1_LONG:
+			case MENU_SIDE2_SHORT:
+			case MENU_SIDE2_LONG:
+				*pMin = 0;
+				*pMax = ARRAY_SIZE(g_sub_menu_SIDE_BUTT) - 1;
+				break;
+		#endif
 
 		case MENU_RESET:
 			*pMin = 0;
@@ -247,7 +249,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#endif
 		case MENU_BUSY_CHAN_LOCK:
 		case MENU_BEEP:
+		#ifdef ENABLE_KEYLOCK
 		case MENU_AUTO_KEY_LOCK:
+		#endif
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
 		case MENU_STE:
@@ -612,10 +616,12 @@ void MENU_AcceptSetting(void)
 			g_eeprom.channel_display_mode = g_sub_menu_selection;
 			break;
 
+		#ifdef ENABLE_KEYLOCK
 		case MENU_AUTO_KEY_LOCK:
 			g_eeprom.auto_keypad_lock   = g_sub_menu_selection;
 			g_key_lock_count_down_500ms = key_lock_timeout_500ms;
 			break;
+		#endif
 
 		case MENU_S_ADD1:
 			g_tx_vfo->scanlist_1_participation = g_sub_menu_selection;
@@ -793,6 +799,7 @@ void MENU_AcceptSetting(void)
 			g_flag_reset_vfos    = true;
 			return;
 
+		#ifdef ENABLE_SIDE_BUTT_MENU
 		case MENU_SIDE1_SHORT:
 			g_eeprom.key1_short_press_action = g_sub_menu_selection;
 			break;
@@ -808,6 +815,7 @@ void MENU_AcceptSetting(void)
 		case MENU_SIDE2_LONG:
 			g_eeprom.key2_long_press_action = g_sub_menu_selection;
 			break;
+		#endif
 
 		case MENU_RESET:
 			BOARD_FactoryReset(g_sub_menu_selection);
@@ -844,11 +852,11 @@ void MENU_AcceptSetting(void)
 			g_setting_tx_enable = g_sub_menu_selection;
 			break;
 
-		#ifdef ENABLE_F_CAL_MENU
+#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
 				writeXtalFreqCal(g_sub_menu_selection, true);
 				return;
-		#endif
+#endif
 
 		case MENU_BAT_CAL:
 		{
@@ -1014,11 +1022,11 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_MEM_SAVE:
-			#if 0
+#if 0
 				g_sub_menu_selection = g_eeprom.user_channel[0];
-			#else
+#else
 				g_sub_menu_selection = g_eeprom.user_channel[g_eeprom.tx_vfo];
-			#endif
+#endif
 			break;
 
 		case MENU_MEM_NAME:
@@ -1029,11 +1037,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.battery_save;
 			break;
 
-		#ifdef ENABLE_VOX
+#ifdef ENABLE_VOX
 			case MENU_VOX:
 				g_sub_menu_selection = g_eeprom.vox_switch ? g_eeprom.vox_level + 1 : 0;
 				break;
-		#endif
+#endif
 
 		case MENU_AUTO_BACKLITE:
 			g_sub_menu_selection = g_eeprom.backlight;
@@ -1046,11 +1054,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_setting_backlight_on_tx_rx;
 			break;
 
-		#ifdef ENABLE_CONTRAST
+#ifdef ENABLE_CONTRAST
 			case MENU_CONTRAST:
 				g_sub_menu_selection = g_setting_contrast;
 				break;
-		#endif
+#endif
 		
 		case MENU_DUAL_WATCH:
 //			g_sub_menu_selection = g_eeprom.dual_watch;
@@ -1073,11 +1081,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.tx_timeout_timer;
 			break;
 
-		#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 			case MENU_VOICE:
 				g_sub_menu_selection = g_eeprom.voice_prompt;
 				break;
-		#endif
+#endif
 
 		case MENU_SCAN_CAR_RESUME:
 			g_sub_menu_selection = g_eeprom.scan_resume_mode;
@@ -1087,9 +1095,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.channel_display_mode;
 			break;
 
+		#ifdef ENABLE_KEYLOCK
 		case MENU_AUTO_KEY_LOCK:
 			g_sub_menu_selection = g_eeprom.auto_keypad_lock;
 			break;
+		#endif
 
 		case MENU_S_ADD1:
 			g_sub_menu_selection = g_tx_vfo->scanlist_1_participation;
@@ -1111,17 +1121,17 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.mic_sensitivity;
 			break;
 
-		#ifdef ENABLE_TX_AUDIO_BAR
+#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
 				g_sub_menu_selection = g_setting_mic_bar;
 				break;
-		#endif
+#endif
 
-		#ifdef ENABLE_RX_SIGNAL_BAR
+#ifdef ENABLE_RX_SIGNAL_BAR
 			case MENU_RX_BAR:
 				g_sub_menu_selection = g_setting_rssi_bar;
 				break;
-		#endif
+#endif
 
 		case MENU_COMPAND:
 			g_sub_menu_selection = g_tx_vfo->compand;
@@ -1143,11 +1153,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = RADIO_FindNextChannel(0, 1, true, 1);
 			break;
 
-		#ifdef ENABLE_ALARM
+#ifdef ENABLE_ALARM
 			case MENU_ALARM_MODE:
 				g_sub_menu_selection = g_eeprom.alarm_mode;
 				break;
-		#endif
+#endif
 
 		case MENU_DTMF_ST:
 			g_sub_menu_selection = g_eeprom.dtmf_side_tone;
@@ -1221,32 +1231,33 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_tx_vfo->am_mode;
 			break;
 
-		#ifdef ENABLE_AM_FIX
+#ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:
 				g_sub_menu_selection = g_setting_am_fix;
 				break;
-		#endif
+#endif
 
-		#ifdef ENABLE_AM_FIX_TEST1
+#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				g_sub_menu_selection = g_setting_am_fix_test1;
 				break;
-		#endif
+#endif
 
-		#ifdef ENABLE_NOAA
+#ifdef ENABLE_NOAA
 			case MENU_NOAA_SCAN:
 				g_sub_menu_selection = g_eeprom.noaa_auto_scan;
 				break;
-		#endif
+#endif
 
 		case MENU_MEM_DEL:
-			#if 0
+#if 0
 				g_sub_menu_selection = RADIO_FindNextChannel(g_eeprom.user_channel[0], 1, false, 1);
-			#else
+#else
 				g_sub_menu_selection = RADIO_FindNextChannel(g_eeprom.user_channel[g_eeprom.tx_vfo], 1, false, 1);
-			#endif
+#endif
 			break;
 
+#ifdef ENABLE_SIDE_BUTT_MENU
 		case MENU_SIDE1_SHORT:
 			g_sub_menu_selection = g_eeprom.key1_short_press_action;
 			break;
@@ -1262,6 +1273,7 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_SIDE2_LONG:
 			g_sub_menu_selection = g_eeprom.key2_long_press_action;
 			break;
+#endif
 
 		case MENU_350_TX:
 			g_sub_menu_selection = g_setting_350_tx_enable;
@@ -1291,11 +1303,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_setting_tx_enable;
 			break;
 
-		#ifdef ENABLE_F_CAL_MENU
+#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
 				g_sub_menu_selection = g_eeprom.BK4819_xtal_freq_low;
 				break;
-		#endif
+#endif
 
 		case MENU_BAT_CAL:
 			g_sub_menu_selection = g_battery_calibration[3];
@@ -1399,15 +1411,15 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 		if (g_input_box_index < 6)
 		{	// invalid frequency
-			#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 				g_another_voice_id = (voice_id_t)Key;
-			#endif
+#endif
 			return;
 		}
 
-		#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 			g_another_voice_id = (voice_id_t)Key;
-		#endif
+#endif
 
 		NUMBER_Get(g_input_box, &Frequency);
 		g_sub_menu_selection = FREQUENCY_FloorToStep(Frequency + 75, g_tx_vfo->step_freq, 0);
@@ -1424,9 +1436,9 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 		if (g_input_box_index < 3)
 		{
-			#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 				g_another_voice_id   = (voice_id_t)Key;
-			#endif
+#endif
 			g_request_display_screen = DISPLAY_MENU;
 			return;
 		}
@@ -1437,9 +1449,9 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 		if (Value <= USER_CHANNEL_LAST)
 		{	// user channel
-			#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 				g_another_voice_id = (voice_id_t)Key;
-			#endif
+#endif
 			g_sub_menu_selection = Value;
 			return;
 		}
@@ -1500,9 +1512,9 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 				g_input_box_index      = 0;
 				g_flag_refresh_menu    = true;
 
-				#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 					g_another_voice_id = VOICE_ID_CANCEL;
-				#endif
+#endif
 			}
 			else
 				g_input_box[--g_input_box_index] = 10;
@@ -1513,9 +1525,9 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 			return;
 		}
 
-		#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 			g_another_voice_id = VOICE_ID_CANCEL;
-		#endif
+#endif
 
 		g_request_display_screen = DISPLAY_MAIN;
 
@@ -1529,9 +1541,9 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 	{
 		MENU_stop_css_scan();
 
-		#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 			g_another_voice_id   = VOICE_ID_SCANNING_STOP;
-		#endif
+#endif
 
 		g_request_display_screen = DISPLAY_MENU;
 	}
@@ -1549,16 +1561,16 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 
 	if (!g_is_in_sub_menu)
 	{
-		#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 			if (g_menu_cursor != MENU_SCRAMBLER)
 				g_another_voice_id = g_menu_list[g_menu_list_sorted[g_menu_cursor]].voice_id;
-		#endif
+#endif
 
-		#if 1
+#if 1
 			if (g_menu_cursor == MENU_MEM_DEL || g_menu_cursor == MENU_MEM_NAME)
 				if (!RADIO_CheckValidChannel(g_sub_menu_selection, false, 0))
 					return;  // invalid channel
-		#endif
+#endif
 
 		g_ask_for_confirmation = 0;
 		g_is_in_sub_menu       = true;
@@ -1637,18 +1649,18 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 
 					if (g_menu_cursor == MENU_RESET)
 					{
-						#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 							AUDIO_SetVoiceID(0, VOICE_ID_CONFIRM);
 							AUDIO_PlaySingleVoice(true);
-						#endif
+#endif
 
 						MENU_AcceptSetting();
 
-						#if defined(ENABLE_OVERLAY)
+#if defined(ENABLE_OVERLAY)
 							overlay_FLASH_RebootToBootloader();
-						#else
+#else
 							NVIC_SystemReset();
-						#endif
+#endif
 					}
 
 					g_flag_accept_setting  = true;
@@ -1669,12 +1681,12 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 		g_update_status = true;
 	}
 
-	#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 		if (g_menu_cursor == MENU_SCRAMBLER)
 			g_another_voice_id = (g_sub_menu_selection == 0) ? VOICE_ID_SCRAMBLER_OFF : VOICE_ID_SCRAMBLER_ON;
 		else
 			g_another_voice_id = VOICE_ID_CONFIRM;
-	#endif
+#endif
 
 	g_input_box_index = 0;
 }
@@ -1716,18 +1728,18 @@ static void MENU_Key_STAR(const bool key_pressed, const bool key_held)
 			{
 				MENU_start_css_scan(1);
 				g_request_display_screen = DISPLAY_MENU;
-				#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 					AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
 					AUDIO_PlaySingleVoice(1);
-				#endif
+#endif
 			}
 			else
 			{
 				MENU_stop_css_scan();
 				g_request_display_screen = DISPLAY_MENU;
-				#ifdef ENABLE_VOICE
+#ifdef ENABLE_VOICE
 					g_another_voice_id       = VOICE_ID_SCANNING_STOP;
-				#endif
+#endif
 			}
 		}
 
@@ -1921,9 +1933,9 @@ void MENU_process_key(key_code_t Key, bool key_pressed, bool key_held)
 	if (g_screen_to_display == DISPLAY_MENU)
 	{
 		if (g_menu_cursor == MENU_VOLTAGE ||
-			#ifdef ENABLE_F_CAL_MENU
+#ifdef ENABLE_F_CAL_MENU
 				g_menu_cursor == MENU_F_CALI ||
-		    #endif
+#endif
 			g_menu_cursor == MENU_BAT_CAL)
 		{
 			g_menu_count_down = menu_timeout_long_500ms;

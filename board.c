@@ -531,7 +531,9 @@ void BOARD_EEPROM_load(void)
 	#ifdef ENABLE_NOAA
 		g_eeprom.noaa_auto_scan   = (Data[3] <  2) ? Data[3] : false;
 	#endif
-	g_eeprom.key_lock             = (Data[4] <  2) ? Data[4] : false;
+	#ifdef ENABLE_KEYLOCK
+		g_eeprom.key_lock             = (Data[4] <  2) ? Data[4] : false;
+	#endif
 	#ifdef ENABLE_VOX
 		g_eeprom.vox_switch       = (Data[5] <  2) ? Data[5] : false;
 		g_eeprom.vox_level        = (Data[6] < 10) ? Data[6] : 1;

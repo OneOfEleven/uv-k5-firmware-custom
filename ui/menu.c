@@ -82,7 +82,9 @@ const t_menu_item g_menu_list[] =
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE                 },
 #endif
 	{"SC REV", VOICE_ID_INVALID,                       MENU_SCAN_CAR_RESUME       }, // was "SC_REV"
+#ifdef ENABLE_KEYLOCK
 	{"KeyLOC", VOICE_ID_INVALID,                       MENU_AUTO_KEY_LOCK         }, // was "AUTOLk"
+#endif
 	{"S ADD1", VOICE_ID_INVALID,                       MENU_S_ADD1                },
 	{"S ADD2", VOICE_ID_INVALID,                       MENU_S_ADD2                },
 	{"STE",    VOICE_ID_INVALID,                       MENU_STE                   },
@@ -127,10 +129,12 @@ const t_menu_item g_menu_list[] =
 #ifdef ENABLE_NOAA                                                         
 	{"NOAA-S", VOICE_ID_INVALID,                       MENU_NOAA_SCAN             },
 #endif                                                                            
+#ifdef ENABLE_SIDE_BUTT_MENU
 	{"Side1S", VOICE_ID_INVALID,                       MENU_SIDE1_SHORT           },
 	{"Side1L", VOICE_ID_INVALID,                       MENU_SIDE1_LONG            },
 	{"Side2S", VOICE_ID_INVALID,                       MENU_SIDE2_SHORT           },
 	{"Side2L", VOICE_ID_INVALID,                       MENU_SIDE2_LONG            },
+#endif
 	{"VER",    VOICE_ID_INVALID,                       MENU_VERSION               },
 	{"RESET",  VOICE_ID_INITIALISATION,                MENU_RESET                 }, // might be better to move this to the hidden menu items ?
 
@@ -356,6 +360,7 @@ const char g_sub_MENU_SCRAMBLERAMBLER[11][7] =
 	"3500Hz"
 };
 
+#ifdef ENABLE_SIDE_BUTT_MENU
 const char g_sub_menu_SIDE_BUTT[9][16] =
 //const char g_sub_menu_SIDE_BUTT[10][16] =
 {
@@ -370,6 +375,7 @@ const char g_sub_menu_SIDE_BUTT[9][16] =
 	"TX\n1750Hz",
 //	"2nd PTT",
 };
+#endif
 
 // ***************************************************************************************
 
@@ -712,12 +718,14 @@ void UI_DisplayMenu(void)
 				break;
 		#endif
 
+		#ifdef ENABLE_KEYLOCK
 		case MENU_AUTO_KEY_LOCK:
 			if (g_sub_menu_selection == 0)
 				strcpy(String, "OFF");
 			else
 				sprintf(String, "%u secs", key_lock_timeout_500ms / 2);
 			break;
+		#endif
 
 		case MENU_COMPAND:
 			strcpy(String, g_sub_menu_rx_tx[g_sub_menu_selection]);
@@ -1025,12 +1033,14 @@ void UI_DisplayMenu(void)
 				g_usb_current);
 			break;
 
+#ifdef ENABLE_SIDE_BUTT_MENU
 		case MENU_SIDE1_SHORT:
 		case MENU_SIDE1_LONG:
 		case MENU_SIDE2_SHORT:
 		case MENU_SIDE2_LONG:
 			strcpy(String, g_sub_menu_SIDE_BUTT[g_sub_menu_selection]);
 			break;
+#endif
 
 		case MENU_VERSION:
 		{	// show the version string on multiple lines - if need be
@@ -1098,15 +1108,15 @@ void UI_DisplayMenu(void)
 				case FREQ_LOCK_446:
 					strcpy(String, "446.00625\n~\n446.19375");
 					break;
-				#ifdef ENABLE_TX_UNLOCK
+#ifdef ENABLE_TX_UNLOCK
 					case FREQ_LOCK_TX_UNLOCK:
 						sprintf(String, "UNLOCKED\n%u~%u", BX4819_BAND1.lower / 100000, BX4819_BAND2.upper / 100000);
 						break;
-				#endif
+#endif
 			}
 			break;
 
-		#ifdef ENABLE_F_CAL_MENU
+#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
 				{
 					const uint32_t value   = 22656 + g_sub_menu_selection;
@@ -1119,7 +1129,7 @@ void UI_DisplayMenu(void)
 						xtal_Hz / 1000000, xtal_Hz % 1000000);
 				}
 				break;
-		#endif
+#endif
 
 		case MENU_BAT_CAL:
 		{

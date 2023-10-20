@@ -1538,12 +1538,14 @@ void APP_time_slice_10ms(void)
 {
 	g_flash_light_blink_counter++;
 
+#ifdef ENABLE_UART
 	if (UART_IsCommandAvailable())
 	{
 		__disable_irq();
 		UART_HandleCommand();
 		__enable_irq();
 	}
+#endif
 
 	// ***********
 
@@ -2123,6 +2125,7 @@ void APP_time_slice_500ms(void)
 				g_search_css_state == SEARCH_CSS_STATE_REPEAT))
 			{
 
+				#ifdef ENABLE_KEYLOCK
 				if (g_eeprom.auto_keypad_lock       &&
 				    g_key_lock_count_down_500ms > 0 &&
 				   !g_dtmf_input_mode               &&
@@ -2135,6 +2138,7 @@ void APP_time_slice_500ms(void)
 						g_update_status   = true;
 					}
 				}
+				#endif
 
 				if (exit_menu)
 				{
@@ -2426,9 +2430,11 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 	// stay awake - for now
 	g_battery_save_count_down_10ms = battery_save_count_10ms;
 
+	#ifdef ENABLE_KEYLOCK
 	// keep the auto keylock at bay
 	if (g_eeprom.auto_keypad_lock)
 		g_key_lock_count_down_500ms = key_lock_timeout_500ms;
+	#endif
 
 	if (g_fkey_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2))
 	{	// cancel the F-key
@@ -2438,6 +2444,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 
 	// ********************
 
+	#ifdef ENABLE_KEYLOCK
 	if (g_eeprom.key_lock && g_current_function != FUNCTION_TRANSMIT && Key != KEY_PTT)
 	{	// keyboard is locked
 
@@ -2480,6 +2487,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 			return;
 		}
 	}
+	#endif
 
 	// key beep
 //	if (Key != KEY_PTT && !key_held && key_pressed)

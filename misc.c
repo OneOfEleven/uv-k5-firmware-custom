@@ -43,8 +43,10 @@ const uint8_t         dtmf_txstop_countdown_500ms      =   3000 / 500;  // 6 sec
 
 const uint8_t         serial_config_count_down_500ms   =   3000 / 500;  // 3 seconds
 
-const uint8_t         key_input_timeout_500ms          =   6000 / 500;  // 6 seconds
-const uint8_t         key_lock_timeout_500ms           =  30000 / 500;  // 30 seconds
+const uint8_t         key_input_timeout_500ms = 6000 / 500; // 6 seconds
+#ifdef ENABLE_KEYLOCK
+	const uint8_t         key_lock_timeout_500ms           =  30000 / 500;  // 30 seconds
+#endif
 
 const uint8_t         key_debounce_10ms                =     30 / 10;   // 30ms
 const uint8_t         key_long_press_10ms              =    300 / 10;   // 300ms
@@ -159,8 +161,10 @@ volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 #endif
 
 bool                  g_enable_speaker;
-uint8_t               g_key_input_count_down;
-uint8_t               g_key_lock_count_down_500ms;
+uint8_t g_key_input_count_down;
+#ifdef ENABLE_KEYLOCK
+	uint8_t               g_key_lock_count_down_500ms;
+#endif
 uint8_t               g_rtte_count_down;
 bool                  g_password_locked;
 uint8_t               g_update_status;
