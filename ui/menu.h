@@ -136,19 +136,19 @@ enum
 	// ************************************
 	// items after here are normally hidden
 
-	MENU_BAT_CAL, // battery voltage calibration
+	MENU_BAT_CAL,      // battery voltage calibration
 
 #ifdef ENABLE_F_CAL_MENU
-	MENU_F_CALI, // 26MHz reference xtal calibration
+	MENU_F_CALI,       // 26MHz reference xtal calibration
 #endif
 
 	MENU_SCRAMBLER_EN, // scrambler enable/disable
-	MENU_FREQ_LOCK,		 // lock to a selected region
-	MENU_350_EN,			 // 350~400MHz enable/disable
-	MENU_174_TX,			 // 174~350MHz TX enable/disable
-	MENU_350_TX,			 // 350~400MHz TX enable/disable
-	MENU_470_TX,			 // 470MHz and up TX enable/disable
-	MENU_TX_EN,				 // disable the TX entirely
+	MENU_FREQ_LOCK,    // lock to a selected region
+	MENU_350_EN,       // 350~400MHz enable/disable
+	MENU_174_TX,       // 174~350MHz TX enable/disable
+	MENU_350_TX,       // 350~400MHz TX enable/disable
+	MENU_470_TX,       // 470MHz and up TX enable/disable
+	MENU_TX_EN,        // disable the TX entirely
 
 	// ************************************
 	// ************************************
