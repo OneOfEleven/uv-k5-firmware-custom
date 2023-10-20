@@ -19,6 +19,7 @@ ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
 # FM Radio 4.2 kB
 ENABLE_FMRADIO                   := 1
+ENABLE_FMRADIO_64_108            := 0
 # NOAA 1.2 kB
 ENABLE_NOAA                      := 0
 # Voice 1.7 kB
@@ -279,6 +280,9 @@ ifeq ($(ENABLE_AIRCOPY_RX_REBOOT),1)
 endif
 ifeq ($(ENABLE_FMRADIO),1)
 	CFLAGS += -DENABLE_FMRADIO
+endif
+ifeq ($(ENABLE_FMRADIO_64_108),1)
+	CFLAGS += -DENABLE_FMRADIO_64_108
 endif
 ifeq ($(ENABLE_UART),1)
 	CFLAGS += -DENABLE_UART
