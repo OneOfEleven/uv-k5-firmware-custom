@@ -158,7 +158,7 @@ enum
 extern const t_menu_item  g_menu_list[];
 extern uint8_t            g_menu_list_sorted[];
 
-extern const char         g_sub_MENU_TX_POWER[3][5];
+extern const char         g_sub_MENU_TX_POWER[3][6];
 extern const char         g_sub_menu_shift_dir[3][4];
 extern const char         g_sub_MENU_BANDWIDTH[2][7];
 extern const char         g_sub_menu_off_on[2][4];

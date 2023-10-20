@@ -168,10 +168,11 @@ const unsigned int g_hidden_menu_count = 9;
 
 // ***************************************************************************************
 
-const char g_sub_MENU_TX_POWER[3][5] =
+// frequencies are low mid high, levels are low medium high
+const char g_sub_MENU_TX_POWER[3][6] =
 {
 	"LOW",
-	"MID",
+	"MEDIUM",
 	"HIGH"
 };
 
