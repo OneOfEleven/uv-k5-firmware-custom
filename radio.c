@@ -1131,9 +1131,11 @@ void RADIO_tx_eot(void)
 	else
 	if (g_eeprom.roger_mode == ROGER_MODE_ROGER)
 		BK4819_PlayRoger();
+	#ifdef ENABLE_MDC1200
 	else
 	if (g_eeprom.roger_mode == ROGER_MODE_MDC)
 		BK4819_PlayRogerMDC1200();
+	#endif
 	else
 	if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 		BK4819_PlayTone(APOLLO_TONE2_HZ, APOLLO_TONE_MS, 28);

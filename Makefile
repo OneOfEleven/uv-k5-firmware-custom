@@ -31,6 +31,7 @@ ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
 # Tx Alarm 0.6 kB
 ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 0
+# MDC1200 Tx End Tone 0.6 kB
 ENABLE_MDC1200                   := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
