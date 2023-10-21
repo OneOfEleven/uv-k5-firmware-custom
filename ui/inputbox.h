@@ -24,7 +24,8 @@
 extern char    g_input_box[8];
 extern uint8_t g_input_box_index;
 
-void INPUTBOX_Append(const key_code_t Digit);
+uint32_t INPUTBOX_value(void);
+void     INPUTBOX_append(const key_code_t Digit);
 
 #endif
 
