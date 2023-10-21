@@ -642,6 +642,9 @@ void FM_process_key(key_code_t Key, bool key_pressed, bool key_held)
 		case KEY_PTT:
 			GENERIC_Key_PTT(key_pressed);
 			break;
+		case KEY_SIDEPTT:
+			GENERIC_Key_SIDEPTT(key_pressed);
+			break;
 		default:
 			break;
 	}

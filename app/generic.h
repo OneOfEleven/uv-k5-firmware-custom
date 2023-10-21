@@ -21,6 +21,7 @@
 
 void GENERIC_Key_F(bool key_pressed, bool key_held);
 void GENERIC_Key_PTT(bool key_pressed);
+void GENERIC_Key_SIDEPTT(bool key_pressed);
 
 #endif
 

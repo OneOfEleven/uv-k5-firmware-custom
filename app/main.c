@@ -984,7 +984,7 @@ void MAIN_process_key(key_code_t key, bool key_pressed, bool key_held)
 	#endif
 
 	#ifdef ENABLE_FMRADIO
-		if (g_fm_radio_mode && key != KEY_PTT && key != KEY_EXIT)
+		if (g_fm_radio_mode && key != KEY_PTT && key != KEY_SIDEPTT && key != KEY_EXIT)
 		{
 			if (!key_held && key_pressed)
 				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
@@ -1043,6 +1043,9 @@ void MAIN_process_key(key_code_t key, bool key_pressed, bool key_held)
 			break;
 		case KEY_PTT:
 			GENERIC_Key_PTT(key_pressed);
+			break;
+		case KEY_SIDEPTT:
+			GENERIC_Key_SIDEPTT(key_pressed);
 			break;
 		default:
 			if (!key_held && key_pressed)

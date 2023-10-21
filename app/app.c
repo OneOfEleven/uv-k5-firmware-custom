@@ -1402,6 +1402,56 @@ void APP_check_keys(void)
 	// scan the hardware keys
 	key = KEYBOARD_Poll();
 
+	// *****************
+	// side ptt processing
+
+	if (ACTION_is_side_ptt(key))
+	{
+		// enables side ptt
+		key = KEY_SIDEPTT;
+	#ifdef ENABLE_KILL_REVIVE
+		if (!g_setting_radio_disabled)
+	#endif
+		{
+		#ifdef ENABLE_AIRCOPY
+			if (!g_side_ptt_is_pressed && g_screen_to_display != DISPLAY_AIRCOPY)
+		#else
+			if (!g_side_ptt_is_pressed)
+		#endif
+			{
+				if (++g_ptt_debounce >= 3)      // 30ms
+				{	// start TX'ing
+
+					g_boot_counter_10ms = 0;    // cancel the boot-up screen
+					g_side_ptt_is_pressed    = true;
+					g_side_ptt_was_released  = false;
+					g_side_ptt_debounce      = 0;
+
+					APP_process_key(KEY_SIDEPTT, true, false);
+				}
+			}
+			else
+				g_side_ptt_debounce = 0;
+		}
+	}
+	else
+	{	// PTT released
+		if (g_side_ptt_is_pressed)
+		{
+			if (++g_side_ptt_debounce >= 3)  // 30ms
+			{	// stop TX'ing
+
+				g_side_ptt_is_pressed   = false;
+				g_side_ptt_was_released = true;
+				g_side_ptt_debounce     = 0;
+
+				APP_process_key(KEY_SIDEPTT, false, false);
+			}
+		}
+		else
+			g_side_ptt_debounce = 0;
+	}
+
 	g_boot_counter_10ms = 0;   // cancel boot screen/beeps
 
 	if (g_serial_config_count_down_500ms > 0)
@@ -2402,7 +2452,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 		return;
 
 	// reset the state so as to remove it from the screen
-	if (Key != KEY_INVALID && Key != KEY_PTT)
+	if (Key != KEY_INVALID && Key != KEY_PTT && Key != KEY_SIDEPTT)
 		RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
 #if 0
 	// remember the current backlight state (on / off)
@@ -2421,7 +2471,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 
 	// turn the backlight on
 	if (key_pressed)
-		if (Key != KEY_PTT)
+		if (Key != KEY_PTT && Key != KEY_SIDEPTT)
 			backlight_turn_on(0);
 
 	if (g_current_function == FUNCTION_POWER_SAVE)
@@ -2436,7 +2486,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 		g_key_lock_count_down_500ms = key_lock_timeout_500ms;
 	#endif
 
-	if (g_fkey_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2))
+	if (g_fkey_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2 || Key == KEY_SIDEPTT))
 	{	// cancel the F-key
 		g_fkey_pressed  = false;
 		g_update_status = true;
@@ -2445,7 +2495,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 	// ********************
 
 	#ifdef ENABLE_KEYLOCK
-	if (g_eeprom.key_lock && g_current_function != FUNCTION_TRANSMIT && Key != KEY_PTT)
+	if (g_eeprom.key_lock && g_current_function != FUNCTION_TRANSMIT && Key != KEY_PTT && Key != KEY_SIDEPTT)
 	{	// keyboard is locked
 
 		if (Key == KEY_F)
@@ -2488,10 +2538,6 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 		}
 	}
 	#endif
-
-	// key beep
-//	if (Key != KEY_PTT && !key_held && key_pressed)
-//		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 	// ********************
 
@@ -2549,18 +2595,29 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 				g_ptt_was_pressed = false;
 			}
 		}
-//		g_ptt_was_pressed = false;
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //			UART_printf("proc key 1 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 		#endif
 	}
 
+	if (g_side_ptt_was_pressed)
+	{
+		if (Key == KEY_SIDEPTT)
+		{
+			flag = key_held;
+			if (!key_pressed)
+			{
+				flag = true;
+				g_side_ptt_was_pressed = false;
+			}
+		}
+	}
+
 	// this bit of code has caused soooooo many problems due
 	// to this causing key releases to be ignored :( .. 1of11
 	if (g_ptt_was_released)
 	{
-//		if (Key != KEY_PTT)
 		if (Key == KEY_PTT)
 		{
 			if (key_held)
@@ -2571,11 +2628,24 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 				g_ptt_was_released = false;
 			}
 		}
-//		g_ptt_was_released = false;
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //			UART_printf("proc key 2 %3u %u %u %u %u\r\n", Key, key_pressed, key_held, g_fkey_pressed, flag);
 		#endif
+	}
+
+	if (g_side_ptt_was_pressed)
+	{
+		if (Key == KEY_SIDEPTT)
+		{
+			if (key_held)
+				flag = true;
+			if (key_pressed)
+			{
+				flag = true;
+				g_side_ptt_was_released = false;
+			}
+		}
 	}
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
@@ -2593,23 +2663,24 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 			{
 				char Code;
 
-				if (Key == KEY_PTT)
+				switch (Key)
 				{
+				case KEY_PTT:
 					GENERIC_Key_PTT(key_pressed);
 					goto Skip;
-				}
-
-				if (Key == KEY_SIDE2)
-				{	// transmit 1750Hz tone
+				case KEY_SIDEPTT:
+					GENERIC_Key_SIDEPTT(key_pressed);
+					goto Skip;
+				case KEY_SIDE2:
+					// transmit 1750Hz tone
 					Code = 0xFE;
-				}
-				else
-				{
+					break;
+				default:
+					// transmit DTMF keys
 					Code = DTMF_GetCharacter(Key - KEY_0);
 					if (Code == 0xFF)
 						goto Skip;
-
-					// transmit DTMF keys
+					break;
 				}
 
 				if (!key_pressed || key_held)
@@ -2660,6 +2731,10 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 					else
 //					if (!key_held)
 						g_ptt_was_released = true;
+					if (Key == KEY_SIDEPTT)
+						g_side_ptt_was_pressed = true;
+					else
+						g_side_ptt_was_pressed = true;
 				}
 			#endif
 		}
