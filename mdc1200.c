@@ -47,61 +47,77 @@ uint16_t reverse_bits(const uint16_t bits_in, const unsigned int num_bits)
 	return bits_out;
 }
 
-uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
-{
-
-	// this can be done using the CPU's own CRC calculator once we know we're ok
-
-	unsigned int i;
-
-	#if 0
-		uint16_t crc;
-
-		CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_ENABLE;
-	#else
-		uint16_t crc = 0x0000;
-	#endif
-
-	for (i = 0; i < data_len; i++)
-	{
-		#if 0
-
-			// bit reverse each data byte before adding it to the CRC
-			// the cortex CPU might have an instruction to bit reverse for us ?
-			//
-			CRC_DATAIN = reverse_bits(*data++, 8);
-			//CRC_DATAIN = bitReverse8(*data++);
-
-		#else
-			uint8_t mask;
-	
-			// bit reverse each data byte before adding it to the CRC
-			// the cortex CPU might have an instruction to bit reverse for us ?
-			//
-			const uint8_t bits = reverse_bits(*data++, 8);
-			//const uint8_t bits = bitReverse8(*data++);
-
-			for (mask = 0x0080; mask != 0; mask >>= 1)
-			{
-				uint16_t msb = crc & 0x8000;
-				if (bits & mask)
-					msb ^= 0x8000;
-				crc <<= 1;
-				if (msb)
-					crc ^= 0x1021;
-			}
-		#endif
+#if 0
+	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
+	{	// using the reverse computation avoids having to reverse the bit order during and after
+		uint16_t crc = 0;
+		for (i = 0; i < len; i++)
+		{
+			unsigned int k;
+			crc ^= data[i];
+			for (k = 8; k > 0; k--)
+				crc = (crc & 1u) ? (crc >> 1) ^ 0x8408 : crc >> 1;
+		}
+		crc ^= 0xffff;
+		return crc;
 	}
-
-	#if 0
-		crc    = (uint16_t)CRC_DATAOUT;
-		CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_DISABLE;
-	#endif
+#else
+	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
+	{
 	
-	// bit reverse and invert the final CRC
-	return reverse_bits(crc, 16) ^ 0xffff; 
-//	return bitReverse16(crc) ^ 0xffff;
-}
+		// this can be done using the CPU's own CRC calculator once we know we're ok
+	
+		unsigned int i;
+	
+		#if 0
+			uint16_t crc;
+	
+			CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_ENABLE;
+		#else
+			uint16_t crc = 0;
+		#endif
+	
+		for (i = 0; i < data_len; i++)
+		{
+			#if 0
+	
+				// bit reverse each data byte before adding it to the CRC
+				// the cortex CPU might have an instruction to bit reverse for us ?
+				//
+				CRC_DATAIN = reverse_bits(data[i], 8);
+				//CRC_DATAIN = bitReverse8(data[i]);
+	
+			#else
+				uint8_t mask;
+		
+				// bit reverse each data byte before adding it to the CRC
+				// the cortex CPU might have an instruction to bit reverse for us ?
+				//
+				const uint8_t bits = reverse_bits(data[i], 8);
+				//const uint8_t bits = bitReverse8(*data++);
+	
+				for (mask = 0x0080; mask != 0; mask >>= 1)
+				{
+					uint16_t msb = crc & 0x8000;
+					if (bits & mask)
+						msb ^= 0x8000;
+					crc <<= 1;
+					if (msb)
+						crc ^= 0x1021;
+				}
+			#endif
+		}
+	
+		#if 0
+			crc    = (uint16_t)CRC_DATAOUT;
+			CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_DISABLE;
+		#endif
+		
+		// bit reverse and invert the final CRC
+		return reverse_bits(crc, 16) ^ 0xffff; 
+	//	return bitReverse16(crc) ^ 0xffff;
+	}
+#endif
 
 uint8_t * encode_data(uint8_t *data)
 {
@@ -154,14 +170,14 @@ uint8_t * encode_data(uint8_t *data)
 }
 
 // MDC1200 sync bit reversals and packet header
-static const uint8_t header[] = {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x07, 0x09, 0x2a, 0x44, 0x6f};
+//static const uint8_t header[] = {0x00, 0x00, 0x00, 0x05, 0x55, 0x55, 0x55, 0x07, 0x09, 0x2a, 0x44, 0x6f};
+static const uint8_t header[] = {0x00, 0x00, 0x00, 0x0A, 0xAA, 0xAA, 0xAA, 0x07, 0x09, 0x2a, 0x44, 0x6f};
 
 void delta_modulation(uint8_t *data, const unsigned int size)
 {	// xor succesive bits in the entire packet, including the bit reversing pre-amble
 	uint8_t b1;
-	unsigned int toggle_delay;
 	unsigned int i;
-	for (i = 0, toggle_delay = 27, b1 = 1u; i < size; i++)
+	for (i = 0, b1 = 1u; i < size; i++)
 	{
 		int bit_num;
 		uint8_t in  = data[i];
@@ -169,9 +185,8 @@ void delta_modulation(uint8_t *data, const unsigned int size)
 		for (bit_num = 7; bit_num >= 0; bit_num--)
 		{
 			const uint8_t b2 = (in >> bit_num) & 1u;
-			if (toggle_delay > 0)
-				toggle_delay--;
-			if (b1 != b2 && toggle_delay == 0)
+//			const uint8_t b2 = (in >> (7 - bit_num)) & 1u;
+			if (b1 != b2)
 				out |= 1u << bit_num;        // previous bit and new bit are different
 //				out |= 1u << (7 - bit_num);
 			b1 = b2;

@@ -125,12 +125,12 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_MEM_DISP:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_MEM_DISP) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_mem_disp) - 1;
 			break;
 
 		case MENU_TX_POWER:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_TX_POWER) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_tx_power) - 1;
 			break;
 
 		case MENU_SHIFT_DIR:
@@ -140,7 +140,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_DUAL_WATCH:
 			*pMin = 0;
-//			*pMax = ARRAY_SIZE(g_sub_MENU_DUAL_WATCH) - 1;
+//			*pMax = ARRAY_SIZE(g_sub_menu_dual_watch) - 1;
 			*pMax = ARRAY_SIZE(g_sub_menu_off_on) - 1;
 			break;
 
@@ -151,7 +151,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			
 		case MENU_CROSS_VFO:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_CROSS_VFO) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_cross_vfo) - 1;
 			break;
 
 		#ifdef ENABLE_VOICE
@@ -163,12 +163,12 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_SCAN_CAR_RESUME:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_SCAN_CAR_RESUME) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_scan_car_resume) - 1;
 			break;
 
 		case MENU_ROGER_MODE:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_ROGER_MODE_mode) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_roger_mode) - 1;
 			break;
 
 		case MENU_PON_MSG:
@@ -191,13 +191,13 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_BANDWIDTH:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_BANDWIDTH) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_bandwidth) - 1;
 			break;
 
 		#ifdef ENABLE_ALARM
 			case MENU_ALARM_MODE:
 				*pMin = 0;
-				*pMax = ARRAY_SIZE(g_sub_MENU_ALARM_MODE) - 1;
+				*pMax = ARRAY_SIZE(g_sub_menu_alarm_mode) - 1;
 				break;
 		#endif
 
@@ -207,13 +207,13 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			case MENU_SIDE2_SHORT:
 			case MENU_SIDE2_LONG:
 				*pMin = 0;
-				*pMax = ARRAY_SIZE(g_sub_menu_SIDE_BUTT) - 1;
+				*pMax = ARRAY_SIZE(g_sub_menu_side_butt) - 1;
 				break;
 		#endif
 
 		case MENU_RESET:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_RESET) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_reset) - 1;
 			break;
 
 		case MENU_COMPAND:
@@ -234,7 +234,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				*pMin = 0;
-				*pMax = ARRAY_SIZE(g_sub_MENU_AM_FIX_test1) - 1;
+				*pMax = ARRAY_SIZE(g_sub_menu_AM_FIX_test1) - 1;
 				break;
 		#endif
 
@@ -273,17 +273,17 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		case MENU_SCRAMBLER_EN:
 		case MENU_TX_EN:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_DIS_EN) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_dis_en) - 1;
 			break;
 
 		case MENU_SCRAMBLER:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_SCRAMBLERAMBLER) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_scrambler) - 1;
 			break;
 
 		case MENU_TX_TO:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_TX_TO) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_tx_timeout) - 1;
 			break;
 
 		#ifdef ENABLE_VOX
@@ -310,7 +310,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_BAT_SAVE:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_BAT_SAVE) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_bat_save) - 1;
 			break;
 
 		case MENU_MIC_GAIN:
@@ -326,17 +326,17 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_DTMF_RSP:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_MENU_DTMF_RSP) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_dtmf_rsp) - 1;
 			break;
 
 		case MENU_PTT_ID:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_PTT_ID) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_ptt_id) - 1;
 			break;
 
 		case MENU_BAT_TXT:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_BAT_TXT) - 1;
+			*pMax = ARRAY_SIZE(g_sub_menu_bat_text) - 1;
 			break;
 
 		case MENU_DTMF_HOLD:

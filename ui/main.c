@@ -92,7 +92,7 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 		if (g_eeprom.tx_timeout_timer == 0)
 			timeout_secs = 30;   // 30 sec
 		else
-		if (g_eeprom.tx_timeout_timer < (ARRAY_SIZE(g_sub_MENU_TX_TO) - 1))
+		if (g_eeprom.tx_timeout_timer < (ARRAY_SIZE(g_sub_menu_tx_timeout) - 1))
 			timeout_secs = 60 * g_eeprom.tx_timeout_timer;  // minutes
 		else
 			timeout_secs = 60 * 15;  // 15 minutes

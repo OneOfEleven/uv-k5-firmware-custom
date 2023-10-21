@@ -158,37 +158,37 @@ enum
 extern const t_menu_item  g_menu_list[];
 extern uint8_t            g_menu_list_sorted[];
 
-extern const char         g_sub_MENU_TX_POWER[3][5];
+extern const char         g_sub_menu_tx_power[3][7];
 extern const char         g_sub_menu_shift_dir[3][4];
-extern const char         g_sub_MENU_BANDWIDTH[2][7];
+extern const char         g_sub_menu_bandwidth[2][7];
 extern const char         g_sub_menu_off_on[2][4];
-extern const char         g_sub_MENU_BAT_SAVE[5][9];
-extern const char         g_sub_MENU_TX_TO[11][7];
-extern const char         g_sub_MENU_DUAL_WATCH[3][10];
-extern const char         g_sub_MENU_CROSS_VFO[3][10];
+extern const char         g_sub_menu_bat_save[5][9];
+extern const char         g_sub_menu_tx_timeout[11][7];
+extern const char         g_sub_menu_dual_watch[3][10];
+extern const char         g_sub_menu_cross_vfo[3][10];
 #ifdef ENABLE_VOICE       
 	extern const char     g_sub_menu_voice[3][4];
 #endif                    
-extern const char         g_sub_MENU_SCAN_CAR_RESUME[3][13];
-extern const char         g_sub_MENU_MEM_DISP[4][15];
+extern const char         g_sub_menu_scan_car_resume[3][13];
+extern const char         g_sub_menu_mem_disp[4][15];
 #ifdef ENABLE_ALARM       
-	extern const char     g_sub_MENU_ALARM_MODE[2][5];
+	extern const char     g_sub_menu_alarm_mode[2][5];
 #endif                    
-extern const char         g_sub_MENU_DTMF_RSP[4][9];
-extern const char         g_sub_menu_PTT_ID[5][15];
+extern const char         g_sub_menu_dtmf_rsp[4][9];
+extern const char         g_sub_menu_ptt_id[5][15];
 extern const char         g_sub_menu_pwr_on_msg[4][14];
-extern const char         g_sub_MENU_ROGER_MODE_mode[3][16];
-extern const char         g_sub_menu_RESET[2][4];
+extern const char         g_sub_menu_roger_mode[3][16];
+extern const char         g_sub_menu_reset[2][4];
 extern const char         g_sub_menu_backlight[8][7];
 extern const char         g_sub_menu_rx_tx[4][6];
 #ifdef ENABLE_AM_FIX_TEST1
-	extern const char     g_sub_MENU_AM_FIX_test1[4][8];
+	extern const char     g_sub_menu_AM_FIX_test1[4][8];
 #endif                    
-extern const char         g_sub_menu_BAT_TXT[3][8];
-extern const char         g_sub_menu_DIS_EN[2][9];
-extern const char         g_sub_MENU_SCRAMBLERAMBLER[11][7];
+extern const char         g_sub_menu_bat_text[3][8];
+extern const char         g_sub_menu_dis_en[2][9];
+extern const char         g_sub_menu_scrambler[11][7];
 #ifdef ENABLE_SIDE_BUTT_MENU
-	extern const char         g_sub_menu_SIDE_BUTT[9][16];
+	extern const char     g_sub_menu_side_butt[9][16];
 #endif
 						  
 extern bool               g_in_sub_menu;

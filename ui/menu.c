@@ -168,10 +168,10 @@ const unsigned int g_hidden_menu_count = 9;
 
 // ***************************************************************************************
 
-const char g_sub_MENU_TX_POWER[3][5] =
+const char g_sub_menu_tx_power[3][7] =
 {
 	"LOW",
-	"MID",
+	"MEDIUM",
 	"HIGH"
 };
 
@@ -182,7 +182,7 @@ const char g_sub_menu_shift_dir[3][4] =
 	"-"
 };
 
-const char g_sub_MENU_BANDWIDTH[2][7] =
+const char g_sub_menu_bandwidth[2][7] =
 {
 	"WIDE",
 	"NARROW"
@@ -194,7 +194,7 @@ const char g_sub_menu_off_on[2][4] =
 	"ON"
 };
 
-const char g_sub_MENU_BAT_SAVE[5][9] =
+const char g_sub_menu_bat_save[5][9] =
 {
 	"OFF",
 	"1:1 50%",
@@ -203,7 +203,7 @@ const char g_sub_MENU_BAT_SAVE[5][9] =
 	"1:4 80%"
 };
 
-const char g_sub_MENU_TX_TO[11][7] =
+const char g_sub_menu_tx_timeout[11][7] =
 {
 	"30 sec",
 	"1 min",
@@ -218,14 +218,14 @@ const char g_sub_MENU_TX_TO[11][7] =
 	"15 min"
 };
 
-const char g_sub_MENU_DUAL_WATCH[3][10] =
+const char g_sub_menu_dual_watch[3][10] =
 {
 	"OFF",
 	"LOWER\nVFO",
 	"UPPER\nVFO",
 };
 
-const char g_sub_MENU_CROSS_VFO[3][10] =
+const char g_sub_menu_cross_vfo[3][10] =
 {
 	"RX\nVFO",
 	"UPPER\nVFO",
@@ -241,14 +241,14 @@ const char g_sub_MENU_CROSS_VFO[3][10] =
 	};
 #endif
 
-const char g_sub_MENU_SCAN_CAR_RESUME[3][13] =
+const char g_sub_menu_scan_car_resume[3][13] =
 {
 	"TIME",
 	"CARRIER",
 	"SEARCH"
 };
 
-const char g_sub_MENU_MEM_DISP[4][15] =
+const char g_sub_menu_mem_disp[4][15] =
 {
 	"FREQ",
 	"CHANNEL\nNUMBER",
@@ -257,14 +257,14 @@ const char g_sub_MENU_MEM_DISP[4][15] =
 };
 
 #ifdef ENABLE_ALARM
-	const char g_sub_MENU_ALARM_MODE[2][5] =
+	const char g_sub_menu_alarm_mode[2][5] =
 	{
 		"SITE",
 		"TONE"
 	};
 #endif
 
-const char g_sub_MENU_DTMF_RSP[4][9] =
+const char g_sub_menu_dtmf_rsp[4][9] =
 {
 	"NONE",
 	"RING",
@@ -272,7 +272,7 @@ const char g_sub_MENU_DTMF_RSP[4][9] =
 	"RNG RPLY"
 };
 
-const char g_sub_menu_PTT_ID[5][15] =
+const char g_sub_menu_ptt_id[5][15] =
 {
 	"OFF",
 	"BEGIN",
@@ -289,14 +289,14 @@ const char g_sub_menu_pwr_on_msg[4][14] =
 	"NONE"
 };
 
-const char g_sub_MENU_ROGER_MODE_mode[3][16] =
+const char g_sub_menu_roger_mode[3][16] =
 {
 	"OFF",
 	"TX END\nROGER",
 	"TX END\nMDC\n1200"
 };
 
-const char g_sub_menu_RESET[2][4] =
+const char g_sub_menu_reset[2][4] =
 {
 	"VFO",
 	"ALL"
@@ -323,7 +323,7 @@ const char g_sub_menu_rx_tx[4][6] =
 };
 
 #ifdef ENABLE_AM_FIX_TEST1
-	const char g_sub_MENU_AM_FIX_test1[4][8] =
+	const char g_sub_menu_AM_FIX_test1[4][8] =
 	{
 		"LNA-S 0",
 		"LNA-S 1",
@@ -332,20 +332,20 @@ const char g_sub_menu_rx_tx[4][6] =
 	};
 #endif
 
-const char g_sub_menu_BAT_TXT[3][8] =
+const char g_sub_menu_bat_text[3][8] =
 {
 	"NONE",
 	"VOLTAGE",
 	"PERCENT"
 };
 
-const char g_sub_menu_DIS_EN[2][9] =
+const char g_sub_menu_dis_en[2][9] =
 {
 	"DISABLED",
 	"ENABLED"
 };
 
-const char g_sub_MENU_SCRAMBLERAMBLER[11][7] =
+const char g_sub_menu_scrambler[11][7] =
 {
 	"OFF",
 	"2600Hz",
@@ -361,8 +361,8 @@ const char g_sub_MENU_SCRAMBLERAMBLER[11][7] =
 };
 
 #ifdef ENABLE_SIDE_BUTT_MENU
-const char g_sub_menu_SIDE_BUTT[9][16] =
-//const char g_sub_menu_SIDE_BUTT[10][16] =
+const char g_sub_menu_side_butt[9][16] =
+//const char g_sub_menu_side_butt[10][16] =
 {
 	"NONE",
 	"FLASH\nLIGHT",
@@ -586,7 +586,7 @@ void UI_DisplayMenu(void)
 		}
 
 		case MENU_TX_POWER:
-			strcpy(String, g_sub_MENU_TX_POWER[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_tx_power[g_sub_menu_selection]);
 			break;
 
 		case MENU_RX_CDCSS:
@@ -673,12 +673,12 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_BANDWIDTH:
-			strcpy(String, g_sub_MENU_BANDWIDTH[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_bandwidth[g_sub_menu_selection]);
 			break;
 
 		case MENU_SCRAMBLER:
 			strcpy(String, "INVERT\n");
-			strcat(String, g_sub_MENU_SCRAMBLERAMBLER[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_scrambler[g_sub_menu_selection]);
 
 			#if 1
 				if (g_sub_menu_selection > 0 && g_setting_scramble_enable)
@@ -713,7 +713,7 @@ void UI_DisplayMenu(void)
 
 		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
-				strcpy(String, g_sub_MENU_AM_FIX_test1[g_sub_menu_selection]);
+				strcpy(String, g_sub_menu_AM_FIX_test1[g_sub_menu_selection]);
 //				g_setting_am_fix = g_sub_menu_selection;
 				break;
 		#endif
@@ -784,38 +784,38 @@ void UI_DisplayMenu(void)
 		#ifdef ENABLE_NOAA
 			case MENU_NOAA_SCAN:
 				strcpy(String, "SCAN\n");
-				strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+				strcat(String, g_sub_menu_dis_en[g_sub_menu_selection]);
 				break;
 		#endif
 
 		case MENU_350_EN:
 			strcpy(String, "350~400\n");
-			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_dis_en[g_sub_menu_selection]);
 			break;
 
 		case MENU_350_TX:
 			strcpy(String, "TX\n350~400\n");
-			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_dis_en[g_sub_menu_selection]);
 			break;
 
 		case MENU_174_TX:
 			strcpy(String, "TX\n174~350\n");
-			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_dis_en[g_sub_menu_selection]);
 			break;
 
 		case MENU_470_TX:
 			strcpy(String, "TX\n470~600\n");
-			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_dis_en[g_sub_menu_selection]);
 			break;
 
 		case MENU_SCRAMBLER_EN:
 			strcpy(String, "SCRAMBLER\n");
-			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_dis_en[g_sub_menu_selection]);
 			break;
 
 		case MENU_TX_EN:
 			strcpy(String, "TX\n");
-			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_dis_en[g_sub_menu_selection]);
 			break;
 
 		case MENU_MEM_SAVE:
@@ -882,11 +882,11 @@ void UI_DisplayMenu(void)
 		}
 
 		case MENU_BAT_SAVE:
-			strcpy(String, g_sub_MENU_BAT_SAVE[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_bat_save[g_sub_menu_selection]);
 			break;
 
 		case MENU_DUAL_WATCH:
-//			strcpy(String, g_sub_MENU_DUAL_WATCH[g_sub_menu_selection]);
+//			strcpy(String, g_sub_menu_dual_watch[g_sub_menu_selection]);
 			strcpy(String, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
@@ -896,11 +896,11 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_CROSS_VFO:
-			strcpy(String, g_sub_MENU_CROSS_VFO[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_cross_vfo[g_sub_menu_selection]);
 			break;
 
 		case MENU_TX_TO:
-			strcpy(String, g_sub_MENU_TX_TO[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_tx_timeout[g_sub_menu_selection]);
 			break;
 
 		#ifdef ENABLE_VOICE
@@ -911,11 +911,11 @@ void UI_DisplayMenu(void)
 
 		case MENU_SCAN_CAR_RESUME:
 			strcpy(String, "SCAN\nRESUME\n");
-			strcat(String, g_sub_MENU_SCAN_CAR_RESUME[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_scan_car_resume[g_sub_menu_selection]);
 			break;
 
 		case MENU_MEM_DISP:
-			strcpy(String, g_sub_MENU_MEM_DISP[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_mem_disp[g_sub_menu_selection]);
 			break;
 
 		case MENU_RP_STE:
@@ -935,7 +935,7 @@ void UI_DisplayMenu(void)
 		#ifdef ENABLE_ALARM
 			case MENU_ALARM_MODE:
 				strcpy(String, "TX ALARM\n");
-				sprintf(String + strlen(String), g_sub_MENU_ALARM_MODE[g_sub_menu_selection]);
+				sprintf(String + strlen(String), g_sub_menu_alarm_mode[g_sub_menu_selection]);
 				break;
 		#endif
 
@@ -956,7 +956,7 @@ void UI_DisplayMenu(void)
 
 		case MENU_DTMF_RSP:
 			strcpy(String, "DTMF\nRESPONSE\n");
-			strcat(String, g_sub_MENU_DTMF_RSP[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_dtmf_rsp[g_sub_menu_selection]);
 			break;
 
 		case MENU_DTMF_HOLD:
@@ -995,11 +995,11 @@ void UI_DisplayMenu(void)
 
 		case MENU_PTT_ID:
 			strcpy(String, (g_sub_menu_selection > 0) ? "TX ID\n" : "");
-			strcat(String, g_sub_menu_PTT_ID[g_sub_menu_selection]);
+			strcat(String, g_sub_menu_ptt_id[g_sub_menu_selection]);
 			break;
 
 		case MENU_BAT_TXT:
-			strcpy(String, g_sub_menu_BAT_TXT[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_bat_text[g_sub_menu_selection]);
 			break;
 
 		case MENU_DTMF_LIST:
@@ -1023,7 +1023,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_ROGER_MODE:
-			strcpy(String, g_sub_MENU_ROGER_MODE_mode[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_roger_mode[g_sub_menu_selection]);
 			break;
 
 		case MENU_VOLTAGE:
@@ -1038,7 +1038,7 @@ void UI_DisplayMenu(void)
 		case MENU_SIDE1_LONG:
 		case MENU_SIDE2_SHORT:
 		case MENU_SIDE2_LONG:
-			strcpy(String, g_sub_menu_SIDE_BUTT[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_side_butt[g_sub_menu_selection]);
 			break;
 #endif
 
@@ -1081,7 +1081,7 @@ void UI_DisplayMenu(void)
 		}
 
 		case MENU_RESET:
-			strcpy(String, g_sub_menu_RESET[g_sub_menu_selection]);
+			strcpy(String, g_sub_menu_reset[g_sub_menu_selection]);
 			break;
 
 		case MENU_FREQ_LOCK:
