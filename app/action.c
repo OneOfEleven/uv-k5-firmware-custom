@@ -34,6 +34,8 @@
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"
+#include "main.h"
+#include "generic.h"
 #include "ui/inputbox.h"
 #include "ui/ui.h"
 
@@ -337,6 +339,28 @@ void ACTION_Scan(bool bRestart)
 	}
 #endif
 
+void ACTION_vfo_ab(void) {
+	APP_stop_scan();
+
+	if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_A)
+		g_eeprom.cross_vfo_rx_tx = CROSS_BAND_CHAN_B;
+	else if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_B)
+		g_eeprom.cross_vfo_rx_tx = CROSS_BAND_CHAN_A;
+	else if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_A)
+		g_eeprom.dual_watch = DUAL_WATCH_CHAN_B;
+	else if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_B)
+		g_eeprom.dual_watch = DUAL_WATCH_CHAN_A;
+	else
+		g_eeprom.tx_vfo = (g_eeprom.tx_vfo + 1) & 1u;
+
+	g_request_save_settings = 1;
+	g_flag_reconfigure_vfos = true;
+}
+
+void ACTION_side_ptt(void) {
+	g_flag_prepare_tx = true;
+}
+
 void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key_held)
 {
 	uint8_t Short = ACTION_OPT_NONE;
@@ -407,6 +431,11 @@ void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key
 			#ifdef ENABLE_TX1750
 				ACTION_AlarmOr1750(true);
 			#endif
+			break;
+		case ACTION_OPT_VFO_AB:
+			ACTION_vfo_ab();
+			break;
+		case ACTION_OPT_SIDE_PTT:
 			break;
 	}
 }

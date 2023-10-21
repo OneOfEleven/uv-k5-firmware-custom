@@ -85,6 +85,8 @@ enum {
 	ACTION_OPT_ALARM,
 	ACTION_OPT_FM,
 	ACTION_OPT_1750,
+	ACTION_OPT_VFO_AB,
+	ACTION_OPT_SIDE_PTT,
 	ACTION_OPT_LEN
 };
 
@@ -506,6 +508,7 @@ typedef struct {
 	pwr_on_display_mode_t pwr_on_display_mode;
 	roger_mode_t          roger_mode;
 	uint8_t               repeater_tail_tone_elimination;
+
 	uint8_t               key1_short_press_action;
 	uint8_t               key1_long_press_action;
 	uint8_t               key2_short_press_action;

@@ -361,19 +361,20 @@ const char g_sub_MENU_SCRAMBLERAMBLER[11][7] =
 };
 
 #ifdef ENABLE_SIDE_BUTT_MENU
-const char g_sub_menu_SIDE_BUTT[9][16] =
-//const char g_sub_menu_SIDE_BUTT[10][16] =
+// const char g_sub_menu_SIDE_BUTT[9][16] =
+const char g_sub_menu_SIDE_BUTT[11][16] =
 {
 	"NONE",
 	"FLASH\nLIGHT",
 	"TX\nPOWER",
 	"MONITOR",
-	"SCAN\non\\off",
-	"VOX\non\\off",
-	"ALARM\non\\off",
-	"FM RADIO\non\\off",
+	"SCAN\non/off",
+	"VOX\non/off",
+	"ALARM\non/off",
+	"FM RADIO\non/off",
 	"TX\n1750Hz",
-//	"2nd PTT",
+	"VFO\nA/B",
+  "SIDE\nPTT",
 };
 #endif
 

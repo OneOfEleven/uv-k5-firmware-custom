@@ -188,7 +188,7 @@ extern const char         g_sub_menu_BAT_TXT[3][8];
 extern const char         g_sub_menu_DIS_EN[2][9];
 extern const char         g_sub_MENU_SCRAMBLERAMBLER[11][7];
 #ifdef ENABLE_SIDE_BUTT_MENU
-	extern const char         g_sub_menu_SIDE_BUTT[9][16];
+	extern const char         g_sub_menu_SIDE_BUTT[11][16];
 #endif
 						  
 extern bool               g_is_in_sub_menu;

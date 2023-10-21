@@ -32,8 +32,8 @@ void ACTION_Scan(bool bFlag);
 #ifdef ENABLE_FMRADIO
 	void ACTION_FM(void);
 #endif
-
+void ACTION_vfo_ab(void);
+void ACTION_side_ptt(void);
 void ACTION_process(const key_code_t Key, const bool bKeyPressed, const bool bKeyHeld);
 
 #endif
-
