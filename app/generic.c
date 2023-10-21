@@ -283,7 +283,10 @@ void GENERIC_Key_SIDEPTT(bool key_pressed)
 				g_vox_noise_detected = false;
 			#endif
 
-			RADIO_select_vfos();
+			if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_eeprom.cross_vfo_rx_tx == CROSS_BAND_OFF)
+				RADIO_select_opposite_vfos();
+			else
+				RADIO_select_vfos();
 			
 			RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
 
