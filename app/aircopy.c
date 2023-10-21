@@ -48,7 +48,7 @@
 #define AIRCOPY_MAGIC_END_REQ      0xCDBA   // used to request a block resend
 
 #define AIRCOPY_MAGIC_START        0xABCD   // normal start value
-#define AIRCOPY_MAGIC_END          0xDCBA   // normal end value
+#define AIRCOPY_MAGIC_END          0xDCBA   // normal end   value
 
 #define AIRCOPY_LAST_EEPROM_ADDR   0x1E00   // size of eeprom transferred
 

@@ -1,7 +1,10 @@
 
 #include <string.h>
 
+#include "bsp/dp32g030/crc.h"
 #include "mdc1200.h"
+#include "misc.h"
+
 /*
 uint8_t bitReverse8(uint8_t n)
 {
@@ -30,12 +33,12 @@ uint32_t bitReverse32(uint32_t n)
 	return n;
 }
 */
-uint16_t reverse_bits(const uint16_t bits_in, const unsigned int bit_num)
+uint16_t reverse_bits(const uint16_t bits_in, const unsigned int num_bits)
 {
 	uint16_t i;
 	uint16_t bit;
 	uint16_t bits_out;
-	for (i = 1u << (bit_num - 1), bit = 1u, bits_out = 0u; i > 0u; i >>= 1)
+	for (i = 1u << (num_bits - 1), bit = 1u, bits_out = 0u; i != 0; i >>= 1)
 	{
 		if (bits_in & i)
 			 bits_out |= bit;
@@ -46,27 +49,58 @@ uint16_t reverse_bits(const uint16_t bits_in, const unsigned int bit_num)
 
 uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
 {
+
+	// this can be done using the CPU's own CRC calculator once we know we're ok
+
 	unsigned int i;
-	uint16_t crc = 0x0000;
+
+	#if 0
+		uint16_t crc;
+
+		CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_ENABLE;
+	#else
+		uint16_t crc = 0x0000;
+	#endif
 
 	for (i = 0; i < data_len; i++)
 	{
-		uint16_t mask;
-		
-		const uint16_t b = reverse_bits(*data++, 8); // bit reverse each data byte
-		
-		for (mask = 0x0080; mask > 0; mask >>= 1)
-		{
-			uint16_t bit = crc & 0x8000;
-			crc <<= 1;
-			if (b & mask)
-				bit ^= 0x8000;
-			if (bit)
-				crc ^= 0x1021;
-		}
+		#if 0
+
+			// bit reverse each data byte before adding it to the CRC
+			// the cortex CPU might have an instruction to bit reverse for us ?
+			//
+			CRC_DATAIN = reverse_bits(*data++, 8);
+			//CRC_DATAIN = bitReverse8(*data++);
+
+		#else
+			uint8_t mask;
+	
+			// bit reverse each data byte before adding it to the CRC
+			// the cortex CPU might have an instruction to bit reverse for us ?
+			//
+			const uint8_t bits = reverse_bits(*data++, 8);
+			//const uint8_t bits = bitReverse8(*data++);
+
+			for (mask = 0x0080; mask != 0; mask >>= 1)
+			{
+				uint16_t msb = crc & 0x8000;
+				if (bits & mask)
+					msb ^= 0x8000;
+				crc <<= 1;
+				if (msb)
+					crc ^= 0x1021;
+			}
+		#endif
 	}
 
-	return reverse_bits(crc, 16) ^ 0xffff; // bit reverse and invert the CRC
+	#if 0
+		crc    = (uint16_t)CRC_DATAOUT;
+		CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_DISABLE;
+	#endif
+	
+	// bit reverse and invert the final CRC
+	return reverse_bits(crc, 16) ^ 0xffff; 
+//	return bitReverse16(crc) ^ 0xffff;
 }
 
 uint8_t * encode_data(uint8_t *data)
@@ -74,101 +108,123 @@ uint8_t * encode_data(uint8_t *data)
 	unsigned int i;
 	unsigned int k;
 	unsigned int m;
-	int      csr[7];
-	int      lbits[112];
+	uint8_t      csr[7];
+	uint8_t      lbits[(ARRAY_SIZE(csr) * 2) * 8];
 
-	const uint16_t ccrc = compute_crc(data, 4);
-	data[4] = (ccrc >> 0) & 0x00ff;
-	data[5] = (ccrc >> 8) & 0x00ff;
-
-	data[6] = 0;
-
-	for (i = 0; i < 7; i++)
+	for (i = 0; i < ARRAY_SIZE(csr); i++)
 		csr[i] = 0;
 
-	for (i = 0; i < 7; i++)
+	for (i = 0; i < ARRAY_SIZE(csr); i++)
 	{
-		unsigned int j;
-		data[i + 7] = 0;
-		for (j = 0; j <= 7; j++)
+		unsigned int bit;
+		data[i + ARRAY_SIZE(csr)] = 0;
+		for (bit = 0; bit < 8; bit++)
 		{
-			unsigned int b;
+			uint8_t b;
 			for (k = 6; k > 0; k--)
 				csr[k] = csr[k - 1];
-			csr[0] = (data[i] >> j) & 1u;
+			csr[0] = (data[i] >> bit) & 1u;
 			b = csr[0] + csr[2] + csr[5] + csr[6];
-			data[i + 7] |= (b & 1u) << j;
+			data[i + ARRAY_SIZE(csr)] |= (b & 1u) << bit;
 		}
 	}
 
-	k = 0;
-	m = 0;
-	for (i = 0; i < 14; i++)
+	for (i = 0, k = 0, m = 0; i < (ARRAY_SIZE(csr) * 2); i++)
 	{
-		unsigned int j;
-		for (j = 0; j <= 7; j++)
+		unsigned int bit;
+		for (bit = 0; bit < 8; bit++)
 		{
-			lbits[k] = 1u & (data[i] >> j);
+			lbits[k] = (data[i] >> bit) & 1u;
 			k += 16;
-			if (k > 111)
+			if (k >= ARRAY_SIZE(lbits))
 				k = ++m;
 		}
 	}
 
-	k = 0;
-	for (i = 0; i < 14; i++)
+	for (i = 0, k = 0; i < (ARRAY_SIZE(csr) * 2); i++)
 	{
-		int j;
+		int bit;
 		data[i] = 0;
-		for (j = 7; j >= 0; j--)
+		for (bit = 7; bit >= 0; bit--)
 			if (lbits[k++])
-				data[i] |= 1u << j;
+				data[i] |= 1u << bit;
 	}
 
-	return &data[14];
+	return data + 14;
 }
 
-const uint8_t header[] = {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x07, 0x09, 0x2a, 0x44, 0x6f};
+// MDC1200 sync bit reversals and packet header
+static const uint8_t header[] = {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x07, 0x09, 0x2a, 0x44, 0x6f};
+
+void delta_modulation(uint8_t *data, const unsigned int size)
+{	// xor succesive bits in the entire packet, including the bit reversing pre-amble
+	uint8_t b1;
+	unsigned int toggle_delay;
+	unsigned int i;
+	for (i = 0, toggle_delay = 27, b1 = 1u; i < size; i++)
+	{
+		int bit_num;
+		uint8_t in  = data[i];
+		uint8_t out = 0;
+		for (bit_num = 7; bit_num >= 0; bit_num--)
+		{
+			const uint8_t b2 = (in >> bit_num) & 1u;
+			if (toggle_delay > 0)
+				toggle_delay--;
+			if (b1 != b2 && toggle_delay == 0)
+				out |= 1u << bit_num;        // previous bit and new bit are different
+//				out |= 1u << (7 - bit_num);
+			b1 = b2;
+		}
+		data[i] = out;
+	}
+}
 
 unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id)
 {
-	uint8_t *p = data;
+	unsigned int size;
+	uint8_t     *p = data;
+	uint16_t     crc;
 
-	#if 0
-		memcpy(p, header, sizeof(header));
-		p += sizeof(header);
-	#else
-		memcpy(p + 7, header, sizeof(header));
-		p += sizeof(header) - 7;
-	#endif
+	memcpy(p, header, sizeof(header));
+	p += sizeof(header);
 
 	p[0] = op;
 	p[1] = arg;
 	p[2] = (unit_id >> 8) & 0x00ff;
 	p[3] = (unit_id >> 0) & 0x00ff;
+	crc = compute_crc(p, 4);
+	p[4] = (crc >> 0) & 0x00ff;
+	p[5] = (crc >> 8) & 0x00ff;
+	p[6] = 0;
 
 	p = encode_data(p);
 
-	return (unsigned int)(p - data);
+	size = (unsigned int)(p - data);
+	
+	delta_modulation(data, size);
+	
+	return size;
 //	return 26;
 }
 
 unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id, const uint8_t b0, const uint8_t b1, const uint8_t b2, const uint8_t b3)
 {
+	unsigned int size;
 	uint8_t *p = data;
+	uint16_t     crc;
 
-	#if 0
-		memcpy(p, header, sizeof(header));
-		p += sizeof(header);
-	#else
-		memcpy(p + 7, header, sizeof(header));
-		p += sizeof(header) - 7;
-	#endif
+	memcpy(p, header, sizeof(header));
+	p += sizeof(header);
 
 	p[0] = op;
 	p[1] = arg;
 	p[2] = (unit_id >> 8) & 0x00ff;
 	p[3] = (unit_id >> 0) & 0x00ff;
+	crc = compute_crc(p, 4);
+	p[4] = (crc >> 0) & 0x00ff;
+	p[5] = (crc >> 8) & 0x00ff;
+	p[6] = 0;
 
 	p = encode_data(p);
 
@@ -176,11 +232,19 @@ unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const
 	p[1] = b1;
 	p[2] = b2;
 	p[3] = b3;
+	crc = compute_crc(p, 4);
+	p[4] = (crc >> 0) & 0x00ff;
+	p[5] = (crc >> 8) & 0x00ff;
+	p[6] = 0;
 
 	p = encode_data(p);
 
+	size = (unsigned int)(p - data);
+	
+	delta_modulation(data, size);
+	
 //	return 40;
-	return (unsigned int)(p - data);
+	return size;
 }
 /*
 void test(void)

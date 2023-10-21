@@ -1747,7 +1747,8 @@ uint8_t BK4819_GetCTCType(void)
 			( 0u << 15) |
 			( 0u <<  8) |
 			( 1u <<  7) |
-			(96u <<  0));
+//			(96u <<  0));
+			(127u <<  0));  // best waveform
 
 		// REG_72
 		//
@@ -1759,11 +1760,11 @@ uint8_t BK4819_GetCTCType(void)
 		//
 		BK4819_WriteRegister(BK4819_REG_72, ((1200u * 103244) + 5000) / 10000);   // with rounding
 
-		// these settings don't match the documentation at all ???
+		// aircopy is done in direct FM mode
 		//
 		BK4819_WriteRegister(BK4819_REG_58, // 0x00C1);   // 000 000 00 11 00 000 1
 			(0u << 13) |		// 1 FSK TX mode selection
-								//   0 = FSK 1.2K and FSK 2.4K TX .. no tones, pure data
+								//   0 = FSK 1.2K and FSK 2.4K TX .. no tones, direct FM
 								//   1 = FFSK 1200 / 1800 TX
 								//   2 = ???
 								//   3 = FFSK 1200 / 2400 TX
@@ -1773,7 +1774,7 @@ uint8_t BK4819_GetCTCType(void)
 								//   7 = ???
 								//
 			(0u << 10) |		// 0 FSK RX mode selection
-								//   0 = FSK 1.2K, FSK 2.4K RX and NOAA same RX
+								//   0 = FSK 1.2K, FSK 2.4K RX and NOAA SAME RX .. no tones, direct FM
 								//   1 = ???
 								//   2 = ???
 								//   3 = ???
@@ -1795,9 +1796,9 @@ uint8_t BK4819_GetCTCType(void)
 								//   3 = 0xAA
 								//
 			(0u << 1) |			// 1 FSK RX bandwidth setting
-								//   0 = FSK 1.2K
+								//   0 = FSK 1.2K .. no tones, direct FM
 								//   1 = FFSK 1200 / 1800
-								//   2 = NOAA same RX
+								//   2 = NOAA SAME RX
 								//   3 = ???
 								//   4 = FSK 2.4K and FFSK 1200 / 2400
 								//   5 = ???
@@ -1925,34 +1926,19 @@ void BK4819_start_fsk_rx(const unsigned int packet_size)
 	BK4819_WriteRegister(BK4819_REG_59, (1u << 13) | (1u << 12) | fsk_reg59);  // enable scrambler, enable RX
 }
 
+#ifdef ENABLE_MDC1200
+
 void BK4819_PlayRogerMDC1200(void)
 {
 	uint16_t fsk_reg59;
+	uint8_t  packet[40];
 
-	#ifdef ENABLE_MDC1200
+	const uint8_t  op  = MDC1200_OP_CODE_POST_ID;
+	const uint8_t  arg = 0x80;
+	const uint16_t id  = 0xB183;
 
-		const uint8_t  op  = MDC1200_OP_CODE_POST_ID;
-		const uint8_t  arg = 0x00;
-		const uint16_t id  = 0xB183;
-
-		uint8_t packet[8 + 40];
-		memset(packet + 0, 0x00, 4);
-		memset(packet + 4, 0xff, 4);
-		const unsigned int size = 8 + MDC1200_encode_single_packet(packet + 8, op, arg, id);
-
-	#else
-		
-		static const uint8_t packet[] = {
-			0x00, 0x00, 0x00, 0x00,
-			0xff, 0xff, 0xff, 0xff,
-			// this needs properly computing for MDC1200
-			0xA2, 0xF1, 0x46, 0x74, 0xA4, 0x61, 0x44, 0x65, 0x8A, 0x4E, 0x44, 0xE0, 0x84, 0xEA
-		};
-		
-		const unsigned int size = sizeof(packet);
-		
-	};
-	#endif
+	// create the MDC1200 packet
+	const unsigned int size = MDC1200_encode_single_packet(packet, op, arg, id);
 
 	BK4819_SetAF(BK4819_AF_MUTE);
 //	BK4819_SetAF(BK4819_AF_BEEP);
@@ -1960,26 +1946,28 @@ void BK4819_PlayRogerMDC1200(void)
 	BK4819_EnableTXLink();
 	SYSTEM_DelayMs(10);
 
+	// MDC1200 uses 1200/1800 Hz FSK tone frequencies 1200 bits/s 
+	//
 	BK4819_WriteRegister(BK4819_REG_58, // 0x37C3);   // 001 101 11 11 00 001 1
 		(1u << 13) |		// 1 FSK TX mode selection
-							//   0 = FSK 1.2K and FSK 2.4K TX .. no tones, pure data
-							//   1 = FFSK 1200 / 1800 TX
+							//   0 = FSK 1.2K and FSK 2.4K TX .. no tones, direct FM
+							//   1 = FFSK 1200/1800 TX
 							//   2 = ???
-							//   3 = FFSK 1200 / 2400 TX
+							//   3 = FFSK 1200/2400 TX
 							//   4 = ???
 							//   5 = NOAA SAME TX
 							//   6 = ???
 							//   7 = ???
 							//
-		(0u << 10) |		// 0 FSK RX mode selection
-							//   0 = FSK 1.2K, FSK 2.4K RX and NOAA same RX
+		(7u << 10) |		// 0 FSK RX mode selection
+							//   0 = FSK 1.2K, FSK 2.4K RX and NOAA SAME RX .. no tones, direct FM
 							//   1 = ???
 							//   2 = ???
 							//   3 = ???
-							//   4 = FFSK 1200 / 2400 RX
+							//   4 = FFSK 1200/2400 RX
 							//   5 = ???
 							//   6 = ???
-							//   7 = FFSK 1200 / 1800 RX
+							//   7 = FFSK 1200/1800 RX
 							//
 		(0u << 8) |			// 0 FSK RX gain
 							//   0 ~ 3
@@ -1994,11 +1982,11 @@ void BK4819_PlayRogerMDC1200(void)
 							//   3 = 0xAA
 							//
 		(1u << 1) |			// 1 FSK RX bandwidth setting
-							//   0 = FSK 1.2K
-							//   1 = FFSK 1200 / 1800
-							//   2 = NOAA same RX
+							//   0 = FSK 1.2K .. no tones, direct FM
+							//   1 = FFSK 1200/1800
+							//   2 = NOAA SAME RX
 							//   3 = ???
-							//   4 = FSK 2.4K and FFSK 1200 / 2400
+							//   4 = FSK 2.4K and FFSK 1200/2400
 							//   5 = ???
 							//   6 = ???
 							//   7 = ???
@@ -2035,14 +2023,11 @@ void BK4819_PlayRogerMDC1200(void)
 	// enable tone-2, set gain
 	//
 	BK4819_WriteRegister(BK4819_REG_70,   // 0 0000000 1 1100000
-		( 0u << 15) |
-		( 0u <<  8) |
-		( 1u <<  7) |
-//		( 0u <<  7) |
-		(96u <<  0));
-
-	// Set FSK data length
-	BK4819_WriteRegister(BK4819_REG_5D, ((size - 1) << 8));
+		( 0u << 15) |    // 0
+		( 0u <<  8) |    // 0
+		( 1u <<  7) |    // 1
+//		(96u <<  0));    // 96
+		(127u <<  0));    // produces the best undistorted waveform, this is not gain but affects filtering
 
 	// REG_59
 	//
@@ -2081,36 +2066,39 @@ void BK4819_PlayRogerMDC1200(void)
 	//
 	// <2:0> 0 ???
 	//
-	fsk_reg59 = (0u << 15) |   // 0 or 1   1 = clear TX FIFO
-	            (0u << 14) |   // 0 or 1   1 = clear RX FIFO
-	            (0u << 13) |   // 0 or 1   1 = scramble
-				(0u << 12) |   // 0 or 1   1 = enable RX
-				(0u << 11) |   // 0 or 1   1 = enable TX
-				(0u << 10) |   // 0 or 1   1 = invert data when RX
-				(0u <<  9) |   // 0 or 1   1 = invert data when TX
-				(0u <<  8) |   // 0 or 1   ???
-				(0u <<  4) |   // 0 ~ 15   preamble length selection
-				(0u <<  3) |   // 0 or 1       sync length selection
-				(0u <<  0);    // 0 ~ 7    ???
+	fsk_reg59 = (0u << 15) |   // 0 ~ 1   1 = clear TX FIFO
+	            (0u << 14) |   // 0 ~ 1   1 = clear RX FIFO
+	            (0u << 13) |   // 0 ~ 1   1 = scramble
+				(0u << 12) |   // 0 ~ 1   1 = enable RX
+				(0u << 11) |   // 0 ~ 1   1 = enable TX
+				(0u << 10) |   // 0 ~ 1   1 = invert data when RX
+				(0u <<  9) |   // 0 ~ 1   1 = invert data when TX
+				(0u <<  8) |   // 0 ~ 1   ???
+				(0u <<  4) |   // 0 ~ 15  preamble length
+				(0u <<  3) |   // 0 ~ 1       sync length
+				(0u <<  0);    // 0 ~ 7   ???
 
-	BK4819_WriteRegister(BK4819_REG_59, (1u << 15) | fsk_reg59);   // clear TX fifo
-	BK4819_WriteRegister(BK4819_REG_59, fsk_reg59);
+	// Set entire packet length (not including the pre-amble and sync bytes we can't seem to disable)
+	BK4819_WriteRegister(BK4819_REG_5D, ((size - 1) << 8));
+
+	BK4819_WriteRegister(BK4819_REG_59, (1u << 15) | fsk_reg59);   // clear TX fifo by setting the FIFO reset bit
+	BK4819_WriteRegister(BK4819_REG_59, (0u << 15) | fsk_reg59);   // release the reset bit
 
 	// REG_5A
+	//
 	// <15:8> 0x55 FSK Sync Byte 0 (Sync Byte 0 first, then 1,2,3)
 	// <7:0>  0x55 FSK Sync Byte 1
 	//
-//	BK4819_WriteRegister(BK4819_REG_5A, 0x5555);
-//	BK4819_WriteRegister(BK4819_REG_5A, 0xAAAA);
-	BK4819_WriteRegister(BK4819_REG_5A, 0);
+	BK4819_WriteRegister(BK4819_REG_5A, 0);                   // can be any bit pattern you like
 
 	// REG_5B
+	//
 	// <15:8> 0x55 FSK Sync Byte 2 (Sync Byte 0 first, then 1,2,3)
 	// <7:0>  0xAA FSK Sync Byte 3
 	//
-//	BK4819_WriteRegister(BK4819_REG_5B, 0x55AA);
+	BK4819_WriteRegister(BK4819_REG_5B, 0);                   // bytes 2 & 3 not sent/used
 
-	// Enable CRC among other things we don't know yet
+	// CRC setting (plus other stuff we don't know what)
 	//
 	// REG_5C
 	//
@@ -2124,13 +2112,14 @@ void BK4819_PlayRogerMDC1200(void)
 	//
 	// disable CRC
 	//
-	BK4819_WriteRegister(BK4819_REG_5C, 0xAA30);   // 101010100 0 110000
+//	BK4819_WriteRegister(BK4819_REG_5C, 0xAA30);   // 101010100 0 110000
+	BK4819_WriteRegister(BK4819_REG_5C, 0);        // setting to '0' doesn't make any difference !
 
-	{	// load the packet data into the TX FIFO buffer
+	{	// load the entire packet data into the TX FIFO buffer
 		unsigned int i;
 		const uint16_t *p = (const uint16_t *)packet;
-		for (i = 0; i < (size / 2); i++)
-			BK4819_WriteRegister(BK4819_REG_5F, p[i]);
+		for (i = 0; i < (size / sizeof(p[0])); i++)
+			BK4819_WriteRegister(BK4819_REG_5F, p[i]);  // load 16-bits at a time
 	}
 
 	// enable tx interrupt
@@ -2139,8 +2128,14 @@ void BK4819_PlayRogerMDC1200(void)
 	// enable TX
 	BK4819_WriteRegister(BK4819_REG_59, (1u << 11) | fsk_reg59);
 
-	{	// a small packet takes 175ms long
-		unsigned int timeout = 500 / 5;      // allow up to 500ms for the TX to complete
+	{	// packet time is ..
+		// 173ms for PTT ID, acks, emergency
+		// 266ms for call alert and sel-calls
+
+		// allow up to 350ms for the TX to complete
+		// if it takes any longer then somethings gone wrong, we shut the TX down
+		unsigned int timeout = 350 / 5;      
+
 		while (timeout-- > 0)
 		{
 			SYSTEM_DelayMs(5);
@@ -2160,6 +2155,8 @@ void BK4819_PlayRogerMDC1200(void)
 	BK4819_WriteRegister(BK4819_REG_70, 0);
 	BK4819_WriteRegister(BK4819_REG_58, 0);
 }
+
+#endif
 
 void BK4819_Enable_AfDac_DiscMode_TxDsp(void)
 {
