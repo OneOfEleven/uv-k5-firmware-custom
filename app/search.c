@@ -60,7 +60,7 @@ static void SEARCH_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
-		INPUTBOX_Append(Key);
+		INPUTBOX_append(Key);
 
 		g_request_display_screen = DISPLAY_SEARCH;
 

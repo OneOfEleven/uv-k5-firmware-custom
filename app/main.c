@@ -145,7 +145,7 @@ void toggle_chan_scanlist(void)
 			g_screen_to_display = DISPLAY_INVALID;
 			GUI_SelectNextDisplay(DISPLAY_MENU);
 			g_menu_cursor       = MENU_MEM_SAVE;
-			g_is_in_sub_menu    = true;
+			g_in_sub_menu    = true;
 			if (chan <= USER_CHANNEL_LAST)
 			{
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
@@ -452,7 +452,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 	// add the digit to the channel/frequency input box
 
-	INPUTBOX_Append(Key);
+	INPUTBOX_append(Key);
 
 	g_request_display_screen = DISPLAY_MAIN;
 
@@ -834,6 +834,8 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 				}
 			#endif
 
+			g_tx_vfo->freq_config_tx.frequency = g_tx_vfo->freq_config_rx.frequency;
+			
 			// find the first channel that contains this frequency
 			g_tx_vfo->frequency_channel = BOARD_find_channel(g_tx_vfo->freq_config_rx.frequency);
 				
@@ -904,6 +906,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 
 				// save the new frequency into the VFO
 				g_tx_vfo->freq_config_rx.frequency = frequency;
+				g_tx_vfo->freq_config_tx.frequency = frequency;
 
 				// find the first channel that contains this frequency
 				//

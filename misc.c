@@ -305,16 +305,16 @@ unsigned int get_TX_VFO(void)
 void NUMBER_Get(char *pDigits, uint32_t *pInteger)
 {
 	unsigned int i;
-	uint32_t     Multiplier = 10000000;
-	uint32_t     Value      = 0;
+	uint32_t     mul = 10000000;
+	uint32_t     val = 0;
 	for (i = 0; i < 8; i++)
 	{
 		if (pDigits[i] > 9)
 			break;
-		Value += pDigits[i] * Multiplier;
-		Multiplier /= 10U;
+		val += pDigits[i] * mul;
+		mul /= 10u;
 	}
-	*pInteger = Value;
+	*pInteger = val;
 }
 
 void NUMBER_ToDigits(uint32_t Value, char *pDigits)

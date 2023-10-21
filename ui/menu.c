@@ -78,7 +78,7 @@ const t_menu_item g_menu_list[] =
 	{"CTRAST", VOICE_ID_INVALID,                       MENU_CONTRAST              },
 #endif
 	{"BEEP",   VOICE_ID_BEEP_PROMPT,                   MENU_BEEP                  },
-#ifdef ENABLE_VOICE                                                               
+#ifdef ENABLE_VOICE
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE                 },
 #endif
 	{"SC REV", VOICE_ID_INVALID,                       MENU_SCAN_CAR_RESUME       }, // was "SC_REV"
@@ -91,19 +91,19 @@ const t_menu_item g_menu_list[] =
 	{"RP STE", VOICE_ID_INVALID,                       MENU_RP_STE                },
 	{"MIC GN", VOICE_ID_INVALID,                       MENU_MIC_GAIN              },
 	{"COMPND", VOICE_ID_INVALID,                       MENU_COMPAND               },
-#ifdef ENABLE_TX_AUDIO_BAR                                                           
+#ifdef ENABLE_TX_AUDIO_BAR
 	{"Tx BAR", VOICE_ID_INVALID,                       MENU_TX_BAR                },
-#endif                                                                            
-#ifdef ENABLE_RX_SIGNAL_BAR                                                            
+#endif
+#ifdef ENABLE_RX_SIGNAL_BAR
 	{"Rx BAR", VOICE_ID_INVALID,                       MENU_RX_BAR                },
-#endif                                                                            
+#endif
 	{"1 CALL", VOICE_ID_INVALID,                       MENU_1_CALL                },
 	{"SLIST",  VOICE_ID_INVALID,                       MENU_S_LIST                },
 	{"SLIST1", VOICE_ID_INVALID,                       MENU_SLIST1                },
 	{"SLIST2", VOICE_ID_INVALID,                       MENU_SLIST2                },
 #ifdef ENABLE_ALARM
 	{"SOS AL", VOICE_ID_INVALID,                       MENU_ALARM_MODE            }, // was "ALMODE"
-#endif                                                                            
+#endif
 	{"ANI ID", VOICE_ID_ANI_CODE,                      MENU_ANI_ID                },
 	{"UpCODE", VOICE_ID_INVALID,                       MENU_UP_CODE               },
 	{"DnCODE", VOICE_ID_INVALID,                       MENU_DN_CODE               }, // was "DWCODE"
@@ -120,15 +120,15 @@ const t_menu_item g_menu_list[] =
 	{"BatVOL", VOICE_ID_INVALID,                       MENU_VOLTAGE               }, // was "VOL"
 	{"BatTXT", VOICE_ID_INVALID,                       MENU_BAT_TXT               },
 	{"MODE",   VOICE_ID_INVALID,                       MENU_MOD_MODE              }, // was "AM"
-#ifdef ENABLE_AM_FIX                                                              
+#ifdef ENABLE_AM_FIX
 	{"AM FIX", VOICE_ID_INVALID,                       MENU_AM_FIX                },
-#endif                                                                            
-#ifdef ENABLE_AM_FIX_TEST1                                                        
+#endif
+#ifdef ENABLE_AM_FIX_TEST1
 	{"AM FT1", VOICE_ID_INVALID,                       MENU_AM_FIX_TEST1          },
-#endif                                                                     
-#ifdef ENABLE_NOAA                                                         
+#endif
+#ifdef ENABLE_NOAA
 	{"NOAA-S", VOICE_ID_INVALID,                       MENU_NOAA_SCAN             },
-#endif                                                                            
+#endif
 #ifdef ENABLE_SIDE_BUTT_MENU
 	{"Side1S", VOICE_ID_INVALID,                       MENU_SIDE1_SHORT           },
 	{"Side1L", VOICE_ID_INVALID,                       MENU_SIDE1_LONG            },
@@ -146,9 +146,9 @@ const t_menu_item g_menu_list[] =
 
 	{"BatCAL", VOICE_ID_INVALID,                       MENU_BAT_CAL               }, // battery voltage calibration
 
-#ifdef ENABLE_F_CAL_MENU                                                          
+#ifdef ENABLE_F_CAL_MENU
 	{"F CAL",  VOICE_ID_INVALID,                       MENU_F_CALI                }, // reference xtal calibration
-#endif                                                                            
+#endif
 
 	{"F LOCK", VOICE_ID_INVALID,                       MENU_FREQ_LOCK             }, // country/area specific
 	{"Tx 174", VOICE_ID_INVALID,                       MENU_174_TX                }, // was "200TX"
@@ -382,7 +382,7 @@ const char g_sub_menu_SIDE_BUTT[9][16] =
 
 uint8_t g_menu_list_sorted[ARRAY_SIZE(g_menu_list)];
 
-bool    g_is_in_sub_menu;
+bool    g_in_sub_menu;
 uint8_t g_menu_cursor;
 int8_t  g_menu_scroll_direction;
 int32_t g_sub_menu_selection;
@@ -479,7 +479,7 @@ void UI_DisplayMenu(void)
 			g_frame_buffer[i][(8 * menu_list_width) + 1] = 0xAA;
 
 		// draw the little sub-menu triangle marker
-		if (g_is_in_sub_menu)
+		if (g_in_sub_menu)
 			memmove(g_frame_buffer[0] + (8 * menu_list_width) + 1, BITMAP_CurrentIndicator, sizeof(BITMAP_CurrentIndicator));
 
 		// draw the menu index number/count
@@ -492,7 +492,7 @@ void UI_DisplayMenu(void)
 		const int menu_index = g_menu_cursor;  // current selected menu item
 		i = 1;
 
-		if (!g_is_in_sub_menu)
+		if (!g_in_sub_menu)
 		{
 			while (i < 2)
 			{	// leading menu items - small text
@@ -585,7 +585,7 @@ void UI_DisplayMenu(void)
 			}
 			break;
 		}
-		
+
 		case MENU_TX_POWER:
 			strcpy(String, g_sub_MENU_TX_POWER[g_sub_menu_selection]);
 			break;
@@ -616,7 +616,7 @@ void UI_DisplayMenu(void)
 
 					if (pConfig->code_type != CODE_TYPE_CONTINUOUS_TONE)
 						break;
-					
+
 					Code = 0;
 					pConfig->code_type = CODE_TYPE_NONE;
 					pConfig->code = Code;
@@ -648,7 +648,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_OFFSET:
-			if (!g_is_in_sub_menu || g_input_box_index == 0)
+			if (!g_in_sub_menu || g_input_box_index == 0)
 			{
 				sprintf(String, "%d.%05u", g_sub_menu_selection / 100000, abs(g_sub_menu_selection) % 100000);
 				UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
@@ -656,7 +656,7 @@ void UI_DisplayMenu(void)
 			else
 			{
 				for (i = 0; i < 3; i++)
-					String[i    ] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
+					String[i + 0] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
 				String[3] = '.';
 				for (i = 3; i < 6; i++)
 					String[i + 1] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
@@ -680,7 +680,7 @@ void UI_DisplayMenu(void)
 		case MENU_SCRAMBLER:
 			strcpy(String, "INVERT\n");
 			strcat(String, g_sub_MENU_SCRAMBLERAMBLER[g_sub_menu_selection]);
-			
+
 			#if 1
 				if (g_sub_menu_selection > 0 && g_setting_scramble_enable)
 					BK4819_EnableScramble(g_sub_menu_selection - 1);
@@ -741,7 +741,7 @@ void UI_DisplayMenu(void)
 				g_update_display = true;
 				break;
 		#endif
-			
+
 		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
 		#endif
@@ -818,7 +818,7 @@ void UI_DisplayMenu(void)
 			strcpy(String, "TX\n");
 			strcat(String, g_sub_menu_DIS_EN[g_sub_menu_selection]);
 			break;
-			
+
 		case MENU_MEM_SAVE:
 		case MENU_1_CALL:
 		case MENU_MEM_DEL:
@@ -832,7 +832,7 @@ void UI_DisplayMenu(void)
 			BOARD_fetchChannelName(s, g_sub_menu_selection);
 			strcat(String, "\n");
 			strcat(String, (s[0] == 0) ? "--" : s);
-			
+
 			if (valid && !g_ask_for_confirmation)
 			{	// show the frequency so that the user knows the channels frequency
 				const uint32_t frequency = BOARD_fetchChannelFrequency(g_sub_menu_selection);
@@ -845,7 +845,7 @@ void UI_DisplayMenu(void)
 		case MENU_MEM_NAME:
 		{
 			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
-			const unsigned int y = (!g_is_in_sub_menu || g_edit_index < 0) ? 1 : 0;
+			const unsigned int y = (!g_in_sub_menu || g_edit_index < 0) ? 1 : 0;
 
 			UI_GenerateChannelStringEx(String, valid ? "CH-" : "", g_sub_menu_selection);
 			UI_PrintString(String, menu_item_x1, menu_item_x2, y, 8);
@@ -854,7 +854,7 @@ void UI_DisplayMenu(void)
 			{
 				const uint32_t frequency = BOARD_fetchChannelFrequency(g_sub_menu_selection);
 
-				if (!g_is_in_sub_menu || g_edit_index < 0)
+				if (!g_in_sub_menu || g_edit_index < 0)
 				{	// show the channel name
 					BOARD_fetchChannelName(String, g_sub_menu_selection);
 					if (String[0] == 0)
@@ -871,7 +871,7 @@ void UI_DisplayMenu(void)
 				if (!g_ask_for_confirmation)
 				{	// show the frequency so that the user knows the channels frequency
 					sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
-					if (!g_is_in_sub_menu || g_edit_index < 0)
+					if (!g_in_sub_menu || g_edit_index < 0)
 						UI_PrintString(String, menu_item_x1, menu_item_x2, y + 4, 8);
 					else
 						UI_PrintString(String, menu_item_x1, menu_item_x2, y + 5, 8);
@@ -895,7 +895,7 @@ void UI_DisplayMenu(void)
 			strcpy(String, "SCAN HOLD\n");
 			sprintf(String + strlen(String), "%d.%d sec", g_sub_menu_selection / 2, 5 * (g_sub_menu_selection % 2));
 			break;
-		
+
 		case MENU_CROSS_VFO:
 			strcpy(String, g_sub_MENU_CROSS_VFO[g_sub_menu_selection]);
 			break;
@@ -1080,7 +1080,7 @@ void UI_DisplayMenu(void)
 			strcat(String, "\n \n" __DATE__ "\n" __TIME__);
 			break;
 		}
-			
+
 		case MENU_RESET:
 			strcpy(String, g_sub_menu_RESET[g_sub_menu_selection]);
 			break;
@@ -1117,7 +1117,7 @@ void UI_DisplayMenu(void)
 			}
 			break;
 
-#ifdef ENABLE_F_CAL_MENU
+		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
 				{
 					const uint32_t value   = 22656 + g_sub_menu_selection;
@@ -1130,12 +1130,15 @@ void UI_DisplayMenu(void)
 						xtal_Hz / 1000000, xtal_Hz % 1000000);
 				}
 				break;
-#endif
+		#endif
 
 		case MENU_BAT_CAL:
 		{
 			const uint16_t vol = (uint32_t)g_battery_voltage_average * g_battery_calibration[3] / g_sub_menu_selection;
-			sprintf(String, "%u.%02uV\n%u", vol / 100, vol % 100, g_sub_menu_selection);
+			if (!g_in_sub_menu)
+				sprintf(String, "%u.%02uV\n%d", vol / 100, vol % 100, g_sub_menu_selection);
+			else
+				sprintf(String, "%u.%02uV\n(%#4d)\n%#4d", vol / 100, vol % 100, g_battery_calibration[3], g_sub_menu_selection);
 			break;
 		}
 	}
@@ -1260,7 +1263,7 @@ void UI_DisplayMenu(void)
 	    g_menu_cursor == MENU_TX_CDCSS ||
 	    g_menu_cursor == MENU_DTMF_LIST)
 	{
-		if (g_is_in_sub_menu)
+		if (g_in_sub_menu)
 		{
 			unsigned int Offset;
 			NUMBER_ToDigits(g_sub_menu_selection, String);
