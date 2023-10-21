@@ -19,8 +19,8 @@
 
 #include <stdbool.h>
 
-void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld);
-void GENERIC_Key_PTT(bool bKeyPressed);
+void GENERIC_Key_F(bool key_pressed, bool key_held);
+void GENERIC_Key_PTT(bool key_pressed);
 
 #endif
 

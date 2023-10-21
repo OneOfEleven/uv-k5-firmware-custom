@@ -22,7 +22,7 @@
 //static void ACTION_FlashLight(void)
 void ACTION_Power(void);
 void ACTION_Monitor(void);
-void ACTION_Scan(bool bFlag);
+void ACTION_Scan(bool flag);
 #ifdef ENABLE_VOX
 	void ACTION_Vox(void);
 #endif
@@ -33,7 +33,7 @@ void ACTION_Scan(bool bFlag);
 	void ACTION_FM(void);
 #endif
 void ACTION_vfo_ab(void);
-void ACTION_side_ptt(void);
-void ACTION_process(const key_code_t Key, const bool bKeyPressed, const bool bKeyHeld);
+bool ACTION_is_side_ptt(const key_code_t Key);
+void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key_held);
 
 #endif

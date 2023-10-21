@@ -802,21 +802,25 @@ void MENU_AcceptSetting(void)
 		#ifdef ENABLE_SIDE_BUTT_MENU
 		case MENU_SIDE1_SHORT:
 			if (g_sub_menu_selection == ACTION_OPT_SIDE_PTT)
-				return;
+				g_eeprom.key1_long_press_action = ACTION_OPT_SIDE_PTT;
 			g_eeprom.key1_short_press_action = g_sub_menu_selection;
 			break;
 
 		case MENU_SIDE1_LONG:
+			if (g_sub_menu_selection == ACTION_OPT_SIDE_PTT)
+				g_eeprom.key1_short_press_action = ACTION_OPT_SIDE_PTT;
 			g_eeprom.key1_long_press_action = g_sub_menu_selection;
 			break;
 
 		case MENU_SIDE2_SHORT:
 			if (g_sub_menu_selection == ACTION_OPT_SIDE_PTT)
-				return;
+				g_eeprom.key2_long_press_action = ACTION_OPT_SIDE_PTT;
 			g_eeprom.key2_short_press_action = g_sub_menu_selection;
 			break;
 
 		case MENU_SIDE2_LONG:
+			if (g_sub_menu_selection == ACTION_OPT_SIDE_PTT)
+				g_eeprom.key2_short_press_action = ACTION_OPT_SIDE_PTT;
 			g_eeprom.key2_long_press_action = g_sub_menu_selection;
 			break;
 		#endif

@@ -357,8 +357,16 @@ void ACTION_vfo_ab(void) {
 	g_flag_reconfigure_vfos = true;
 }
 
-void ACTION_side_ptt(void) {
-	g_flag_prepare_tx = true;
+bool ACTION_is_side_ptt(const key_code_t Key)
+{
+	uint8_t Long = ACTION_OPT_NONE;
+
+	if (Key == KEY_SIDE1)
+		Long = g_eeprom.key1_long_press_action;
+	else if (Key == KEY_SIDE2)
+		Long = g_eeprom.key2_long_press_action;
+
+	return Long == ACTION_OPT_SIDE_PTT;
 }
 
 void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key_held)
@@ -436,6 +444,7 @@ void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key
 			ACTION_vfo_ab();
 			break;
 		case ACTION_OPT_SIDE_PTT:
+			// not processed here
 			break;
 	}
 }
