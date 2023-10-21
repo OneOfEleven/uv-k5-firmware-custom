@@ -283,7 +283,7 @@ void GENERIC_Key_SIDEPTT(bool key_pressed)
 				g_vox_noise_detected = false;
 			#endif
 
-			// TODO: reset vfo
+			RADIO_select_vfos();
 			
 			RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
 
@@ -399,7 +399,7 @@ start_tx:
 	// request start TX
 	g_flag_prepare_tx = true;
 
-	// TODO: cross band
+	RADIO_select_opposite_vfos();
 	goto done;
 
 cancel_tx:

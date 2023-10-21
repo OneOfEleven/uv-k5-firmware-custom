@@ -137,6 +137,7 @@ void     RADIO_configure_channel(const unsigned int VFO, const unsigned int conf
 void     RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo);
 void     RADIO_ApplyOffset(vfo_info_t *p_vfo);
 void     RADIO_select_vfos(void);
+void     RADIO_select_opposite_vfos(void);
 void     RADIO_setup_registers(bool switch_to_function_foreground);
 #ifdef ENABLE_NOAA
 	void RADIO_ConfigureNOAA(void);

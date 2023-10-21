@@ -588,6 +588,17 @@ void RADIO_select_vfos(void)
 	RADIO_SelectCurrentVfo();
 }
 
+void RADIO_select_opposite_vfos(void)
+{
+	g_eeprom.tx_vfo = (get_TX_VFO() + 1) & 1u;
+	g_eeprom.rx_vfo = (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_OFF) ? g_eeprom.tx_vfo : (g_eeprom.tx_vfo + 1) & 1u;
+
+	g_tx_vfo = &g_eeprom.vfo_info[g_eeprom.tx_vfo];
+	g_rx_vfo = &g_eeprom.vfo_info[g_eeprom.rx_vfo];
+
+	RADIO_SelectCurrentVfo();
+}
+
 void RADIO_setup_registers(bool switch_to_function_foreground)
 {
 	BK4819_filter_bandwidth_t Bandwidth = g_rx_vfo->channel_bandwidth;
