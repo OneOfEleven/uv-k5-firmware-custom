@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "app/dtmf.h"
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	#include "app/fm.h"
 #endif
 #include "app/search.h"
@@ -26,7 +26,7 @@
 #ifdef ENABLE_AIRCOPY
 	#include "ui/aircopy.h"
 #endif
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	#include "ui/fmradio.h"
 #endif
 #include "ui/inputbox.h"
@@ -51,7 +51,7 @@ void GUI_DisplayScreen(void)
 			UI_DisplayMain();
 			break;
 
-		#ifdef ENABLE_FMRADIO
+		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 			case DISPLAY_FM:
 				UI_DisplayFM();
 				break;
@@ -89,7 +89,7 @@ void GUI_SelectNextDisplay(gui_display_type_t Display)
 		g_in_sub_menu       = false;
 		g_css_scan_mode        = CSS_SCAN_MODE_OFF;
 		g_scan_state_dir       = SCAN_STATE_DIR_OFF;
-		#ifdef ENABLE_FMRADIO
+		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 			g_fm_scan_state    = FM_SCAN_OFF;
 		#endif
 		g_ask_for_confirmation = 0;

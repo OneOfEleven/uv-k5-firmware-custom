@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "app/app.h"
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	#include "app/fm.h"
 #endif
 #include "app/generic.h"
@@ -40,7 +40,7 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 
 	if (g_input_box_index > 0)
 	{
-		#ifdef ENABLE_FMRADIO
+		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 			if (!g_fm_radio_mode)
 		#endif
 				if (!key_held && key_pressed)
@@ -74,7 +74,7 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 
 	if (key_pressed)
 	{
-		#ifdef ENABLE_FMRADIO
+		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 			if (!g_fm_radio_mode)
 		#endif
 				g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
@@ -171,7 +171,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 		goto cancel_tx;
 	}
 
-	#ifdef ENABLE_FMRADIO
+	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 		if (g_fm_scan_state != FM_SCAN_OFF)
 		{	// FM radio is scanning .. stop
 			FM_PlayAndUpdate();
@@ -181,9 +181,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 			g_request_display_screen = DISPLAY_FM;
 			goto cancel_tx;
 		}
-	#endif
 
-	#ifdef ENABLE_FMRADIO
 		if (g_screen_to_display == DISPLAY_FM)
 			goto start_tx;	// listening to the FM radio .. start TX'ing
 	#endif

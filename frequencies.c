@@ -25,9 +25,11 @@ uint32_t g_aircopy_freq = 41002500;
 const freq_band_table_t AIR_BAND = {10800000, 13700000};
 
 // FM broadcast band lower/upper limit
-#ifdef ENABLE_FMRADIO_64_108
+#if   defined(ENABLE_FMRADIO_68_108)
 	const freq_band_table_t FM_RADIO_BAND = {680, 1080};
-#else
+#elif defined(ENABLE_FMRADIO_76_108)
+	const freq_band_table_t FM_RADIO_BAND = {760, 1080};
+#elif defined(ENABLE_FMRADIO_875_108)
 	const freq_band_table_t FM_RADIO_BAND = {875, 1080};
 #endif
 
@@ -39,22 +41,22 @@ const freq_band_table_t FREQ_BAND_TABLE[7] =
 {
 	#ifdef ENABLE_WIDE_RX
 		// extended range
-		{ 1800000,  10800000},  // band 1
+		{ 1800000,       10800000},        // band 1
 		{AIR_BAND.lower, AIR_BAND.upper},  // band 2
-		{AIR_BAND.upper, 17400000},  // band 3
-		{17400000,  35000000},  // band 4
-		{35000000,  40000000},  // band 5
-		{40000000,  47000000},  // band 6
-		{47000000, 130000000}   // band 7
+		{AIR_BAND.upper, 17400000},        // band 3
+		{17400000,       35000000},        // band 4
+		{35000000,       40000000},        // band 5
+		{40000000,       47000000},        // band 6
+		{47000000,      130000000}         // band 7
 	#else
 		// QS original
-		{ 5000000,   7600000},  // band 1
+		{ 5000000,       7600000},         // band 1
 		{AIR_BAND.lower, AIR_BAND.upper},  // band 2
-		{AIR_BAND.upper, 17400000},  // band 3
-		{17400000,  35000000},  // band 4
-		{35000000,  40000000},  // band 5
-		{40000000,  47000000},  // band 6
-		{47000000,  60000000}   // band 7
+		{AIR_BAND.upper, 17400000},        // band 3
+		{17400000,       35000000},        // band 4
+		{35000000,       40000000},        // band 5
+		{40000000,       47000000},        // band 6
+		{47000000,       60000000}         // band 7
 	#endif
 };
 

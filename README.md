@@ -45,8 +45,9 @@ ENABLE_UART_DEBUG                := 0       just for code debugging, it sends de
 ENABLE_AIRCOPY                   := 1       clone radio-to-radio via RF
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1       remember the aircopy frequency
 ENABLE_AIRCOPY_RX_REBOOT         := 0       auto reboot on an aircopy successful RX completion
-ENABLE_FMRADIO                   := 1       WBFM VHF broadcast band receiver
-ENABLE_FMRADIO_64_108            := 0       '1' = ENABLE FM radio chips full range
+ENABLE_FMRADIO_68_108            := 0       enable FM radio 68MHz ~ 108MHz
+ENABLE_FMRADIO_76_108            := 0       enable FM radio 76MHz ~ 108MHz
+ENABLE_FMRADIO_875_108           := 1       enable FM radio 87.5MHz ~ 108MHz
 ENABLE_NOAA                      := 0       everything NOAA (only of any use in the USA)
 ENABLE_VOICE                     := 0       want to hear voices ?
 ENABLE_MUTE_RADIO_FOR_VOICE      := 1       mute the radios audio when a voice is playing

@@ -249,7 +249,7 @@ const uint8_t BITMAP_MONITOR[6] =
 	__extension__ 0b01111111
 };
 
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	const uint8_t BITMAP_FM[12] =
 	{	// "FM"
 		__extension__ 0b00000000,

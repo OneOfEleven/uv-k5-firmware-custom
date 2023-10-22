@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "app/dtmf.h"
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	#include "app/fm.h"
 #endif
 #include "board.h"
@@ -27,7 +27,7 @@
 #include "bsp/dp32g030/syscon.h"
 #include "driver/adc.h"
 //#include "driver/backlight.h"
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	#include "driver/bk1080.h"
 #endif
 #include "driver/bk4819.h"
@@ -121,7 +121,7 @@ void BOARD_GPIO_Init(void)
 		| GPIO_DIR_5_MASK // INPUT
 		);
 
-	#if defined(ENABLE_FMRADIO)
+	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BK1080);
 	#endif
 }
@@ -508,12 +508,13 @@ void BOARD_Init(void)
 {
 	BOARD_PORTCON_Init();
 	BOARD_GPIO_Init();
+	CRC_Init();
 	BOARD_ADC_Init();
 	ST7565_Init(true);
-	#ifdef ENABLE_FMRADIO
+
+	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 		BK1080_Init(0, false);
 	#endif
-	CRC_Init();
 }
 
 void BOARD_EEPROM_load(void)
@@ -566,7 +567,7 @@ void BOARD_EEPROM_load(void)
 		g_eeprom.noaa_channel[1] = IS_NOAA_CHANNEL(Data[7])  ? Data[7] : NOAA_CHANNEL_FIRST;
 	#endif
 
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	{	// 0E88..0E8F
 		struct
 		{

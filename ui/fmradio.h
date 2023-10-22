@@ -17,7 +17,7 @@
 #ifndef UI_FM_H
 #define UI_FM_H
 
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	void UI_DisplayFM(void);
 #endif
 

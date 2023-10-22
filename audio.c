@@ -17,12 +17,12 @@
 #ifdef ENABLE_AIRCOPY
 	#include "app/aircopy.h"
 #endif
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	#include "app/fm.h"
 #endif
 #include "audio.h"
 #include "bsp/dp32g030/gpio.h"
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	#include "driver/bk1080.h"
 #endif
 #include "driver/bk4819.h"
@@ -104,7 +104,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	if (g_current_function == FUNCTION_POWER_SAVE && g_rx_idle_mode)
 		BK4819_RX_TurnOn();
 
-	#ifdef ENABLE_FMRADIO
+	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 		#ifdef MUTE_AUDIO_FOR_VOICE
 			if (g_fm_radio_mode)
 				BK1080_Mute(true);
@@ -223,7 +223,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	if (g_enable_speaker)
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	#ifdef ENABLE_FMRADIO
+	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 		if (g_fm_radio_mode)
 			BK1080_Mute(false);
 	#endif
@@ -290,7 +290,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 				BK4819_SetAF(BK4819_AF_MUTE);
 		#endif
 
-		#ifdef ENABLE_FMRADIO
+		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 			#ifdef MUTE_AUDIO_FOR_VOICE
 				if (g_fm_radio_mode)
 					BK1080_Mute(true);
@@ -317,7 +317,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			if (g_current_function == FUNCTION_RECEIVE || g_current_function == FUNCTION_MONITOR)
 				BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 
-			#ifdef ENABLE_FMRADIO
+			#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 				if (g_fm_radio_mode)
 					BK1080_Mute(false);
 			#endif
@@ -465,7 +465,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		if (g_current_function == FUNCTION_RECEIVE || g_current_function == FUNCTION_MONITOR)
 			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
 
-		#ifdef ENABLE_FMRADIO
+		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 			if (g_fm_radio_mode)
 				BK1080_Mute(false);
 		#endif

@@ -29,7 +29,7 @@ void ACTION_Scan(bool bFlag);
 #ifdef ENABLE_ALARM
 	//static void ACTION_AlarmOr1750(bool b1750)
 #endif
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	void ACTION_FM(void);
 #endif
 

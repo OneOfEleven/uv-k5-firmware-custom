@@ -14,7 +14,7 @@
  *     limitations under the License.
  */
 
-#ifdef ENABLE_FMRADIO
+#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 	#include "app/fm.h"
 #endif
 #include "app/search.h"
@@ -100,7 +100,7 @@ void SystickHandler(void)
 		DECREMENT_AND_TRIGGER(g_count_down_to_play_next_voice_10ms, g_flag_play_queued_voice);
 	#endif
 	
-	#ifdef ENABLE_FMRADIO
+	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
 		if (g_fm_scan_state != FM_SCAN_OFF && g_current_function != FUNCTION_MONITOR)
 			if (g_current_function != FUNCTION_TRANSMIT && g_current_function != FUNCTION_RECEIVE)
 				DECREMENT_AND_TRIGGER(g_fm_play_count_down_10ms, g_schedule_fm);
