@@ -137,7 +137,7 @@ void RADIO_InitInfo(vfo_info_t *p_vfo, const uint8_t ChannelSave, const uint32_t
 	p_vfo->p_tx                     = &p_vfo->freq_config_tx;
 	p_vfo->compand                  = 0;  // off
 	p_vfo->squelch_level            = 0;  // use main squelch
-	p_vfo->frequency_channel        = 0xff;
+	p_vfo->freq_in_channel          = 0xff;
 
 	if (ChannelSave == (FREQ_CHANNEL_FIRST + BAND2_108MHz))
 		p_vfo->am_mode = 1;
@@ -165,7 +165,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 	Channel = g_eeprom.screen_channel[VFO];
 
-	p_vfo->frequency_channel = 0xff;
+	p_vfo->freq_in_channel = 0xff;
 
 	if (IS_VALID_CHANNEL(Channel))
 	{
@@ -383,7 +383,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	RADIO_ConfigureSquelchAndOutputPower(p_vfo);
 
 	if (IS_FREQ_CHANNEL(Channel))
-		p_vfo->frequency_channel = BOARD_find_channel(Frequency); // remember if a channel has this frequency
+		p_vfo->freq_in_channel = BOARD_find_channel(Frequency); // remember if a channel has this frequency
 }
 
 void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)

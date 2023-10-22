@@ -2823,7 +2823,7 @@ Skip:
 
 		RADIO_setup_registers(true);
 
-//		g_tx_vfo->frequency_channel = BOARD_find_channel(frequency);
+//		g_tx_vfo->freq_in_channel = BOARD_find_channel(frequency);
 
 		g_dtmf_auto_reset_time_500ms    = 0;
 		g_dtmf_call_state               = DTMF_CALL_STATE_NONE;

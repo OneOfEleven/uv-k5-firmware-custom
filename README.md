@@ -11,6 +11,8 @@ around with experimental code.
 There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may
 even brick your radio(s), at which point, maybe find a quiet corner to sob your hert out in.
 
+NO REFUNDS, ever !
+ 
 ## Radio performance
 
 Please note that the Quansheng UV-Kx radios are not professional quality transceivers, their

@@ -2089,14 +2089,14 @@ void BK4819_PlayRogerMDC1200(void)
 	// <15:8> 0x55 FSK Sync Byte 0 (Sync Byte 0 first, then 1,2,3)
 	// <7:0>  0x55 FSK Sync Byte 1
 	//
-	BK4819_WriteRegister(BK4819_REG_5A, 0);                   // can be any bit pattern you like
+	BK4819_WriteRegister(BK4819_REG_5A, 0xffff);                   // bytes 1 & 2
 
 	// REG_5B
 	//
 	// <15:8> 0x55 FSK Sync Byte 2 (Sync Byte 0 first, then 1,2,3)
 	// <7:0>  0xAA FSK Sync Byte 3
 	//
-	BK4819_WriteRegister(BK4819_REG_5B, 0);                   // bytes 2 & 3 not sent/used
+	BK4819_WriteRegister(BK4819_REG_5B, 0xffff);                   // bytes 2 & 3 (not used)
 
 	// CRC setting (plus other stuff we don't know what)
 	//

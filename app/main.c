@@ -118,7 +118,7 @@ void toggle_chan_scanlist(void)
 			RADIO_setup_registers(true);
 
 			// find the first channel that contains this frequency
-			g_tx_vfo->frequency_channel = BOARD_find_channel(g_tx_vfo->freq_config_tx.frequency);
+			g_tx_vfo->freq_in_channel = BOARD_find_channel(g_tx_vfo->freq_config_tx.frequency);
 
 			g_request_save_vfo = true;
 		
@@ -559,7 +559,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			g_tx_vfo->freq_config_rx.frequency = Frequency;
 
 			// find the first channel that contains this frequency
-			g_tx_vfo->frequency_channel = BOARD_find_channel(Frequency);
+			g_tx_vfo->freq_in_channel = BOARD_find_channel(Frequency);
 
 			// 1of11 .. test to prevent monitor mode being turned off
 			#if 0
@@ -837,7 +837,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 			g_tx_vfo->freq_config_tx.frequency = g_tx_vfo->freq_config_rx.frequency;
 			
 			// find the first channel that contains this frequency
-			g_tx_vfo->frequency_channel = BOARD_find_channel(g_tx_vfo->freq_config_rx.frequency);
+			g_tx_vfo->freq_in_channel = BOARD_find_channel(g_tx_vfo->freq_config_rx.frequency);
 				
 			// only update eeprom when the key is released - saves a LOT of wear and tear on the little eeprom
 			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
@@ -917,10 +917,10 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 				// TODO: include this once we have the entire eeprom loaded
 				//
 				//if (!key_held && key_pressed)
-				//	g_tx_vfo->frequency_channel = BOARD_find_channel(frequency);
+				//	g_tx_vfo->freq_in_channel = BOARD_find_channel(frequency);
 				//else
 				//if (key_held && key_pressed)
-					g_tx_vfo->frequency_channel = 0xff;
+					g_tx_vfo->freq_in_channel = 0xff;
 
 				if (new_band != old_band)
 				{	// original slow method

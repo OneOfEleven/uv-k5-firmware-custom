@@ -760,10 +760,10 @@ void UI_DisplayMain(void)
 
 				if (IS_FREQ_CHANNEL(g_eeprom.screen_channel[vfo_num]))
 				{
-					//g_eeprom.vfo_info[vfo_num].frequency_channel = BOARD_find_channel(frequency);
-					if (g_eeprom.vfo_info[vfo_num].frequency_channel <= USER_CHANNEL_LAST)
+					//g_eeprom.vfo_info[vfo_num].freq_in_channel = BOARD_find_channel(frequency);
+					if (g_eeprom.vfo_info[vfo_num].freq_in_channel <= USER_CHANNEL_LAST)
 					{	// the channel number that contains this VFO frequency
-						sprintf(String, "%03u", g_eeprom.vfo_info[vfo_num].frequency_channel);
+						sprintf(String, "%03u", g_eeprom.vfo_info[vfo_num].freq_in_channel);
 						UI_PrintStringSmallest(String, x, (line + 0) * 8, false, true);
 					}
 				}
