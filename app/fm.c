@@ -49,7 +49,7 @@ uint16_t          g_fm_restore_count_down_10ms;
 
 bool FM_CheckValidChannel(uint8_t Channel)
 {
-	return (Channel < ARRAY_SIZE(g_fm_channels) && (g_fm_channels[Channel] >= 760 && g_fm_channels[Channel] < 1080)) ? true : false;
+	return (Channel < ARRAY_SIZE(g_fm_channels) && (g_fm_channels[Channel] >= FM_RADIO_BAND.lower && g_fm_channels[Channel] < FM_RADIO_BAND.upper)) ? true : false;
 }
 
 uint8_t FM_FindNextChannel(uint8_t Channel, uint8_t Direction)

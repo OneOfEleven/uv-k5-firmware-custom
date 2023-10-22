@@ -342,7 +342,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 	p_vfo->freq_config_rx.frequency = Frequency;
 
-	if (Frequency >= 10800000 && Frequency < 13600000)
+	if (Frequency >= AIR_BAND.lower && Frequency < AIR_BAND.upper)
 	{	// air band
 		p_vfo->tx_offset_freq_dir = TX_OFFSET_FREQ_DIR_OFF;
 		p_vfo->tx_offset_freq     = 0;
@@ -508,7 +508,7 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 	//
 	// 1ED0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF ..  50 MHz
 	// 1EE0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 108 MHz
-	// 1EF0    5F 5F 5F   69 69 69   91 91 8F   FF FF FF FF FF FF FF .. 136 MHz
+	// 1EF0    5F 5F 5F   69 69 69   91 91 8F   FF FF FF FF FF FF FF .. 137 MHz
 	// 1F00    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 174 MHz
 	// 1F10    5A 5A 5A   64 64 64   82 82 82   FF FF FF FF FF FF FF .. 350 MHz
 	// 1F20    5A 5A 5A   64 64 64   8F 91 8A   FF FF FF FF FF FF FF .. 400 MHz

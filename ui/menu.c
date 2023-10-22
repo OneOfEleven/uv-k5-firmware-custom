@@ -1088,7 +1088,7 @@ void UI_DisplayMenu(void)
 			switch (g_sub_menu_selection)
 			{
 				case FREQ_LOCK_NORMAL:
-					strcpy(String, "136~174\n400~470\n+ others");
+					strcpy(String, "137~174\n400~470\n+ others");
 					break;
 				case FREQ_LOCK_FCC:
 					strcpy(String, "FCC HAM\n144~148\n420~450");
@@ -1100,10 +1100,10 @@ void UI_DisplayMenu(void)
 					strcpy(String, "GB HAM\n144~148\n430~440");
 					break;
 				case FREQ_LOCK_430:
-					strcpy(String, "136~174\n400~430");
+					strcpy(String, "137~174\n400~430");
 					break;
 				case FREQ_LOCK_438:
-					strcpy(String, "136~174\n400~438");
+					strcpy(String, "137~174\n400~438");
 					break;
 				case FREQ_LOCK_446:
 					strcpy(String, "446.00625\n~\n446.19375");

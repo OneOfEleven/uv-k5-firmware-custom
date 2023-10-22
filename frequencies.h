@@ -26,7 +26,7 @@ enum frequency_band_e {
 	BAND_NONE   = -1,
 	BAND1_50MHz =  0,
 	BAND2_108MHz,
-	BAND3_136MHz,
+	BAND3_137MHz,
 	BAND4_174MHz,
 	BAND5_350MHz,
 	BAND6_400MHz,
@@ -40,6 +40,8 @@ typedef struct {
 } freq_band_table_t;
 
 extern uint32_t g_aircopy_freq;
+
+extern const freq_band_table_t AIR_BAND;
 
 extern const freq_band_table_t FM_RADIO_BAND;
 

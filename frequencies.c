@@ -22,11 +22,13 @@
 // the default AIRCOPY frequency
 uint32_t g_aircopy_freq = 41002500;
 
+const freq_band_table_t AIR_BAND = {10800000, 13700000};
+
 // FM broadcast band lower/upper limit
 #ifdef ENABLE_FMRADIO_64_108
 	const freq_band_table_t FM_RADIO_BAND = {680, 1080};
 #else
-	const freq_band_table_t FM_RADIO_BAND = {880, 1080};
+	const freq_band_table_t FM_RADIO_BAND = {875, 1080};
 #endif
 
 // the BK4819 has 2 bands it covers, 18MHz ~ 630MHz and 760MHz ~ 1300MHz
@@ -38,8 +40,8 @@ const freq_band_table_t FREQ_BAND_TABLE[7] =
 	#ifdef ENABLE_WIDE_RX
 		// extended range
 		{ 1800000,  10800000},  // band 1
-		{10800000,  13600000},  // band 2
-		{13600000,  17400000},  // band 3
+		{AIR_BAND.lower, AIR_BAND.upper},  // band 2
+		{AIR_BAND.upper, 17400000},  // band 3
 		{17400000,  35000000},  // band 4
 		{35000000,  40000000},  // band 5
 		{40000000,  47000000},  // band 6
@@ -47,8 +49,8 @@ const freq_band_table_t FREQ_BAND_TABLE[7] =
 	#else
 		// QS original
 		{ 5000000,   7600000},  // band 1
-		{10800000,  13600000},  // band 2
-		{13600000,  17400000},  // band 3
+		{AIR_BAND.lower, AIR_BAND.upper},  // band 2
+		{AIR_BAND.upper, 17400000},  // band 3
 		{17400000,  35000000},  // band 4
 		{35000000,  40000000},  // band 5
 		{40000000,  47000000},  // band 6
@@ -188,7 +190,7 @@ int FREQUENCY_tx_freq_check(const uint32_t Frequency)
 	if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
 		return -1;  // BX radio chip does not work in this range
 
-	if (Frequency >= 10800000 && Frequency < 13600000)
+	if (Frequency >= AIR_BAND.lower && Frequency < AIR_BAND.upper)
 		return -1;  // TX not allowed in the airband
 
 	if (Frequency < FREQ_BAND_TABLE[0].lower || Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
@@ -197,7 +199,7 @@ int FREQUENCY_tx_freq_check(const uint32_t Frequency)
 	switch (g_setting_freq_lock)
 	{
 		case FREQ_LOCK_NORMAL:
-			if (Frequency >= 13600000 && Frequency < 17400000)
+			if (Frequency >= AIR_BAND.upper && Frequency < 17400000)
 				return 0;
 			if (Frequency >= 17400000 && Frequency < 35000000)
 				if (g_setting_174_tx_enable)
@@ -234,14 +236,14 @@ int FREQUENCY_tx_freq_check(const uint32_t Frequency)
 			break;
 
 		case FREQ_LOCK_430:
-			if (Frequency >= 13600000 && Frequency < 17400000)
+			if (Frequency >= AIR_BAND.lower && Frequency < 17400000)
 				return 0;
 			if (Frequency >= 40000000 && Frequency < 43000000)
 				return 0;
 			break;
 
 		case FREQ_LOCK_438:
-			if (Frequency >= 13600000 && Frequency < 17400000)
+			if (Frequency >= AIR_BAND.lower && Frequency < 17400000)
 				return 0;
 			if (Frequency >= 40000000 && Frequency < 43800000)
 				return 0;
