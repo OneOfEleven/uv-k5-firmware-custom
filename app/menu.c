@@ -1424,7 +1424,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		NUMBER_Get(g_input_box, &Frequency);
 		g_input_box_index = 0;
 
-		g_sub_menu_selection = FREQUENCY_FloorToStep(Frequency + (g_tx_vfo->step_freq / 2), g_tx_vfo->step_freq, 0);
+		g_sub_menu_selection = FREQUENCY_floor_to_step(Frequency + (g_tx_vfo->step_freq / 2), g_tx_vfo->step_freq, 0, Frequency + (g_tx_vfo->step_freq / 2));
 		return;
 	}
 
@@ -1852,7 +1852,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 		else
 			Offset = 0;
 
-		g_sub_menu_selection     = FREQUENCY_FloorToStep(Offset, g_tx_vfo->step_freq, 0);
+		g_sub_menu_selection     = FREQUENCY_floor_to_step(Offset, g_tx_vfo->step_freq, 0, Offset);
 		g_request_display_screen = DISPLAY_MENU;
 		return;
 	}

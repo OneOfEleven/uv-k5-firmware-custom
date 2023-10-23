@@ -57,11 +57,12 @@ uint16_t reverse_bits(const uint16_t bits_in, const unsigned int num_bits)
 	return bits_out;
 }
 
-#if 0
+#if 1
 	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
 	{	// using the reverse computation avoids having to reverse the bit order during and after
+		unsigned int i;
 		uint16_t crc = 0;
-		for (i = 0; i < len; i++)
+		for (i = 0; i < data_len; i++)
 		{
 			unsigned int k;
 			crc ^= data[i];
@@ -129,54 +130,80 @@ uint16_t reverse_bits(const uint16_t bits_in, const unsigned int num_bits)
 	}
 #endif
 
+#define FEC_K   7
+
 uint8_t * encode_data(uint8_t *data)
 {
 	unsigned int i;
-	unsigned int k;
-	unsigned int m;
-	uint8_t      csr[7];
-	uint8_t      lbits[(ARRAY_SIZE(csr) * 2) * 8];
 
-	for (i = 0; i < ARRAY_SIZE(csr); i++)
-		csr[i] = 0;
-
-	for (i = 0; i < ARRAY_SIZE(csr); i++)
+	// R=1/2 K=7 convolutional coder
+	//
+	// create the FEC bits
+	//
+	// op     0x01
+	// arg    0x80
+	// id     0x1234
+	// crc    0x2E3E
+	// status 0x00
+	// FEC    0x6580A862DD8808
+	//
+	// 01 80 1234 2E3E 00 6580A862DD8808
+	//
+	// 1. reverse the bit order for each byte of the first 7 bytes (to undo the reversal performed for display, above)
+	// 2. feed those bits into a shift register which is preloaded with all zeros
+	// 3. for each bit, calculate the modulo-2 sum: bit(n-0) + bit(n-2) + bit(n-5) + bit(n-6)
+	// 4. then for each byte of resulting output, again reverse those bits to generate the values listed above (for display)
+	//
 	{
-		unsigned int bit;
-		data[i + ARRAY_SIZE(csr)] = 0;
-		for (bit = 0; bit < 8; bit++)
+		uint8_t shift_reg = 0;
+		for (i = 0; i < FEC_K; i++)
 		{
-			uint8_t b;
-			for (k = 6; k > 0; k--)
-				csr[k] = csr[k - 1];
-			csr[0] = (data[i] >> bit) & 1u;
-			b = csr[0] + csr[2] + csr[5] + csr[6];
-			data[i + ARRAY_SIZE(csr)] |= (b & 1u) << bit;
+			unsigned int  bit;
+			const uint8_t bi = data[i];
+			uint8_t       bo = 0;
+
+			for (bit = 0; bit < 8; bit++)
+			{
+				shift_reg = (shift_reg << 1) | ((bi >> bit) & 1u);
+				bo |= (((shift_reg >> 6) ^ (shift_reg >> 5) ^ (shift_reg >> 2) ^ (shift_reg >> 0)) & 1u) << bit;
+			}
+
+			data[i + FEC_K] = bo;
 		}
 	}
 
-	for (i = 0, k = 0, m = 0; i < (ARRAY_SIZE(csr) * 2); i++)
 	{
-		unsigned int bit;
-		for (bit = 0; bit < 8; bit++)
+		unsigned int k;
+		unsigned int m;
+		uint8_t interleaved[(FEC_K * 2) * 8];
+
+		// bit interleaver
+		for (i = 0, k = 0, m = 0; i < (FEC_K * 2); i++)
 		{
-			lbits[k] = (data[i] >> bit) & 1u;
-			k += 16;
-			if (k >= ARRAY_SIZE(lbits))
-				k = ++m;
+			unsigned int bit;
+			const uint8_t b = data[i];
+			for (bit = 0; bit < 8; bit++)
+			{
+				interleaved[k] = (b >> bit) & 1u;
+				k += 16;
+				if (k >= sizeof(interleaved))
+					k = ++m;
+			}
+		}
+
+		// copy the interleaved bits to the output buffer
+		for (i = 0, k = 0; i < (FEC_K * 2); i++)
+		{
+			int bit;
+			uint8_t b = 0;
+			for (bit = 7; bit >= 0; bit--)
+				if (interleaved[k++])
+					b |= 1u << bit;
+			data[i] = b;
 		}
 	}
 
-	for (i = 0, k = 0; i < (ARRAY_SIZE(csr) * 2); i++)
-	{
-		int bit;
-		data[i] = 0;
-		for (bit = 7; bit >= 0; bit--)
-			if (lbits[k++])
-				data[i] |= 1u << bit;
-	}
-
-	return data + 14;
+	return data + (FEC_K * 2);
 }
 
 void delta_modulation(uint8_t *data, const unsigned int size)
@@ -215,12 +242,15 @@ unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const
 	crc = compute_crc(p, 4);
 	p[4] = (crc >> 0) & 0x00ff;
 	p[5] = (crc >> 8) & 0x00ff;
-	p[6] = 0;
+	p[6] = 0;      // unknown field (00 for PTTIDs, 76 for STS and MSG)
 
 	p = encode_data(p);
 
-#if 1
-	{	// op 0x01, arg 0x80, id 0xB183 
+#if 0
+	{	// test packet
+		//
+		// op 0x01, arg 0x80, id 0xB183
+		//
 		const uint8_t test_packet[] = {0x07, 0x25, 0xDD, 0xD5, 0x9F, 0xC5, 0x3D, 0x89, 0x2D, 0xBD, 0x57, 0x35, 0xE7, 0x44};
 		memcpy(data + sizeof(header), test_packet, sizeof(test_packet));
 	}
@@ -229,7 +259,7 @@ unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const
 	size = (unsigned int)(p - data);
 
 	delta_modulation(data, size);
-	
+
 	return size;
 //	return 26;
 }
@@ -250,7 +280,7 @@ unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const
 	crc = compute_crc(p, 4);
 	p[4] = (crc >> 0) & 0x00ff;
 	p[5] = (crc >> 8) & 0x00ff;
-	p[6] = 0;
+	p[6] = 0;      // status byte
 
 	p = encode_data(p);
 
@@ -261,7 +291,7 @@ unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const
 	crc = compute_crc(p, 4);
 	p[4] = (crc >> 0) & 0x00ff;
 	p[5] = (crc >> 8) & 0x00ff;
-	p[6] = 0;
+	p[6] = 0;      // status byte
 
 	p = encode_data(p);
 

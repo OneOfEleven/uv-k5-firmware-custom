@@ -311,25 +311,19 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 	Frequency = p_vfo->freq_config_rx.frequency;
 
-#if 1
-	// fix previously maybe incorrect set band
-	Band = FREQUENCY_GetBand(Frequency);
-	p_vfo->band = Band;
-#endif
-
 	if (Frequency < FREQ_BAND_TABLE[Band].lower)
 		Frequency = FREQ_BAND_TABLE[Band].lower;
 	else
-	if (Frequency > FREQ_BAND_TABLE[Band].upper)
-		Frequency = FREQ_BAND_TABLE[Band].upper;
+	if (Frequency >= FREQ_BAND_TABLE[Band].upper)
+		Frequency = FREQUENCY_floor_to_step(Frequency, p_vfo->step_freq, FREQ_BAND_TABLE[Band].lower, FREQ_BAND_TABLE[Band].upper);
 	else
 	if (Channel >= FREQ_CHANNEL_FIRST)
-		Frequency = FREQUENCY_FloorToStep(Frequency, p_vfo->step_freq, FREQ_BAND_TABLE[Band].lower);
+		Frequency = FREQUENCY_floor_to_step(Frequency, p_vfo->step_freq, FREQ_BAND_TABLE[Band].lower, FREQ_BAND_TABLE[Band].upper);
 
 	if (!g_setting_350_enable && Frequency >= 35000000 && Frequency < 40000000)
 	{	// 350~400Mhz not allowed
 
-		// hop onto the euro ham band
+		// hop onto the next band up
 		Frequency                       = 43350000;
 		p_vfo->freq_config_rx.frequency = Frequency;
 		p_vfo->freq_config_tx.frequency = Frequency;
@@ -338,6 +332,11 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		p_vfo->frequency_reverse        = 0;
 		p_vfo->tx_offset_freq_dir       = TX_OFFSET_FREQ_DIR_OFF;
 		p_vfo->tx_offset_freq           = 0;
+		
+		
+		// TODO: also update other settings such as step size
+		
+		
 	}
 
 	p_vfo->freq_config_rx.frequency = Frequency;
@@ -350,7 +349,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	else
 	if (Channel > USER_CHANNEL_LAST)
 	{
-		p_vfo->tx_offset_freq = FREQUENCY_FloorToStep(p_vfo->tx_offset_freq, p_vfo->step_freq, 0);
+		p_vfo->tx_offset_freq = FREQUENCY_floor_to_step(p_vfo->tx_offset_freq, p_vfo->step_freq, 0, p_vfo->tx_offset_freq);
 	}
 
 	RADIO_ApplyOffset(p_vfo);

@@ -586,11 +586,12 @@ uint32_t APP_set_frequency_by_step(vfo_info_t *pInfo, int8_t Step)
 		Frequency = Lower + Base + (Index * 833);
 	}
 
-	if (Frequency >= FREQ_BAND_TABLE[pInfo->band].upper)
-		Frequency =  FREQ_BAND_TABLE[pInfo->band].lower;
-	else
-	if (Frequency < FREQ_BAND_TABLE[pInfo->band].lower)
-		Frequency = FREQUENCY_FloorToStep(FREQ_BAND_TABLE[pInfo->band].upper, pInfo->step_freq, FREQ_BAND_TABLE[pInfo->band].lower);
+//	if (Frequency >= FREQ_BAND_TABLE[pInfo->band].upper)
+//		Frequency =  FREQ_BAND_TABLE[pInfo->band].lower;
+//	else
+//	if (Frequency < FREQ_BAND_TABLE[pInfo->band].lower)
+//		Frequency = FREQUENCY_floor_to_step(FREQ_BAND_TABLE[pInfo->band].upper, pInfo->step_freq, FREQ_BAND_TABLE[pInfo->band].lower);
+	Frequency = FREQUENCY_wrap_to_step_band(Frequency, pInfo->step_freq, pInfo->band);
 
 	return Frequency;
 }

@@ -157,29 +157,49 @@ uint8_t FREQUENCY_CalculateOutputPower(uint8_t TxpLow, uint8_t TxpMid, uint8_t T
 	return pwr;
 }
 
-uint32_t FREQUENCY_FloorToStep(uint32_t Upper, uint32_t Step, uint32_t Lower)
+uint32_t FREQUENCY_floor_to_step(uint32_t freq, const uint32_t step_size, const uint32_t lower, const uint32_t upper)
 {
-	#if 1
-		uint32_t Index;
+	uint32_t delta;
 
-		if (Step == 833)
-		{
-			const uint32_t Delta = Upper - Lower;
-			uint32_t       Base  = (Delta / 2500) * 2500;
-			const uint32_t Index = ((Delta - Base) % 2500) / 833;
+	if (freq <= lower)
+		return lower;
 
-			if (Index == 2)
-				Base++;
+	if (freq > (upper - 1))
+		freq =  upper - 1;
 
-			return Lower + Base + (Index * 833);
-		}
+	delta = freq - lower;
 
-		Index = (Upper - Lower) / Step;
+	if (delta < step_size)
+		return lower;
+		
+	if (step_size == 833)
+	{
+		uint32_t           base  =  (delta / 2500) * 2500;	// 25kHz step
+		const unsigned int index = ((delta - base) % 2500) / step_size;
 
-		return Lower + (Step * Index);
-	#else
-		return Lower + (((Upper - Lower) / Step) * Step);
-	#endif
+		if (index == 2)
+			base++;
+
+		freq = lower + base + (step_size * index);
+	}
+	else
+		freq = lower + ((delta / step_size) * step_size);
+	
+	return freq;
+}
+
+uint32_t FREQUENCY_wrap_to_step_band(uint32_t freq, const uint32_t step_size, const unsigned int band)
+{
+	const uint32_t upper = FREQ_BAND_TABLE[band].upper; 
+	const uint32_t lower = FREQ_BAND_TABLE[band].lower; 
+	
+	if (freq < lower)
+		return FREQUENCY_floor_to_step(upper, step_size, lower, upper);
+	
+	if (freq >= upper)
+		freq = lower;
+	
+	return freq;
 }
 
 int FREQUENCY_tx_freq_check(const uint32_t Frequency)
