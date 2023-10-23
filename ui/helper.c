@@ -105,7 +105,7 @@ void UI_print_string(
 	uint8_t           *f_buf;
 
 	if (end > start)
-		start += (((end - start) - (length * (char_width - 1))) + 1) / 2;
+		start += ((end - start) - (length * char_spacing)) / 2;
 
 	f_buf = g_frame_buffer[line] + start;
 	for (i = 0; i < length; i++)

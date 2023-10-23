@@ -448,12 +448,11 @@ void UI_SortMenu(const bool hide_hidden)
 
 void UI_DisplayMenu(void)
 {
-	const unsigned int menu_list_width = 6; // max no. of characters on the menu list (left side)
-	const unsigned int menu_item_x1    = (8 * menu_list_width) + 2;
-	const unsigned int menu_item_x2    = LCD_WIDTH - 1;
+	const unsigned int menu_list_width = 6;            // max no. of characters on the menu list (left side)
+	const unsigned int sub_menu_x1     = (8 * menu_list_width) + 2;  // start x corrd
+	const unsigned int sub_menu_x2     = LCD_WIDTH - 1;              //   end x coord
 	unsigned int       i;
 	char               String[64];  // bigger cuz we can now do multi-line in one string (use '\n' char)
-	char               Contact[16];
 
 	// clear the screen buffer
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
@@ -650,7 +649,7 @@ void UI_DisplayMenu(void)
 			if (!g_in_sub_menu || g_input_box_index == 0)
 			{
 				sprintf(String, "%d.%05u", g_sub_menu_selection / 100000, abs(g_sub_menu_selection) % 100000);
-				UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
+				UI_PrintString(String, sub_menu_x1, sub_menu_x2, 1, 8);
 			}
 			else
 			{
@@ -664,10 +663,10 @@ void UI_DisplayMenu(void)
 				String[ 9] = 0;
 				String[10] = 0;
 				String[11] = 0;
-				UI_PrintString(String, menu_item_x1, menu_item_x2, 1, 8);
+				UI_PrintString(String, sub_menu_x1, sub_menu_x2, 1, 8);
 			}
 
-			UI_PrintString("MHz",  menu_item_x1, menu_item_x2, 3, 8);
+			UI_PrintString("MHz",  sub_menu_x1, sub_menu_x2, 3, 8);
 
 			already_printed = true;
 			break;
@@ -847,7 +846,7 @@ void UI_DisplayMenu(void)
 			const unsigned int y = (!g_in_sub_menu || g_edit_index < 0) ? 1 : 0;
 
 			UI_GenerateChannelStringEx(String, valid ? "CH-" : "", g_sub_menu_selection);
-			UI_PrintString(String, menu_item_x1, menu_item_x2, y, 8);
+			UI_PrintString(String, sub_menu_x1, sub_menu_x2, y, 8);
 
 			if (valid)
 			{
@@ -858,22 +857,22 @@ void UI_DisplayMenu(void)
 					BOARD_fetchChannelName(String, g_sub_menu_selection);
 					if (String[0] == 0)
 						strcpy(String, "--");
-					UI_PrintString(String, menu_item_x1, menu_item_x2, y + 2, 8);
+					UI_PrintString(String, sub_menu_x1, sub_menu_x2, y + 2, 8);
 				}
 				else
 				{	// show the channel name being edited
-					UI_PrintString(g_edit, menu_item_x1, 0, y + 2, 8);
+					UI_PrintString(g_edit, sub_menu_x1, 0, y + 2, 8);
 					if (g_edit_index < 10)
-						UI_PrintString("^", menu_item_x1 + (8 * g_edit_index), 0, y + 4, 8);  // show the cursor
+						UI_PrintString("^", sub_menu_x1 + (8 * g_edit_index), 0, y + 4, 8);  // show the cursor
 				}
 
 				if (!g_ask_for_confirmation)
 				{	// show the frequency so that the user knows the channels frequency
 					sprintf(String, "%u.%05u", frequency / 100000, frequency % 100000);
 					if (!g_in_sub_menu || g_edit_index < 0)
-						UI_PrintString(String, menu_item_x1, menu_item_x2, y + 4, 8);
+						UI_PrintString(String, sub_menu_x1, sub_menu_x2, y + 4, 8);
 					else
-						UI_PrintString(String, menu_item_x1, menu_item_x2, y + 5, 8);
+						UI_PrintString(String, sub_menu_x1, sub_menu_x2, y + 5, 8);
 				}
 			}
 
@@ -1003,6 +1002,8 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_DTMF_LIST:
+		{
+			char Contact[17];
 			g_dtmf_is_contact_valid = DTMF_GetContact((int)g_sub_menu_selection - 1, Contact);
 			strcpy(String, "DTMF\n");
 			if (!g_dtmf_is_contact_valid)
@@ -1017,7 +1018,8 @@ void UI_DisplayMenu(void)
 				sprintf(String + strlen(String), "\nID:%s", Contact + 8);
 			}
 			break;
-
+		}
+		
 		case MENU_PON_MSG:
 			strcpy(String, g_sub_menu_pwr_on_msg[g_sub_menu_selection]);
 			break;
@@ -1165,7 +1167,7 @@ void UI_DisplayMenu(void)
 			}
 
 			if (lines > 3)
-			{	// use small text
+			{	// switch to small text
 				small = true;
 				if (lines > 7)
 					lines = 7;
@@ -1173,7 +1175,7 @@ void UI_DisplayMenu(void)
 
 			// center vertically'ish
 			if (small)
-				y = 3 - ((lines + 0) / 2);  // untested
+				y = 3 - ((lines + 0) / 2);
 			else
 				y = 2 - ((lines + 0) / 2);
 
@@ -1181,9 +1183,9 @@ void UI_DisplayMenu(void)
 			for (i = 0; i < len && lines > 0; lines--)
 			{
 				if (small)
-					UI_PrintStringSmall(String + i, menu_item_x1, menu_item_x2, y);
+					UI_PrintStringSmall(String + i, sub_menu_x1, sub_menu_x2, y);
 				else
-					UI_PrintString(String + i, menu_item_x1, menu_item_x2, y, 8);
+					UI_PrintString(String + i, sub_menu_x1, sub_menu_x2, y, 8);
 
 				// look for start of next line
 				while (i < len && String[i] >= 32)
@@ -1212,49 +1214,49 @@ void UI_DisplayMenu(void)
 		if (g_sub_menu_selection < 0 || !g_eeprom.scan_list_enabled[i])
 		{
 			// channel number
-			UI_PrintString(String, menu_item_x1, menu_item_x2, 0, 8);
+			UI_PrintString(String, sub_menu_x1, sub_menu_x2, 0, 8);
 
 			// channel name
 			BOARD_fetchChannelName(String, g_sub_menu_selection);
 			if (String[0] == 0)
 				strcpy(String, "--");
-			UI_PrintString(String, menu_item_x1, menu_item_x2, 2, 8);
+			UI_PrintString(String, sub_menu_x1, sub_menu_x2, 2, 8);
 		}
 		else
 		{
 			// channel number
-			UI_PrintString(String, menu_item_x1, menu_item_x2, 0, 8);
+			UI_PrintString(String, sub_menu_x1, sub_menu_x2, 0, 8);
 
 			// channel name
 			BOARD_fetchChannelName(String, g_sub_menu_selection);
 			if (String[0] == 0)
 				strcpy(String, "--");
-			UI_PrintStringSmall(String, menu_item_x1, menu_item_x2, 2);
+			UI_PrintStringSmall(String, sub_menu_x1, sub_menu_x2, 2);
 
 			if (IS_USER_CHANNEL(g_eeprom.scan_list_priority_ch1[i]))
 			{
 				sprintf(String, "PRI1:%u", g_eeprom.scan_list_priority_ch1[i] + 1);
-				UI_PrintString(String, menu_item_x1, menu_item_x2, 3, 8);
+				UI_PrintString(String, sub_menu_x1, sub_menu_x2, 3, 8);
 			}
 
 			if (IS_USER_CHANNEL(g_eeprom.scan_list_priority_ch2[i]))
 			{
 				sprintf(String, "PRI2:%u", g_eeprom.scan_list_priority_ch2[i] + 1);
-				UI_PrintString(String, menu_item_x1, menu_item_x2, 5, 8);
+				UI_PrintString(String, sub_menu_x1, sub_menu_x2, 5, 8);
 			}
 		}
 	}
 
 	if ((g_menu_cursor == MENU_RX_CTCSS || g_menu_cursor == MENU_RX_CDCSS) && g_css_scan_mode != CSS_SCAN_MODE_OFF)
-		UI_PrintString("SCAN", menu_item_x1, menu_item_x2, 4, 8);
+		UI_PrintString("SCAN", sub_menu_x1, sub_menu_x2, 4, 8);
 
 	if (g_menu_cursor == MENU_UP_CODE)
 		if (strlen(g_eeprom.dtmf_key_up_code) > 8)
-			UI_PrintString(g_eeprom.dtmf_key_up_code + 8, menu_item_x1, menu_item_x2, 4, 8);
+			UI_PrintString(g_eeprom.dtmf_key_up_code + 8, sub_menu_x1, sub_menu_x2, 4, 8);
 
 	if (g_menu_cursor == MENU_DN_CODE)
 		if (strlen(g_eeprom.dtmf_key_down_code) > 8)
-			UI_PrintString(g_eeprom.dtmf_key_down_code + 8, menu_item_x1, menu_item_x2, 4, 8);
+			UI_PrintString(g_eeprom.dtmf_key_down_code + 8, sub_menu_x1, sub_menu_x2, 4, 8);
 
 	if (g_menu_cursor == MENU_RX_CTCSS ||
 	    g_menu_cursor == MENU_TX_CTCSS ||
@@ -1277,7 +1279,7 @@ void UI_DisplayMenu(void)
 	     g_menu_cursor == MENU_MEM_DEL) && g_ask_for_confirmation)
 	{	// display confirmation
 		strcpy(String, (g_ask_for_confirmation == 1) ? "SURE?" : "WAIT!");
-		UI_PrintString(String, menu_item_x1, menu_item_x2, 5, 8);
+		UI_PrintString(String, sub_menu_x1, sub_menu_x2, 5, 8);
 	}
 
 	ST7565_BlitFullScreen();

@@ -41,13 +41,13 @@ const freq_band_table_t FREQ_BAND_TABLE[7] =
 {
 	#ifdef ENABLE_WIDE_RX
 		// extended range
-		{ 1800000,       10800000},        // band 1
-		{AIR_BAND.lower, AIR_BAND.upper},  // band 2
-		{AIR_BAND.upper, 17400000},        // band 3
-		{17400000,       35000000},        // band 4
-		{35000000,       40000000},        // band 5
-		{40000000,       47000000},        // band 6
-		{47000000,      130000000}         // band 7
+		{BX4819_BAND1.lower, 10800000},             // band 1
+		{AIR_BAND.lower,     AIR_BAND.upper},       // band 2
+		{AIR_BAND.upper,     17400000},             // band 3
+		{17400000,           35000000},             // band 4
+		{35000000,           40000000},             // band 5
+		{40000000,           47000000},             // band 6
+		{47000000,           BX4819_BAND2.upper}    // band 7
 	#else
 		// QS original
 		{ 5000000,       7600000},         // band 1

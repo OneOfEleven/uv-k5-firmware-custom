@@ -733,8 +733,8 @@ void UI_DisplayMain(void)
 
 			// show channel symbols
 
-			//if (g_eeprom.screen_channel[vfo_num] <= USER_CHANNEL_LAST)
-			if (IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[vfo_num]))
+			if (g_eeprom.screen_channel[vfo_num] <= USER_CHANNEL_LAST)
+			//if (IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[vfo_num]))
 			{	// it's a user channel or VFO
 
 				unsigned int x = LCD_WIDTH - 1 - sizeof(BITMAP_SCANLIST2) - sizeof(BITMAP_SCANLIST1);
@@ -763,7 +763,7 @@ void UI_DisplayMain(void)
 					//g_eeprom.vfo_info[vfo_num].freq_in_channel = BOARD_find_channel(frequency);
 					if (g_eeprom.vfo_info[vfo_num].freq_in_channel <= USER_CHANNEL_LAST)
 					{	// the channel number that contains this VFO frequency
-						sprintf(String, "%03u", g_eeprom.vfo_info[vfo_num].freq_in_channel);
+						sprintf(String, "%03u", 1 + g_eeprom.vfo_info[vfo_num].freq_in_channel);
 						UI_PrintStringSmallest(String, x, (line + 0) * 8, false, true);
 					}
 				}
