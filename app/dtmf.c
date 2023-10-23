@@ -203,7 +203,7 @@ void DTMF_Append(const char code)
 void DTMF_HandleRequest(void)
 {	// proccess the RX'ed DTMF characters
 
-	char         String[20];
+	char         String[21];
 	unsigned int Offset;
 
 	if (!g_dtmf_rx_pending)
@@ -393,7 +393,7 @@ bool DTMF_Reply(void)
 {
 	const uint16_t Delay   = (g_eeprom.dtmf_preload_time < 150) ? 150 : g_eeprom.dtmf_preload_time;
 	const char    *pString = NULL;
-	char           String[20];
+	char           String[23];
 
 	switch (g_dtmf_reply_state)
 	{
