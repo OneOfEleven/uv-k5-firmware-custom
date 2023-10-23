@@ -352,6 +352,7 @@ unsigned int get_RX_VFO(void);
 void         NUMBER_Get(char *pDigits, uint32_t *pInteger);
 void         NUMBER_ToDigits(uint32_t Value, char *pDigits);
 int32_t      NUMBER_AddWithWraparound(int32_t Base, int32_t Add, int32_t LowerLimit, int32_t UpperLimit);
+void         NUMBER_trim_trailing_zeros(char *str);
 
 #endif
 

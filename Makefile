@@ -37,6 +37,7 @@ ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
 ENABLE_BIG_FREQ                  := 0
 ENABLE_SMALL_BOLD                := 0
+ENABLE_TRIM_TRAILING_ZEROS       := 1
 ENABLE_KEEP_MEM_NAME             := 1
 ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
@@ -303,6 +304,9 @@ ifeq ($(ENABLE_BIG_FREQ),1)
 endif
 ifeq ($(ENABLE_SMALL_BOLD),1)
 	CFLAGS  += -DENABLE_SMALL_BOLD
+endif
+ifeq ($(ENABLE_TRIM_TRAILING_ZEROS),1)
+	CFLAGS  += -DENABLE_TRIM_TRAILING_ZEROS
 endif
 ifeq ($(ENABLE_NOAA),1)
 	CFLAGS  += -DENABLE_NOAA

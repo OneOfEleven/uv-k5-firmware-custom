@@ -99,20 +99,21 @@ void UI_print_string(
 	const unsigned int font_size,
 	const unsigned int char_width)
 {
-	const unsigned int char_spacing = char_width + 1;
-	const size_t       length       = strlen(str);
+	const unsigned int char_pitch = char_width + 1;
+	const size_t       length     = strlen(str);
 	unsigned int       i;
 	uint8_t           *f_buf;
 
 	if (end > start)
-		start += ((end - start) - (length * char_spacing)) / 2;
+		start += ((end - start) - (length * char_pitch)) / 2;
 
 	f_buf = g_frame_buffer[line] + start;
+
 	for (i = 0; i < length; i++)
 	{
 		const int c = (int)str[i] - ' ';
 		if (c >= 0 && c < (int)font_size)
-			memmove(f_buf + (char_spacing * i) + 1, font + (char_width * c), char_width);
+			memmove(f_buf + (char_pitch * i), font + (char_width * c), char_width);
 	}
 }
 

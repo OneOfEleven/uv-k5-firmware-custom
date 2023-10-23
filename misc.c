@@ -341,3 +341,13 @@ int32_t NUMBER_AddWithWraparound(int32_t Base, int32_t Add, int32_t LowerLimit, 
 
 	return Base;
 }
+
+void NUMBER_trim_trailing_zeros(char *str)
+{
+	if (str != NULL)
+	{
+		int i = (int)strlen(str) - 1;
+		while (i > 0 && (str[i] == '0' || str[i] == ' ') && str[i - 1] != '.')
+			str[i--] = 0;
+	}
+}

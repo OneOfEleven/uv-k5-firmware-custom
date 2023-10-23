@@ -643,6 +643,8 @@ void UI_DisplayMain(void)
 		}
 		else
 		{
+			const unsigned int x = 32;
+
 			uint32_t frequency = g_eeprom.vfo_info[vfo_num].p_rx->frequency;
 			if (g_current_function == FUNCTION_TRANSMIT)
 			{	// transmitting
@@ -663,13 +665,16 @@ void UI_DisplayMain(void)
 						#ifdef ENABLE_BIG_FREQ
 							NUMBER_ToDigits(frequency, String);
 							// show the main large frequency digits
-							UI_DisplayFrequency(String, 32, line, false, false);
+							UI_DisplayFrequency(String, x, line, false, false);
 							// show the remaining 2 small frequency digits
-							UI_Displaysmall_digits(2, String + 6, 113, line + 1, true);
+							UI_Displaysmall_digits(2, String + 6, x + 81, line + 1, true);
 						#else
 							// show the frequency in the main font
 							sprintf(String, "%03u.%05u", frequency / 100000, frequency % 100000);
-							UI_PrintString(String, 32, 0, line, 8);
+							#ifdef ENABLE_TRIM_TRAILING_ZEROS
+								NUMBER_trim_trailing_zeros(String);
+							#endif
+							UI_PrintString(String, x, 0, line, 8);
 						#endif
 
 						break;
@@ -677,7 +682,7 @@ void UI_DisplayMain(void)
 					case MDF_CHANNEL:	// just channel number
 
 						sprintf(String, "CH-%03u", g_eeprom.screen_channel[vfo_num] + 1);
-						UI_PrintString(String, 32, 0, line, 8);
+						UI_PrintString(String, x, 0, line, 8);
 
 						break;
 
@@ -688,26 +693,29 @@ void UI_DisplayMain(void)
 
 						if (String[0] == 0)
 						{	// no channel name available, channel number instead
-							sprintf(String, "CH-%03u", g_eeprom.screen_channel[vfo_num] + 1);
+							sprintf(String, "CH-%03u", 1 + g_eeprom.screen_channel[vfo_num]);
 						}
 
 						if (g_eeprom.channel_display_mode == MDF_NAME)
 						{	// just the name
-							UI_PrintString(String, 32, 0, line, 8);
+							UI_PrintString(String, x, 0, line, 8);
 						}
 						else
 						{	// name & frequency
-
+							
 							// name
 							#ifdef ENABLE_SMALL_BOLD
-								UI_PrintStringSmallBold(String, 32 + 4, 0, line);
+								UI_PrintStringSmallBold(String, x, 0, line);
 							#else
-								UI_PrintStringSmall(String, 32 + 4, 0, line);
+								UI_PrintStringSmall(String, x, 0, line);
 							#endif
 
 							// frequency
 							sprintf(String, "%03u.%05u", frequency / 100000, frequency % 100000);
-							UI_PrintStringSmall(String, 32 + 4, 0, line + 1);
+							#ifdef ENABLE_TRIM_TRAILING_ZEROS
+								NUMBER_trim_trailing_zeros(String);
+							#endif
+							UI_PrintStringSmall(String, x, 0, line + 1);
 						}
 
 						break;
@@ -719,15 +727,24 @@ void UI_DisplayMain(void)
 //			if (IS_FREQ_CHANNEL(g_eeprom.screen_channel[vfo_num]))
 			{	// frequency mode
 				#ifdef ENABLE_BIG_FREQ
+
 					NUMBER_ToDigits(frequency, String);  // 8 digits
+
 					// show the main large frequency digits
-					UI_DisplayFrequency(String, 32, line, false, false);
+					UI_DisplayFrequency(String, x, line, false, false);
+
 					// show the remaining 2 small frequency digits
-					UI_Displaysmall_digits(2, String + 6, 113, line + 1, true);
+					UI_Displaysmall_digits(2, String + 6, x + 81, line + 1, true);
+
 				#else
 					// show the frequency in the main font
+
 					sprintf(String, "%03u.%05u", frequency / 100000, frequency % 100000);
-					UI_PrintString(String, 32, 0, line, 8);
+					#ifdef ENABLE_TRIM_TRAILING_ZEROS
+						NUMBER_trim_trailing_zeros(String);
+					#endif
+					UI_PrintString(String, x, 0, line, 8);
+
 				#endif
 			}
 

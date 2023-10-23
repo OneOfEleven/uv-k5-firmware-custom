@@ -574,11 +574,8 @@ void UI_DisplayMenu(void)
 			}
 			else
 			{	// kHz
-				int i;
 				sprintf(String, "%u.%03u", step / 1000, step % 1000);
-				i = strlen(String) - 1;
-				while (i > 0 && String[i] == '0' && String[i - 1] != '.')
-					String[i--] = 0;     // trim trailing zeros away
+				NUMBER_trim_trailing_zeros(String);
 				strcat(String, "kHz");
 			}
 			break;
