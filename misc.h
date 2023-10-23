@@ -310,7 +310,7 @@ extern uint8_t               g_scan_next_channel;      //
 extern scan_next_chan_t      g_scan_current_scan_list; //
 extern uint8_t               g_scan_restore_channel;   // the channel   we were on before starting the RF scan
 extern uint32_t              g_scan_restore_frequency; // the frequency we were on before starting the RF scan
-extern bool                  g_scan_pause_mode;        // set if we're paused on a channel or frequency ?
+extern bool                  g_scan_pause_time_mode;   // set if we stopped in SCAN_RESUME_TIME mode
 extern volatile uint16_t     g_scan_pause_10ms;        // ticks till we move to next channel/frequency
 extern scan_state_dir_t      g_scan_state_dir;         // the direction we're scanning in
 

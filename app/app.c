@@ -103,8 +103,9 @@ static void APP_check_for_new_receive(void)
 		if (g_css_scan_mode != CSS_SCAN_MODE_OFF && g_rx_reception_mode == RX_MODE_NONE)
 		{	// CTCSS/DTS scanning
 
-			g_scan_pause_10ms   = scan_pause_code_10ms;
-			g_rx_reception_mode = RX_MODE_DETECTED;
+			g_scan_pause_10ms      = scan_pause_code_10ms;
+			g_scan_pause_time_mode = false;
+			g_rx_reception_mode    = RX_MODE_DETECTED;
 		}
 
 		if (g_eeprom.dual_watch == DUAL_WATCH_OFF)
@@ -127,6 +128,7 @@ static void APP_check_for_new_receive(void)
 			goto done;
 
 		g_dual_watch_delay_10ms = g_eeprom.scan_hold_time_500ms * 50;
+		g_scan_pause_time_mode  = false;
 
 		g_update_status = true;
 	}
@@ -135,7 +137,8 @@ static void APP_check_for_new_receive(void)
 		if (g_rx_reception_mode != RX_MODE_NONE)
 			goto done;
 
-		g_scan_pause_10ms = scan_pause_chan_10ms;
+		g_scan_pause_10ms      = scan_pause_chan_10ms;
+		g_scan_pause_time_mode = false;
 	}
 
 	g_rx_reception_mode = RX_MODE_DETECTED;
@@ -225,7 +228,7 @@ static void APP_process_new_receive(void)
 }
 
 enum end_of_rx_mode_e {
-	END_OF_RX_MODE_SKIP = 0,
+	END_OF_RX_MODE_NONE = 0,
 	END_OF_RX_MODE_END,
 	END_OF_RX_MODE_TTE
 };
@@ -233,7 +236,7 @@ typedef enum end_of_rx_mode_e end_of_rx_mode_t;
 
 static void APP_process_rx(void)
 {
-	end_of_rx_mode_t Mode = END_OF_RX_MODE_SKIP;
+	end_of_rx_mode_t Mode = END_OF_RX_MODE_NONE;
 
 	if (g_flag_tail_tone_elimination_complete)
 	{
@@ -241,15 +244,16 @@ static void APP_process_rx(void)
 		goto Skip;
 	}
 
-	if (g_scan_state_dir != SCAN_STATE_DIR_OFF && IS_FREQ_CHANNEL(g_scan_next_channel))
+	// why does being a VFO make a difference ???  .. 1of11
+	//
+/*	if (g_scan_state_dir != SCAN_STATE_DIR_OFF && IS_FREQ_CHANNEL(g_scan_next_channel))  
 	{
-		if (g_squelch_open)
-			return;
-
+//		return;
+		
 		Mode = END_OF_RX_MODE_END;
 		goto Skip;
 	}
-
+*/
 	switch (g_current_code_type)
 	{
 		default:
@@ -345,7 +349,7 @@ static void APP_process_rx(void)
 	}
 	
 	if (!g_end_of_rx_detected_maybe &&
-	     Mode == END_OF_RX_MODE_SKIP &&
+	     Mode == END_OF_RX_MODE_NONE &&
 	     g_next_time_slice_40ms &&
 	     g_eeprom.tail_note_elimination &&
 	    (g_current_code_type == CODE_TYPE_DIGITAL || g_current_code_type == CODE_TYPE_REVERSE_DIGITAL) &&
@@ -361,7 +365,7 @@ static void APP_process_rx(void)
 Skip:
 	switch (Mode)
 	{
-		case END_OF_RX_MODE_SKIP:
+		case END_OF_RX_MODE_NONE:
 			break;
 
 		case END_OF_RX_MODE_END:
@@ -374,26 +378,10 @@ Skip:
 
 			g_update_display = true;
 
-			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-			{
-				switch (g_eeprom.scan_resume_mode)
-				{
-					case SCAN_RESUME_TIME:
-						break;
-
-					case SCAN_RESUME_CARRIER:
-						g_scan_pause_10ms = g_eeprom.scan_hold_time_500ms * 50;
-						break;
-
-					case SCAN_RESUME_SEARCH:
-						APP_stop_scan();
-						break;
-				}
-			}
-
 			break;
 
 		case END_OF_RX_MODE_TTE:
+		
 			if (g_eeprom.tail_note_elimination)
 			{
 				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -403,7 +391,25 @@ Skip:
 				g_end_of_rx_detected_maybe              = true;
 				g_speaker_enabled                        = false;
 			}
+			
 			break;
+	}
+
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
+	{	// we're RF scanning
+
+		switch (g_eeprom.scan_resume_mode)
+		{
+			case SCAN_RESUME_TIME:     // stay only for a limited time
+				break;
+			case SCAN_RESUME_CARRIER:  // stay till the carrier goes away
+				g_scan_pause_10ms      = g_eeprom.scan_hold_time_500ms * 50;
+				g_scan_pause_time_mode = false;
+				break;
+			case SCAN_RESUME_SEARCH:
+				APP_stop_scan();
+				break;
+		}
 	}
 }
 
@@ -445,14 +451,14 @@ static void APP_process_function(void)
 	#pragma GCC diagnostic pop
 }
 
-void APP_start_listening(function_type_t Function, const bool reset_am_fix)
+bool APP_start_listening(function_type_t Function, const bool reset_am_fix)
 {
 	const unsigned int chan = g_eeprom.rx_vfo;
 //	const unsigned int chan = g_rx_vfo->channel_save;
 
 	#ifdef ENABLE_KILL_REVIVE
 		if (g_setting_radio_disabled)
-			return;
+			return false;
 	#endif
 
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
@@ -480,17 +486,19 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 		switch (g_eeprom.scan_resume_mode)
 		{
 			case SCAN_RESUME_TIME:
-				if (!g_scan_pause_mode)
+				if (!g_scan_pause_time_mode)
 				{
-					g_scan_pause_10ms = g_eeprom.scan_hold_time_500ms * 50;
-					g_scan_pause_mode = true;
+					g_scan_pause_10ms      = g_eeprom.scan_hold_time_500ms * 50;
+					g_scan_pause_time_mode = true;
 				}
 				break;
-
 			case SCAN_RESUME_CARRIER:
-
+				g_scan_pause_10ms      = g_eeprom.scan_hold_time_500ms * 50;
+				g_scan_pause_time_mode = false;
+				break;
 			case SCAN_RESUME_SEARCH:
-				g_scan_pause_10ms = 0;
+				g_scan_pause_10ms      = 0;
+				g_scan_pause_time_mode = false;
 				break;
 		}
 
@@ -515,7 +523,7 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 	if (g_scan_state_dir == SCAN_STATE_DIR_OFF &&
 	    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
 	    g_eeprom.dual_watch != DUAL_WATCH_OFF)
-	{	// not scanning, but dual watch is enabled
+	{	// dual watch is active
 
 		g_dual_watch_delay_10ms = g_eeprom.scan_hold_time_500ms * 50;
 		g_rx_vfo_is_active      = true;
@@ -578,6 +586,8 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 		g_update_display = true;
 
 	g_update_status = true;
+	
+	return true;
 }
 
 uint32_t APP_set_frequency_by_step(vfo_info_t *pInfo, int8_t Step)
@@ -617,13 +627,12 @@ void APP_stop_scan(void)
 	g_scan_state_dir = SCAN_STATE_DIR_OFF;
 
 	// 1of11
-	if (g_scan_pause_mode ||
-	    g_scan_pause_10ms > (200 / 10) ||
+	if (g_scan_pause_time_mode ||
+		g_scan_pause_10ms > (200 / 10) ||
 	    g_current_function == FUNCTION_RECEIVE ||
 	    g_current_function == FUNCTION_MONITOR ||
 	    g_current_function == FUNCTION_NEW_RECEIVE)
 	{	// stay where we are
-		g_scan_pause_mode        = false;
 		g_scan_restore_channel   = 0xff;
 		g_scan_restore_frequency = 0xffffffff;
 	}
@@ -675,6 +684,9 @@ void APP_stop_scan(void)
 		g_another_voice_id = VOICE_ID_SCANNING_STOP;
 	#endif
 
+	g_scan_pause_10ms      = 0;
+	g_scan_pause_time_mode = false;
+
 	g_update_status = true;
 }
 
@@ -714,7 +726,8 @@ static void APP_next_freq(void)
 		#endif
 	}
 
-	g_update_display      = true;
+	g_scan_pause_time_mode = false;
+	g_update_display       = true;
 }
 
 static void APP_next_channel(void)
@@ -812,6 +825,8 @@ static void APP_next_channel(void)
 	#else
 		g_scan_pause_10ms = scan_pause_chan_10ms;
 	#endif
+
+	g_scan_pause_time_mode = false;
 
 	if (enabled)
 		if (++g_scan_current_scan_list >= SCAN_NEXT_NUM)
@@ -1133,40 +1148,44 @@ void APP_process(void)
 		if (g_voice_write_index == 0)
 	#endif
 	{
-		if ((g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_NEW_RECEIVE) && // TODO: check me
-			g_screen_to_display != DISPLAY_SEARCH     &&
-		    g_scan_state_dir != SCAN_STATE_DIR_OFF    &&
-		    g_scan_pause_10ms == 0                    &&
+		if ((g_current_function == FUNCTION_FOREGROUND  ||
+		     g_current_function == FUNCTION_NEW_RECEIVE ||
+		     g_current_function == FUNCTION_RECEIVE)    &&
+			g_screen_to_display != DISPLAY_SEARCH       &&
+		    g_scan_state_dir != SCAN_STATE_DIR_OFF      &&
+			g_scan_pause_10ms == 0                      &&
 		    !g_ptt_is_pressed)
 		{	// RF scanning
 
 			
-			// TODO: check to see if signal stays present for minimum time before pausing
-			
-			
+			// TODO: check to see if signal stays present for minimum time before pausing (debounce)
+
+/*			
 			if (IS_FREQ_CHANNEL(g_scan_next_channel))
-			{
-				if (g_current_function == FUNCTION_NEW_RECEIVE)
+			{	// frequency mode
+		
+				if (g_current_function == FUNCTION_NEW_RECEIVE && !g_scan_pause_time_mode)
 				{
 					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
 				}
 				else
 				{	// switch to next frequency
-					g_scan_pause_mode   = false;
-					g_rx_reception_mode = RX_MODE_NONE;
+					g_scan_pause_time_mode = false;
+					g_rx_reception_mode    = RX_MODE_NONE;
 					APP_next_freq();  
 				}
 			}
 			else
-			{
-				if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE)
+*/			{	// channel mode
+		
+				if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE && !g_scan_pause_time_mode)
 				{
 					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
 				}
 				else
 				{	// switch to next channel
-					g_scan_pause_mode   = false;
-					g_rx_reception_mode = RX_MODE_NONE;
+					g_scan_pause_time_mode = false;
+					g_rx_reception_mode    = RX_MODE_NONE;
 					APP_next_channel();    
 				}
 			}
@@ -1220,7 +1239,6 @@ void APP_process(void)
 			GUI_SelectNextDisplay(DISPLAY_MAIN);
 
 		g_rx_vfo_is_active  = false;
-		g_scan_pause_mode   = false;
 		g_rx_reception_mode = RX_MODE_NONE;
 	}
 
@@ -2420,10 +2438,9 @@ void APP_channel_next(const bool flag, const scan_state_dir_t scan_direction)
 		APP_next_freq();
 	}
 
-	g_scan_pause_10ms = scan_pause_css_10ms;
-	g_scan_pause_mode = false;
-
-	g_rx_reception_mode = RX_MODE_NONE;
+	g_scan_pause_10ms      = scan_pause_css_10ms;
+	g_scan_pause_time_mode = false;
+	g_rx_reception_mode    = RX_MODE_NONE;
 }
 
 static void APP_process_key(const key_code_t Key, const bool key_pressed, const bool key_held)

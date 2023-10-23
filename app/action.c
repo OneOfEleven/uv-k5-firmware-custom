@@ -90,10 +90,7 @@ void ACTION_Monitor(void)
 	g_monitor_enabled = false;
 	
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-	{
 		g_scan_pause_10ms = g_eeprom.scan_hold_time_500ms * 50;
-		g_scan_pause_mode = true;
-	}
 
 	#ifdef g_power_save_expired
 		if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_is_noaa_mode)
@@ -200,7 +197,9 @@ void ACTION_Scan(bool bRestart)
 
 						// jump to the next channel
 						APP_channel_next(true, g_scan_state_dir);
-						g_scan_pause_10ms = 0;
+						
+						g_scan_pause_10ms      = 0;
+						g_scan_pause_time_mode = false;
 	
 						g_update_status = true;
 						return;
@@ -225,7 +224,8 @@ void ACTION_Scan(bool bRestart)
 
 			APP_channel_next(true, SCAN_STATE_DIR_FORWARD);
 
-			g_scan_pause_10ms = 0;   // go NOW
+			g_scan_pause_10ms      = 0;   // go NOW
+			g_scan_pause_time_mode = false;
 			
 			#ifdef ENABLE_VOICE
 				AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
@@ -254,7 +254,9 @@ void ACTION_Scan(bool bRestart)
 
 		// jump to the next channel
 		APP_channel_next(true, g_scan_state_dir);
-		g_scan_pause_10ms = 0;
+
+		g_scan_pause_10ms      = 0;
+		g_scan_pause_time_mode = false;
 
 		g_update_status = true;
 	}

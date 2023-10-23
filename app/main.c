@@ -43,9 +43,7 @@
 bool scanning_paused(void)
 {
 	if ((g_scan_state_dir != SCAN_STATE_DIR_OFF || g_eeprom.dual_watch != DUAL_WATCH_OFF) &&
-	    g_scan_pause_10ms > 0 &&
-		g_scan_pause_10ms <= (200 / 10) &&
-	   !g_scan_pause_mode)
+	    g_scan_pause_10ms > 0 && g_scan_pause_10ms <= (200 / 10))
 	{	// scanning isn't paused
 		return false;
 	}
