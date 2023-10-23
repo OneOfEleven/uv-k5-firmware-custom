@@ -455,6 +455,8 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 			return;
 	#endif
 
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
+
 	if (g_setting_backlight_on_tx_rx >= 2)
 		backlight_turn_on(backlight_tx_rx_time_500ms);
 
@@ -968,7 +970,7 @@ void APP_process_radio_interrupts(void)
 			g_squelch_open = false;
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_printf("squelch found (closed)\r\n");
+				UART_printf("squelch closed\r\n");
 			#endif
 		}
 
@@ -978,7 +980,7 @@ void APP_process_radio_interrupts(void)
 			g_squelch_open = true;
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_printf("squelch lost (opened)\r\n");
+				UART_printf("squelch opened\r\n");
 			#endif
 		}
 	}
