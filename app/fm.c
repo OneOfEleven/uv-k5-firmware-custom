@@ -101,7 +101,7 @@ void FM_TurnOff(void)
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = false;
+	g_speaker_enabled = false;
 
 	BK1080_Init(0, false);
 
@@ -124,7 +124,7 @@ void FM_Tune(uint16_t Frequency, int8_t Step, bool flag)
 {
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = false;
+	g_speaker_enabled = false;
 
 	g_fm_play_count_down_10ms = (g_fm_scan_state == FM_SCAN_OFF) ? fm_play_countdown_noscan_10ms : fm_play_countdown_scan_10ms;
 
@@ -171,7 +171,7 @@ void FM_PlayAndUpdate(void)
 
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = true;
+	g_speaker_enabled = true;
 }
 
 int FM_CheckFrequencyLock(uint16_t Frequency, uint16_t LowerLimit)
@@ -660,7 +660,7 @@ void FM_Play(void)
 				g_eeprom.fm_selected_frequency = g_eeprom.fm_frequency_playing;
 
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-			g_enable_speaker = true;
+			g_speaker_enabled = true;
 
 			GUI_SelectNextDisplay(DISPLAY_FM);
 			return;
@@ -695,6 +695,6 @@ void FM_Start(void)
 
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = true;
+	g_speaker_enabled = true;
 	g_update_status  = true;
 }

@@ -1057,7 +1057,7 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 
 void BK4819_StopTones(void)
 {
-//	if (!g_enable_speaker)
+//	if (!g_speaker_enabled)
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	BK4819_EnterTxMute();

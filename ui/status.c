@@ -55,7 +55,7 @@ void UI_DisplayStatus(const bool test_display)
 	else
 	if (g_current_function == FUNCTION_RECEIVE ||
 	    g_current_function == FUNCTION_MONITOR ||
-	    g_current_function == FUNCTION_INCOMING)
+	    g_current_function == FUNCTION_NEW_RECEIVE)
 	{
 		memmove(line + x, BITMAP_RX, sizeof(BITMAP_RX));
 		x1 = x + sizeof(BITMAP_RX);

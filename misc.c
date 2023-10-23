@@ -43,9 +43,9 @@ const uint8_t         dtmf_txstop_countdown_500ms      =   3000 / 500;  // 6 sec
 
 const uint8_t         serial_config_count_down_500ms   =   3000 / 500;  // 3 seconds
 
-const uint8_t         key_input_timeout_500ms = 6000 / 500; // 6 seconds
+const uint8_t         key_input_timeout_500ms          =   6000 / 500; // 6 seconds
 #ifdef ENABLE_KEYLOCK
-	const uint8_t         key_lock_timeout_500ms           =  30000 / 500;  // 30 seconds
+	const uint8_t     key_lock_timeout_500ms           =  30000 / 500;  // 30 seconds
 #endif
 
 const uint8_t         key_debounce_10ms                =     30 / 10;   // 30ms
@@ -160,7 +160,7 @@ volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 	volatile uint16_t g_noaa_count_down_10ms;
 #endif
 
-bool                  g_enable_speaker;
+bool                  g_speaker_enabled;
 uint8_t g_key_input_count_down;
 #ifdef ENABLE_KEYLOCK
 	uint8_t               g_key_lock_count_down_500ms;
@@ -213,7 +213,7 @@ bool                  g_cxcss_tail_found;
 	uint16_t          g_vox_resume_count_down;
 	uint16_t          g_vox_pause_count_down;
 #endif
-bool                  g_squelch_lost;
+bool                  g_squelch_open;
 
 uint8_t               g_flash_light_state;
 volatile uint16_t     g_flash_light_blink_counter;

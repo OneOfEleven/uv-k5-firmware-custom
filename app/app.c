@@ -90,9 +90,9 @@ static void APP_update_rssi(const int vfo)
 	UI_update_rssi(rssi, vfo);
 }
 
-static void APP_check_for_incoming_rx(void)
+static void APP_check_for_new_receive(void)
 {
-	if (!g_squelch_lost)
+	if (!g_squelch_open)
 		return;
 
 	// squelch is open
@@ -139,23 +139,22 @@ static void APP_check_for_incoming_rx(void)
 	}
 
 	g_rx_reception_mode = RX_MODE_DETECTED;
-	g_scan_pause_mode   = true;               // 1of11
 
 done:
-	if (g_current_function != FUNCTION_INCOMING)
+	if (g_current_function != FUNCTION_NEW_RECEIVE)
 	{
-		FUNCTION_Select(FUNCTION_INCOMING);
+		FUNCTION_Select(FUNCTION_NEW_RECEIVE);
 
 		APP_update_rssi(g_eeprom.rx_vfo);
 		g_update_rssi = true;
 	}
 }
 
-static void APP_process_incoming_rx(void)
+static void APP_process_new_receive(void)
 {
 	bool flag;
 
-	if (!g_squelch_lost)
+	if (!g_squelch_open)
 	{	// squelch is closed
 
 		if (g_dtmf_rx_index > 0)
@@ -166,6 +165,7 @@ static void APP_process_incoming_rx(void)
 			FUNCTION_Select(FUNCTION_FOREGROUND);
 			g_update_display = true;
 		}
+
 		return;
 	}
 
@@ -243,7 +243,7 @@ static void APP_process_rx(void)
 
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF && IS_FREQ_CHANNEL(g_scan_next_channel))
 	{
-		if (g_squelch_lost)
+		if (g_squelch_open)
 			return;
 
 		Mode = END_OF_RX_MODE_END;
@@ -261,7 +261,7 @@ static void APP_process_rx(void)
 			{
 				g_found_ctcss = false;
 				g_found_cdcss = false;
-				Mode        = END_OF_RX_MODE_END;
+				Mode          = END_OF_RX_MODE_END;
 				goto Skip;
 			}
 			break;
@@ -272,13 +272,13 @@ static void APP_process_rx(void)
 			{
 				g_found_ctcss = false;
 				g_found_cdcss = false;
-				Mode        = END_OF_RX_MODE_END;
+				Mode          = END_OF_RX_MODE_END;
 				goto Skip;
 			}
 			break;
 	}
 
-	if (g_squelch_lost)
+	if (g_squelch_open)
 	{
 		if (!g_end_of_rx_detected_maybe && IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 		{
@@ -340,8 +340,10 @@ static void APP_process_rx(void)
 		}
 	}
 	else
+	{
 		Mode = END_OF_RX_MODE_END;
-
+	}
+	
 	if (!g_end_of_rx_detected_maybe &&
 	     Mode == END_OF_RX_MODE_SKIP &&
 	     g_next_time_slice_40ms &&
@@ -376,14 +378,14 @@ Skip:
 			{
 				switch (g_eeprom.scan_resume_mode)
 				{
-					case SCAN_RESUME_TO:
+					case SCAN_RESUME_TIME:
 						break;
 
-					case SCAN_RESUME_CO:
+					case SCAN_RESUME_CARRIER:
 						g_scan_pause_10ms = g_eeprom.scan_hold_time_500ms * 50;
 						break;
 
-					case SCAN_RESUME_SE:
+					case SCAN_RESUME_SEARCH:
 						APP_stop_scan();
 						break;
 				}
@@ -399,7 +401,7 @@ Skip:
 				g_tail_tone_elimination_count_down_10ms = 20;
 				g_flag_tail_tone_elimination_complete   = false;
 				g_end_of_rx_detected_maybe              = true;
-				g_enable_speaker                        = false;
+				g_speaker_enabled                        = false;
 			}
 			break;
 	}
@@ -413,7 +415,7 @@ static void APP_process_function(void)
 	switch (g_current_function)
 	{
 		case FUNCTION_FOREGROUND:
-			APP_check_for_incoming_rx();
+			APP_check_for_new_receive();
 			break;
 
 		case FUNCTION_TRANSMIT:
@@ -421,8 +423,8 @@ static void APP_process_function(void)
 				backlight_turn_on(backlight_tx_rx_time_500ms);
 			break;
 
-		case FUNCTION_INCOMING:
-			APP_process_incoming_rx();
+		case FUNCTION_NEW_RECEIVE:
+			APP_process_new_receive();
 
 		case FUNCTION_MONITOR:
 			break;
@@ -433,7 +435,7 @@ static void APP_process_function(void)
 
 		case FUNCTION_POWER_SAVE:
 			if (!g_rx_idle_mode)
-				APP_check_for_incoming_rx();
+				APP_check_for_new_receive();
 			break;
 
 		case FUNCTION_PANADAPTER:
@@ -465,13 +467,17 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 	g_vfo_rssi_bar_level[(chan + 1) & 1u] = 0;
 
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-	g_enable_speaker = true;
+	g_speaker_enabled = true;
 
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{	// we're RF scanning
+
+		#pragma GCC diagnostic push
+		#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+
 		switch (g_eeprom.scan_resume_mode)
 		{
-			case SCAN_RESUME_TO:
+			case SCAN_RESUME_TIME:
 				if (!g_scan_pause_mode)
 				{
 					g_scan_pause_10ms = g_eeprom.scan_hold_time_500ms * 50;
@@ -479,11 +485,14 @@ void APP_start_listening(function_type_t Function, const bool reset_am_fix)
 				}
 				break;
 
-			case SCAN_RESUME_CO:
-			case SCAN_RESUME_SE:
+			case SCAN_RESUME_CARRIER:
+
+			case SCAN_RESUME_SEARCH:
 				g_scan_pause_10ms = 0;
 				break;
 		}
+
+		#pragma GCC diagnostic pop
 	}
 
 	#ifdef ENABLE_NOAA
@@ -610,7 +619,7 @@ void APP_stop_scan(void)
 	    g_scan_pause_10ms > (200 / 10) ||
 	    g_current_function == FUNCTION_RECEIVE ||
 	    g_current_function == FUNCTION_MONITOR ||
-	    g_current_function == FUNCTION_INCOMING)
+	    g_current_function == FUNCTION_NEW_RECEIVE)
 	{	// stay where we are
 		g_scan_pause_mode        = false;
 		g_scan_restore_channel   = 0xff;
@@ -953,16 +962,24 @@ void APP_process_radio_interrupts(void)
 			}
 		#endif
 
-		if (interrupt_bits & BK4819_REG_02_SQUELCH_LOST)
+		if (interrupt_bits & BK4819_REG_02_SQUELCH_CLOSED)
 		{
-			g_squelch_lost = true;
-			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
+			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
+			g_squelch_open = false;
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_printf("squelch found (closed)\r\n");
+			#endif
 		}
 
-		if (interrupt_bits & BK4819_REG_02_SQUELCH_FOUND)
+		if (interrupt_bits & BK4819_REG_02_SQUELCH_OPENED)
 		{
-			g_squelch_lost = false;
-			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
+//			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
+			g_squelch_open = true;
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_printf("squelch lost (opened)\r\n");
+			#endif
 		}
 	}
 }
@@ -1114,31 +1131,43 @@ void APP_process(void)
 		if (g_voice_write_index == 0)
 	#endif
 	{
-		if ((g_current_function == FUNCTION_FOREGROUND ||
-			g_current_function == FUNCTION_INCOMING)  &&     // TODO: check me
+		if ((g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_NEW_RECEIVE) && // TODO: check me
 			g_screen_to_display != DISPLAY_SEARCH     &&
 		    g_scan_state_dir != SCAN_STATE_DIR_OFF    &&
 		    g_scan_pause_10ms == 0                    &&
 		    !g_ptt_is_pressed)
 		{	// RF scanning
 
+			
+			// TODO: check to see if signal stays present for minimum time before pausing
+			
+			
 			if (IS_FREQ_CHANNEL(g_scan_next_channel))
 			{
-				if (g_current_function == FUNCTION_INCOMING)
+				if (g_current_function == FUNCTION_NEW_RECEIVE)
+				{
 					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
+				}
 				else
-					APP_next_freq();  // switch to next frequency
+				{	// switch to next frequency
+					g_scan_pause_mode   = false;
+					g_rx_reception_mode = RX_MODE_NONE;
+					APP_next_freq();  
+				}
 			}
 			else
 			{
-				if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_INCOMING)
+				if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE)
+				{
 					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
+				}
 				else
-					APP_next_channel();    // switch to next channel
+				{	// switch to next channel
+					g_scan_pause_mode   = false;
+					g_rx_reception_mode = RX_MODE_NONE;
+					APP_next_channel();    
+				}
 			}
-
-			g_scan_pause_mode          = false;
-			g_rx_reception_mode        = RX_MODE_NONE;
 		}
 	}
 
@@ -1711,7 +1740,7 @@ void APP_time_slice_10ms(void)
 						SYSTEM_DelayMs(2);
 						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-						g_enable_speaker     = true;
+						g_speaker_enabled     = true;
 						g_alarm_tone_counter_10ms = 0;
 					}
 				}
@@ -2339,7 +2368,7 @@ void APP_time_slice_500ms(void)
 	static void APP_alarm_off(void)
 	{
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-		g_enable_speaker = false;
+		g_speaker_enabled = false;
 
 		if (g_eeprom.alarm_mode == ALARM_MODE_TONE)
 		{
@@ -2619,7 +2648,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 					{
 						GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-						g_enable_speaker = false;
+						g_speaker_enabled = false;
 
 						BK4819_ExitDTMF_TX(false);
 
@@ -2634,7 +2663,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 					if (g_eeprom.dtmf_side_tone)
 					{	// user will here the DTMF tones in speaker
 						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-						g_enable_speaker = true;
+						g_speaker_enabled = true;
 					}
 
 					BK4819_DisableScramble();

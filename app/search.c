@@ -447,7 +447,7 @@ void SEARCH_Start(void)
 	g_cdcss_code_type            = 0;
 	g_ctcss_lost                 = false;
 
-	g_squelch_lost               = false;
+	g_squelch_open               = false;
 	g_search_delay_10ms          = scan_freq_css_delay_10ms;
 	g_search_css_result_type     = CODE_TYPE_NONE;
 	g_search_css_result_code     = 0xff;

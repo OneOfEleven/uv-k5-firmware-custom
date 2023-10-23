@@ -599,7 +599,7 @@ void BOARD_EEPROM_load(void)
 	g_eeprom.key1_long_press_action  = (Data[2] < ACTION_OPT_LEN) ? Data[2] : ACTION_OPT_FLASHLIGHT;
 	g_eeprom.key2_short_press_action = (Data[3] < ACTION_OPT_LEN) ? Data[3] : ACTION_OPT_SCAN;
 	g_eeprom.key2_long_press_action  = (Data[4] < ACTION_OPT_LEN) ? Data[4] : ACTION_OPT_NONE;
-	g_eeprom.scan_resume_mode        = (Data[5] < 3)              ? Data[5] : SCAN_RESUME_CO;
+	g_eeprom.scan_resume_mode        = (Data[5] < 3)              ? Data[5] : SCAN_RESUME_CARRIER;
 	g_eeprom.auto_keypad_lock        = (Data[6] < 2)              ? Data[6] : false;
 	g_eeprom.pwr_on_display_mode     = (Data[7] < 4)              ? Data[7] : PWR_ON_DISPLAY_MODE_VOLTAGE;
 

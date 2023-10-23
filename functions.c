@@ -62,7 +62,7 @@ void FUNCTION_Init(void)
 		g_vox_lost     = false;
 	#endif
 
-	g_squelch_lost     = false;
+	g_squelch_open     = false;
 
 	g_flag_tail_tone_elimination_complete   = false;
 	g_tail_tone_elimination_count_down_10ms = 0;
@@ -138,16 +138,18 @@ void FUNCTION_Select(function_type_t Function)
 			g_monitor_enabled = true;
 			break;
 
-		case FUNCTION_INCOMING:
+		case FUNCTION_NEW_RECEIVE:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("func incoming\r\n");
+				UART_SendText("func new receive\r\n");
 			#endif
+
 			break;
 			
 		case FUNCTION_RECEIVE:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_SendText("func receive\r\n");
 			#endif
+
 			break;
 
 		case FUNCTION_POWER_SAVE:
@@ -224,7 +226,7 @@ void FUNCTION_Select(function_type_t Function)
 
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-					g_enable_speaker = true;
+					g_speaker_enabled = true;
 
 					SYSTEM_DelayMs(60);
 					BK4819_ExitTxMute();
@@ -259,7 +261,7 @@ void FUNCTION_Select(function_type_t Function)
 						g_alarm_tone_counter_10ms = 0;
 					#endif
 
-					g_enable_speaker = true;
+					g_speaker_enabled = true;
 					break;
 				}
 				else
@@ -275,6 +277,11 @@ void FUNCTION_Select(function_type_t Function)
 			break;
 
 		case FUNCTION_PANADAPTER:
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("func panadpter\r\n");
+			#endif
+
+
 			break;
 	}
 

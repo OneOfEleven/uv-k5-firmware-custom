@@ -442,7 +442,7 @@ bool DTMF_Reply(void)
 	if (g_eeprom.dtmf_side_tone)
 	{	// the user will also hear the transmitted tones
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-		g_enable_speaker = true;
+		g_speaker_enabled = true;
 	}
 
 	SYSTEM_DelayMs(Delay);
@@ -459,7 +459,7 @@ bool DTMF_Reply(void)
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = false;
+	g_speaker_enabled = false;
 
 	BK4819_ExitDTMF_TX(false);
 	

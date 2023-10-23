@@ -40,6 +40,19 @@
 #include "ui/ui.h"
 #include "ui/menu.h"
 
+bool scanning_paused(void)
+{
+	if ((g_scan_state_dir != SCAN_STATE_DIR_OFF || g_eeprom.dual_watch != DUAL_WATCH_OFF) &&
+	    g_scan_pause_10ms > 0 &&
+		g_scan_pause_10ms <= (200 / 10) &&
+	   !g_scan_pause_mode)
+	{	// scanning isn't paused
+		return false;
+	}
+	
+	return true;
+}
+
 void toggle_chan_scanlist(void)
 {	// toggle the selected channels scanlist setting
 
@@ -58,10 +71,7 @@ void toggle_chan_scanlist(void)
 		return;
 	}
 
-	if (g_scan_state_dir != SCAN_STATE_DIR_OFF &&
-	    g_scan_pause_10ms > 0 &&
-		g_scan_pause_10ms <= (200 / 10) &&
-	   !g_scan_pause_mode)
+	if (!scanning_paused())
 	{	// scanning isn't paused
 		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
@@ -90,28 +100,31 @@ void toggle_chan_scanlist(void)
 
 #ifdef ENABLE_COPY_CHAN_TO_VFO_TO_CHAN
 	void MAIN_copy_mem_vfo_mem(void)
-	{		
+	{
 		//const unsigned int vfo = get_RX_VFO();
 		const unsigned int vfo = g_eeprom.tx_vfo;
 
-		if (g_scan_state_dir    != SCAN_STATE_DIR_OFF ||
-		    g_css_scan_mode     != CSS_SCAN_MODE_OFF  ||
-		    g_eeprom.dual_watch != DUAL_WATCH_OFF     ||
-		    !g_eeprom.vfo_open)
-		{	// scanning
+		if (g_css_scan_mode != CSS_SCAN_MODE_OFF || !g_eeprom.vfo_open)
+		{	// scanning or VFO disabled
 			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
 		}
-	
+
+		if (!scanning_paused())
+		{	// RF scanning
+			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			return;
+		}
+
 		if (IS_USER_CHANNEL(g_eeprom.screen_channel[vfo]))
 		{	// copy channel to VFO, then swap to the VFO
-		
+
 			const unsigned int channel = FREQ_CHANNEL_FIRST + g_eeprom.vfo_info[vfo].band;
-		
+
 			g_eeprom.screen_channel[vfo]        = channel;
 			g_eeprom.vfo_info[vfo].channel_save = channel;
 			g_eeprom.tx_vfo                     = vfo;
-		
+
 			RADIO_select_vfos();
 			RADIO_ApplyOffset(g_tx_vfo);
 			RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
@@ -121,17 +134,17 @@ void toggle_chan_scanlist(void)
 			g_tx_vfo->freq_in_channel = BOARD_find_channel(g_tx_vfo->freq_config_tx.frequency);
 
 			g_request_save_vfo = true;
-		
+
 			g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
 			//g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
-		
+
 			g_update_status  = true;
 			g_update_display = true;
 		}
 		else
 		if (IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[vfo]))
 		{	// copy VFO to a channel
-		
+
 			// search the channels to see if the frequency is already present
 			unsigned int chan = BOARD_find_channel(g_eeprom.vfo_info[vfo].p_tx->frequency);
 			if (chan > USER_CHANNEL_LAST)
@@ -141,7 +154,7 @@ void toggle_chan_scanlist(void)
 					if (!RADIO_CheckValidChannel(chan, false, vfo))
 						break;
 			}
-		
+
 			g_screen_to_display = DISPLAY_INVALID;
 			GUI_SelectNextDisplay(DISPLAY_MENU);
 			g_menu_cursor       = MENU_MEM_SAVE;
@@ -151,18 +164,18 @@ void toggle_chan_scanlist(void)
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 					UART_printf("vfo to mem %u\r\n", chan);
 				#endif
-				
+
 				g_sub_menu_selection = chan;
 				g_flag_refresh_menu  = false;
 				g_screen_to_display  = DISPLAY_MENU;
 				g_update_display     = false;
 				UI_DisplayMenu();
 			}
-		
+
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = VOICE_ID_MENU;
 			#endif
-		
+
 			g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
 		}
 	}
@@ -683,7 +696,7 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 	{	// key just pressed
 		AUDIO_PlayBeep(BEEP_1KHZ_60MS_OPTIONAL);
 	}
-	
+
 	if (key_held)
 	{	// menu key held down (long press)
 
@@ -834,19 +847,19 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 			#endif
 
 			g_tx_vfo->freq_config_tx.frequency = g_tx_vfo->freq_config_rx.frequency;
-			
+
 			// find the first channel that contains this frequency
 			g_tx_vfo->freq_in_channel = BOARD_find_channel(g_tx_vfo->freq_config_rx.frequency);
-				
+
 			// only update eeprom when the key is released - saves a LOT of wear and tear on the little eeprom
 			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
-	
+
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //				UART_printf("save chan\r\n");
 			#endif
 		}
 	}
-	
+
 	if (key_held || !key_pressed)
 	{	// long press
 

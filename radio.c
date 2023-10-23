@@ -594,7 +594,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	uint32_t                  Frequency;
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-	g_enable_speaker = false;
+	g_speaker_enabled = false;
 
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
@@ -845,7 +845,7 @@ void RADIO_enableTX(const bool fsk_tx)
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = false;
+	g_speaker_enabled = false;
 
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);     // ???
 
@@ -1101,7 +1101,7 @@ void RADIO_tx_eot(void)
 		if (g_eeprom.dtmf_side_tone)
 		{
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-			g_enable_speaker = true;
+			g_speaker_enabled = true;
 			SYSTEM_DelayMs(60);
 		}
 		BK4819_EnterDTMF_TX(g_eeprom.dtmf_side_tone);
@@ -1114,7 +1114,7 @@ void RADIO_tx_eot(void)
 				g_eeprom.dtmf_code_interval_time);
 
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-		g_enable_speaker = false;
+		g_speaker_enabled = false;
 	}
 	else
 	if (g_eeprom.roger_mode == ROGER_MODE_ROGER)

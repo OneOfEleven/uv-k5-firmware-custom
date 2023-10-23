@@ -131,7 +131,7 @@ extern const uint8_t         serial_config_count_down_500ms;
 extern const uint8_t         key_input_timeout_500ms;
 
 #ifdef ENABLE_KEYLOCK
-	extern const uint8_t         key_lock_timeout_500ms;
+	extern const uint8_t     key_lock_timeout_500ms;
 #endif
 
 extern const uint8_t         key_debounce_10ms;
@@ -246,7 +246,7 @@ extern volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 #ifdef ENABLE_NOAA
 	extern volatile uint16_t g_noaa_count_down_10ms;
 #endif
-extern bool                  g_enable_speaker;
+extern bool                  g_speaker_enabled;
 extern uint8_t               g_key_input_count_down;
 
 #ifdef ENABLE_KEYLOCK
@@ -299,7 +299,7 @@ extern bool                  g_cxcss_tail_found;
 	extern uint16_t          g_vox_resume_count_down;
 	extern uint16_t          g_vox_pause_count_down;
 #endif
-extern bool                  g_squelch_lost;
+extern bool                  g_squelch_open;
 extern uint8_t               g_flash_light_state;
 extern volatile uint16_t     g_flash_light_blink_counter;
 extern bool                  g_flag_end_tx;

@@ -361,7 +361,7 @@ void UI_update_rssi(const int16_t rssi, const int vfo)
 		else
 		if (rssi >= level0 ||
 		    g_current_function == FUNCTION_MONITOR ||
-		    g_current_function == FUNCTION_INCOMING)
+		    g_current_function == FUNCTION_NEW_RECEIVE)
 		{
 			rssi_level = 1;
 		}
@@ -569,7 +569,7 @@ void UI_DisplayMain(void)
 			mode = 2;
 			if ((g_current_function == FUNCTION_RECEIVE ||
 			     g_current_function == FUNCTION_MONITOR ||
-			     g_current_function == FUNCTION_INCOMING) &&
+			     g_current_function == FUNCTION_NEW_RECEIVE) &&
 			     g_eeprom.rx_vfo == vfo_num)
 			{
 				#ifdef ENABLE_SMALL_BOLD
@@ -690,7 +690,6 @@ void UI_DisplayMain(void)
 					case MDF_NAME_FREQ:	// channel name and frequency
 
 						BOARD_fetchChannelName(String, g_eeprom.screen_channel[vfo_num]);
-
 						if (String[0] == 0)
 						{	// no channel name available, channel number instead
 							sprintf(String, "CH-%03u", 1 + g_eeprom.screen_channel[vfo_num]);
@@ -698,16 +697,16 @@ void UI_DisplayMain(void)
 
 						if (g_eeprom.channel_display_mode == MDF_NAME)
 						{	// just the name
-							UI_PrintString(String, x, 0, line, 8);
+							UI_PrintString(String, x + 4, 0, line, 8);
 						}
 						else
 						{	// name & frequency
 							
 							// name
 							#ifdef ENABLE_SMALL_BOLD
-								UI_PrintStringSmallBold(String, x, 0, line);
+								UI_PrintStringSmallBold(String, x + 4, 0, line);
 							#else
-								UI_PrintStringSmall(String, x, 0, line);
+								UI_PrintStringSmall(String, x + 4, 0, line);
 							#endif
 
 							// frequency
@@ -715,7 +714,7 @@ void UI_DisplayMain(void)
 							#ifdef ENABLE_TRIM_TRAILING_ZEROS
 								NUMBER_trim_trailing_zeros(String);
 							#endif
-							UI_PrintStringSmall(String, x, 0, line + 1);
+							UI_PrintStringSmall(String, x + 4, 0, line + 1);
 						}
 
 						break;
@@ -890,7 +889,7 @@ void UI_DisplayMain(void)
 
 		const bool rx = (g_current_function == FUNCTION_RECEIVE ||
 		                 g_current_function == FUNCTION_MONITOR ||
-		                 g_current_function == FUNCTION_INCOMING);
+		                 g_current_function == FUNCTION_NEW_RECEIVE);
 
 		#ifdef ENABLE_TX_TIMEOUT_BAR
 			// show the TX timeout count down

@@ -220,7 +220,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	// restore the register
 	BK4819_WriteRegister(BK4819_REG_71, ToneConfig);
 
-	if (g_enable_speaker)
+	if (g_speaker_enabled)
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
@@ -322,7 +322,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 					BK1080_Mute(false);
 			#endif
 
-			if (!g_enable_speaker)
+			if (!g_speaker_enabled)
 				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 			g_voice_write_index    = 0;
@@ -470,7 +470,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 				BK1080_Mute(false);
 		#endif
 
-		if (!g_enable_speaker)
+		if (!g_speaker_enabled)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 		// **********************
