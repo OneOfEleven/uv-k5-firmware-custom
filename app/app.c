@@ -244,16 +244,15 @@ static void APP_process_rx(void)
 		goto Skip;
 	}
 
-	// why does being a VFO make a difference ???  .. 1of11
-	//
-/*	if (g_scan_state_dir != SCAN_STATE_DIR_OFF && IS_FREQ_CHANNEL(g_scan_next_channel))  
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF) // && IS_FREQ_CHANNEL(g_scan_next_channel))  
 	{
-//		return;
+		if (g_squelch_open)
+			return;
 		
 		Mode = END_OF_RX_MODE_END;
 		goto Skip;
 	}
-*/
+
 	switch (g_current_code_type)
 	{
 		default:
@@ -284,6 +283,9 @@ static void APP_process_rx(void)
 
 	if (g_squelch_open)
 	{
+		if (g_setting_backlight_on_tx_rx >= 2)
+			backlight_turn_on(backlight_tx_rx_time_500ms);
+
 		if (!g_end_of_rx_detected_maybe && IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 		{
 			switch (g_current_code_type)
@@ -1161,18 +1163,15 @@ void APP_process(void)
 		     g_current_function == FUNCTION_RECEIVE)    &&
 			g_screen_to_display != DISPLAY_SEARCH       &&
 		    g_scan_state_dir != SCAN_STATE_DIR_OFF      &&
-			g_scan_pause_10ms == 0                      &&
 		    !g_ptt_is_pressed)
 		{	// RF scanning
 
-			
-			// TODO: check to see if signal stays present for minimum time before pausing (debounce)
-			
-			if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE && !g_scan_pause_time_mode)
+			if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE) // && !g_scan_pause_time_mode)
 			{
 				APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
 			}
 			else
+			if (g_scan_pause_10ms == 0)
 			{	// switch to next channel
 				g_scan_pause_time_mode = false;
 				g_rx_reception_mode    = RX_MODE_NONE;
