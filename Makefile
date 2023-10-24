@@ -1,51 +1,76 @@
 
 # compile options (see README.md for descriptions)
-# 0 = disable
-# 1 = enable
+# 0 = remove code
+# 1 = include code
+
+# When testing the extra options, be careful not to exceed the
+# 64 kB flash memory limit.
 
 ENABLE_CLANG                     := 0
 ENABLE_SWD                       := 1
 ENABLE_OVERLAY                   := 0
 ENABLE_LTO                       := 1
+# UART Programming 2.9 kB
 ENABLE_UART                      := 1
 ENABLE_UART_DEBUG                := 0
+# AirCopy 2.5 kB
 ENABLE_AIRCOPY                   := 1
-ENABLE_AIRCOPY_FREQ              := 1
+ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
-ENABLE_FMRADIO                   := 1
+# FM Radio 4.2 kB
+ENABLE_FMRADIO_76_90             := 0
+ENABLE_FMRADIO_68_108            := 0
+ENABLE_FMRADIO_76_108            := 0
+ENABLE_FMRADIO_875_108           := 1
+# NOAA 1.2 kB
 ENABLE_NOAA                      := 0
+# Voice 1.7 kB
 ENABLE_VOICE                     := 0
 ENABLE_MUTE_RADIO_FOR_VOICE      := 0
+# Tx on Voice 1.0 kB
 ENABLE_VOX                       := 0
-ENABLE_LOWER_LOW_MID_TX          := 1
+ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
+# Tx Alarm 0.6 kB
 ENABLE_ALARM                     := 0
-ENABLE_TX1750                    := 1
+ENABLE_TX1750                    := 0
+ENABLE_MDC1200                   := 0
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 0
 ENABLE_BIG_FREQ                  := 1
-ENABLE_SMALL_BOLD                := 1
+ENABLE_SMALL_BOLD                := 0
+ENABLE_TRIM_TRAILING_ZEROS       := 1
 ENABLE_KEEP_MEM_NAME             := 1
 ENABLE_WIDE_RX                   := 1
-ENABLE_1250HZ_STEP               := 1
 ENABLE_TX_WHEN_AM                := 1
 ENABLE_F_CAL_MENU                := 1
 ENABLE_TX_UNLOCK                 := 1
-ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1
+ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 0
+ENABLE_CONTRAST                  := 0
 ENABLE_BOOT_BEEPS                := 0
+ENABLE_DTMF_CALL_FLASH_LIGHT     := 1
 ENABLE_SHOW_CHARGE_LEVEL         := 1
 ENABLE_REVERSE_BAT_SYMBOL        := 1
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
+# Kill and Revive 0.4 kB
 ENABLE_KILL_REVIVE               := 0
+# AM Fix 0.8 kB
 ENABLE_AM_FIX                    := 1
 ENABLE_AM_FIX_SHOW_DATA          := 0
 ENABLE_SQUELCH_MORE_SENSITIVE    := 1
 ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
 ENABLE_FASTER_CHANNEL_SCAN       := 1
-ENABLE_RSSI_BAR                  := 1
-ENABLE_SHOW_TX_TIMEOUT           := 0
-ENABLE_AUDIO_BAR                 := 1
-ENABLE_COPY_CHAN_TO_VFO          := 1
+ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
+# Rx Signal Bar 0.4 kB
+ENABLE_RX_SIGNAL_BAR             := 1
+# Tx Timeout Bar 0.2 kB
+ENABLE_TX_TIMEOUT_BAR            := 0
+# Tx Audio Bar 0.3 kB
+ENABLE_TX_AUDIO_BAR              := 0
+# Side Button Menu 0.3 kB
+ENABLE_SIDE_BUTT_MENU            := 1
+# Key Lock 0.4 kB
+ENABLE_KEYLOCK                   := 1
 ENABLE_SOS_FLASHLIGHT            := 1
 #ENABLE_PANADAPTER               := 0
 #ENABLE_SINGLE_VFO_CHAN          := 0
@@ -55,11 +80,12 @@ ENABLE_SOS_FLASHLIGHT            := 1
 TARGET = firmware
 
 GIT_HASH_TMP := $(shell git rev-parse --short HEAD)
-ifeq ($(GIT_HASH_TMP),)
+ifeq ($(GIT_HASH_TMP), )
 	GIT_HASH := "NOGIT"
 else
 	GIT_HASH := $(GIT_HASH_TMP)
 endif
+
 $(info GIT_HASH = $(GIT_HASH))
 
 ifeq ($(ENABLE_UART), 0)
@@ -76,9 +102,15 @@ ifeq ($(ENABLE_LTO),1)
 	ENABLE_OVERLAY := 0
 endif
 
-ifeq ($(ENABLE_SHOW_TX_TIMEOUT),1)
-	# can't have ENABLE_SHOW_TX_TIMEOUT and ENABLE_AUDIO_BAR enabled at same time
-	ENABLE_AUDIO_BAR := 0
+ifeq ($(filter $(ENABLE_FMRADIO_76_90) $(ENABLE_FMRADIO_76_108) $(ENABLE_FMRADIO_875_108) $(ENABLE_FMRADIO_875_108), 1), 1)
+	ENABLE_FMRADIO := 1
+else
+	ENABLE_FMRADIO := 0
+endif
+
+ifeq ($(ENABLE_TX_TIMEOUT_BAR),1)
+	# can't have ENABLE_TX_TIMEOUT_BAR and ENABLE_TX_AUDIO_BAR enabled at same time
+	ENABLE_TX_AUDIO_BAR := 0
 endif
 
 ifeq ($(ENABLE_VOICE),1)
@@ -105,11 +137,11 @@ ifeq ($(ENABLE_UART),1)
 	OBJS += driver/aes.o
 endif
 OBJS += driver/backlight.o
-ifeq ($(ENABLE_FMRADIO),1)
+ifeq ($(ENABLE_FMRADIO), 1)
 	OBJS += driver/bk1080.o
 endif
 OBJS += driver/bk4819.o
-ifeq ($(filter $(ENABLE_AIRCOPY) $(ENABLE_UART),1),1)
+ifeq ($(filter $(ENABLE_AIRCOPY) $(ENABLE_UART), 1), 1)
 	OBJS += driver/crc.o
 endif
 OBJS += driver/eeprom.o
@@ -134,7 +166,7 @@ ifeq ($(ENABLE_AIRCOPY),1)
 endif
 OBJS += app/app.o
 OBJS += app/dtmf.o
-ifeq ($(ENABLE_FMRADIO),1)
+ifeq ($(ENABLE_FMRADIO), 1)
 	OBJS += app/fm.o
 endif
 OBJS += app/generic.o
@@ -159,6 +191,9 @@ OBJS += frequencies.o
 OBJS += functions.o
 OBJS += helper/battery.o
 OBJS += helper/boot.o
+ifeq ($(ENABLE_MDC1200),1)
+	OBJS += mdc1200.o
+endif
 OBJS += misc.o
 OBJS += radio.o
 OBJS += scheduler.o
@@ -167,7 +202,7 @@ ifeq ($(ENABLE_AIRCOPY),1)
 	OBJS += ui/aircopy.o
 endif
 OBJS += ui/battery.o
-ifeq ($(ENABLE_FMRADIO),1)
+ifeq ($(ENABLE_FMRADIO), 1)
 	OBJS += ui/fmradio.o
 endif
 OBJS += ui/helper.o
@@ -189,6 +224,8 @@ ifeq ($(OS), Windows_NT)
 else
 	TOP := $(shell pwd)
 endif
+
+$(info TOP = $(TOP))
 
 AS = arm-none-eabi-gcc
 
@@ -249,11 +286,23 @@ endif
 ifeq ($(ENABLE_AIRCOPY),1)
 	CFLAGS += -DENABLE_AIRCOPY
 endif
-ifeq ($(ENABLE_AIRCOPY_FREQ),1)
-	CFLAGS += -DENABLE_AIRCOPY_FREQ
+ifeq ($(ENABLE_AIRCOPY_REMEMBER_FREQ),1)
+	CFLAGS += -DENABLE_AIRCOPY_REMEMBER_FREQ
 endif
 ifeq ($(ENABLE_AIRCOPY_RX_REBOOT),1)
 	CFLAGS += -DENABLE_AIRCOPY_RX_REBOOT
+endif
+ifeq ($(ENABLE_FMRADIO_76_90),1)
+	CFLAGS += -DENABLE_FMRADIO_76_90
+endif
+ifeq ($(ENABLE_FMRADIO_68_108),1)
+	CFLAGS += -DENABLE_FMRADIO_68_108
+endif
+ifeq ($(ENABLE_FMRADIO_76_108),1)
+	CFLAGS += -DENABLE_FMRADIO_76_108
+endif
+ifeq ($(ENABLE_FMRADIO_875_108),1)
+	CFLAGS += -DENABLE_FMRADIO_875_108
 endif
 ifeq ($(ENABLE_FMRADIO),1)
 	CFLAGS += -DENABLE_FMRADIO
@@ -270,6 +319,9 @@ endif
 ifeq ($(ENABLE_SMALL_BOLD),1)
 	CFLAGS  += -DENABLE_SMALL_BOLD
 endif
+ifeq ($(ENABLE_TRIM_TRAILING_ZEROS),1)
+	CFLAGS  += -DENABLE_TRIM_TRAILING_ZEROS
+endif
 ifeq ($(ENABLE_NOAA),1)
 	CFLAGS  += -DENABLE_NOAA
 endif
@@ -282,14 +334,17 @@ endif
 ifeq ($(ENABLE_VOX),1)
 	CFLAGS  += -DENABLE_VOX
 endif
-ifeq ($(ENABLE_LOWER_LOW_MID_TX),1)
-	CFLAGS  += -DENABLE_LOWER_LOW_MID_TX
+ifeq ($(ENABLE_REDUCE_LOW_MID_TX_POWER),1)
+	CFLAGS  += -DENABLE_REDUCE_LOW_MID_TX_POWER
 endif
 ifeq ($(ENABLE_ALARM),1)
 	CFLAGS  += -DENABLE_ALARM
 endif
 ifeq ($(ENABLE_TX1750),1)
 	CFLAGS  += -DENABLE_TX1750
+endif
+ifeq ($(ENABLE_MDC1200),1)
+	CFLAGS  += -DENABLE_MDC1200
 endif
 ifeq ($(ENABLE_PWRON_PASSWORD),1)
 	CFLAGS  += -DENABLE_PWRON_PASSWORD
@@ -303,9 +358,6 @@ endif
 ifeq ($(ENABLE_WIDE_RX),1)
 	CFLAGS  += -DENABLE_WIDE_RX
 endif
-ifeq ($(ENABLE_1250HZ_STEP),1)
-	CFLAGS  += -DENABLE_1250HZ_STEP
-endif
 ifeq ($(ENABLE_TX_WHEN_AM),1)
 	CFLAGS  += -DENABLE_TX_WHEN_AM
 endif
@@ -318,8 +370,14 @@ endif
 ifeq ($(ENABLE_CTCSS_TAIL_PHASE_SHIFT),1)
 	CFLAGS  += -DENABLE_CTCSS_TAIL_PHASE_SHIFT
 endif
+ifeq ($(ENABLE_CONTRAST),1)
+	CFLAGS  += -DENABLE_CONTRAST
+endif
 ifeq ($(ENABLE_BOOT_BEEPS),1)
 	CFLAGS  += -DENABLE_BOOT_BEEPS
+endif
+ifeq ($(ENABLE_DTMF_CALL_FLASH_LIGHT),1)
+	CFLAGS  += -DENABLE_DTMF_CALL_FLASH_LIGHT
 endif
 ifeq ($(ENABLE_SHOW_CHARGE_LEVEL),1)
 	CFLAGS  += -DENABLE_SHOW_CHARGE_LEVEL
@@ -357,17 +415,23 @@ endif
 ifeq ($(ENABLE_backlight_ON_RX),1)
 	CFLAGS  += -DENABLE_backlight_ON_RX
 endif
-ifeq ($(ENABLE_RSSI_BAR),1)
-	CFLAGS  += -DENABLE_RSSI_BAR
+ifeq ($(ENABLE_RX_SIGNAL_BAR),1)
+	CFLAGS  += -DENABLE_RX_SIGNAL_BAR
 endif
-ifeq ($(ENABLE_AUDIO_BAR),1)
-	CFLAGS  += -DENABLE_AUDIO_BAR
+ifeq ($(ENABLE_TX_AUDIO_BAR),1)
+	CFLAGS  += -DENABLE_TX_AUDIO_BAR
 endif
-ifeq ($(ENABLE_SHOW_TX_TIMEOUT),1)
-	CFLAGS  += -DENABLE_SHOW_TX_TIMEOUT
+ifeq ($(ENABLE_TX_TIMEOUT_BAR),1)
+	CFLAGS  += -DENABLE_TX_TIMEOUT_BAR
 endif
-ifeq ($(ENABLE_COPY_CHAN_TO_VFO),1)
-	CFLAGS  += -DENABLE_COPY_CHAN_TO_VFO
+ifeq ($(ENABLE_COPY_CHAN_TO_VFO_TO_CHAN),1)
+	CFLAGS  += -DENABLE_COPY_CHAN_TO_VFO_TO_CHAN
+endif
+ifeq ($(ENABLE_SIDE_BUTT_MENU),1)
+	CFLAGS += -DENABLE_SIDE_BUTT_MENU
+endif
+ifeq ($(ENABLE_KEYLOCK),1)
+	CFLAGS += -DENABLE_KEYLOCK
 endif
 ifeq ($(ENABLE_SINGLE_VFO_CHAN),1)
 	CFLAGS  += -DENABLE_SINGLE_VFO_CHAN
@@ -410,10 +474,21 @@ LIBS =
 
 DEPS = $(OBJS:.o=.d)
 
+ifeq ($(OS), Windows_NT)
+	PYTHON = $(shell where python 2>NUL || where python3 2>NUL)
+else
+	PYTHON = $(shell which python || which python3)
+endif
+
 all: $(TARGET)
 	$(OBJCOPY) -O binary $< $<.bin
-	-python fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
-	-python3 fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+
+	$(info PYTHON = $(PYTHON))
+
+#	-python fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+#	-python3 fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+	-$(PYTHON) fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+
 	$(SIZE) $<
 
 debug:
