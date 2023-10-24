@@ -27,8 +27,8 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax);
 void MENU_AcceptSetting(void);
 void MENU_SelectNextCode(void);
 void MENU_ShowCurrentSetting(void);
-void MENU_StartCssScan(int8_t Direction);
-void MENU_StopCssScan(void);
+void MENU_start_css_scan(int8_t Direction);
+void MENU_stop_css_scan(void);
 
 void MENU_process_key(key_code_t Key, bool key_pressed, bool key_held);
 

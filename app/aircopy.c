@@ -16,6 +16,9 @@
 
 #include <string.h>
 
+#ifndef ENABLE_OVERLAY
+	#include "ARMCM0.h"
+#endif
 #include "app/aircopy.h"
 #include "audio.h"
 #include "bsp/dp32g030/gpio.h"
@@ -36,19 +39,24 @@
 
 // **********************
 
+// aircopy packet format is very simple ..
+//
+//  payloads ................ 0xABCD + 2 byte eeprom address + 64 byte payload + 2 byte CRC + 0xDCBA
+//  1of11 req/ack additon ... 0xBCDA + 2 byte eeprom address +                   2 byte CRC + 0xCDBA
+
 #define AIRCOPY_MAGIC_START_REQ    0xBCDA   // used to request a block resend
 #define AIRCOPY_MAGIC_END_REQ      0xCDBA   // used to request a block resend
 
 #define AIRCOPY_MAGIC_START        0xABCD   // normal start value
-#define AIRCOPY_MAGIC_END          0xDCBA   // normal end value
+#define AIRCOPY_MAGIC_END          0xDCBA   // normal end   value
 
 #define AIRCOPY_LAST_EEPROM_ADDR   0x1E00   // size of eeprom transferred
 
-// FSK Data Length .. 0xABCD + 2 byte eeprom address + 64 byte payload + 2 byte CRC + 0xDCBA
+// FSK payload data length
 #define AIRCOPY_DATA_PACKET_SIZE   (2 + 2 + 64 + 2 + 2)
 
-// FSK Data Length .. 0xBCDA + 2 byte eeprom address + 2 byte CRC + 0xCDBA
-#define AIRCOPY_REQ_PACKET_SIZE    (2 + 2 + 64 + 2 + 2)
+// FSK req/ack data length .. 0xBCDA + 2 byte eeprom address + 2 byte CRC + 0xCDBA
+#define AIRCOPY_REQ_PACKET_SIZE    (2 + 2 + 2 + 2)
 
 // **********************
 
@@ -79,7 +87,7 @@ void AIRCOPY_init(void)
 	g_aircopy_state = AIRCOPY_READY;
 
 	g_fsk_write_index = 0;
-	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 	BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 
 	GUI_SelectNextDisplay(DISPLAY_AIRCOPY);
@@ -203,9 +211,9 @@ void AIRCOPY_stop_fsk_tx(void)
 	g_fsk_tx_timeout_10ms = 0;
 
 	// disable the TX
-	BK4819_SetupPowerAmplifier(0, 0);                             //
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_UNKNOWN, false);        // ???
-	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_RED, false);           // LED off
+	BK4819_SetupPowerAmplifier(0, 0);                            //
+	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);    // PA off
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);           // LED off
 
 	BK4819_reset_fsk();
 
@@ -343,7 +351,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	if ((status & (1u << 12)) == 0)
 	{	// FSK RX is disabled, enable it
 		g_fsk_write_index = 0;
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 		BK4819_start_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
 	}
 
@@ -356,15 +364,15 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
 
 	if (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC)
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);   // LED on
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
 
 	if (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED)
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);  // LED off
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 
 	if ((interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL) == 0)
 		return;
 
-	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, true);       // LED on
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);       // LED on
 
 	// fetch RX'ed data
 	for (i = 0; i < 4; i++)
@@ -406,7 +414,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		return;        // not yet a complete packet
 
 	// restart the RX
-	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);     // LED off
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);     // LED off
 	BK4819_start_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
 
 	g_update_display = true;
@@ -529,27 +537,24 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		if (eeprom_addr == 0x0E98)
 		{	// power-on password .. wipe it
 			//#ifndef ENABLE_PWRON_PASSWORD
-				data[0] = 0xffff;
-				data[1] = 0xffff;
+				memset(data, 0xff, 4);
 			//#endif
 		}
 		else
-		if (eeprom_addr == 0x0F30)
+		if (eeprom_addr == 0x0F30 || eeprom_addr == 0x0F38)
 		{	// AES key .. wipe it
 			//#ifdef ENABLE_RESET_AES_KEY
-				data[0] = 0xffff;
-				data[1] = 0xffff;
-				data[2] = 0xffff;
-				data[3] = 0xffff;
+				memset(data, 0xff, 8);
 			//#endif
 		}
 		else
 		if (eeprom_addr == 0x0F40)
-		{	// killed flag is here
-			data[2] = false;	// remove it
+		{	// killed flag, wipe it
+			data[2] = 0;
 		}
 
-		EEPROM_WriteBuffer(eeprom_addr, data);   // 8 bytes at a time
+		EEPROM_WriteBuffer8(eeprom_addr, data);   // 8 bytes at a time
+
 		data        += write_size / sizeof(data[0]);
 		eeprom_addr += write_size;
 	}
@@ -619,7 +624,7 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		uint32_t      Frequency;
 		unsigned int  i;
 
-		INPUTBOX_Append(Key);
+		INPUTBOX_append(Key);
 
 		g_request_display_screen = DISPLAY_AIRCOPY;
 
@@ -649,8 +654,8 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				Frequency = ((Frequency + (g_rx_vfo->step_freq / 2)) / g_rx_vfo->step_freq) * g_rx_vfo->step_freq;
 
 				g_aircopy_freq = Frequency;
-				#ifdef ENABLE_AIRCOPY_FREQ
-					SETTINGS_SaveSettings();   // remeber the frequency for the next time
+				#ifdef ENABLE_AIRCOPY_REMEMBER_FREQ
+					SETTINGS_save();   // remeber the frequency for the next time
 				#endif
 
 				g_rx_vfo->freq_config_rx.frequency = Frequency;
@@ -678,7 +683,7 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 		if (!key_held)
 		{
 			// turn the green LED off
-			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
+			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
 			g_input_box_index = 0;
 			g_aircopy_state   = AIRCOPY_READY;
@@ -713,7 +718,7 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 	{	// enter RX mode
 
 		// turn the green LED off
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_GREEN, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
 		g_input_box_index = 0;
 

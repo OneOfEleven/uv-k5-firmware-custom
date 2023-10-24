@@ -20,6 +20,10 @@
 #include <string.h>
 #include <vector>
 
+#ifndef ARRAY_SIZE
+	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+#endif
+
 // ************************************************************************
 // create a front end gain table for the firmware
 
@@ -346,7 +350,7 @@ void create_gain_table(const char *filename)
 	fclose(file);
 }
 
-	// ************************************************************************
+// ************************************************************************
 // "rotate_font()" has nothing to do with this program at all, I just needed
 // to write a bit of code to rotate some fonts I've drawn
 
@@ -397,19 +401,19 @@ void rotate_font(const char *filename1, const char *filename2)
 	{
 		uint8_t c1[8];
 		uint8_t c2[8];
-		memcpy(c1, &data[i], 8);
-		memset(c2, 0, 8);
-		for (unsigned int k = 0; k < 8; k++)
+		memcpy(c1, &data[i], ARRAY_SIZE(c1));
+		memset(c2, 0, ARRAY_SIZE(c2));
+		for (unsigned int k = 0; k < ARRAY_SIZE(c1); k++)
 		{
 			uint8_t b = c1[k];
-			for (unsigned int m = 0; m < 8; m++)
+			for (unsigned int m = 0; m < ARRAY_SIZE(c2); m++)
 			{
 				if (b & 0x80)
 					c2[m] |= 1u << k;
 				b <<= 1;
 			}
 		}
-		memcpy(&data[i], c2, 8);
+		memcpy(&data[i], c2, ARRAY_SIZE(c2));
 	}
 
 	// ***************************
@@ -422,7 +426,7 @@ void rotate_font(const char *filename1, const char *filename2)
 	fprintf(file, "const uint8_t gFontSmall[95][7] =\n");
 	fprintf(file, "{\n");
 
-	for (unsigned int i = 0; i < data.size(); )
+	for (unsigned int i = 0, c = ' '; i < data.size() && c < (' ' + 95); i++, c++)
 	{
 		char s[1024];
 		memset(s, 0, sizeof(s));
@@ -445,13 +449,122 @@ void rotate_font(const char *filename1, const char *filename2)
 			else
 			{
 				strcat(s, s2);
-				strcat(s, "},\n");
+				strcat(s, "},");
 			}
 		}
 
-		i++;
+		fprintf(file, "%s   // '%c'\n", s, c);
+	}
 
-		fprintf(file, "%s", s);
+	fprintf(file, "};\n");
+
+	fclose(file);
+
+	// ***************************
+}
+
+// ************************************************************************
+// "rotate_font()" has nothing to do with this program at all, I just needed
+// to write a bit of code to rotate some fonts I've drawn
+
+void rotate_font_4x5(const char *filename1, const char *filename2)
+{
+	std::vector <uint8_t> data;
+
+	if (filename1 == NULL || filename2 == NULL)
+		return;
+
+	// ****************************
+	// load the file
+
+	FILE *file = fopen(filename1, "rb");
+	if (file == NULL)
+		return;
+
+	if (fseek(file, 0, SEEK_END) != 0)
+	{
+		fclose(file);
+		return;
+	}
+	const size_t file_size = ftell(file);
+	if (file_size <= 0)
+	{
+		fclose(file);
+		return;
+	}
+	if (fseek(file, 0, SEEK_SET) != 0)
+	{
+		fclose(file);
+		return;
+	}
+
+	data.resize(file_size);
+
+	const size_t bytes_loaded = fread(&data[0], 1, file_size, file);
+
+	fclose(file);
+
+	if (bytes_loaded != file_size)
+		return;
+
+	// ***************************
+	// rotate the font 90-deg clockwise
+
+	for (unsigned int i = 0; i <= (data.size() - 6); i += 6)
+	{
+		uint8_t c1[6];
+		uint8_t c2[4];
+		memcpy(c1, &data[i], 6);
+		memset(c2, 0, 4);
+		for (unsigned int k = 0; k < ARRAY_SIZE(c1); k++)
+		{
+			uint8_t b = c1[k];
+			for (unsigned int m = 0; m < ARRAY_SIZE(c2); m++)
+			{
+				if (b & 0x40)
+					c2[m] |= 1u << k;
+				b <<= 1;
+			}
+		}
+		memcpy(&data[i], c2, 4);
+	}
+
+	// ***************************
+	// save the file
+
+	file = fopen(filename2, "wt");
+	if (file == NULL)
+		return;
+
+	fprintf(file, "const uint8_t g_font_small_4x5[95][4] =\n");
+	fprintf(file, "{\n");
+
+	for (unsigned int i = 0, c = ' '; i < data.size() && c < (' ' + 95); i++, c++)
+	{
+		char s[1024];
+		memset(s, 0, sizeof(s));
+
+		for (unsigned int k = 0; k < 4 && i < data.size(); k++)
+		{
+			char s2[16];
+			sprintf(s2, "0x%02X", data[i++]);
+
+			if (k == 0)
+				strcat(s, "\t{");
+
+			if (k < 3)
+			{
+				strcat(s,  s2);
+				strcat(s, ", ");
+			}
+			else
+			{
+				strcat(s, s2);
+				strcat(s, "},");
+			}
+		}
+
+		fprintf(file, "%s   // '%c'\n", s, c);
 	}
 
 	fprintf(file, "};\n");
@@ -466,8 +579,9 @@ int main(int argc, char* argv[])
 {
 	create_gain_table("gain_table.c");
 
-	rotate_font("uv-k5_small.bin",      "uv-k5_small.c");
-	rotate_font("uv-k5_small_bold.bin", "uv-k5_small_bold.c");
+	rotate_font("uv-k5_small.bin",         "uv-k5_small.c");
+	rotate_font("uv-k5_small_bold.bin",    "uv-k5_small_bold.c");
+	rotate_font_4x5("uv-k5_small_4x5.bin", "uv-k5_small_4x5.c");
 
 	return 0;
 }

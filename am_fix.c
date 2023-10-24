@@ -327,7 +327,7 @@
 			case FUNCTION_FOREGROUND:
 			case FUNCTION_RECEIVE:
 			case FUNCTION_MONITOR:
-			case FUNCTION_INCOMING:
+			case FUNCTION_NEW_RECEIVE:
 				break;
 		}
 

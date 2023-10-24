@@ -25,6 +25,7 @@
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/uart.h"
+#include "frequencies.h"
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"
@@ -49,7 +50,7 @@ uint16_t          g_fm_restore_count_down_10ms;
 
 bool FM_CheckValidChannel(uint8_t Channel)
 {
-	return (Channel < ARRAY_SIZE(g_fm_channels) && (g_fm_channels[Channel] >= 760 && g_fm_channels[Channel] < 1080)) ? true : false;
+	return (Channel < ARRAY_SIZE(g_fm_channels) && (g_fm_channels[Channel] >= FM_RADIO_BAND.lower && g_fm_channels[Channel] < FM_RADIO_BAND.upper)) ? true : false;
 }
 
 uint8_t FM_FindNextChannel(uint8_t Channel, uint8_t Direction)
@@ -99,9 +100,9 @@ void FM_TurnOff(void)
 	g_fm_scan_state              = FM_SCAN_OFF;
 	g_fm_restore_count_down_10ms = 0;
 
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = false;
+	g_speaker_enabled = false;
 
 	BK1080_Init(0, false);
 
@@ -115,16 +116,16 @@ void FM_EraseChannels(void)
 
 	memset(Template, 0xFF, sizeof(Template));
 	for (i = 0; i < 5; i++)
-		EEPROM_WriteBuffer(0x0E40 + (i * 8), Template);
+		EEPROM_WriteBuffer8(0x0E40 + (i * 8), Template);
 
 	memset(g_fm_channels, 0xFF, sizeof(g_fm_channels));
 }
 
 void FM_Tune(uint16_t Frequency, int8_t Step, bool flag)
 {
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = false;
+	g_speaker_enabled = false;
 
 	g_fm_play_count_down_10ms = (g_fm_scan_state == FM_SCAN_OFF) ? fm_play_countdown_noscan_10ms : fm_play_countdown_scan_10ms;
 
@@ -163,15 +164,15 @@ void FM_PlayAndUpdate(void)
 
 	FM_ConfigureChannelState();
 	BK1080_SetFrequency(g_eeprom.fm_frequency_playing);
-	SETTINGS_SaveFM();
+	SETTINGS_save_fm();
 
 	g_fm_play_count_down_10ms = 0;
 	g_schedule_fm             = false;
 	g_ask_to_save             = false;
 
-	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = true;
+	g_speaker_enabled = true;
 }
 
 int FM_CheckFrequencyLock(uint16_t Frequency, uint16_t LowerLimit)
@@ -261,7 +262,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			State = g_eeprom.fm_is_channel_mode ? STATE_USER_MODE : STATE_FREQ_MODE;
 		}
 
-		INPUTBOX_Append(Key);
+		INPUTBOX_append(Key);
 
 		g_request_display_screen = DISPLAY_FM;
 
@@ -659,8 +660,8 @@ void FM_Play(void)
 			if (!g_eeprom.fm_is_channel_mode)
 				g_eeprom.fm_selected_frequency = g_eeprom.fm_frequency_playing;
 
-			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-			g_enable_speaker = true;
+			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+			g_speaker_enabled = true;
 
 			GUI_SelectNextDisplay(DISPLAY_FM);
 			return;
@@ -693,8 +694,8 @@ void FM_Start(void)
 
 	BK1080_Init(g_eeprom.fm_frequency_playing, true);
 
-	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = true;
+	g_speaker_enabled = true;
 	g_update_status  = true;
 }

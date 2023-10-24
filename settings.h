@@ -38,15 +38,17 @@ enum {
 	FREQ_LOCK_GB,
 	FREQ_LOCK_430,
 	FREQ_LOCK_438,
+	FREQ_LOCK_446,
 #ifdef ENABLE_TX_UNLOCK
-	FREQ_LOCK_TX_UNLOCK
+	FREQ_LOCK_TX_UNLOCK,
 #endif
+	FREQ_LOCK_LAST
 };
 
 enum {
-	SCAN_RESUME_TO = 0,
-	SCAN_RESUME_CO,
-	SCAN_RESUME_SE
+	SCAN_RESUME_TIME = 0,
+	SCAN_RESUME_CARRIER,
+	SCAN_RESUME_SEARCH
 };
 
 enum {
@@ -133,45 +135,59 @@ typedef enum mdf_display_mode_e mdf_display_mode_t;
 // 16 bytes
 typedef struct {
 	// [0]
-	uint32_t frequency;              //
+	uint32_t frequency;                      //
 	// [4]
-	uint32_t offset;                 //
+	uint32_t offset;                         //
 	// [8]
-	uint8_t  rx_ctcss_cdcss_code;    //
+	uint8_t  rx_ctcss_cdcss_code;            //
 	// [9]
-	uint8_t  tx_ctcss_cdcss_code;    //
+	uint8_t  tx_ctcss_cdcss_code;            //
 	// [10]
-	uint8_t  rx_ctcss_cdcss_type:2;  //
-	uint8_t  unused1:2;              //
-	uint8_t  tx_ctcss_cdcss_type:2;  //
-	uint8_t  unused2:2;              //
+	uint8_t  rx_ctcss_cdcss_type:2;          //
+	uint8_t  unused1:2;                      //
+	uint8_t  tx_ctcss_cdcss_type:2;          //
+	uint8_t  unused2:2;                      //
 	// [11]
-	uint8_t  tx_offset_dir:2;        //
-	uint8_t  unused3:2;              //
-	uint8_t  am_mode:1;              //
-	uint8_t  unused4:3;              //
+	uint8_t  tx_offset_dir:2;                //
+	uint8_t  unused3:2;                      //
+	uint8_t  am_mode:1;                      //
+	uint8_t  unused4:3;                      //
 	// [12]
-	uint8_t  frequency_reverse:1;    // reverse repeater
-	uint8_t  channel_bandwidth:1;    // wide/narrow
-	uint8_t  tx_power:2;             // 0, 1 or 2 .. L, M or H
-	uint8_t  busy_channel_lockout:1; //
+	uint8_t  frequency_reverse:1;            // reverse repeater
+	uint8_t  channel_bandwidth:1;            // wide/narrow
+	uint8_t  tx_power:2;                     // 0, 1 or 2 .. L, M or H
+	uint8_t  busy_channel_lock:1;            //
 	#if 0
-		uint8_t unused5:3;           //
+		// QS
+		uint8_t unused5:3;                   //
 	#else
-		uint8_t unused5:1;           //
-		uint8_t compander:2;         // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
+		// 1of11
+		uint8_t unused5:1;                   //
+		uint8_t compand:2;                   // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
 	#endif
 	// [13]
-	uint8_t  dtmf_decoding_enable:1; //
-	uint8_t  dtmf_ptt_id_tx_mode:3;  //
-	uint8_t  unused6:4;              //
+	uint8_t  dtmf_decoding_enable:1;         //
+	uint8_t  dtmf_ptt_id_tx_mode:3;          //
+	uint8_t  unused6:4;                      //
 	// [14]
-	uint8_t  step_setting:3;         //
-	uint8_t  unused7:5;              //
+	uint8_t  step_setting;                   //
 	// [15]
-	uint8_t  scrambler:4;            //
-	uint8_t  unused8:4;              //
-} __attribute__((packed)) t_channel; //
+	uint8_t  scrambler:4;                    //
+	#if 0
+		// QS
+		uint8_t unused7:4;                   //
+	#else
+		// 1of11
+		uint8_t squelch_level:4;             // 0 ~ 9 per channel squelch, 0 = use main squelch level
+	#endif
+} __attribute__((packed)) t_channel;         //
+
+typedef struct {
+	uint8_t    band:4;                       // why do QS have these bits ?  band can/is computed from the frequency
+	uint8_t    unused:2;                     //
+	uint8_t    scanlist2:1;                  // set if in scan list 2
+	uint8_t    scanlist1:1;                  // set if in scan list 1
+} __attribute__((packed)) t_channel_attr;    //
 
 // 512 bytes
 typedef struct {
@@ -252,26 +268,16 @@ typedef struct {
 	t_channel channel[200];                         // unused channels are set to all '0xff'
 
 	// 0x0C80
-	#if 0
-		t_channel vfo[14];                          // 2 VFO's (upper/lower) per band, 7 frequency bands
-	#else
-		union {                                     // 2 VFO's (upper/lower) per band, 7 frequency bands
-			t_channel vfo[14];                      //
-			struct {                                //
-				t_channel a;                        //
-				t_channel b;                        //
-			} __attribute__((packed)) vfo_band[7];  //
-		} __attribute__((packed));                  //
-	#endif
+	union {                                         // 2 VFO's (upper/lower) per band, 7 frequency bands
+		t_channel vfo[14];                          //
+		struct {                                    //
+			t_channel a;                            //
+			t_channel b;                            //
+		} __attribute__((packed)) vfo_band[7];      //
+	} __attribute__((packed));                      //
 
 	// 0x0D60
-	struct {                                        // these channel attribute settings could have been in the t_channel structure !
-		uint8_t    band:4;                          // why do QS have these 4 bits ? .. band can/is computed from the frequency
-		uint8_t    unused:2;                        // 0's ?
-//		uint8_t    compander:2;                     // smoved this to the t_channel structure
-		uint8_t    scanlist2:1;                     // set if is in scan list 2
-		uint8_t    scanlist1:1;                     // set if is in scan list 1
-	} __attribute__((packed)) channel_attr[200];    //
+	t_channel_attr channel_attr[200];               //
 
 	uint8_t        unused1[8];                      // 0xff's
 
@@ -284,23 +290,23 @@ typedef struct {
 
 	// 0x0E70
 	uint8_t        call1;                           //
-	uint8_t        squelch;                         //
+	uint8_t        squelch_level;                   //
 	uint8_t        tx_timeout;                      //
 	uint8_t        noaa_auto_scan;                  //
 	uint8_t        key_lock;                        //
 	uint8_t        vox_switch;                      //
 	uint8_t        vox_level;                       //
 	uint8_t        mic_sensitivity;                 //
-	#if 1
+	#ifdef ENABLE_CONTRAST
 		uint8_t    lcd_contrast;                    // 1of11
 	#else
 		uint8_t    unused4;                         // 0xff's
 	#endif
 	uint8_t        channel_display_mode;            //
 	uint8_t        cross_vfo;                       //
-	uint8_t        battery_save;                    //
+	uint8_t        battery_save_ratio;              //
 	uint8_t        dual_watch;                      //
-	uint8_t        backlight;                       //
+	uint8_t        backlight_time;                  //
 	uint8_t        tail_tone_elimination;           //
 	uint8_t        vfo_open;                        //
 
@@ -379,19 +385,26 @@ typedef struct {
 	uint8_t        unused10;                        // 0xff's
 
 	// 0x0F20
-	uint8_t        unused11[8];                     // 0xff's
+	uint8_t        unused11[16];                    // 0xff's
 
 	// 0x0F30
 	uint8_t        aes_key[16];                     // disabled = all 0xff
 
 	// 0x0F40
 	uint8_t        freq_lock;                       //
-	uint8_t        enable_tx_350;                   // 350MHz ~ 400MHz
-	uint8_t        radio_disabled;                  // 0 = not radio is not disabled
-	uint8_t        enable_tx_200;                   // 174MHz ~ 350MHz
-	uint8_t        enable_tx_470;                   // >= 470MHz disabled
-	uint8_t        enable_350;                      // 0 = 350HMz ~ 400MHz RX/TX disabled
-	uint8_t        enable_scrambler;                // 0 = scrambler disabled, 1 = enabled
+	uint8_t        enable_tx_350:1;                 // 1 = 350MHz ~ 400MHz TX is enabled
+	uint8_t        unused11a:7;                     //
+	uint8_t        radio_disabled:1;                // 1 = radio is disabled
+	uint8_t        unused11b:7;                     //
+	uint8_t        enable_tx_200:1;                 // 1 = 174MHz ~ 350MHz TX enabled
+	uint8_t        unused11c:7;                     //
+	uint8_t        enable_tx_470:1;                 // 1 = >= 470MHz TX enabled
+	uint8_t        unused11d:7;                     //
+	uint8_t        enable_350:1;                    // 1 = 350HMz ~ 400MHz enabled
+	uint8_t        unused11e:7;                     //
+	uint8_t        enable_scrambler:1;              //
+	uint8_t        enable_rssi_bar:1;               // 1of11
+	uint8_t        unused11f:6;                     //
 	#if 0
 		// QS
 		uint8_t    unused12[9];                     // 0xff's
@@ -401,10 +414,12 @@ typedef struct {
 		uint8_t    dtmf_live_decoder:1;   // 1 = enable on-screen live DTMF decoder
 		uint8_t    battery_text:2;        // 0 = no battery text, 1 = voltage, 2 = percent .. on the status bar
 		uint8_t    mic_bar:1;             // 1 = on-screen TX audio level
-		uint8_t    am_fix:1;              // 1 = RX AM fix
+		uint8_t    am_fix:1;              // 1 = enable RX AM fix
 		uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when TX, 2 = when RX, 3 = both RX/TX
 
-		uint8_t    unused12[8];           // 0xff's
+		uint8_t    scan_hold_time;        // ticks we stay paused for on an RX'ed signal when scanning
+
+		uint8_t    unused12[7];           // 0xff's
 	#endif
 
 	// 0x0F50
@@ -412,7 +427,7 @@ typedef struct {
 		char       name[10];
 		uint8_t    unused[6];             // 0xff's
 	} __attribute__((packed)) channel_name[200];
-	
+
 	// 0x1BD0
 	uint8_t        unused13[16 * 3];      // 0xff's .. free to use
 
@@ -463,7 +478,9 @@ typedef struct {
 
 	uint8_t               squelch_level;
 	uint8_t               tx_timeout_timer;
-	bool                  key_lock;
+	#ifdef ENABLE_KEYLOCK
+		bool                  key_lock;
+	#endif
 	bool                  vox_switch;
 	uint8_t               vox_level;
 	#ifdef ENABLE_VOICE
@@ -526,6 +543,8 @@ typedef struct {
 	uint16_t              vox1_threshold;
 	uint16_t              vox0_threshold;
 
+	uint8_t               scan_hold_time_500ms;
+
 //	uint8_t               field29_0x26;
 //	uint8_t               field30_0x27;
 
@@ -547,12 +566,12 @@ typedef struct {
 extern eeprom_config_t g_eeprom;
 
 #ifdef ENABLE_FMRADIO
-	void SETTINGS_SaveFM(void);
+	void SETTINGS_save_fm(void);
 #endif
-void SETTINGS_SaveVfoIndices(void);
+void SETTINGS_save_vfo_indices(void);
 //void SETTINGS_restore_calibration(void);
-void SETTINGS_SaveSettings(void);
-void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const vfo_info_t *pVFO, uint8_t Mode);
-void SETTINGS_UpdateChannel(uint8_t Channel, const vfo_info_t *pVFO, bool keep);
+void SETTINGS_save(void);
+void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, const vfo_info_t *p_vfo, const unsigned int mode);
+void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_t *p_vfo);
 
 #endif

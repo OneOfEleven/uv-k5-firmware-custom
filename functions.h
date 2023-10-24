@@ -24,8 +24,8 @@ enum function_type_e
 	FUNCTION_FOREGROUND = 0,  // idle, scanning
 	FUNCTION_TRANSMIT,        // transmitting
 	FUNCTION_MONITOR,         // receiving with squelch forced open
-	FUNCTION_INCOMING,        // signal just received
-	FUNCTION_RECEIVE,         // RX mode, squelch closed
+	FUNCTION_NEW_RECEIVE,     // signal just received
+	FUNCTION_RECEIVE,         // receive mode
 	FUNCTION_POWER_SAVE,      // sleeping
 	FUNCTION_PANADAPTER       // bandscope mode (panadpter/spectrum) .. not yet implemented
 };

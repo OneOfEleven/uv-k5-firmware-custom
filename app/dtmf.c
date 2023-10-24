@@ -122,7 +122,7 @@ bool DTMF_FindContact(const char *pContact, char *pResult)
 
 		if (j == 3)
 		{
-			memmove(pResult, Contact, 8);
+			memcpy(pResult, Contact, 8);
 			pResult[8] = 0;
 			return true;
 		}
@@ -203,7 +203,7 @@ void DTMF_Append(const char code)
 void DTMF_HandleRequest(void)
 {	// proccess the RX'ed DTMF characters
 
-	char         String[20];
+	char         String[21];
 	unsigned int Offset;
 
 	if (!g_dtmf_rx_pending)
@@ -244,7 +244,7 @@ void DTMF_HandleRequest(void)
 	
 					DTMF_clear_RX();
 	
-					SETTINGS_SaveSettings();
+					SETTINGS_save();
 	
 					g_dtmf_reply_state = DTMF_REPLY_AB;
 	
@@ -283,7 +283,7 @@ void DTMF_HandleRequest(void)
 	
 				DTMF_clear_RX();
 	
-				SETTINGS_SaveSettings();
+				SETTINGS_save();
 	
 				g_dtmf_reply_state = DTMF_REPLY_AB;
 				g_dtmf_call_state  = DTMF_CALL_STATE_NONE;
@@ -354,8 +354,8 @@ void DTMF_HandleRequest(void)
 
 			memset(g_dtmf_callee, 0, sizeof(g_dtmf_callee));
 			memset(g_dtmf_caller, 0, sizeof(g_dtmf_caller));
-			memmove(g_dtmf_callee, g_dtmf_rx + Offset + 0, 3);
-			memmove(g_dtmf_caller, g_dtmf_rx + Offset + 4, 3);
+			memcpy(g_dtmf_callee, g_dtmf_rx + Offset + 0, 3);
+			memcpy(g_dtmf_caller, g_dtmf_rx + Offset + 4, 3);
 
 			DTMF_clear_RX();
 
@@ -389,11 +389,11 @@ void DTMF_HandleRequest(void)
 	}
 }
 
-void DTMF_Reply(void)
+bool DTMF_Reply(void)
 {
-	uint16_t    Delay;
-	char        String[20];
-	const char *pString = NULL;
+	const uint16_t Delay   = (g_eeprom.dtmf_preload_time < 150) ? 150 : g_eeprom.dtmf_preload_time;
+	const char    *pString = NULL;
+	char           String[23];
 
 	switch (g_dtmf_reply_state)
 	{
@@ -426,7 +426,7 @@ void DTMF_Reply(void)
 			    g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN)
 			{
 				g_dtmf_reply_state = DTMF_REPLY_NONE;
-				return;
+				return false;
 			}
 
 			// send TX-UP DTMF
@@ -437,14 +437,12 @@ void DTMF_Reply(void)
 	g_dtmf_reply_state = DTMF_REPLY_NONE;
 
 	if (pString == NULL)
-		return;
-
-	Delay = (g_eeprom.dtmf_preload_time < 200) ? 200 : g_eeprom.dtmf_preload_time;
+		return false;
 
 	if (g_eeprom.dtmf_side_tone)
 	{	// the user will also hear the transmitted tones
-		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-		g_enable_speaker = true;
+		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+		g_speaker_enabled = true;
 	}
 
 	SYSTEM_DelayMs(Delay);
@@ -459,9 +457,11 @@ void DTMF_Reply(void)
 		g_eeprom.dtmf_code_persist_time,
 		g_eeprom.dtmf_code_interval_time);
 
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-	g_enable_speaker = false;
+	g_speaker_enabled = false;
 
 	BK4819_ExitDTMF_TX(false);
+	
+	return true;
 }

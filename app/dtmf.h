@@ -104,6 +104,6 @@ dtmf_call_mode_t DTMF_CheckGroupCall(const char *pDTMF, const unsigned int size)
 void DTMF_clear_input_box(void);
 void DTMF_Append(const char vode);
 void DTMF_HandleRequest(void);
-void DTMF_Reply(void);
+bool DTMF_Reply(void);
 
 #endif

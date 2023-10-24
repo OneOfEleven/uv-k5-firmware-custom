@@ -99,7 +99,7 @@ const uint8_t BITMAP_RX[8] =
 	};
 #endif
 
-const uint8_t BITMAP_USB_C[9] =
+const uint8_t BITMAP_USB_C[8] =
 {	// USB symbol
 	__extension__ 0b00000000,
 	__extension__ 0b00011100,
@@ -107,20 +107,21 @@ const uint8_t BITMAP_USB_C[9] =
 	__extension__ 0b01000100,
 	__extension__ 0b01000100,
 	__extension__ 0b01000100,
-	__extension__ 0b01000100,
 	__extension__ 0b00100111,
 	__extension__ 0b00011100
 };
 
-const uint8_t BITMAP_KEYLOCK[6] =
-{	// teeny padlock symbol
-	__extension__ 0b00000000,
-	__extension__ 0b01111100,
-	__extension__ 0b01000110,
-	__extension__ 0b01000101,
-	__extension__ 0b01000110,
-	__extension__ 0b01111100
-};
+#ifdef ENABLE_KEYLOCK
+	const uint8_t BITMAP_KEYLOCK[6] =
+	{	// teeny weeny padlock symbol
+		__extension__ 0b00000000,
+		__extension__ 0b01111100,
+		__extension__ 0b01000110,
+		__extension__ 0b01000101,
+		__extension__ 0b01000110,
+		__extension__ 0b01111100
+	};
+#endif
 
 const uint8_t BITMAP_F_KEY[6] =
 {	// F-Key symbol
@@ -191,7 +192,7 @@ const uint8_t BITMAP_F_KEY[6] =
 	};
 #endif
 
-const uint8_t BITMAP_TDR1[12] =
+const uint8_t BITMAP_TDR_RUNNING[12] =
 {	// "DW"
 	__extension__ 0b00000000,
 	__extension__ 0b01111111,
@@ -207,20 +208,20 @@ const uint8_t BITMAP_TDR1[12] =
 	__extension__ 0b01111111
 };
 
-const uint8_t BITMAP_TDR2[12] =
-{	// "><" .. DW on hold
+const uint8_t BITMAP_TDR_HOLDING[12] =
+{	// "--" .. DW on hold
 	__extension__ 0b00000000,
-	__extension__ 0b00000000,
-	__extension__ 0b00100010,
-	__extension__ 0b00110110,
-	__extension__ 0b00011100,
+	__extension__ 0b00001000,
+	__extension__ 0b00001000,
+	__extension__ 0b00001000,
+	__extension__ 0b00001000,
 	__extension__ 0b00001000,
 	__extension__ 0b00000000,
 	__extension__ 0b00001000,
-	__extension__ 0b00011100,
-	__extension__ 0b00110110,
-	__extension__ 0b00100010,
-	__extension__ 0b00000000
+	__extension__ 0b00001000,
+	__extension__ 0b00001000,
+	__extension__ 0b00001000,
+	__extension__ 0b00001000
 };
 
 #ifdef ENABLE_VOICE
@@ -238,6 +239,16 @@ const uint8_t BITMAP_TDR2[12] =
 	};
 #endif
 
+const uint8_t BITMAP_MONITOR[6] =
+{	// "M"
+	__extension__ 0b00000000,
+	__extension__ 0b01111111,
+	__extension__ 0b00000010,
+	__extension__ 0b00001100,
+	__extension__ 0b00000010,
+	__extension__ 0b01111111
+};
+
 #ifdef ENABLE_FMRADIO
 	const uint8_t BITMAP_FM[12] =
 	{	// "FM"
@@ -247,7 +258,6 @@ const uint8_t BITMAP_TDR2[12] =
 		__extension__ 0b00001001,
 		__extension__ 0b00001001,
 		__extension__ 0b00000001,
-
 		__extension__ 0b00000000,
 		__extension__ 0b01111111,
 		__extension__ 0b00000010,
@@ -363,32 +373,44 @@ const uint8_t BITMAP_VFO_NOT_DEFAULT[8] =
 	__extension__ 0b00001000
 };
 
-const uint8_t BITMAP_SCANLIST1[6] =
-{	// 'I' symbol
-	__extension__ 0b00000000,
-	__extension__ 0b00000000,
-	__extension__ 0b01000010,
-	__extension__ 0b01111110,
-	__extension__ 0b01000010,
-	__extension__ 0b00000000
-};
+#if 0
+	const uint8_t BITMAP_SCANLIST1[6] =
+	{	// 'I' symbol
+		__extension__ 0b00000000,
+		__extension__ 0b00100001,
+		__extension__ 0b00111111,
+		__extension__ 0b00100001,
+		__extension__ 0b00000000,
+		__extension__ 0b00000000
+	};
 
-const uint8_t BITMAP_SCANLIST2[6] =
-{	// 'II' symbol
-	__extension__ 0b00000000,
-	__extension__ 0b01000010,
-	__extension__ 0b01111110,
-	__extension__ 0b01000010,
-	__extension__ 0b01111110,
-	__extension__ 0b01000010
-};
+	const uint8_t BITMAP_SCANLIST2[6] =
+	{	// 'II' symbol
+		__extension__ 0b00100001,
+		__extension__ 0b00111111,
+		__extension__ 0b00100001,
+		__extension__ 0b00100001,
+		__extension__ 0b00111111,
+		__extension__ 0b00100001
+	};
+#else
+	const uint8_t BITMAP_SCANLIST1[6] =
+	{	// 'I' symbol
+		__extension__ 0b00000000,
+		__extension__ 0b00111110,
+		__extension__ 0b01111111,
+		__extension__ 0b01111111,
+		__extension__ 0b00111110,
+		__extension__ 0b00000000
+	};
 
-const uint8_t BITMAP_COMPAND[6] =
-{
-	__extension__ 0b00000000,
-	__extension__ 0b00111100,
-	__extension__ 0b01000010,
-	__extension__ 0b01000010,
-	__extension__ 0b01000010,
-	__extension__ 0b00100100
-};
+	const uint8_t BITMAP_SCANLIST2[6] =
+	{	// 'II' symbol
+		__extension__ 0b00000000,
+		__extension__ 0b00000000,
+		__extension__ 0b00110110,
+		__extension__ 0b01110111,
+		__extension__ 0b01110111,
+		__extension__ 0b00110110
+	};
+#endif

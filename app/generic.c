@@ -51,6 +51,7 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 	if (key_held)
 	{	// f-key held
 
+		#ifdef ENABLE_KEYLOCK
 		if (key_pressed && g_screen_to_display != DISPLAY_MENU && g_current_function != FUNCTION_TRANSMIT)
 		{	// toggle the keyboad lock
 
@@ -66,6 +67,7 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 			g_keypad_locked  = 4;      // 2 second pop-up
 			g_update_display = true;
 		}
+		#endif
 		
 		return;
 	}
@@ -138,27 +140,28 @@ void GENERIC_Key_PTT(bool key_pressed)
 //		UART_printf("gene key 1 %u\r\n", key_pressed);
 	#endif
 
-	if (g_scan_state_dir != SCAN_STATE_DIR_OFF ||             // frequency/channel scanning
-	    g_screen_to_display == DISPLAY_SEARCH ||   // CTCSS/CDCSS scanning
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF ||   // freq/chan scanning
+	    g_screen_to_display == DISPLAY_SEARCH  ||   // CTCSS/CDCSS scanning
 	    g_css_scan_mode != CSS_SCAN_MODE_OFF)       //   "     "
 	{	// we're scanning .. stop
 
 		if (g_screen_to_display == DISPLAY_SEARCH)
 		{	// CTCSS/CDCSS scanning .. stop
 			g_eeprom.cross_vfo_rx_tx = g_backup_cross_vfo_rx_tx;
-			g_search_flag_stop_scan         = true;
+			g_search_flag_stop_scan  = true;
 			g_vfo_configure_mode     = VFO_CONFIGURE_RELOAD;
-			g_flag_reset_vfos         = true;
+			g_flag_reset_vfos        = true;
 		}
 		else
 		if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-		{	// frequency/channel scanning . .stop
+		{	// freq/chan scanning . .stop
 			APP_stop_scan();
+			g_request_display_screen = DISPLAY_MAIN;
 		}
 		else
 		if (g_css_scan_mode != CSS_SCAN_MODE_OFF)
 		{	// CTCSS/CDCSS scanning .. stop
-			MENU_StopCssScan();
+			MENU_stop_css_scan();
 
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = VOICE_ID_SCANNING_STOP;
@@ -178,9 +181,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 			g_request_display_screen = DISPLAY_FM;
 			goto cancel_tx;
 		}
-	#endif
 
-	#ifdef ENABLE_FMRADIO
 		if (g_screen_to_display == DISPLAY_FM)
 			goto start_tx;	// listening to the FM radio .. start TX'ing
 	#endif

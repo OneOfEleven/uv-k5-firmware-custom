@@ -65,8 +65,10 @@ void Main(void)
 		| SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE;
 
 	SYSTICK_Init();
-	BOARD_Init();
+#ifdef ENABLE_UART
 	UART_Init();
+#endif
+	BOARD_Init();
 
 	#if defined(ENABLE_UART)
 		UART_SendText(UART_Version_str);
@@ -80,6 +82,8 @@ void Main(void)
 	memset(g_dtmf_string, '-', sizeof(g_dtmf_string));
 	g_dtmf_string[sizeof(g_dtmf_string) - 1] = 0;
 
+	FREQUENCY_init();
+
 #if 0
 	SETTINGS_restore_calibration();
 #endif
@@ -92,8 +96,8 @@ void Main(void)
 
 	BOARD_EEPROM_LoadCalibration();
 
-	RADIO_ConfigureChannel(0, VFO_CONFIGURE_RELOAD);
-	RADIO_ConfigureChannel(1, VFO_CONFIGURE_RELOAD);
+	RADIO_configure_channel(0, VFO_CONFIGURE_RELOAD);
+	RADIO_configure_channel(1, VFO_CONFIGURE_RELOAD);
 
 	RADIO_select_vfos();
 
@@ -104,8 +108,10 @@ void Main(void)
 
 	BATTERY_GetReadings(false);
 
-	ST7565_SetContrast(g_setting_contrast);
-
+	#ifdef ENABLE_CONTRAST
+		ST7565_SetContrast(g_setting_contrast);
+	#endif
+	
 	#ifdef ENABLE_AM_FIX
 		AM_fix_init();
 	#endif

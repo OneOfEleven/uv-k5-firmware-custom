@@ -19,8 +19,8 @@
 
 #include <stdint.h>
 
-void EEPROM_ReadBuffer(uint16_t Address, void *pBuffer, uint8_t Size);
-void EEPROM_WriteBuffer(uint16_t Address, const void *pBuffer);
+void EEPROM_ReadBuffer(const uint16_t address, void *p_buffer, const unsigned int size);
+void EEPROM_WriteBuffer8(const uint16_t address, const void *p_buffer);
 
 #endif
 

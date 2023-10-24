@@ -27,7 +27,10 @@
 
 uint8_t g_status_line[128];
 uint8_t g_frame_buffer[7][128];
-uint8_t contrast = 31;  // 0 ~ 63
+
+#ifdef ENABLE_CONTRAST
+	uint8_t contrast = 31;  // 0 ~ 63
+#endif
 
 void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const unsigned int Size, const uint8_t *pBitmap)
 {
@@ -179,7 +182,11 @@ void ST7565_Init(const bool full)
 	ST7565_WriteByte(0x24);          // ???
 
 	ST7565_WriteByte(0x81);          //
-	ST7565_WriteByte(contrast);      // brightness 0 ~ 63
+	#ifdef ENABLE_CONTRAST
+		ST7565_WriteByte(contrast);  // brightness 0 ~ 63
+	#else
+		ST7565_WriteByte(31);        // brightness 0 ~ 63
+	#endif
 
 	if (full)
 	{
@@ -235,12 +242,14 @@ void ST7565_WriteByte(const uint8_t Value)
 	SPI0->WDR = Value;
 }
 
-void ST7565_SetContrast(const uint8_t value)
-{
-	contrast = (value <= 63) ? value : 63;
-}
+#ifdef ENABLE_CONTRAST
+	void ST7565_SetContrast(const uint8_t value)
+	{
+		contrast = (value <= 63) ? value : 63;
+	}
 
-uint8_t ST7565_GetContrast(void)
-{
-	return contrast;
-}
+	uint8_t ST7565_GetContrast(void)
+	{
+		return contrast;
+	}
+#endif

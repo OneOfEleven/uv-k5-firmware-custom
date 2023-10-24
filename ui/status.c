@@ -23,6 +23,7 @@
 #include "bitmaps.h"
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
+#include "app/dtmf.h"
 #include "external/printf/printf.h"
 #include "functions.h"
 #include "helper/battery.h"
@@ -48,21 +49,21 @@ void UI_DisplayStatus(const bool test_display)
 	// POWER-SAVE indicator
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{
-		memmove(line + x, BITMAP_TX, sizeof(BITMAP_TX));
+		memcpy(line + x, BITMAP_TX, sizeof(BITMAP_TX));
 		x1 = x + sizeof(BITMAP_TX);
 	}
 	else
 	if (g_current_function == FUNCTION_RECEIVE ||
 	    g_current_function == FUNCTION_MONITOR ||
-	    g_current_function == FUNCTION_INCOMING)
+	    g_current_function == FUNCTION_NEW_RECEIVE)
 	{
-		memmove(line + x, BITMAP_RX, sizeof(BITMAP_RX));
+		memcpy(line + x, BITMAP_RX, sizeof(BITMAP_RX));
 		x1 = x + sizeof(BITMAP_RX);
 	}
 	else
 	if (g_current_function == FUNCTION_POWER_SAVE || test_display)
 	{
-		memmove(line + x, BITMAP_POWERSAVE, sizeof(BITMAP_POWERSAVE));
+		memcpy(line + x, BITMAP_POWERSAVE, sizeof(BITMAP_POWERSAVE));
 		x1 = x + sizeof(BITMAP_POWERSAVE);
 	}
 	x += sizeof(BITMAP_POWERSAVE);
@@ -71,7 +72,7 @@ void UI_DisplayStatus(const bool test_display)
 		// NOASS SCAN indicator
 		if (g_is_noaa_mode || test_display)
 		{
-			memmove(line + x, BITMAP_NOAA, sizeof(BITMAP_NOAA));
+			memcpy(line + x, BITMAP_NOAA, sizeof(BITMAP_NOAA));
 			x1 = x + sizeof(BITMAP_NOAA);
 		}
 		x += sizeof(BITMAP_NOAA);
@@ -92,7 +93,7 @@ void UI_DisplayStatus(const bool test_display)
 		// FM indicator
 		if (g_fm_radio_mode || test_display)
 		{
-			memmove(line + x, BITMAP_FM, sizeof(BITMAP_FM));
+			memcpy(line + x, BITMAP_FM, sizeof(BITMAP_FM));
 			x1 = x + sizeof(BITMAP_FM);
 		}
 		else
@@ -124,7 +125,7 @@ void UI_DisplayStatus(const bool test_display)
 		// VOICE indicator
 		if (g_eeprom.voice_prompt != VOICE_PROMPT_OFF || test_display)
 		{
-			memmove(line + x, BITMAP_VOICE_PROMPT, sizeof(BITMAP_VOICE_PROMPT));
+			memcpy(line + x, BITMAP_VOICE_PROMPT, sizeof(BITMAP_VOICE_PROMPT));
 			x1 = x + sizeof(BITMAP_VOICE_PROMPT);
 		}
 		x += sizeof(BITMAP_VOICE_PROMPT);
@@ -135,24 +136,34 @@ void UI_DisplayStatus(const bool test_display)
 	// DUAL-WATCH indicator
 	if (g_eeprom.dual_watch != DUAL_WATCH_OFF || test_display)
 	{
-		if (g_scan_state_dir == SCAN_STATE_DIR_OFF ||
-		    g_squelch_lost ||
-			g_current_function == FUNCTION_INCOMING ||
-			g_current_function == FUNCTION_MONITOR ||
-			g_screen_to_display == DISPLAY_SEARCH ||
-			test_display)
+		if (g_dual_watch_delay_10ms > dual_watch_delay_toggle_10ms ||
+	        g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+		    g_scan_state_dir != SCAN_STATE_DIR_OFF  ||
+			g_css_scan_mode != CSS_SCAN_MODE_OFF    ||
+			(g_current_function != FUNCTION_FOREGROUND && g_current_function != FUNCTION_POWER_SAVE) ||
+			g_screen_to_display == DISPLAY_SEARCH)
 		{
-			memmove(line + x, BITMAP_TDR1, sizeof(BITMAP_TDR1));	// dual-watch is paused
+			memcpy(line + x, BITMAP_TDR_HOLDING, sizeof(BITMAP_TDR_HOLDING));
 		}
 		else
-			memmove(line + x, BITMAP_TDR2, sizeof(BITMAP_TDR2));    // dual-watch is running
+		{
+			memcpy(line + x, BITMAP_TDR_RUNNING, sizeof(BITMAP_TDR_RUNNING));
+		}
+		x1 = x + sizeof(BITMAP_TDR_RUNNING);
 	}
-	x += sizeof(BITMAP_TDR1);
+	x += sizeof(BITMAP_TDR_RUNNING);
+
+	if (g_current_function == FUNCTION_MONITOR)
+	{
+		memcpy(line + x, BITMAP_MONITOR, sizeof(BITMAP_MONITOR));
+		x1 = x + sizeof(BITMAP_MONITOR);
+	}
+	x += sizeof(BITMAP_MONITOR);
 
 	// CROSS-VFO indicator
 	if (g_eeprom.cross_vfo_rx_tx != CROSS_BAND_OFF || test_display)
 	{
-		memmove(line + x, BITMAP_XB, sizeof(BITMAP_XB));
+		memcpy(line + x, BITMAP_XB, sizeof(BITMAP_XB));
 		x1 = x + sizeof(BITMAP_XB);
 	}
 	x += sizeof(BITMAP_XB);
@@ -161,23 +172,25 @@ void UI_DisplayStatus(const bool test_display)
 		// VOX indicator
 		if (g_eeprom.vox_switch || test_display)
 		{
-			memmove(line + x, BITMAP_VOX, sizeof(BITMAP_VOX));
+			memcpy(line + x, BITMAP_VOX, sizeof(BITMAP_VOX));
 			x1 = x + sizeof(BITMAP_VOX);
 		}
 		x += sizeof(BITMAP_VOX);
 	#endif
 
+	#ifdef ENABLE_KEYLOCK
 	// KEY-LOCK indicator
 	if (g_eeprom.key_lock || test_display)
 	{
-		memmove(line + x, BITMAP_KEYLOCK, sizeof(BITMAP_KEYLOCK));
+		memcpy(line + x, BITMAP_KEYLOCK, sizeof(BITMAP_KEYLOCK));
 		x += sizeof(BITMAP_KEYLOCK);
 		x1 = x;
 	}
 	else
+	#endif
 	if (g_fkey_pressed)
 	{
-		memmove(line + x, BITMAP_F_KEY, sizeof(BITMAP_F_KEY));
+		memcpy(line + x, BITMAP_F_KEY, sizeof(BITMAP_F_KEY));
 		x += sizeof(BITMAP_F_KEY);
 		x1 = x;
 	}
@@ -223,7 +236,7 @@ void UI_DisplayStatus(const bool test_display)
 	
 	// USB-C charge indicator
 	if (g_charging_with_type_c || test_display)
-		memmove(line + x, BITMAP_USB_C, sizeof(BITMAP_USB_C));
+		memcpy(line + x, BITMAP_USB_C, sizeof(BITMAP_USB_C));
 	x += sizeof(BITMAP_USB_C);
 
 	// BATTERY LEVEL indicator

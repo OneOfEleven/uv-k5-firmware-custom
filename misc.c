@@ -43,8 +43,10 @@ const uint8_t         dtmf_txstop_countdown_500ms      =   3000 / 500;  // 6 sec
 
 const uint8_t         serial_config_count_down_500ms   =   3000 / 500;  // 3 seconds
 
-const uint8_t         key_input_timeout_500ms          =   6000 / 500;  // 6 seconds
-const uint8_t         key_lock_timeout_500ms           =  30000 / 500;  // 30 seconds
+const uint8_t         key_input_timeout_500ms          =   6000 / 500; // 6 seconds
+#ifdef ENABLE_KEYLOCK
+	const uint8_t     key_lock_timeout_500ms           =  30000 / 500;  // 30 seconds
+#endif
 
 const uint8_t         key_debounce_10ms                =     30 / 10;   // 30ms
 const uint8_t         key_long_press_10ms              =    300 / 10;   // 300ms
@@ -53,23 +55,19 @@ const uint8_t         key_repeat_10ms                  =     50 / 10;   // 50ms
 const uint16_t        scan_freq_css_timeout_10ms       =  10000 / 10;   // 10 seconds
 const uint8_t         scan_freq_css_delay_10ms         =    210 / 10;   // 210ms .. don't reduce this
 
-const uint16_t        dual_watch_count_after_tx_10ms   =   3600 / 10;   // 3.6 sec after TX ends
-const uint16_t        dual_watch_count_after_rx_10ms   =   1000 / 10;   // 1 sec after RX ends ?
-const uint16_t        dual_watch_count_after_1_10ms    =   5000 / 10;   // 5 sec
-const uint16_t        dual_watch_count_after_2_10ms    =   3600 / 10;   // 3.6 sec
-const uint16_t        dual_watch_count_noaa_10ms       =     70 / 10;   // 70ms
 #ifdef ENABLE_VOX
-	const uint16_t    dual_watch_count_after_vox_10ms  =    200 / 10;   // 200ms
+	const uint16_t    dual_watch_delay_after_vox_10ms  =    200 / 10;   // 200ms
 #endif
-const uint16_t        dual_watch_count_toggle_10ms     =    100 / 10;   // 100ms between VFO toggles
+const uint16_t        dual_watch_delay_after_tx_10ms   =   7000 / 10;   // 7 sec after TX ends
+const uint16_t        dual_watch_delay_noaa_10ms       =     70 / 10;   // 70ms
+const uint16_t        dual_watch_delay_toggle_10ms     =    100 / 10;   // 100ms between VFO toggles
 
-const uint16_t        scan_pause_1_10ms                =   5000 / 10;   // 5 seconds
-const uint16_t        scan_pause_2_10ms                =    500 / 10;   // 500ms
-const uint16_t        scan_pause_3_10ms                =    200 / 10;   // 200ms
-const uint16_t        scan_pause_4_10ms                =    300 / 10;   // 300ms
-const uint16_t        scan_pause_5_10ms                =   1000 / 10;   // 1 sec
-const uint16_t        scan_pause_6_10ms                =    100 / 10;   // 100ms
-const uint16_t        scan_pause_7_10ms                =   3600 / 10;   // 3.6 seconds
+const uint16_t        scan_pause_code_10ms             =   1000 / 10;   // 1 sec
+const uint16_t        scan_pause_css_10ms              =    500 / 10;   // 500ms
+const uint16_t        scan_pause_ctcss_10ms            =    200 / 10;   // 200ms
+const uint16_t        scan_pause_cdcss_10ms            =    300 / 10;   // 300ms
+const uint16_t        scan_pause_freq_10ms             =    100 / 10;   // 100ms
+const uint16_t        scan_pause_chan_10ms             =    200 / 10;   // 200ms
 
 const uint16_t        battery_save_count_10ms          =  10000 / 10;   // 10 seconds
 
@@ -80,9 +78,9 @@ const uint16_t        power_save2_10ms                 =    200 / 10;   // 200ms
 	const uint16_t    vox_stop_count_down_10ms         =   1000 / 10;   // 1 second
 #endif
 
-const uint16_t        noaa_count_down_10ms              =  5000 / 10;   // 5 seconds
-const uint16_t        noaa_count_down_2_10ms            =   500 / 10;   // 500ms
-const uint16_t        noaa_count_down_3_10ms            =   200 / 10;   // 200ms
+const uint16_t        noaa_count_down_10ms             =   5000 / 10;   // 5 seconds
+const uint16_t        noaa_count_down_2_10ms           =    500 / 10;   // 500ms
+const uint16_t        noaa_count_down_3_10ms           =    200 / 10;   // 200ms
 
 // ***********************************************
 
@@ -110,13 +108,18 @@ uint8_t               g_setting_backlight_on_tx_rx;
 #ifdef ENABLE_AM_FIX_TEST1
 	uint8_t           g_setting_am_fix_test1 = 0;
 #endif
-#ifdef ENABLE_AUDIO_BAR
+#ifdef ENABLE_TX_AUDIO_BAR
 	bool              g_setting_mic_bar;
+#endif
+#ifdef ENABLE_RX_SIGNAL_BAR
+	bool              g_setting_rssi_bar;
 #endif
 bool                  g_setting_live_dtmf_decoder;
 uint8_t               g_setting_battery_text;
 
-uint8_t               g_setting_contrast;
+#ifdef ENABLE_CONTRAST
+	uint8_t           g_setting_contrast;
+#endif
 
 uint8_t               g_setting_side1_short;
 uint8_t               g_setting_side1_long;
@@ -141,10 +144,8 @@ volatile uint16_t     g_battery_save_count_down_10ms = battery_save_count_10ms;
 volatile bool         g_power_save_expired;
 volatile bool         g_schedule_power_save;
 
-volatile bool         g_schedule_dual_watch = true;
-
-volatile uint16_t     g_dual_watch_count_down_10ms;
-volatile bool         g_dual_watch_count_down_expired = true;
+volatile uint16_t     g_dual_watch_delay_10ms;
+volatile bool         g_dual_watch_delay_down_expired = true;
 
 volatile uint8_t      g_serial_config_count_down_500ms;
 
@@ -159,9 +160,11 @@ volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 	volatile uint16_t g_noaa_count_down_10ms;
 #endif
 
-bool                  g_enable_speaker;
-uint8_t               g_key_input_count_down;
-uint8_t               g_key_lock_count_down_500ms;
+bool                  g_speaker_enabled;
+uint8_t g_key_input_count_down;
+#ifdef ENABLE_KEYLOCK
+	uint8_t               g_key_lock_count_down_500ms;
+#endif
 uint8_t               g_rtte_count_down;
 bool                  g_password_locked;
 uint8_t               g_update_status;
@@ -210,7 +213,7 @@ bool                  g_cxcss_tail_found;
 	uint16_t          g_vox_resume_count_down;
 	uint16_t          g_vox_pause_count_down;
 #endif
-bool                  g_squelch_lost;
+bool                  g_squelch_open;
 
 uint8_t               g_flash_light_state;
 volatile uint16_t     g_flash_light_blink_counter;
@@ -227,18 +230,17 @@ uint16_t              g_low_batteryCountdown;
 reception_mode_t      g_rx_reception_mode;
 
 uint8_t               g_scan_next_channel;
-uint8_t               g_scan_restore_channel;
 scan_next_chan_t      g_scan_current_scan_list;
+uint8_t               g_scan_restore_channel;
 uint32_t              g_scan_restore_frequency;
-bool                  g_scan_keep_frequency;
-bool                  g_scan_pause_mode;
+bool                  g_scan_pause_time_mode;      // set if we stopped in SCAN_RESUME_TIME mode
 volatile uint16_t     g_scan_pause_10ms;
 scan_state_dir_t      g_scan_state_dir;
 
 bool                  g_rx_vfo_is_active;
 #ifdef ENABLE_ALARM
-	uint8_t           g_alarm_tone_counter;
-	uint16_t          g_alarm_running_counter;
+	uint16_t          g_alarm_tone_counter_10ms;
+	uint16_t          g_alarm_running_counter_10ms;
 #endif
 uint8_t               g_menu_list_count;
 uint8_t               g_backup_cross_vfo_rx_tx;
@@ -309,16 +311,16 @@ unsigned int get_TX_VFO(void)
 void NUMBER_Get(char *pDigits, uint32_t *pInteger)
 {
 	unsigned int i;
-	uint32_t     Multiplier = 10000000;
-	uint32_t     Value      = 0;
+	uint32_t     mul = 10000000;
+	uint32_t     val = 0;
 	for (i = 0; i < 8; i++)
 	{
 		if (pDigits[i] > 9)
 			break;
-		Value += pDigits[i] * Multiplier;
-		Multiplier /= 10U;
+		val += pDigits[i] * mul;
+		mul /= 10u;
 	}
-	*pInteger = Value;
+	*pInteger = val;
 }
 
 void NUMBER_ToDigits(uint32_t Value, char *pDigits)
@@ -344,4 +346,25 @@ int32_t NUMBER_AddWithWraparound(int32_t Base, int32_t Add, int32_t LowerLimit, 
 		return LowerLimit;
 
 	return Base;
+}
+
+void NUMBER_trim_trailing_zeros(char *str)
+{
+	if (str != NULL)
+	{
+		bool found_dp = false;
+		int i = 0;
+		while (i < 16 && str[i] != 0)
+		{
+			if (str[i] == '.')
+				found_dp = true;
+			i++;
+		}
+		if (found_dp)
+		{
+			i--;
+			while (i > 0 && (str[i] == '0' || str[i] == ' ') && str[i - 1] != '.')
+				str[i--] = 0;
+		}
+	}
 }

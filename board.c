@@ -121,7 +121,7 @@ void BOARD_GPIO_Init(void)
 		| GPIO_DIR_5_MASK // INPUT
 		);
 
-	#if defined(ENABLE_FMRADIO)
+	#ifdef ENABLE_FMRADIO
 		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BK1080);
 	#endif
 }
@@ -508,12 +508,13 @@ void BOARD_Init(void)
 {
 	BOARD_PORTCON_Init();
 	BOARD_GPIO_Init();
+	CRC_Init();
 	BOARD_ADC_Init();
 	ST7565_Init(true);
+
 	#ifdef ENABLE_FMRADIO
 		BK1080_Init(0, false);
 	#endif
-	CRC_Init();
 }
 
 void BOARD_EEPROM_load(void)
@@ -531,7 +532,9 @@ void BOARD_EEPROM_load(void)
 	#ifdef ENABLE_NOAA
 		g_eeprom.noaa_auto_scan   = (Data[3] <  2) ? Data[3] : false;
 	#endif
-	g_eeprom.key_lock             = (Data[4] <  2) ? Data[4] : false;
+	#ifdef ENABLE_KEYLOCK
+		g_eeprom.key_lock             = (Data[4] <  2) ? Data[4] : false;
+	#endif
 	#ifdef ENABLE_VOX
 		g_eeprom.vox_switch       = (Data[5] <  2) ? Data[5] : false;
 		g_eeprom.vox_level        = (Data[6] < 10) ? Data[6] : 1;
@@ -540,7 +543,9 @@ void BOARD_EEPROM_load(void)
 
 	// 0E78..0E7F
 	EEPROM_ReadBuffer(0x0E78, Data, 8);
-	g_setting_contrast             = (Data[0] > 45) ? 31 : (Data[0] < 26) ? 31 : Data[0];
+	#ifdef ENABLE_CONTRAST
+		g_setting_contrast         = (Data[0] > 45) ? 31 : (Data[0] < 26) ? 31 : Data[0];
+	#endif
 	g_eeprom.channel_display_mode  = (Data[1] < 4) ? Data[1] : MDF_FREQUENCY;    // 4 instead of 3 - extra display mode
 	g_eeprom.cross_vfo_rx_tx       = (Data[2] < 3) ? Data[2] : CROSS_BAND_OFF;
 	g_eeprom.battery_save          = (Data[3] < 5) ? Data[3] : 4;
@@ -594,13 +599,13 @@ void BOARD_EEPROM_load(void)
 	g_eeprom.key1_long_press_action  = (Data[2] < ACTION_OPT_LEN) ? Data[2] : ACTION_OPT_FLASHLIGHT;
 	g_eeprom.key2_short_press_action = (Data[3] < ACTION_OPT_LEN) ? Data[3] : ACTION_OPT_SCAN;
 	g_eeprom.key2_long_press_action  = (Data[4] < ACTION_OPT_LEN) ? Data[4] : ACTION_OPT_NONE;
-	g_eeprom.scan_resume_mode        = (Data[5] < 3)              ? Data[5] : SCAN_RESUME_CO;
+	g_eeprom.scan_resume_mode        = (Data[5] < 3)              ? Data[5] : SCAN_RESUME_CARRIER;
 	g_eeprom.auto_keypad_lock        = (Data[6] < 2)              ? Data[6] : false;
 	g_eeprom.pwr_on_display_mode     = (Data[7] < 4)              ? Data[7] : PWR_ON_DISPLAY_MODE_VOLTAGE;
 
 	// 0E98..0E9F
 	EEPROM_ReadBuffer(0x0E98, Data, 8);
-	memmove(&g_eeprom.power_on_password, Data, 4);
+	memcpy(&g_eeprom.power_on_password, Data, sizeof(g_eeprom.power_on_password));
 
 	// 0EA0..0EA7
 	#ifdef ENABLE_VOICE
@@ -627,7 +632,7 @@ void BOARD_EEPROM_load(void)
 		g_eeprom.repeater_tail_tone_elimination = (array.repeater_tail_tone_elimination < 11) ? array.repeater_tail_tone_elimination : 0;
 		g_eeprom.tx_vfo                         = (array.tx_vfo < 2) ? array.tx_vfo : 0;
 
-		#ifdef ENABLE_AIRCOPY_FREQ
+		#ifdef ENABLE_AIRCOPY_REMEMBER_FREQ
 		{
 			unsigned int i;
 			for (i = 0; i < ARRAY_SIZE(FREQ_BAND_TABLE); i++)
@@ -662,7 +667,7 @@ void BOARD_EEPROM_load(void)
 	// 0EE0..0EE7
 	EEPROM_ReadBuffer(0x0EE0, Data, 8);
 	if (DTMF_ValidateCodes((char *)Data, 8))
-		memmove(g_eeprom.ani_dtmf_id, Data, 8);
+		memcpy(g_eeprom.ani_dtmf_id, Data, sizeof(g_eeprom.power_on_password));
 	else
 	{
 		memset(g_eeprom.ani_dtmf_id, 0, sizeof(g_eeprom.ani_dtmf_id));
@@ -672,7 +677,7 @@ void BOARD_EEPROM_load(void)
 	// 0EE8..0EEF
 	EEPROM_ReadBuffer(0x0EE8, Data, 8);
 	if (DTMF_ValidateCodes((char *)Data, 8))
-		memmove(g_eeprom.kill_code, Data, 8);
+		memcpy(g_eeprom.kill_code, Data, sizeof(g_eeprom.kill_code));
 	else
 	{
 		memset(g_eeprom.kill_code, 0, sizeof(g_eeprom.kill_code));
@@ -682,7 +687,7 @@ void BOARD_EEPROM_load(void)
 	// 0EF0..0EF7
 	EEPROM_ReadBuffer(0x0EF0, Data, 8);
 	if (DTMF_ValidateCodes((char *)Data, 8))
-		memmove(g_eeprom.revive_code, Data, 8);
+		memcpy(g_eeprom.revive_code, Data, sizeof(g_eeprom.revive_code));
 	else
 	{
 		memset(g_eeprom.revive_code, 0, sizeof(g_eeprom.revive_code));
@@ -692,7 +697,7 @@ void BOARD_EEPROM_load(void)
 	// 0EF8..0F07
 	EEPROM_ReadBuffer(0x0EF8, Data, 16);
 	if (DTMF_ValidateCodes((char *)Data, 16))
-		memmove(g_eeprom.dtmf_key_up_code, Data, 16);
+		memcpy(g_eeprom.dtmf_key_up_code, Data, sizeof(g_eeprom.dtmf_key_up_code));
 	else
 	{
 		memset(g_eeprom.dtmf_key_up_code, 0, sizeof(g_eeprom.dtmf_key_up_code));
@@ -702,7 +707,7 @@ void BOARD_EEPROM_load(void)
 	// 0F08..0F17
 	EEPROM_ReadBuffer(0x0F08, Data, 16);
 	if (DTMF_ValidateCodes((char *)Data, 16))
-		memmove(g_eeprom.dtmf_key_down_code, Data, 16);
+		memcpy(g_eeprom.dtmf_key_down_code, Data, sizeof(g_eeprom.dtmf_key_down_code));
 	else
 	{
 		memset(g_eeprom.dtmf_key_down_code, 0, sizeof(g_eeprom.dtmf_key_down_code));
@@ -716,18 +721,14 @@ void BOARD_EEPROM_load(void)
 	for (i = 0; i < 2; i++)
 	{
 		const unsigned int j = 1 + (i * 3);
-		g_eeprom.scan_list_enabled[i]     = (Data[j + 0] < 2) ? Data[j] : false;
+		g_eeprom.scan_list_enabled[i]      = (Data[j + 0] < 2) ? Data[j] : false;
 		g_eeprom.scan_list_priority_ch1[i] =  Data[j + 1];
 		g_eeprom.scan_list_priority_ch2[i] =  Data[j + 2];
 	}
 
 	// 0F40..0F47
 	EEPROM_ReadBuffer(0x0F40, Data, 8);
-	#ifdef ENABLE_TX_UNLOCK
-		g_setting_freq_lock      = (Data[0] < 7) ? Data[0] : FREQ_LOCK_NORMAL;
-	#else
-		g_setting_freq_lock      = (Data[0] < 6) ? Data[0] : FREQ_LOCK_NORMAL;
-	#endif
+	g_setting_freq_lock          = (Data[0] < FREQ_LOCK_LAST) ? Data[0] : FREQ_LOCK_NORMAL;
 	g_setting_350_tx_enable      = (Data[1] < 2) ? Data[1] : false;  // was true
 	#ifdef ENABLE_KILL_REVIVE
 		g_setting_radio_disabled = (Data[2] < 2) ? Data[2] : false;
@@ -735,17 +736,24 @@ void BOARD_EEPROM_load(void)
 	g_setting_174_tx_enable      = (Data[3] < 2) ? Data[3] : false;
 	g_setting_470_tx_enable      = (Data[4] < 2) ? Data[4] : false;
 	g_setting_350_enable         = (Data[5] < 2) ? Data[5] : true;
-	g_setting_scramble_enable    = (Data[6] < 2) ? Data[6] : true;
+	g_setting_scramble_enable    = (Data[6] & (1u << 0)) ? true : false;
+	#ifdef ENABLE_RX_SIGNAL_BAR
+		g_setting_rssi_bar       = (Data[6] & (1u << 1)) ? true : false;
+	#endif
 	g_setting_tx_enable          = (Data[7] & (1u << 0)) ? true : false;
 	g_setting_live_dtmf_decoder  = (Data[7] & (1u << 1)) ? true : false;
 	g_setting_battery_text       = (((Data[7] >> 2) & 3u) <= 2) ? (Data[7] >> 2) & 3 : 2;
-	#ifdef ENABLE_AUDIO_BAR
+	#ifdef ENABLE_TX_AUDIO_BAR
 		g_setting_mic_bar        = (Data[7] & (1u << 4)) ? true : false;
 	#endif
 	#ifdef ENABLE_AM_FIX
 		g_setting_am_fix         = (Data[7] & (1u << 5)) ? true : false;
 	#endif
 	g_setting_backlight_on_tx_rx = (Data[7] >> 6) & 3u;
+
+	// 0F48..0F4F
+	EEPROM_ReadBuffer(0x0F48, Data, 8);
+	g_eeprom.scan_hold_time_500ms = (Data[0] > 20) ? 6 : (Data[0] < 2) ? 6 : Data[0];
 
 	if (!g_eeprom.vfo_open)
 	{
@@ -777,7 +785,7 @@ void BOARD_EEPROM_load(void)
 		uint8_t *p_aes = (uint8_t*)&g_custom_aes_key;
 		memset(p_aes, 0xff, sizeof(g_custom_aes_key));
 		for (i = 0; i < sizeof(g_custom_aes_key); i += 8)
-			EEPROM_WriteBuffer(0x0F30 + i, &p_aes[i]);
+			EEPROM_WriteBuffer8(0x0F30 + i, &p_aes[i]);
 		g_has_custom_aes_key = false;
 	}
 #endif
@@ -838,23 +846,45 @@ void BOARD_EEPROM_LoadCalibration(void)
 	}
 }
 
+unsigned int BOARD_find_channel(const uint32_t frequency)
+{
+	unsigned int chan;
+	
+	if (frequency == 0 || frequency == 0xffffffff)
+		return 0xffffffff;
+	
+	for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
+	{
+		uint32_t chan_freq;
+
+		if ((g_user_channel_attributes[chan] & USER_CH_BAND_MASK) > BAND7_470MHz)
+			continue;
+		
+		EEPROM_ReadBuffer(chan * 16, &chan_freq, 4);
+
+		if (chan_freq == 0 || chan_freq == 0xffffffff)
+			continue;
+		
+		if (chan_freq == frequency)
+			return chan;          // found it
+	}
+	
+	return 0xffffffff;
+}
+
 uint32_t BOARD_fetchChannelFrequency(const int channel)
 {
-	struct
-	{
-		uint32_t frequency;
-		uint32_t offset;
-	} __attribute__((packed)) info;
+	uint32_t frequency;
 
 	if (channel < 0 || channel > (int)FREQ_CHANNEL_LAST)
 		return 0;
 
-	if (!RADIO_CheckValidChannel(channel, false, 0))
+	if ((g_user_channel_attributes[channel] & USER_CH_BAND_MASK) > BAND7_470MHz)
 		return 0;
 
-	EEPROM_ReadBuffer(channel * 16, &info, sizeof(info));
+	EEPROM_ReadBuffer(channel * 16, &frequency, 4);
 
-	return info.frequency;
+	return frequency;
 }
 
 unsigned int BOARD_fetchChannelStepSetting(const int channel)
@@ -950,7 +980,7 @@ void BOARD_FactoryReset(bool bIsAll)
 				))
 			)
 		{
-			EEPROM_WriteBuffer(i, Template);
+			EEPROM_WriteBuffer8(i, Template);
 		}
 	}
 
@@ -965,7 +995,7 @@ void BOARD_FactoryReset(bool bIsAll)
 			g_rx_vfo->freq_config_rx.frequency = Frequency;
 			g_rx_vfo->freq_config_tx.frequency = Frequency;
 			g_rx_vfo->band                     = FREQUENCY_GetBand(Frequency);
-			SETTINGS_SaveChannel(USER_CHANNEL_FIRST + i, 0, g_rx_vfo, 2);
+			SETTINGS_save_channel(USER_CHANNEL_FIRST + i, 0, g_rx_vfo, 2);
 		}
 	}
 }

@@ -20,8 +20,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-enum beep_type_e
-{
+enum beep_type_e {
 	BEEP_NONE = 0,
 	BEEP_1KHZ_60MS_OPTIONAL,
 	BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL,
@@ -35,18 +34,16 @@ enum beep_type_e
 };
 typedef enum beep_type_e beep_type_t;
 
-extern beep_type_t       g_beep_to_play;
+extern beep_type_t g_beep_to_play;
 
 void AUDIO_PlayBeep(beep_type_t Beep);
 
-enum
-{
+enum {
 	VOICE_ID_CHI_BASE = 0x10U,
-	VOICE_ID_ENG_BASE = 0x60U,
+	VOICE_ID_ENG_BASE = 0x60U
 };
 
-enum voice_id_e
-{
+enum voice_id_e {
 	VOICE_ID_0                   = 0x00U,
 	VOICE_ID_1                   = 0x01U,
 	VOICE_ID_2                   = 0x02U,
@@ -123,11 +120,11 @@ enum voice_id_e
 	VOICE_ID_80                  = 0x49U,
 	VOICE_ID_90                  = 0x4AU,
 	VOICE_ID_END                 = 0x4BU,
-								
+
 	VOICE_ID_INVALID             = 0xFFU,
 };
 typedef enum voice_id_e voice_id_t;
-	
+
 #ifdef ENABLE_VOICE
 	extern voice_id_t        g_voice_id[8];
 	extern uint8_t           g_voice_read_index;
@@ -135,7 +132,7 @@ typedef enum voice_id_e voice_id_t;
 	extern volatile uint16_t g_count_down_to_play_next_voice_10ms;
 	extern volatile bool     g_flag_play_queued_voice;
 	extern voice_id_t        g_another_voice_id;
-	
+
 	void    AUDIO_PlayVoice(uint8_t VoiceID);
 	void    AUDIO_PlaySingleVoice(bool flag);
 	void    AUDIO_SetVoiceID(uint8_t Index, voice_id_t VoiceID);
@@ -144,4 +141,3 @@ typedef enum voice_id_e voice_id_t;
 #endif
 
 #endif
-

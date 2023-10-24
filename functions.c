@@ -17,13 +17,13 @@
 #include <string.h>
 
 #include "app/dtmf.h"
-#if defined(ENABLE_FMRADIO)
+#ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
 #include "bsp/dp32g030/gpio.h"
 #include "dcs.h"
 #include "driver/backlight.h"
-#if defined(ENABLE_FMRADIO)
+#ifdef ENABLE_FMRADIO
 	#include "driver/bk1080.h"
 #endif
 #include "driver/bk4819.h"
@@ -62,7 +62,7 @@ void FUNCTION_Init(void)
 		g_vox_lost     = false;
 	#endif
 
-	g_squelch_lost     = false;
+	g_squelch_open     = false;
 
 	g_flag_tail_tone_elimination_complete   = false;
 	g_tail_tone_elimination_count_down_10ms = 0;
@@ -89,10 +89,13 @@ void FUNCTION_Select(function_type_t Function)
 	if (was_power_save && Function != FUNCTION_POWER_SAVE)
 	{	// wake up
 		BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
+
 		g_rx_idle_mode = false;
 
 		UI_DisplayStatus(false);
 	}
+
+	g_update_status = true;
 
 	switch (Function)
 	{
@@ -113,7 +116,7 @@ void FUNCTION_Select(function_type_t Function)
 			if (prev_func != FUNCTION_RECEIVE)
 				break;
 
-			#if defined(ENABLE_FMRADIO)
+			#ifdef ENABLE_FMRADIO
 				if (g_fm_radio_mode)
 					g_fm_restore_count_down_10ms = fm_restore_countdown_10ms;
 			#endif
@@ -125,7 +128,6 @@ void FUNCTION_Select(function_type_t Function)
 				g_dtmf_auto_reset_time_500ms = g_eeprom.dtmf_auto_reset_time * 2;
 			}
 
-			g_update_status = true;
 			return;
 
 		case FUNCTION_MONITOR:
@@ -136,16 +138,18 @@ void FUNCTION_Select(function_type_t Function)
 			g_monitor_enabled = true;
 			break;
 
-		case FUNCTION_INCOMING:
+		case FUNCTION_NEW_RECEIVE:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("func incoming\r\n");
+				UART_SendText("func new receive\r\n");
 			#endif
+
 			break;
 			
 		case FUNCTION_RECEIVE:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_SendText("func receive\r\n");
 			#endif
+
 			break;
 
 		case FUNCTION_POWER_SAVE:
@@ -153,7 +157,7 @@ void FUNCTION_Select(function_type_t Function)
 				UART_SendText("func power save\r\n");
 			#endif
 
-			g_power_save_10ms = g_eeprom.battery_save * 10;
+			g_power_save_10ms    = g_eeprom.battery_save * 10;
 			g_power_save_expired = false;
 
 			g_rx_idle_mode = true;
@@ -163,9 +167,7 @@ void FUNCTION_Select(function_type_t Function)
 			BK4819_DisableVox();			
 			BK4819_Sleep();
 
-			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_UNKNOWN, false);
-
-			g_update_status = true;
+			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
 
 			if (g_screen_to_display != DISPLAY_MENU)     // 1of11 .. don't close the menu
 				GUI_SelectNextDisplay(DISPLAY_MAIN);
@@ -177,7 +179,18 @@ void FUNCTION_Select(function_type_t Function)
 				UART_SendText("func transmit\r\n");
 			#endif
 
-			// if DTMF is enabled when TX'ing, it changes the TX audio filtering !! .. 1of11
+			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
+				backlight_turn_on(backlight_tx_rx_time_500ms);
+
+			if (g_eeprom.dual_watch != DUAL_WATCH_OFF)
+			{	// dual-RX is enabled
+				g_dual_watch_delay_10ms = dual_watch_delay_after_tx_10ms;
+				if (g_dual_watch_delay_10ms < (g_eeprom.scan_hold_time_500ms * 50))
+					g_dual_watch_delay_10ms = g_eeprom.scan_hold_time_500ms * 50;
+			}
+
+			// if DTMF is enabled when TX'ing, it changes the TX audio filtering ! .. 1of11
+			// so MAKE SURE that DTMF is disabled - until needed
 			BK4819_DisableDTMF();
 
 			// clear the DTMF RX buffer
@@ -185,49 +198,48 @@ void FUNCTION_Select(function_type_t Function)
 
 			// clear the DTMF RX live decoder buffer
 			g_dtmf_rx_live_timeout = 0;
-			g_dtmf_rx_live_timeout = 0;
 			memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
 
-			#if defined(ENABLE_FMRADIO)
+			#ifdef ENABLE_FMRADIO
+				// disable the FM radio
 				if (g_fm_radio_mode)
 					BK1080_Init(0, false);
-			#endif
-
-			#ifdef ENABLE_ALARM
-				if (g_alarm_state == ALARM_STATE_TXALARM && g_eeprom.alarm_mode != ALARM_MODE_TONE)
-				{
-					g_alarm_state = ALARM_STATE_ALARM;
-
-					GUI_DisplayScreen();
-
-					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-
-					SYSTEM_DelayMs(20);
-					BK4819_PlayTone(500, 0);
-					SYSTEM_DelayMs(2);
-
-					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
-
-					g_enable_speaker = true;
-
-					SYSTEM_DelayMs(60);
-					BK4819_ExitTxMute();
-
-					g_alarm_tone_counter = 0;
-					break;
-				}
 			#endif
 
 			g_update_status = true;
 
 			GUI_DisplayScreen();
 
+			#ifdef ENABLE_ALARM
+				if (g_alarm_state == ALARM_STATE_TXALARM && g_eeprom.alarm_mode != ALARM_MODE_TONE)
+				{	// enable the alarm tone but not the TX
+			
+					g_alarm_state = ALARM_STATE_ALARM;
+
+					GUI_DisplayScreen();
+
+					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
+					SYSTEM_DelayMs(20);
+					BK4819_StartTone1(500, 28, true);
+					SYSTEM_DelayMs(2);
+
+					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
+					g_speaker_enabled = true;
+
+					SYSTEM_DelayMs(60);
+					BK4819_ExitTxMute();
+
+					g_alarm_tone_counter_10ms = 0;
+					break;
+				}
+			#endif
+
+			if (g_current_vfo->scrambling_type == 0 || !g_setting_scramble_enable)
+				BK4819_DisableScramble();
+
 			RADIO_enableTX(false);
-
-			DTMF_Reply();
-
-			if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
-				BK4819_PlaySingleTone(APOLLO_TONE1_HZ, APOLLO_TONE_MS, 0, g_eeprom.dtmf_side_tone);
 
 			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 				if (g_alarm_state != ALARM_STATE_OFF)
@@ -240,34 +252,45 @@ void FUNCTION_Select(function_type_t Function)
 						if (g_alarm_state == ALARM_STATE_TXALARM)
 							BK4819_TransmitTone(true, 500);
 					#endif
+
 					SYSTEM_DelayMs(2);
-					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_AUDIO_PATH);
+
+					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
 					#ifdef ENABLE_ALARM
-						g_alarm_tone_counter = 0;
+						g_alarm_tone_counter_10ms = 0;
 					#endif
-					g_enable_speaker = true;
+
+					g_speaker_enabled = true;
 					break;
 				}
+				else
 			#endif
+
+			if (!DTMF_Reply())
+				if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+					BK4819_PlayTone(APOLLO_TONE1_HZ, APOLLO_TONE_MS, 0);
 
 			if (g_current_vfo->scrambling_type > 0 && g_setting_scramble_enable)
 				BK4819_EnableScramble(g_current_vfo->scrambling_type - 1);
-			else
-				BK4819_DisableScramble();
-
-			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
-				backlight_turn_on(backlight_tx_rx_time_500ms);
 
 			break;
 
 		case FUNCTION_PANADAPTER:
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("func panadpter\r\n");
+			#endif
+
+
 			break;
 	}
 
 	g_battery_save_count_down_10ms = battery_save_count_10ms;
-	g_schedule_power_save = false;
+	g_schedule_power_save          = false;
 
-	#if defined(ENABLE_FMRADIO)
+	#ifdef ENABLE_FMRADIO
 		g_fm_restore_count_down_10ms = 0;
 	#endif
+
+	g_update_status = true;
 }

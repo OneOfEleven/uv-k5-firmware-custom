@@ -31,10 +31,10 @@ typedef enum center_line_e center_line_t;
 
 extern center_line_t center_line;
 
-#ifdef ENABLE_SHOW_TX_TIMEOUT
+#ifdef ENABLE_TX_TIMEOUT_BAR
 	bool UI_DisplayTXCountdown(const bool now);
 #endif
-#ifdef ENABLE_AUDIO_BAR
+#ifdef ENABLE_TX_AUDIO_BAR
 	bool UI_DisplayAudioBar(const bool now);
 #endif
 void UI_update_rssi(const int16_t rssi, const int vfo);
