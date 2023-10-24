@@ -30,7 +30,7 @@ void UI_DrawBattery(uint8_t *bitmap, const unsigned int level, const unsigned in
 	}
 	else 
 	{
-		memmove(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
+		memcpy(bitmap, BITMAP_BATTERY_LEVEL, sizeof(BITMAP_BATTERY_LEVEL));
 		if (level > 1)
 		{
 			unsigned int i;

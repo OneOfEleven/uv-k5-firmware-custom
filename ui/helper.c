@@ -84,8 +84,8 @@ void UI_PrintString(const char *pString, uint8_t Start, uint8_t End, uint8_t Lin
 		{
 			const unsigned int index = pString[i] - ' ';
 			const unsigned int ofs   = (unsigned int)Start + (i * Width);
-			memmove(g_frame_buffer[Line + 0] + ofs, &g_font_big[index][0], 8);
-			memmove(g_frame_buffer[Line + 1] + ofs, &g_font_big[index][8], 7);
+			memcpy(g_frame_buffer[Line + 0] + ofs, &g_font_big[index][0], 8);
+			memcpy(g_frame_buffer[Line + 1] + ofs, &g_font_big[index][8], 7);
 		}
 	}
 }
@@ -113,7 +113,7 @@ void UI_print_string(
 	{
 		const int c = (int)str[i] - ' ';
 		if (c >= 0 && c < (int)font_size)
-			memmove(f_buf + (char_pitch * i), font + (char_width * c), char_width);
+			memcpy(f_buf + (char_pitch * i), font + (char_width * c), char_width);
 	}
 }
 
@@ -194,7 +194,7 @@ void UI_PrintStringSmallBuffer(const char *pString, uint8_t *buffer)
 	{
 		const int c = (int)pString[i] - ' ';
 		if (c >= 0 && c < (int)ARRAY_SIZE(g_font_small))
-			memmove(buffer + (i * char_spacing) + 1, &g_font_small[c], char_width);
+			memcpy(buffer + (i * char_spacing) + 1, &g_font_small[c], char_width);
 	}
 }
 
@@ -213,8 +213,8 @@ void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDispla
 		if (bDisplayLeadingZero || bCanDisplay || Digit > 0)
 		{
 			bCanDisplay = true;
-			memmove(pFb0, g_font_big_digits[Digit],              char_width);
-			memmove(pFb1, g_font_big_digits[Digit] + char_width, char_width);
+			memcpy(pFb0, g_font_big_digits[Digit],              char_width);
+			memcpy(pFb1, g_font_big_digits[Digit] + char_width, char_width);
 		}
 		else
 		if (flag)
@@ -235,8 +235,8 @@ void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDispla
 	while (i < 6)
 	{
 		const unsigned int Digit = pDigits[i++];
-		memmove(pFb0, g_font_big_digits[Digit],              char_width);
-		memmove(pFb1, g_font_big_digits[Digit] + char_width, char_width);
+		memcpy(pFb0, g_font_big_digits[Digit],              char_width);
+		memcpy(pFb1, g_font_big_digits[Digit] + char_width, char_width);
 		pFb0 += char_width;
 		pFb1 += char_width;
 	}
@@ -257,10 +257,10 @@ void UI_DisplayFrequencySmall(const char *pDigits, uint8_t X, uint8_t Y, bool bD
 		if (bDisplayLeadingZero || bCanDisplay || c > 0)
 		{
 			#if 0
-				memmove(pFb + 1, g_font_small_digits[c], char_width);
+				memcpy(pFb + 1, g_font_small_digits[c], char_width);
 			#else
 				const unsigned int index = (c < 10) ? '0' - 32 + c : '-' - 32;
-				memmove(pFb + 1, g_font_small[index], char_width);
+				memcpy(pFb + 1, g_font_small[index], char_width);
 			#endif
 			pFb += spacing;
 			bCanDisplay = true;
@@ -279,10 +279,10 @@ void UI_DisplayFrequencySmall(const char *pDigits, uint8_t X, uint8_t Y, bool bD
 	{
 		const unsigned int c = pDigits[i++];
 		#if 0
-			memmove(pFb + 1, g_font_small_digits[c], char_width);
+			memcpy(pFb + 1, g_font_small_digits[c], char_width);
 		#else
 			const unsigned int index = (c < 10) ? '0' - 32 + c : '-' - 32;
-			memmove(pFb + 1, g_font_small[index], char_width);
+			memcpy(pFb + 1, g_font_small[index], char_width);
 		#endif
 		pFb += spacing;
 	}
@@ -303,10 +303,10 @@ void UI_Displaysmall_digits(const uint8_t size, const char *str, const uint8_t x
 		if (display && c < 11)
 		{
 			#if 0
-				memmove(g_frame_buffer[y] + xx, g_font_small_digits[c], char_width);
+				memcpy(g_frame_buffer[y] + xx, g_font_small_digits[c], char_width);
 			#else
 				const unsigned int index = (c < 10) ? '0' - 32 + c : '-' - 32;
-				memmove(g_frame_buffer[y] + xx + 1, g_font_small[index], char_width);
+				memcpy(g_frame_buffer[y] + xx + 1, g_font_small[index], char_width);
 			#endif
 			xx += spacing;
 		}

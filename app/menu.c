@@ -535,7 +535,7 @@ void MENU_AcceptSetting(void)
 
 			// save the channel name
 			memset(g_tx_vfo->name, 0, sizeof(g_tx_vfo->name));
-			memmove(g_tx_vfo->name, g_edit, 10);
+			memcpy(g_tx_vfo->name, g_edit, 10);
 			SETTINGS_save_channel(g_sub_menu_selection, g_eeprom.tx_vfo, g_tx_vfo, 3);
 			g_flag_reconfigure_vfos = true;
 			return;
@@ -742,7 +742,7 @@ void MENU_AcceptSetting(void)
 				GUI_SelectNextDisplay(DISPLAY_MAIN);
 				g_dtmf_input_mode        = true;
 				g_dtmf_input_box_index   = 3;
-				memmove(g_dtmf_input_box, g_dtmf_id, 4);
+				memcpy(g_dtmf_input_box, g_dtmf_id, 4);
 				g_request_display_screen = DISPLAY_INVALID;
 			}
 			return;
@@ -1624,7 +1624,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 			g_edit_index = 0;  // 'g_edit_index' is going to be used as the cursor position
 
 			// make a copy so we can test for change when exiting the menu item
-			memmove(g_edit_original, g_edit, sizeof(g_edit_original));
+			memcpy(g_edit_original, g_edit, sizeof(g_edit_original));
 
 			return;
 		}
