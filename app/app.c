@@ -551,6 +551,10 @@ bool APP_start_listening(function_type_t Function, const bool reset_am_fix)
 	}
 #else
 	(void)reset_am_fix;
+	if (g_rx_vfo->am_mode)
+		BK4819_EnableAGC();
+	else
+		BK4819_DisableAGC();
 #endif
 
 	// AF gain - original QS values

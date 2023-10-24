@@ -55,7 +55,7 @@ ENABLE_CODE_SEARCH_TIMEOUT       := 0
 # Kill and Revive 0.4 kB
 ENABLE_KILL_REVIVE               := 0
 # AM Fix 0.8 kB
-ENABLE_AM_FIX                    := 1
+ENABLE_AM_FIX                    := 0
 ENABLE_AM_FIX_SHOW_DATA          := 0
 ENABLE_SQUELCH_MORE_SENSITIVE    := 1
 ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
@@ -254,7 +254,7 @@ CFLAGS =
 
 ifeq ($(ENABLE_CLANG),0)
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
-	CFLAGS += -Os -Werror -mcpu=cortex-m0 -std=c11 -MMD
+	CFLAGS += -Os -Werror -mcpu=cortex-m0 -fmodulo-sched -freorder-blocks-algorithm=stc -std=c11 -MMD
 else
 	# Oz needed to make it fit on flash
 	CFLAGS += -Oz -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
