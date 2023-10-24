@@ -337,7 +337,7 @@ void SETTINGS_save(void)
 		if (!g_setting_mic_bar)           State[7] &= ~(1u << 4);
 	#endif
 	#ifdef ENABLE_AM_FIX
-		if (!g_setting_am_fix)            State[7] &= ~(1u << 5);
+//		if (!g_setting_am_fix)            State[7] &= ~(1u << 5);
 	#endif
 	State[7] = (State[7] & ~(3u << 6)) | ((g_setting_backlight_on_tx_rx & 3u) << 6);
 	EEPROM_WriteBuffer8(0x0F40, State);

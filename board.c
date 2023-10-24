@@ -747,7 +747,7 @@ void BOARD_EEPROM_load(void)
 		g_setting_mic_bar        = (Data[7] & (1u << 4)) ? true : false;
 	#endif
 	#ifdef ENABLE_AM_FIX
-		g_setting_am_fix         = (Data[7] & (1u << 5)) ? true : false;
+//		g_setting_am_fix         = (Data[7] & (1u << 5)) ? true : false;
 	#endif
 	g_setting_backlight_on_tx_rx = (Data[7] >> 6) & 3u;
 

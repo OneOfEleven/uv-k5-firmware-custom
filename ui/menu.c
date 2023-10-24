@@ -121,7 +121,7 @@ const t_menu_item g_menu_list[] =
 	{"BatTXT", VOICE_ID_INVALID,                       MENU_BAT_TXT               },
 	{"MODE",   VOICE_ID_INVALID,                       MENU_MOD_MODE              }, // was "AM"
 #ifdef ENABLE_AM_FIX
-	{"AM FIX", VOICE_ID_INVALID,                       MENU_AM_FIX                },
+//	{"AM FIX", VOICE_ID_INVALID,                       MENU_AM_FIX                },
 #endif
 #ifdef ENABLE_AM_FIX_TEST1
 	{"AM FT1", VOICE_ID_INVALID,                       MENU_AM_FIX_TEST1          },
@@ -745,7 +745,7 @@ void UI_DisplayMenu(void)
 			case MENU_RX_BAR:
 		#endif
 		#ifdef ENABLE_AM_FIX
-			case MENU_AM_FIX:
+//			case MENU_AM_FIX:
 		#endif
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
