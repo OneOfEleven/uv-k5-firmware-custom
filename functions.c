@@ -17,13 +17,13 @@
 #include <string.h>
 
 #include "app/dtmf.h"
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
 #include "bsp/dp32g030/gpio.h"
 #include "dcs.h"
 #include "driver/backlight.h"
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	#include "driver/bk1080.h"
 #endif
 #include "driver/bk4819.h"
@@ -116,7 +116,7 @@ void FUNCTION_Select(function_type_t Function)
 			if (prev_func != FUNCTION_RECEIVE)
 				break;
 
-			#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+			#ifdef ENABLE_FMRADIO
 				if (g_fm_radio_mode)
 					g_fm_restore_count_down_10ms = fm_restore_countdown_10ms;
 			#endif
@@ -200,7 +200,7 @@ void FUNCTION_Select(function_type_t Function)
 			g_dtmf_rx_live_timeout = 0;
 			memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
 
-			#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+			#ifdef ENABLE_FMRADIO
 				// disable the FM radio
 				if (g_fm_radio_mode)
 					BK1080_Init(0, false);
@@ -288,7 +288,7 @@ void FUNCTION_Select(function_type_t Function)
 	g_battery_save_count_down_10ms = battery_save_count_10ms;
 	g_schedule_power_save          = false;
 
-	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+	#ifdef ENABLE_FMRADIO
 		g_fm_restore_count_down_10ms = 0;
 	#endif
 

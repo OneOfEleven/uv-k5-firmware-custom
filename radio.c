@@ -18,7 +18,7 @@
 
 #include "app/app.h"
 #include "app/dtmf.h"
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
 #include "audio.h"
@@ -736,7 +736,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 	#ifdef ENABLE_VOX
 		if (
-			#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+			#ifdef ENABLE_FMRADIO
 				!g_fm_radio_mode &&
 			#endif
 			g_eeprom.vox_switch &&
@@ -919,7 +919,7 @@ void RADIO_Setg_vfo_state(vfo_state_t State)
 		g_vfo_state[0] = VFO_STATE_NORMAL;
 		g_vfo_state[1] = VFO_STATE_NORMAL;
 
-		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+		#ifdef ENABLE_FMRADIO
 			g_fm_resume_count_down_500ms = 0;
 		#endif
 	}
@@ -936,7 +936,7 @@ void RADIO_Setg_vfo_state(vfo_state_t State)
 			g_vfo_state[vfo] = State;
 		}
 
-		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+		#ifdef ENABLE_FMRADIO
 			g_fm_resume_count_down_500ms = fm_resume_countdown_500ms;
 		#endif
 	}

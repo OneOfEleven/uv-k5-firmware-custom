@@ -43,7 +43,7 @@ extern uint32_t g_aircopy_freq;
 
 extern const freq_band_table_t AIR_BAND;
 
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	extern const freq_band_table_t FM_RADIO_BAND;
 #endif
 

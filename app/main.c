@@ -18,7 +18,7 @@
 
 #include "app/action.h"
 #include "app/app.h"
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
 #include "app/generic.h"
@@ -197,7 +197,7 @@ void processFKeyFunction(const key_code_t Key)
 			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 				APP_stop_scan();
 
-			#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+			#ifdef ENABLE_FMRADIO
 				ACTION_FM();
 			#else
 
@@ -636,7 +636,7 @@ void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 			return;
 		}
 
-		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+		#ifdef ENABLE_FMRADIO
 			if (!g_fm_radio_mode)
 		#endif
 		{
@@ -666,7 +666,7 @@ void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 			return;
 		}
 
-		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+		#ifdef ENABLE_FMRADIO
 			ACTION_FM();
 		#endif
 
@@ -1006,7 +1006,7 @@ void MAIN_process_key(key_code_t key, bool key_pressed, bool key_held)
 //		UART_printf(" main 1 key %2u %u %u %u\r\n", key, key_pressed, key_held);
 	#endif
 
-	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode && key != KEY_PTT && key != KEY_EXIT)
 		{
 			if (!key_held && key_pressed)

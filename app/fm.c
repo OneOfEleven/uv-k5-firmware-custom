@@ -25,6 +25,7 @@
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/uart.h"
+#include "frequencies.h"
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"

@@ -469,7 +469,7 @@ typedef struct {
 	uint8_t               field7_0xa;
 	uint8_t               field8_0xb;
 
-	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+	#ifdef ENABLE_FMRADIO
 		uint16_t          fm_selected_frequency;
 		uint8_t           fm_selected_channel;
 		bool              fm_is_channel_mode;
@@ -565,7 +565,7 @@ typedef struct {
 
 extern eeprom_config_t g_eeprom;
 
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	void SETTINGS_save_fm(void);
 #endif
 void SETTINGS_save_vfo_indices(void);

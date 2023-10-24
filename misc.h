@@ -240,7 +240,7 @@ extern volatile bool         g_tx_timeout_reached;
 
 extern volatile uint16_t     g_tail_tone_elimination_count_down_10ms;
 
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	extern volatile uint16_t g_fm_play_count_down_10ms;
 #endif
 #ifdef ENABLE_NOAA
@@ -275,7 +275,7 @@ extern bool                  g_flag_reset_vfos;
 extern bool                  g_request_save_vfo;
 extern uint8_t               g_request_save_channel;
 extern bool                  g_request_save_settings;
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	extern bool              g_request_save_fm;
 #endif
 extern bool                  g_flag_prepare_tx;
@@ -286,7 +286,7 @@ extern bool                  g_flag_refresh_menu;  // refresh menu display
 extern bool                  g_flag_save_vfo;
 extern bool                  g_flag_save_settings;
 extern bool                  g_flag_save_channel;
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	extern bool              g_flag_save_fm;
 #endif
 extern bool                  g_cdcss_lost;
@@ -327,7 +327,7 @@ extern uint8_t               g_backup_cross_vfo_rx_tx;
 extern volatile bool         g_next_time_slice;
 extern bool                  g_update_display;
 extern bool                  g_unhide_hidden;
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	extern uint8_t           g_fm_channel_position;
 #endif
 extern volatile uint8_t      g_found_cdcss_count_down_10ms;
@@ -341,7 +341,7 @@ extern volatile bool         g_next_time_slice_40ms;
 	extern volatile bool     g_schedule_noaa;
 #endif
 extern volatile bool         g_flag_tail_tone_elimination_complete;
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	extern volatile bool     g_schedule_fm;
 #endif
 extern int16_t               g_current_rssi[2];   // now one per VFO

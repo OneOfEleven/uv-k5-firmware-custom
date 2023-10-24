@@ -37,7 +37,7 @@ extern const uint8_t BITMAP_TDR_HOLDING[12];
 
 extern const uint8_t BITMAP_MONITOR[6];
 
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	extern const uint8_t BITMAP_FM[12];
 #endif
 

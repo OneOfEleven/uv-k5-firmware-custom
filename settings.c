@@ -16,7 +16,7 @@
 
 #include <string.h>
 
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
 #include "driver/eeprom.h"
@@ -26,7 +26,7 @@
 
 eeprom_config_t g_eeprom;
 
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	void SETTINGS_save_fm(void)
 	{
 		unsigned int i;

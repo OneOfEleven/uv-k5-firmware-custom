@@ -19,13 +19,13 @@
 #include "app/action.h"
 #include "app/app.h"
 #include "app/dtmf.h"
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
 #include "app/search.h"
 #include "audio.h"
 #include "bsp/dp32g030/gpio.h"
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	#include "driver/bk1080.h"
 #endif
 #include "driver/bk4819.h"
@@ -102,7 +102,7 @@ void ACTION_Monitor(void)
 
 	RADIO_setup_registers(true);
 
-	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)
 		{
 			FM_Start();
@@ -115,7 +115,7 @@ void ACTION_Monitor(void)
 
 void ACTION_Scan(bool bRestart)
 {
-	#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)
 		{
 			if (g_current_function != FUNCTION_RECEIVE &&
@@ -306,7 +306,7 @@ void ACTION_Scan(bool bRestart)
 #endif
 
 
-#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+#ifdef ENABLE_FMRADIO
 	void ACTION_FM(void)
 	{
 		if (g_current_function != FUNCTION_TRANSMIT && g_current_function != FUNCTION_MONITOR)
@@ -400,7 +400,7 @@ void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key
 				ACTION_AlarmOr1750(false);
 			#endif
 			break;
-		#if defined(ENABLE_FMRADIO_68_108) || defined(ENABLE_FMRADIO_76_108) || defined(ENABLE_FMRADIO_875_108)
+		#ifdef ENABLE_FMRADIO
 			case ACTION_OPT_FM:
 				ACTION_FM();
 				break;

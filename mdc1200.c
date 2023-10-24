@@ -134,58 +134,40 @@ uint16_t reverse_bits(const uint16_t bits_in, const unsigned int num_bits)
 
 void error_correction(uint8_t *data)
 {
-	int i;
-	uint8_t csr[FEC_K];
-	uint8_t syn = 0;
-//	uint8_t shift_reg = 0;
+	int     i;
+	uint8_t shift_reg;
+	uint8_t syn;
 
-	syn = 0;
-
-	for (i = 0; i < FEC_K; i++)
-		csr[i] = 0;
-
-	for (i = 0; i < FEC_K; i++)
+	for (i = 0, shift_reg = 0, syn = 0; i < FEC_K; i++)
 	{
 		const uint8_t bi = data[i];
 		int bit_num;
 		for (bit_num = 0; bit_num < 8; bit_num++)
 		{
 			uint8_t b;
-			int k;
-			unsigned int ec = 0;
+			unsigned int k = 0;
 
-			#if 0
-				shift_reg = (shift_reg << 1) | ((bi >> bit_num) & 1u);
-				b = ((shift_reg >> 6) ^ (shift_reg >> 5) ^ (shift_reg >> 2) ^ (shift_reg >> 0)) & 1u;
-			#else
-				for (k = FEC_K - 1; k > 0; k--)
-					csr[k] = csr[k - 1];
-				csr[0] = (bi >> bit_num) & 1u;
-				b = (csr[0] + csr[2] + csr[5] + csr[6]) & 1u;
-			#endif
-			syn = (syn << 1) | (((b ^ (data[i + FEC_K] >> bit_num)) & 1u) ? 1u : 0u);
+			shift_reg = (shift_reg << 1) | ((bi >> bit_num) & 1u);
+			b         = ((shift_reg >> 6) ^ (shift_reg >> 5) ^ (shift_reg >> 2) ^ (shift_reg >> 0)) & 1u;
+			syn       = (syn << 1) | (((b ^ (data[i + FEC_K] >> bit_num)) & 1u) ? 1u : 0u);
 
-			if (syn & 0x80) ec++;
-			if (syn & 0x20) ec++;
-			if (syn & 0x04) ec++;
-			if (syn & 0x02) ec++;
+			if (syn & 0x80) k++;
+			if (syn & 0x20) k++;
+			if (syn & 0x04) k++;
+			if (syn & 0x02) k++;
 
-			if (ec >= 3)
-			{	// correct error
-
-				int fix_i = i;
-				int fix_j = bit_num - 7;
-
-				syn ^= 0xA6;
-
-				if (fix_j < 0)
+			if (k >= 3)
+			{	// correct bit error
+				int ii = i;
+				int bn = bit_num - 7;
+				if (bn < 0)
 				{
-					--fix_i;
-					fix_j += 8;
+					bn += 8;
+					ii--;
 				}
-
-				if (fix_i >= 0)
-					data[fix_i] ^= 1u << fix_j;
+				if (ii >= 0)
+					data[ii] ^= 1u << bn;
+				syn ^= 0xA6;   // 10100110
 			}
 		}
 	}
@@ -202,12 +184,12 @@ uint8_t * decode_data(uint8_t *data)
 
 		unsigned int i;
 		unsigned int k;
+		unsigned int m;
 		uint8_t deinterleaved[(FEC_K * 2) * 8];
 
 		// de-interleave the received bits
 		for (i = 0, k = 0; i < 16; i++)
 		{
-			unsigned int m;
 			for (m = 0; m < FEC_K; m++)
 			{
 				const unsigned int n = (m * 16) + i;
@@ -216,12 +198,12 @@ uint8_t * decode_data(uint8_t *data)
 		}
 
 		// copy the de-interleaved bits to the data buffer
-		for (i = 0; i < (FEC_K * 2); i++)
+		for (i = 0, m = 0; i < (FEC_K * 2); i++)
 		{
 			unsigned int k;
 			uint8_t b = 0;
 			for (k = 0; k < 8; k++)
-				if (deinterleaved[(i * 8) + k])
+				if (deinterleaved[m++])
 					b |= 1u << k;
 			data[i] = b;
 		}
@@ -234,11 +216,11 @@ uint8_t * decode_data(uint8_t *data)
 
 	if (crc1 != crc2)
 		return NULL;
-	
+
 	// appears to be a valid packet
 
 
-	
+
 	// TODO: more stuff
 
 
