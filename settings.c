@@ -421,7 +421,7 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, c
 			EEPROM_WriteBuffer8(eeprom_addr + 8, name + 8);
 		#else
 			if (p_vfo != NULL)
-				memmove(name, p_vfo->name, 10);
+				memcpy(name, p_vfo->name, 10);
 			if (mode >= 3 || p_vfo == NULL)
 			{	// save the channel name
 				EEPROM_WriteBuffer8(eeprom_addr + 0, name + 0);
@@ -468,7 +468,7 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 		if (p_vfo != NULL)
 		{
 			memset(name, 0, sizeof(name));
-			memmove(name, p_vfo->name, 10);
+			memcpy(name, p_vfo->name, 10);
 		}
 		else
 		{

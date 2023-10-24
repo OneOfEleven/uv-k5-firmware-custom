@@ -785,7 +785,7 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 		if (g_scan_state_dir == SCAN_STATE_DIR_OFF && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 		{	// start entering a DTMF string
 
-			memmove( g_dtmf_input_box, g_dtmf_string,
+			memcpy( g_dtmf_input_box, g_dtmf_string,
 				(sizeof(g_dtmf_input_box) <= (sizeof(g_dtmf_string) - 1)) ? sizeof(g_dtmf_input_box) : sizeof(g_dtmf_string) - 1);
 
 			g_dtmf_input_box_index  = 0;
