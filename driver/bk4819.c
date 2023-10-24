@@ -1931,7 +1931,7 @@ void BK4819_start_fsk_rx(const unsigned int packet_size)
 void BK4819_PlayRogerMDC1200(void)
 {
 	uint16_t fsk_reg59;
-	uint8_t  packet[40];
+	uint8_t  packet[42];
 
 	const uint8_t  op  = MDC1200_OP_CODE_POST_ID;
 	const uint8_t  arg = 0x80;

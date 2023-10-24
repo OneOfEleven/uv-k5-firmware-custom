@@ -29,7 +29,9 @@
 #endif
 #include "audio.h"
 #include "board.h"
+#include "bsp/dp32g030/gpio.h"
 #include "driver/bk4819.h"
+#include "driver/gpio.h"
 #include "driver/uart.h"
 #include "dtmf.h"
 #include "frequencies.h"
@@ -959,6 +961,10 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 				return;
 			}
 
+			// suppress audio click
+			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+			g_speaker_enabled = false;
+
 			Next = RADIO_FindNextChannel(Channel + Direction, Direction, false, 0);
 			if (Next == 0xFF)
 				return;
@@ -992,11 +998,19 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 		return;
 	}
 
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	g_speaker_enabled = false;
+
 	// jump to the next channel
 	APP_channel_next(false, Direction);
 
-	g_scan_pause_10ms = 0;   // go NOW
-
+	// go NOW
+	g_scan_pause_10ms      = 0;   
+	g_scan_pause_time_mode = false;
+	g_squelch_open         = false;
+	g_rx_reception_mode    = RX_MODE_NONE;
+	FUNCTION_Select(FUNCTION_FOREGROUND);
+	
 	g_ptt_was_released = true;
 }
 

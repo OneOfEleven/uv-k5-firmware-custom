@@ -2,19 +2,16 @@
 #include <string.h>
 
 #include "bsp/dp32g030/crc.h"
+#include "driver/uart.h"
 #include "mdc1200.h"
 #include "misc.h"
 
-// MDC1200 sync bit reversals and packet magic
+// MDC1200 sync bit reversals and packet sync
 //
 // 24-bit pre-amble
 // 40-bit sync
 //
-//static const uint8_t header[] = {0x00, 0x00, 0x05, 0x55, 0x55, 0x55, 0x55, 0x07, 0x09, 0x2a, 0x44, 0x6f};
-//static const uint8_t header[] = {0x00, 0x00, 0x0A, 0xAA, 0xAA, 0xAA, 0xAA, 0x07, 0x09, 0x2a, 0x44, 0x6f};
-//
-//static const uint8_t header[] = {0x00, 0x00, 0x0A, 0xAA, 0xAA, 0xAA, 0xA0, 0xb6, 0x8e, 0x03, 0xbb, 0x14};
-static   const uint8_t header[] = {0x00, 0x00, 0x05, 0x55, 0x55, 0x55, 0x50, 0x29, 0x71, 0xfc, 0x44, 0xeb};
+static const uint8_t header[] = {0x55, 0x55, 0x55, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x07, 0x09, 0x2a, 0x44, 0x6f};
 
 uint8_t bit_reverse_8(uint8_t n)
 {
@@ -263,7 +260,18 @@ uint8_t * encode_data(uint8_t *data)
 			data[FEC_K + i] = bo;
 		}
 	}
-
+/*
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	{
+		const unsigned int size = FEC_K * 2;
+		unsigned int i;
+		UART_printf("mdc1200 tx1 %u ", size);
+		for (i = 0; i < size; i++)
+			UART_printf(" %02X", data[i]);
+		UART_SendText("\r\n");
+	}
+	#endif
+*/
 	{	// interleave the bits
 
 		unsigned int i;
@@ -285,7 +293,7 @@ uint8_t * encode_data(uint8_t *data)
 			}
 		}
 
-		// copy the interleaved bits back to the input/output buffer
+		// copy the interleaved bits back to the data buffer
 		for (i = 0, k = 0; i < (FEC_K * 2); i++)
 		{
 			int bit_num;
@@ -301,22 +309,22 @@ uint8_t * encode_data(uint8_t *data)
 }
 
 void delta_modulation(uint8_t *data, const unsigned int size)
-{	// xor succesive bits in the entire packet, including the bit reversing pre-amble
-	uint8_t b1;
+{	// exclusive-or succesive bits
 	unsigned int i;
-	for (i = 0, b1 = 1u; i < size; i++)
+	uint8_t prev_bit = 0;
+	for (i = 0; i < size; i++)
 	{
 		int bit_num;
 		uint8_t in  = data[i];
 		uint8_t out = 0;
 		for (bit_num = 7; bit_num >= 0; bit_num--)
 		{
-			const uint8_t b2 = (in >> bit_num) & 1u;
-			if (b1 != b2)
-				out |= 1u << bit_num;        // previous bit and new bit are different
-			b1 = b2;
+			const uint8_t new_bit = (in >> bit_num) & 1u;
+			if (new_bit != prev_bit)
+				out |= 1u << bit_num;        // previous bit and new bit are different - send a '1'
+			prev_bit = new_bit;
 		}
-		data[i] = out;
+		data[i] = out ^ 0xff;
 	}
 }
 
@@ -340,18 +348,18 @@ unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const
 
 	p = encode_data(p);
 
-#if 0
-	{	// test packet
-		//
-		// op 0x01, arg 0x80, id 0xB183
-		//
-		const uint8_t test_packet[] = {0x07, 0x25, 0xDD, 0xD5, 0x9F, 0xC5, 0x3D, 0x89, 0x2D, 0xBD, 0x57, 0x35, 0xE7, 0x44};
-		memcpy(data + sizeof(header), test_packet, sizeof(test_packet));
-	}
-#endif
-
 	size = (unsigned int)(p - data);
-
+/*
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	{
+		unsigned int i;
+		UART_printf("mdc1200 tx2 %u ", size);
+		for (i = 0; i < size; i++)
+			UART_printf(" %02X", data[i]);
+		UART_SendText("\r\n");
+	}
+	#endif
+*/
 	delta_modulation(data, size);
 
 	return size;
