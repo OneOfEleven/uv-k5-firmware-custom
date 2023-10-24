@@ -140,14 +140,14 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 	switch (level)
 	{
 		default:
-		case 7: memmove(p + 20, BITMAP_ANTENNA_LEVEL6, sizeof(BITMAP_ANTENNA_LEVEL6));
-		case 6: memmove(p + 17, BITMAP_ANTENNA_LEVEL5, sizeof(BITMAP_ANTENNA_LEVEL5));
-		case 5: memmove(p + 14, BITMAP_ANTENNA_LEVEL4, sizeof(BITMAP_ANTENNA_LEVEL4));
-		case 4: memmove(p + 11, BITMAP_ANTENNA_LEVEL3, sizeof(BITMAP_ANTENNA_LEVEL3));
-		case 3: memmove(p +  8, BITMAP_ANTENNA_LEVEL2, sizeof(BITMAP_ANTENNA_LEVEL2));
-		case 2: memmove(p +  5, BITMAP_ANTENNA_LEVEL1, sizeof(BITMAP_ANTENNA_LEVEL1));
-		case 1: memmove(p +  0, BITMAP_ANTENNA,        sizeof(BITMAP_ANTENNA)); break;
-		case 0: memset( p +  0, 0,                     sizeof(BITMAP_ANTENNA)); break;
+		case 7: memcpy(p + 20, BITMAP_ANTENNA_LEVEL6, sizeof(BITMAP_ANTENNA_LEVEL6));
+		case 6: memcpy(p + 17, BITMAP_ANTENNA_LEVEL5, sizeof(BITMAP_ANTENNA_LEVEL5));
+		case 5: memcpy(p + 14, BITMAP_ANTENNA_LEVEL4, sizeof(BITMAP_ANTENNA_LEVEL4));
+		case 4: memcpy(p + 11, BITMAP_ANTENNA_LEVEL3, sizeof(BITMAP_ANTENNA_LEVEL3));
+		case 3: memcpy(p +  8, BITMAP_ANTENNA_LEVEL2, sizeof(BITMAP_ANTENNA_LEVEL2));
+		case 2: memcpy(p +  5, BITMAP_ANTENNA_LEVEL1, sizeof(BITMAP_ANTENNA_LEVEL1));
+		case 1: memcpy(p +  0, BITMAP_ANTENNA,        sizeof(BITMAP_ANTENNA)); break;
+		case 0: memset(p +  0, 0,                     sizeof(BITMAP_ANTENNA)); break;
 	}
 
 	#pragma GCC diagnostic pop
@@ -405,7 +405,7 @@ void UI_DisplayMain(void)
 	#endif
 	const unsigned int line0 = 0;  // text screen line
 	const unsigned int line1 = 4;
-	char               String[22];
+	char               str[22];
 	unsigned int       vfo_num;
 
 	center_line = CENTER_LINE_NONE;
@@ -474,29 +474,29 @@ void UI_DisplayMain(void)
 					memset(contact, 0, sizeof(contact));
 					if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
 					{
-						strcpy(String, (g_dtmf_state == DTMF_STATE_CALL_OUT_RSP) ? "CALL OUT RESP" : "CALL OUT");
+						strcpy(str, (g_dtmf_state == DTMF_STATE_CALL_OUT_RSP) ? "CALL OUT RESP" : "CALL OUT");
 					}
 					else
 					if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
 					{
 						const bool found = DTMF_FindContact(g_dtmf_caller, contact);
 						contact[8] = 0;
-						sprintf(String, "FROM %s", found ? contact : g_dtmf_caller);
+						sprintf(str, "FROM %s", found ? contact : g_dtmf_caller);
 					}
 					else
 					if (g_dtmf_is_tx)
 					{
-						strcpy(String, (g_dtmf_state == DTMF_STATE_TX_SUCC) ? "DTMF TX SUCC" : "DTMF TX");
+						strcpy(str, (g_dtmf_state == DTMF_STATE_TX_SUCC) ? "DTMF TX SUCC" : "DTMF TX");
 					}
 				}
 				else
 				{
-					sprintf(String, ">%s", g_dtmf_input_box);
+					sprintf(str, ">%s", g_dtmf_input_box);
 				}
-				String[16] = 0;
-				UI_PrintString(String, 2, 0, 0 + (vfo_num * 3), 8);
+				str[16] = 0;
+				UI_PrintString(str, 2, 0, 0 + (vfo_num * 3), 8);
 
-				memset(String,  0, sizeof(String));
+				memset(str,  0, sizeof(str));
 				if (!g_dtmf_input_mode)
 				{
 					memset(contact, 0, sizeof(contact));
@@ -504,23 +504,23 @@ void UI_DisplayMain(void)
 					{
 						const bool found = DTMF_FindContact(g_dtmf_string, contact);
 						contact[15] = 0;
-						sprintf(String, ">%s", found ? contact : g_dtmf_string);
+						sprintf(str, ">%s", found ? contact : g_dtmf_string);
 					}
 					else
 					if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
 					{
 						const bool found = DTMF_FindContact(g_dtmf_callee, contact);
 						contact[15] = 0;
-						sprintf(String, ">%s", found ? contact : g_dtmf_callee);
+						sprintf(str, ">%s", found ? contact : g_dtmf_callee);
 					}
 					else
 					if (g_dtmf_is_tx)
 					{
-						sprintf(String, ">%s", g_dtmf_string);
+						sprintf(str, ">%s", g_dtmf_string);
 					}
 				}
-				String[16] = 0;
-				UI_PrintString(String, 2, 0, 2 + (vfo_num * 3), 8);
+				str[16] = 0;
+				UI_PrintString(str, 2, 0, 2 + (vfo_num * 3), 8);
 
 				center_line = CENTER_LINE_IN_USE;
 				continue;
@@ -528,19 +528,19 @@ void UI_DisplayMain(void)
 
 			// highlight the selected/used VFO with a marker
 			if (!single_vfo && same_vfo)
-				memmove(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
+				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
 			else
 			if (g_eeprom.cross_vfo_rx_tx != CROSS_BAND_OFF)
-				memmove(p_line0 + 0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
+				memcpy(p_line0 + 0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
 		}
 		else
 		if (!single_vfo)
 		{	// highlight the selected/used VFO with a marker
 			if (same_vfo)
-				memmove(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
+				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
 			else
 			//if (g_eeprom.cross_vfo_rx_tx != CROSS_BAND_OFF)
-				memmove(p_line0 + 0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
+				memcpy(p_line0 + 0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
 		}
 
 		if (g_current_function == FUNCTION_TRANSMIT)
@@ -585,11 +585,11 @@ void UI_DisplayMain(void)
 			const unsigned int x = 2;
 			const bool inputting = (g_input_box_index == 0 || g_eeprom.tx_vfo != vfo_num) ? false : true;
 			if (!inputting)
-				NUMBER_ToDigits(g_eeprom.screen_channel[vfo_num] + 1, String);  // show the memory channel number
+				NUMBER_ToDigits(g_eeprom.screen_channel[vfo_num] + 1, str);  // show the memory channel number
 			else
-				memmove(String + 5, g_input_box, 3);                            // show the input text
+				memcpy(str + 5, g_input_box, 3);                            // show the input text
 			UI_PrintStringSmall("M", x, 0, line + 1);
-			UI_Displaysmall_digits(3, String + 5, x + 7, line + 1, inputting);
+			UI_Displaysmall_digits(3, str + 5, x + 7, line + 1, inputting);
 		}
 		else
 		if (IS_FREQ_CHANNEL(g_eeprom.screen_channel[vfo_num]))
@@ -597,21 +597,21 @@ void UI_DisplayMain(void)
 			// show the frequency band number
 			const unsigned int x = 2;	// was 14
 //			sprintf(String, "FB%u", 1 + g_eeprom.screen_channel[vfo_num] - FREQ_CHANNEL_FIRST);
-			sprintf(String, "VFO%u", 1 + g_eeprom.screen_channel[vfo_num] - FREQ_CHANNEL_FIRST);
-			UI_PrintStringSmall(String, x, 0, line + 1);
+			sprintf(str, "VFO%u", 1 + g_eeprom.screen_channel[vfo_num] - FREQ_CHANNEL_FIRST);
+			UI_PrintStringSmall(str, x, 0, line + 1);
 		}
 		#ifdef ENABLE_NOAA
 			else
 			{
 				if (g_input_box_index == 0 || g_eeprom.tx_vfo != vfo_num)
 				{	// channel number
-					sprintf(String, "N%u", 1 + g_eeprom.screen_channel[vfo_num] - NOAA_CHANNEL_FIRST);
+					sprintf(str, "N%u", 1 + g_eeprom.screen_channel[vfo_num] - NOAA_CHANNEL_FIRST);
 				}
 				else
 				{	// user entering channel number
-					sprintf(String, "N%u%u", '0' + g_input_box[0], '0' + g_input_box[1]);
+					sprintf(str, "N%u%u", '0' + g_input_box[0], '0' + g_input_box[1]);
 				}
-				UI_PrintStringSmall(String, 7, 0, line + 1);
+				UI_PrintStringSmall(str, 7, 0, line + 1);
 			}
 		#endif
 
@@ -663,58 +663,58 @@ void UI_DisplayMain(void)
 					case MDF_FREQUENCY:	// just channel frequency
 
 						#ifdef ENABLE_BIG_FREQ
-							NUMBER_ToDigits(frequency, String);
+							NUMBER_ToDigits(frequency, str);
 							// show the main large frequency digits
-							UI_DisplayFrequency(String, x, line, false, false);
+							UI_DisplayFrequency(str, x, line, false, false);
 							// show the remaining 2 small frequency digits
-							UI_Displaysmall_digits(2, String + 6, x + 81, line + 1, true);
+							UI_Displaysmall_digits(2, str + 6, x + 81, line + 1, true);
 						#else
 							// show the frequency in the main font
-							sprintf(String, "%03u.%05u", frequency / 100000, frequency % 100000);
+							sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
 							#ifdef ENABLE_TRIM_TRAILING_ZEROS
-								NUMBER_trim_trailing_zeros(String);
+								NUMBER_trim_trailing_zeros(str);
 							#endif
-							UI_PrintString(String, x, 0, line, 8);
+							UI_PrintString(str, x, 0, line, 8);
 						#endif
 
 						break;
 
 					case MDF_CHANNEL:	// just channel number
 
-						sprintf(String, "CH-%03u", g_eeprom.screen_channel[vfo_num] + 1);
-						UI_PrintString(String, x, 0, line, 8);
+						sprintf(str, "CH-%03u", g_eeprom.screen_channel[vfo_num] + 1);
+						UI_PrintString(str, x, 0, line, 8);
 
 						break;
 
 					case MDF_NAME:		// channel name
 					case MDF_NAME_FREQ:	// channel name and frequency
 
-						BOARD_fetchChannelName(String, g_eeprom.screen_channel[vfo_num]);
-						if (String[0] == 0)
+						BOARD_fetchChannelName(str, g_eeprom.screen_channel[vfo_num]);
+						if (str[0] == 0)
 						{	// no channel name available, channel number instead
-							sprintf(String, "CH-%03u", 1 + g_eeprom.screen_channel[vfo_num]);
+							sprintf(str, "CH-%03u", 1 + g_eeprom.screen_channel[vfo_num]);
 						}
 
 						if (g_eeprom.channel_display_mode == MDF_NAME)
 						{	// just the name
-							UI_PrintString(String, x + 4, 0, line, 8);
+							UI_PrintString(str, x + 4, 0, line, 8);
 						}
 						else
 						{	// name & frequency
 							
 							// name
 							#ifdef ENABLE_SMALL_BOLD
-								UI_PrintStringSmallBold(String, x + 4, 0, line);
+								UI_PrintStringSmallBold(str, x + 4, 0, line);
 							#else
-								UI_PrintStringSmall(String, x + 4, 0, line);
+								UI_PrintStringSmall(str, x + 4, 0, line);
 							#endif
 
 							// frequency
-							sprintf(String, "%03u.%05u", frequency / 100000, frequency % 100000);
+							sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
 							#ifdef ENABLE_TRIM_TRAILING_ZEROS
-								NUMBER_trim_trailing_zeros(String);
+								NUMBER_trim_trailing_zeros(str);
 							#endif
-							UI_PrintStringSmall(String, x + 4, 0, line + 1);
+							UI_PrintStringSmall(str, x + 4, 0, line + 1);
 						}
 
 						break;
@@ -727,22 +727,22 @@ void UI_DisplayMain(void)
 			{	// frequency mode
 				#ifdef ENABLE_BIG_FREQ
 
-					NUMBER_ToDigits(frequency, String);  // 8 digits
+					NUMBER_ToDigits(frequency, str);  // 8 digits
 
 					// show the main large frequency digits
-					UI_DisplayFrequency(String, x, line, false, false);
+					UI_DisplayFrequency(str, x, line, false, false);
 
 					// show the remaining 2 small frequency digits
-					UI_Displaysmall_digits(2, String + 6, x + 81, line + 1, true);
+					UI_Displaysmall_digits(2, str + 6, x + 81, line + 1, true);
 
 				#else
 					// show the frequency in the main font
 
-					sprintf(String, "%03u.%05u", frequency / 100000, frequency % 100000);
+					sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
 					#ifdef ENABLE_TRIM_TRAILING_ZEROS
-						NUMBER_trim_trailing_zeros(String);
+						NUMBER_trim_trailing_zeros(str);
 					#endif
-					UI_PrintString(String, x, 0, line, 8);
+					UI_PrintString(str, x, 0, line, 8);
 
 				#endif
 			}
@@ -758,11 +758,11 @@ void UI_DisplayMain(void)
 				const uint8_t attributes = g_user_channel_attributes[g_eeprom.screen_channel[vfo_num]];
 
 				if (attributes & USER_CH_SCANLIST1)
-					memmove(p_line0 + x, BITMAP_SCANLIST1, sizeof(BITMAP_SCANLIST1));
+					memcpy(p_line0 + x, BITMAP_SCANLIST1, sizeof(BITMAP_SCANLIST1));
 				x += sizeof(BITMAP_SCANLIST1);
 
 				if (attributes & USER_CH_SCANLIST2)
-					memmove(p_line0 + x, BITMAP_SCANLIST2, sizeof(BITMAP_SCANLIST2));
+					memcpy(p_line0 + x, BITMAP_SCANLIST2, sizeof(BITMAP_SCANLIST2));
 				//x += sizeof(BITMAP_SCANLIST2);
 			}
 
@@ -779,8 +779,8 @@ void UI_DisplayMain(void)
 					//g_eeprom.vfo_info[vfo_num].freq_in_channel = BOARD_find_channel(frequency);
 					if (g_eeprom.vfo_info[vfo_num].freq_in_channel <= USER_CHANNEL_LAST)
 					{	// the channel number that contains this VFO frequency
-						sprintf(String, "%03u", 1 + g_eeprom.vfo_info[vfo_num].freq_in_channel);
-						UI_PrintStringSmallest(String, x, (line + 0) * 8, false, true);
+						sprintf(str, "%03u", 1 + g_eeprom.vfo_info[vfo_num].freq_in_channel);
+						UI_PrintStringSmallest(str, x, (line + 0) * 8, false, true);
 					}
 				}
 				x += smallest_char_spacing * 4;
@@ -821,10 +821,10 @@ void UI_DisplayMain(void)
 
 		// ************
 
-		String[0] = '\0';
+		str[0] = '\0';
 		if (g_eeprom.vfo_info[vfo_num].am_mode)
 		{	// show the AM symbol
-			strcpy(String, "AM");
+			strcpy(str, "AM");
 		}
 		else
 		{	// or show the CTCSS/DCS symbol
@@ -832,26 +832,26 @@ void UI_DisplayMain(void)
 			const unsigned int code_type = pConfig->code_type;
 			const char *code_list[] = {"", "CT", "DCS", "DCR"};
 			if (code_type < ARRAY_SIZE(code_list))
-				strcpy(String, code_list[code_type]);
+				strcpy(str, code_list[code_type]);
 		}
-		UI_PrintStringSmall(String, LCD_WIDTH + 24, 0, line + 1);
+		UI_PrintStringSmall(str, LCD_WIDTH + 24, 0, line + 1);
 
 		if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
 		{	// show the TX power
 			const char pwr_list[] = "LMH";
 			const unsigned int i = g_eeprom.vfo_info[vfo_num].output_power;
-			String[0] = (i < ARRAY_SIZE(pwr_list)) ? pwr_list[i] : '\0';
-			String[1] = '\0';
-			UI_PrintStringSmall(String, LCD_WIDTH + 46, 0, line + 1);
+			str[0] = (i < ARRAY_SIZE(pwr_list)) ? pwr_list[i] : '\0';
+			str[1] = '\0';
+			UI_PrintStringSmall(str, LCD_WIDTH + 46, 0, line + 1);
 		}
 
 		if (g_eeprom.vfo_info[vfo_num].freq_config_rx.frequency != g_eeprom.vfo_info[vfo_num].freq_config_tx.frequency)
 		{	// show the TX offset symbol
 			const char dir_list[] = "\0+-";
 			const unsigned int i = g_eeprom.vfo_info[vfo_num].tx_offset_freq_dir;
-			String[0] = (i < sizeof(dir_list)) ? dir_list[i] : '?';
-			String[1] = '\0';
-			UI_PrintStringSmall(String, LCD_WIDTH + 54, 0, line + 1);
+			str[0] = (i < sizeof(dir_list)) ? dir_list[i] : '?';
+			str[1] = '\0';
+			UI_PrintStringSmall(str, LCD_WIDTH + 54, 0, line + 1);
 		}
 
 		// show the TX/RX reverse symbol
@@ -859,13 +859,13 @@ void UI_DisplayMain(void)
 			UI_PrintStringSmall("R", LCD_WIDTH + 62, 0, line + 1);
 
 		{	// show the narrow band symbol
-			String[0] = '\0';
+			str[0] = '\0';
 			if (g_eeprom.vfo_info[vfo_num].channel_bandwidth == BANDWIDTH_NARROW)
 			{
-				String[0] = 'N';
-				String[1] = '\0';
+				str[0] = 'N';
+				str[1] = '\0';
 			}
-			UI_PrintStringSmall(String, LCD_WIDTH + 70, 0, line + 1);
+			UI_PrintStringSmall(str, LCD_WIDTH + 70, 0, line + 1);
 		}
 
 		// show the DTMF decoding symbol
@@ -917,8 +917,8 @@ void UI_DisplayMain(void)
 					return;
 
 				center_line = CENTER_LINE_AM_FIX_DATA;
-				AM_fix_print_data(g_eeprom.rx_vfo, String);
-				UI_PrintStringSmall(String, 2, 0, 3);
+				AM_fix_print_data(g_eeprom.rx_vfo, str);
+				UI_PrintStringSmall(str, 2, 0, 3);
 			}
 			else
 		#endif
@@ -946,9 +946,9 @@ void UI_DisplayMain(void)
 
 					center_line = CENTER_LINE_DTMF_DEC;
 
-					strcpy(String, "DTMF ");
-					strcat(String, g_dtmf_rx_live + idx);
-					UI_PrintStringSmall(String, 2, 0, 3);
+					strcpy(str, "DTMF ");
+					strcat(str, g_dtmf_rx_live + idx);
+					UI_PrintStringSmall(str, 2, 0, 3);
 				}
 			#else
 				if (g_setting_live_dtmf_decoder && g_dtmf_rx_index > 0)
@@ -961,9 +961,9 @@ void UI_DisplayMain(void)
 
 					center_line = CENTER_LINE_DTMF_DEC;
 
-					strcpy(String, "DTMF ");
-					strcat(String, g_dtmf_rx + idx);
-					UI_PrintStringSmall(String, 2, 0, 3);
+					strcpy(str, "DTMF ");
+					strcat(str, g_dtmf_rx + idx);
+					UI_PrintStringSmall(str, 2, 0, 3);
 				}
 			#endif
 
@@ -976,10 +976,10 @@ void UI_DisplayMain(void)
 
 					center_line = CENTER_LINE_CHARGE_DATA;
 
-					sprintf(String, "Charge %u.%02uV %u%%",
+					sprintf(str, "Charge %u.%02uV %u%%",
 						g_battery_voltage_average / 100, g_battery_voltage_average % 100,
 						BATTERY_VoltsToPercent(g_battery_voltage_average));
-					UI_PrintStringSmall(String, 2, 0, 3);
+					UI_PrintStringSmall(str, 2, 0, 3);
 				}
 			#endif
 		}

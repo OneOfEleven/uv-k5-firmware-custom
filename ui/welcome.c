@@ -81,7 +81,7 @@ void UI_DisplayWelcome(void)
 			EEPROM_ReadBuffer(0x0EC0, str1, 16);
 		}
 
-		memmove(str2, Version_str, slen);
+		memcpy(str2, Version_str, slen);
 		
 		UI_PrintString(str0, 0, LCD_WIDTH, 0, 10);
 		UI_PrintString(str1, 0, LCD_WIDTH, 2, 10);

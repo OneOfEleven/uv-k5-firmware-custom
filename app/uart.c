@@ -209,7 +209,7 @@ static void SendVersion(void)
 	memset(&reply, 0, sizeof(reply));
 	reply.Header.ID               = 0x0515;
 	reply.Header.Size             = sizeof(reply.Data);
-	memmove(reply.Data.Version, Version_str, slen);
+	memcpy(reply.Data.Version, Version_str, slen);
 	reply.Data.has_custom_aes_key = g_has_custom_aes_key;
 	reply.Data.password_locked    = g_password_locked;
 	reply.Data.Challenge[0]       = g_challenge[0];
@@ -420,13 +420,13 @@ static void cmd_052D(const uint8_t *pBuffer)
 
 	if (!locked)
 	{
-		memmove((void *)&response, &pCmd->Response, sizeof(response));    // overcome strict compiler warning settings
+		memcpy((void *)&response, &pCmd->Response, sizeof(response));    // overcome strict compiler warning settings
 		locked = IsBadChallenge(g_custom_aes_key, g_challenge, response);
 	}
 
 	if (!locked)
 	{
-		memmove((void *)&response, &pCmd->Response, sizeof(response));    // overcome strict compiler warning settings
+		memcpy((void *)&response, &pCmd->Response, sizeof(response));    // overcome strict compiler warning settings
 		locked = IsBadChallenge(g_default_aes_key, g_challenge, response);
 		if (locked)
 			try_count++;
@@ -546,11 +546,11 @@ bool UART_IsCommandAvailable(void)
 	if (TailIndex < Index)
 	{
 		const uint16_t ChunkSize = sizeof(UART_DMA_Buffer) - Index;
-		memmove(UART_Command.Buffer, UART_DMA_Buffer + Index, ChunkSize);
-		memmove(UART_Command.Buffer + ChunkSize, UART_DMA_Buffer, TailIndex);
+		memcpy(UART_Command.Buffer, UART_DMA_Buffer + Index, ChunkSize);
+		memcpy(UART_Command.Buffer + ChunkSize, UART_DMA_Buffer, TailIndex);
 	}
 	else
-		memmove(UART_Command.Buffer, UART_DMA_Buffer + Index, TailIndex - Index);
+		memcpy(UART_Command.Buffer, UART_DMA_Buffer + Index, TailIndex - Index);
 
 	TailIndex = DMA_INDEX(TailIndex, 2);
 	if (TailIndex < write_index)

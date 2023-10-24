@@ -605,7 +605,7 @@ void BOARD_EEPROM_load(void)
 
 	// 0E98..0E9F
 	EEPROM_ReadBuffer(0x0E98, Data, 8);
-	memmove(&g_eeprom.power_on_password, Data, 4);
+	memcpy(&g_eeprom.power_on_password, Data, sizeof(g_eeprom.power_on_password));
 
 	// 0EA0..0EA7
 	#ifdef ENABLE_VOICE
@@ -667,7 +667,7 @@ void BOARD_EEPROM_load(void)
 	// 0EE0..0EE7
 	EEPROM_ReadBuffer(0x0EE0, Data, 8);
 	if (DTMF_ValidateCodes((char *)Data, 8))
-		memmove(g_eeprom.ani_dtmf_id, Data, 8);
+		memcpy(g_eeprom.ani_dtmf_id, Data, sizeof(g_eeprom.power_on_password));
 	else
 	{
 		memset(g_eeprom.ani_dtmf_id, 0, sizeof(g_eeprom.ani_dtmf_id));
@@ -677,7 +677,7 @@ void BOARD_EEPROM_load(void)
 	// 0EE8..0EEF
 	EEPROM_ReadBuffer(0x0EE8, Data, 8);
 	if (DTMF_ValidateCodes((char *)Data, 8))
-		memmove(g_eeprom.kill_code, Data, 8);
+		memcpy(g_eeprom.kill_code, Data, sizeof(g_eeprom.kill_code));
 	else
 	{
 		memset(g_eeprom.kill_code, 0, sizeof(g_eeprom.kill_code));
@@ -687,7 +687,7 @@ void BOARD_EEPROM_load(void)
 	// 0EF0..0EF7
 	EEPROM_ReadBuffer(0x0EF0, Data, 8);
 	if (DTMF_ValidateCodes((char *)Data, 8))
-		memmove(g_eeprom.revive_code, Data, 8);
+		memcpy(g_eeprom.revive_code, Data, sizeof(g_eeprom.revive_code));
 	else
 	{
 		memset(g_eeprom.revive_code, 0, sizeof(g_eeprom.revive_code));
@@ -697,7 +697,7 @@ void BOARD_EEPROM_load(void)
 	// 0EF8..0F07
 	EEPROM_ReadBuffer(0x0EF8, Data, 16);
 	if (DTMF_ValidateCodes((char *)Data, 16))
-		memmove(g_eeprom.dtmf_key_up_code, Data, 16);
+		memcpy(g_eeprom.dtmf_key_up_code, Data, sizeof(g_eeprom.dtmf_key_up_code));
 	else
 	{
 		memset(g_eeprom.dtmf_key_up_code, 0, sizeof(g_eeprom.dtmf_key_up_code));
@@ -707,7 +707,7 @@ void BOARD_EEPROM_load(void)
 	// 0F08..0F17
 	EEPROM_ReadBuffer(0x0F08, Data, 16);
 	if (DTMF_ValidateCodes((char *)Data, 16))
-		memmove(g_eeprom.dtmf_key_down_code, Data, 16);
+		memcpy(g_eeprom.dtmf_key_down_code, Data, sizeof(g_eeprom.dtmf_key_down_code));
 	else
 	{
 		memset(g_eeprom.dtmf_key_down_code, 0, sizeof(g_eeprom.dtmf_key_down_code));
@@ -721,7 +721,7 @@ void BOARD_EEPROM_load(void)
 	for (i = 0; i < 2; i++)
 	{
 		const unsigned int j = 1 + (i * 3);
-		g_eeprom.scan_list_enabled[i]     = (Data[j + 0] < 2) ? Data[j] : false;
+		g_eeprom.scan_list_enabled[i]      = (Data[j + 0] < 2) ? Data[j] : false;
 		g_eeprom.scan_list_priority_ch1[i] =  Data[j + 1];
 		g_eeprom.scan_list_priority_ch2[i] =  Data[j + 2];
 	}
