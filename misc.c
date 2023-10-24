@@ -346,8 +346,19 @@ void NUMBER_trim_trailing_zeros(char *str)
 {
 	if (str != NULL)
 	{
-		int i = (int)strlen(str) - 1;
-		while (i > 0 && (str[i] == '0' || str[i] == ' ') && str[i - 1] != '.')
-			str[i--] = 0;
+		bool found_dp = false;
+		int i = 0;
+		while (i < 16 && str[i] != 0)
+		{
+			if (str[i] == '.')
+				found_dp = true;
+			i++;
+		}
+		if (found_dp)
+		{
+			i--;
+			while (i > 0 && (str[i] == '0' || str[i] == ' ') && str[i - 1] != '.')
+				str[i--] = 0;
+		}
 	}
 }

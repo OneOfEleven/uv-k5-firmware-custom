@@ -373,22 +373,44 @@ const uint8_t BITMAP_VFO_NOT_DEFAULT[8] =
 	__extension__ 0b00001000
 };
 
-const uint8_t BITMAP_SCANLIST1[6] =
-{	// 'I' symbol
-	__extension__ 0b00000000,
-	__extension__ 0b00010001,
-	__extension__ 0b00011111,
-	__extension__ 0b00010001,
-	__extension__ 0b00000000,
-	__extension__ 0b00000000
-};
+#if 0
+	const uint8_t BITMAP_SCANLIST1[6] =
+	{	// 'I' symbol
+		__extension__ 0b00000000,
+		__extension__ 0b00100001,
+		__extension__ 0b00111111,
+		__extension__ 0b00100001,
+		__extension__ 0b00000000,
+		__extension__ 0b00000000
+	};
 
-const uint8_t BITMAP_SCANLIST2[6] =
-{	// 'II' symbol
-	__extension__ 0b00000000,
-	__extension__ 0b00010001,
-	__extension__ 0b00011111,
-	__extension__ 0b00010001,
-	__extension__ 0b00011111,
-	__extension__ 0b00010001
-};
+	const uint8_t BITMAP_SCANLIST2[6] =
+	{	// 'II' symbol
+		__extension__ 0b00100001,
+		__extension__ 0b00111111,
+		__extension__ 0b00100001,
+		__extension__ 0b00100001,
+		__extension__ 0b00111111,
+		__extension__ 0b00100001
+	};
+#else
+	const uint8_t BITMAP_SCANLIST1[6] =
+	{	// 'I' symbol
+		__extension__ 0b00000000,
+		__extension__ 0b00111110,
+		__extension__ 0b01111111,
+		__extension__ 0b01111111,
+		__extension__ 0b00111110,
+		__extension__ 0b00000000
+	};
+
+	const uint8_t BITMAP_SCANLIST2[6] =
+	{	// 'II' symbol
+		__extension__ 0b00000000,
+		__extension__ 0b00000000,
+		__extension__ 0b00110110,
+		__extension__ 0b01110111,
+		__extension__ 0b01110111,
+		__extension__ 0b00110110
+	};
+#endif
