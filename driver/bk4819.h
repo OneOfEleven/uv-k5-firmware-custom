@@ -64,10 +64,10 @@ extern bool g_rx_idle_mode;
 void     BK4819_Init(void);
 uint16_t BK4819_ReadRegister(bk4819_register_t Register);
 void     BK4819_WriteRegister(bk4819_register_t Register, uint16_t Data);
-void     BK4819_WriteU8(uint8_t Data);
-void     BK4819_WriteU16(uint16_t Data);
+void     BK4819_WriteU8(const uint8_t Data);
+void     BK4819_WriteU16(const uint16_t Data);
 
-void     BK4819_SetAGC(uint8_t Value);
+void     BK4819_SetAGC(bool Enable);
 
 void     BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet);
 
@@ -93,20 +93,20 @@ void     BK4819_DisableScramble(void);
 void     BK4819_EnableScramble(uint8_t Type);
 
 bool     BK4819_CompanderEnabled(void);
-void     BK4819_SetCompander(const unsigned int mode);
+void     BK4819_SetCompander(uint32_t mode);
 
 void     BK4819_DisableVox(void);
 void     BK4819_DisableDTMF(void);
 void     BK4819_EnableDTMF(void);
-void     BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool set_dac);
+void     BK4819_StartTone1(uint16_t frequency, uint32_t level, bool set_dac);
 void     BK4819_StopTones(void);
-void     BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level);
+void     BK4819_PlayTone(uint32_t tone_Hz, uint32_t delay, uint32_t level);
 void     BK4819_EnterTxMute(void);
 void     BK4819_ExitTxMute(void);
 void     BK4819_Sleep(void);
 void     BK4819_TurnsOffTones_TurnsOnRX(void);
 #ifdef ENABLE_AIRCOPY
-	void     BK4819_SetupAircopy(const unsigned int packet_size);
+	void     BK4819_SetupAircopy(uint32_t packet_size);
 #endif
 void     BK4819_reset_fsk(void);
 void     BK4819_Idle(void);
@@ -152,7 +152,7 @@ uint8_t  BK4819_get_CDCSS_code_type(void);
 uint8_t  BK4819_GetCTCShift(void);
 uint8_t  BK4819_GetCTCType(void);
 
-void     BK4819_start_fsk_rx(const unsigned int packet_size);
+void     BK4819_start_fsk_rx(uint32_t packet_size);
 
 void     BK4819_PlayRoger(void);
 #ifdef ENABLE_MDC1200

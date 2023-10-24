@@ -320,7 +320,7 @@ void delta_modulation(uint8_t *data, const unsigned int size)
 	}
 }
 
-unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id)
+uint32_t MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id)
 {
 	unsigned int size;
 	uint16_t     crc;
@@ -358,7 +358,7 @@ unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const
 //	return 26;
 }
 
-unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id, const uint8_t b0, const uint8_t b1, const uint8_t b2, const uint8_t b3)
+uint32_t MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id, const uint8_t b0, const uint8_t b1, const uint8_t b2, const uint8_t b3)
 {
 	unsigned int size;
 	uint16_t     crc;
