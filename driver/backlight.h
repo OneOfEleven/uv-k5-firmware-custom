@@ -21,7 +21,8 @@
 
 extern uint16_t g_backlight_count_down;
 
-void backlight_turn_on(const uint16_t min_ticks);
+uint16_t backlight_ticks(void);
+void     backlight_turn_on(const uint16_t min_ticks);
 
 #endif
 

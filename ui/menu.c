@@ -61,6 +61,7 @@ const t_menu_item g_menu_list[] =
 	{"Tx TO",  VOICE_ID_TRANSMIT_OVER_TIME,            MENU_TX_TO                 }, // was "TOT"
 	{"Tx VFO", VOICE_ID_INVALID,                       MENU_CROSS_VFO             }, // was "WX"
 	{"Dual W", VOICE_ID_DUAL_STANDBY,                  MENU_DUAL_WATCH            }, // was "TDR"
+	{"SC REV", VOICE_ID_INVALID,                       MENU_SCAN_CAR_RESUME       }, // was "SC_REV"
 	{"S HOLD", VOICE_ID_INVALID,                       MENU_SCAN_HOLD             },
 	{"SCRAM",  VOICE_ID_SCRAMBLER_ON,                  MENU_SCRAMBLER             }, // was "SCR"
 	{"BCL",    VOICE_ID_BUSY_LOCKOUT,                  MENU_BUSY_CHAN_LOCK        },
@@ -81,7 +82,6 @@ const t_menu_item g_menu_list[] =
 #ifdef ENABLE_VOICE
 	{"VOICE",  VOICE_ID_VOICE_PROMPT,                  MENU_VOICE                 },
 #endif
-	{"SC REV", VOICE_ID_INVALID,                       MENU_SCAN_CAR_RESUME       }, // was "SC_REV"
 #ifdef ENABLE_KEYLOCK
 	{"KeyLOC", VOICE_ID_INVALID,                       MENU_AUTO_KEY_LOCK         }, // was "AUTOLk"
 #endif
@@ -121,7 +121,7 @@ const t_menu_item g_menu_list[] =
 	{"BatTXT", VOICE_ID_INVALID,                       MENU_BAT_TXT               },
 	{"MODE",   VOICE_ID_INVALID,                       MENU_MOD_MODE              }, // was "AM"
 #ifdef ENABLE_AM_FIX
-	{"AM FIX", VOICE_ID_INVALID,                       MENU_AM_FIX                },
+//	{"AM FIX", VOICE_ID_INVALID,                       MENU_AM_FIX                },
 #endif
 #ifdef ENABLE_AM_FIX_TEST1
 	{"AM FT1", VOICE_ID_INVALID,                       MENU_AM_FIX_TEST1          },
@@ -241,11 +241,12 @@ const char g_sub_menu_cross_vfo[3][10] =
 	};
 #endif
 
-const char g_sub_menu_scan_car_resume[3][13] =
+const char g_sub_menu_scan_car_resume[3][8] =
 {
-	"TIME",
+	"TIME ",
 	"CARRIER",
-	"SEARCH"
+//	"SEARCH"
+	"NO"
 };
 
 const char g_sub_menu_mem_disp[4][15] =
@@ -744,7 +745,7 @@ void UI_DisplayMenu(void)
 			case MENU_RX_BAR:
 		#endif
 		#ifdef ENABLE_AM_FIX
-			case MENU_AM_FIX:
+//			case MENU_AM_FIX:
 		#endif
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
@@ -881,16 +882,6 @@ void UI_DisplayMenu(void)
 			strcpy(str, g_sub_menu_bat_save[g_sub_menu_selection]);
 			break;
 
-		case MENU_DUAL_WATCH:
-//			strcpy(String, g_sub_menu_dual_watch[g_sub_menu_selection]);
-			strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
-			break;
-
-		case MENU_SCAN_HOLD:
-			strcpy(str, "SCAN HOLD\n");
-			sprintf(str + strlen(str), "%d.%d sec", g_sub_menu_selection / 2, 5 * (g_sub_menu_selection % 2));
-			break;
-
 		case MENU_CROSS_VFO:
 			strcpy(str, g_sub_menu_cross_vfo[g_sub_menu_selection]);
 			break;
@@ -905,9 +896,21 @@ void UI_DisplayMenu(void)
 				break;
 		#endif
 
+		case MENU_DUAL_WATCH:
+//			strcpy(String, g_sub_menu_dual_watch[g_sub_menu_selection]);
+			strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
+			break;
+
 		case MENU_SCAN_CAR_RESUME:
 			strcpy(str, "SCAN\nRESUME\n");
 			strcat(str, g_sub_menu_scan_car_resume[g_sub_menu_selection]);
+			if (g_sub_menu_selection == SCAN_RESUME_TIME)
+				sprintf(str + strlen(str), "%d.%ds", g_eeprom.scan_hold_time_500ms / 2, 5 * (g_eeprom.scan_hold_time_500ms % 2));
+			break;
+
+		case MENU_SCAN_HOLD:
+			strcpy(str, "SCAN HOLD\n");
+			sprintf(str + strlen(str), "%d.%d sec", g_sub_menu_selection / 2, 5 * (g_sub_menu_selection % 2));
 			break;
 
 		case MENU_MEM_DISP:

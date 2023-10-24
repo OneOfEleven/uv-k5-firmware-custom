@@ -110,7 +110,7 @@ enum
 	MENU_BAT_TXT,
 	MENU_MOD_MODE,
 #ifdef ENABLE_AM_FIX
-	MENU_AM_FIX,
+//	MENU_AM_FIX,
 #endif
 #ifdef ENABLE_AM_FIX_TEST1
 	MENU_AM_FIX_TEST1,
@@ -169,7 +169,7 @@ extern const char         g_sub_menu_cross_vfo[3][10];
 #ifdef ENABLE_VOICE       
 	extern const char     g_sub_menu_voice[3][4];
 #endif                    
-extern const char         g_sub_menu_scan_car_resume[3][13];
+extern const char         g_sub_menu_scan_car_resume[3][8];
 extern const char         g_sub_menu_mem_disp[4][15];
 #ifdef ENABLE_ALARM       
 	extern const char     g_sub_menu_alarm_mode[2][5];

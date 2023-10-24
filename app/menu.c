@@ -239,7 +239,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#endif
 
 		#ifdef ENABLE_AM_FIX
-			case MENU_AM_FIX:
+//			case MENU_AM_FIX:
 		#endif
 		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
@@ -769,7 +769,7 @@ void MENU_AcceptSetting(void)
 			g_tx_vfo->am_mode      = g_sub_menu_selection;
 			g_request_save_channel = 1;
 		return;
-
+/*
 		#ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:
 				g_setting_am_fix     = g_sub_menu_selection;
@@ -777,7 +777,7 @@ void MENU_AcceptSetting(void)
 				g_flag_reset_vfos    = true;
 				break;
 		#endif
-
+*/
 		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				g_setting_am_fix_test1 = g_sub_menu_selection;
@@ -1230,13 +1230,13 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_MOD_MODE:
 			g_sub_menu_selection = g_tx_vfo->am_mode;
 			break;
-
+/*
 #ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:
 				g_sub_menu_selection = g_setting_am_fix;
 				break;
 #endif
-
+*/
 #ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				g_sub_menu_selection = g_setting_am_fix_test1;

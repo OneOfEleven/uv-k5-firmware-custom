@@ -397,20 +397,20 @@ const uint8_t BITMAP_VFO_NOT_DEFAULT[8] =
 	const uint8_t BITMAP_SCANLIST1[6] =
 	{	// 'I' symbol
 		__extension__ 0b00000000,
-		__extension__ 0b00111110,
-		__extension__ 0b01111111,
-		__extension__ 0b01111111,
-		__extension__ 0b00111110,
+		__extension__ 0b00111111,
+		__extension__ 0b00111111,
+		__extension__ 0b00000000,
+		__extension__ 0b00000000,
 		__extension__ 0b00000000
 	};
 
 	const uint8_t BITMAP_SCANLIST2[6] =
 	{	// 'II' symbol
 		__extension__ 0b00000000,
+		__extension__ 0b00111111,
+		__extension__ 0b00111111,
 		__extension__ 0b00000000,
-		__extension__ 0b00110110,
-		__extension__ 0b01110111,
-		__extension__ 0b01110111,
-		__extension__ 0b00110110
+		__extension__ 0b00111111,
+		__extension__ 0b00111111
 	};
 #endif
