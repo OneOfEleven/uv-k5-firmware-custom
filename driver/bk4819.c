@@ -338,6 +338,8 @@ void BK4819_EnableAGC()
 	// default fix index too strong, set to min (011->100)
 	//BK4819_WriteRegister(BK4819_REG_7E, (1u << 15) | (4u << 12) | (5u << 3) | (6u << 0));
 
+	BK4819_WriteRegister(BK4819_REG_13, (3u << 8) | (2u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
+
     BK4819_WriteRegister(BK4819_REG_12, 0x037C);
     BK4819_WriteRegister(BK4819_REG_11, 0x027B);
     BK4819_WriteRegister(BK4819_REG_10, 0x007A);
@@ -350,9 +352,9 @@ void BK4819_EnableAGC()
     BK4819_WriteRegister(BK4819_REG_20, 0x8DEF);
 
 	// fagci had the answer to why we weren't as sensitive!
-    for (unsigned int i = 0; i < 8; i++) {
-      BK4819_WriteRegister(0x06, (i & 7) << 13 | 0x4A << 7 | 0x36);
-    }
+	for (unsigned int i = 0; i < 8; i++) {
+		BK4819_WriteRegister(0x06, (i & 7) << 13 | 0x4A << 7 | 0x36);
+	}
 }
 
 void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
