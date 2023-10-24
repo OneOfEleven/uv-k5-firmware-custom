@@ -77,7 +77,7 @@ ENABLE_KEYLOCK                   := 1
 
 TARGET = firmware
 
-GIT_HASH_TMP := $(shell git rev-parse --short HEAD)
+GIT_HASH_TMP := $(shell git rev-parse --short=10 HEAD)
 ifeq ($(GIT_HASH_TMP), )
 	GIT_HASH := "NOGIT"
 else
