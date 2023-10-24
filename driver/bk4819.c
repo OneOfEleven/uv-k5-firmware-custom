@@ -53,8 +53,8 @@ void BK4819_Init(void)
 	BK4819_WriteRegister(BK4819_REG_37, 0x1D0F);
 	BK4819_WriteRegister(BK4819_REG_36, 0x0022);
 
-//	BK4819_SetAGC(0);
-	BK4819_SetAGC(1);     // ???
+//	BK4819_DisableAGC();
+	BK4819_EnableAGC();
 
 	BK4819_WriteRegister(BK4819_REG_19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
 
@@ -261,119 +261,98 @@ void BK4819_WriteU16(uint16_t Data)
 	}
 }
 
-void BK4819_SetAGC(uint8_t Value)
+void BK4819_DisableAGC()
 {
-	if (Value == 0)
-	{
-		// REG_10
-		//
-		// 0x0038 Rx AGC Gain Table[0]. (Index Max->Min is 3,2,1,0,-1)
-		//
-		// <15:10> ???
-		//
-		// <9:8>   LNA Gain Short
-		//         3 =   0dB  <<<
-		//         2 = -24dB       // was -11
-		//         1 = -30dB       // was -16
-		//         0 = -33dB       // was -19
-		//
-		// <7:5>   LNA Gain
-		//         7 =   0dB
-		//         6 =  -2dB
-		//         5 =  -4dB
-		//         4 =  -6dB
-		//         3 =  -9dB
-		//         2 = -14dB <<<
-		//         1 = -19dB
-		//         0 = -24dB
-		//
-		// <4:3>   MIXER Gain
-		//         3 =   0dB <<<
-		//         2 =  -3dB
-		//         1 =  -6dB
-		//         0 =  -8dB
-		//
-		// <2:0>   PGA Gain
-		//         7 =   0dB
-		//         6 =  -3dB <<<
-		//         5 =  -6dB
-		//         4 =  -9dB
-		//         3 = -15dB
-		//         2 = -21dB
-		//         1 = -27dB
-		//         0 = -33dB
-		//
-		BK4819_WriteRegister(BK4819_REG_13, (3u << 8) | (2u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
+	// REG_10
+	//
+	// 0x0038 Rx AGC Gain Table[0]. (Index Max->Min is 3,2,1,0,-1)
+	//
+	// <15:10> ???
+	//
+	// <9:8>   LNA Gain Short
+	//         3 =   0dB  <<<
+	//         2 = -24dB       // was -11
+	//         1 = -30dB       // was -16
+	//         0 = -33dB       // was -19
+	//
+	// <7:5>   LNA Gain
+	//         7 =   0dB
+	//         6 =  -2dB
+	//         5 =  -4dB
+	//         4 =  -6dB
+	//         3 =  -9dB
+	//         2 = -14dB <<<
+	//         1 = -19dB
+	//         0 = -24dB
+	//
+	// <4:3>   MIXER Gain
+	//         3 =   0dB <<<
+	//         2 =  -3dB
+	//         1 =  -6dB
+	//         0 =  -8dB
+	//
+	// <2:0>   PGA Gain
+	//         7 =   0dB
+	//         6 =  -3dB <<<
+	//         5 =  -6dB
+	//         4 =  -9dB
+	//         3 = -15dB
+	//         2 = -21dB
+	//         1 = -27dB
+	//         0 = -33dB
 
-		BK4819_WriteRegister(BK4819_REG_12, 0x037B);  // 000000 11 011 11 011
-		BK4819_WriteRegister(BK4819_REG_11, 0x027B);  // 000000 10 011 11 011
-		BK4819_WriteRegister(BK4819_REG_10, 0x007A);  // 000000 00 011 11 010
-		BK4819_WriteRegister(BK4819_REG_14, 0x0019);  // 000000 00 000 11 001
+	// undoes BK4819_EnableAGC reg write
+	//BK4819_WriteRegister(BK4819_REG_7E, (0u << 15));
 
-		BK4819_WriteRegister(BK4819_REG_49, 0x2A38);
-		BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
-	}
-	else
-	if (Value == 1)
-	{	// what does this do ???
+	BK4819_WriteRegister(BK4819_REG_13, (3u << 8) | (2u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
 
-		unsigned int i;
+	BK4819_WriteRegister(BK4819_REG_12, 0x037B);  // 000000 11 011 11 011
+	BK4819_WriteRegister(BK4819_REG_11, 0x027B);  // 000000 10 011 11 011
+	BK4819_WriteRegister(BK4819_REG_10, 0x007A);  // 000000 00 011 11 010
+	BK4819_WriteRegister(BK4819_REG_14, 0x0019);  // 000000 00 000 11 001
 
-		// REG_10
-		//
-		// 0x0038 Rx AGC Gain Table[0]. (Index Max->Min is 3,2,1,0,-1)
-		//
-		// (15:10> ???
-		//
-		// <9:8>   LNA Gain Short
-		//         3 =   0dB   << original
-		//         2 = -24dB       // was -11
-		//         1 = -30dB       // was -16
-		//         0 = -33dB       // was -19
-		//
-		// <7:5>   LNA Gain
-		//         7 =   0dB
-		//         6 =  -2dB
-		//         5 =  -4dB
-		//         4 =  -6dB
-		//         3 =  -9dB
-		//         2 = -14dB   << original
-		//         1 = -19dB
-		//         0 = -24dB
-		//
-		// <4:3>   MIXER Gain
-		//         3 =   0dB   << original
-		//         2 =  -3dB
-		//         1 =  -6dB
-		//         0 =  -8dB
-		//
-		// <2:0>   PGA Gain
-		//         7 =   0dB
-		//         6 =  -3dB   << original
-		//         5 =  -6dB
-		//         4 =  -9dB
-		//         3 = -15dB
-		//         2 = -21dB
-		//         1 = -27dB
-		//         0 = -33dB
-		//
-		BK4819_WriteRegister(BK4819_REG_13, (3u << 8) | (2u << 5) | (3u << 3) | (6u << 0));
+	// undocumented ?
+	BK4819_WriteRegister(BK4819_REG_49, 0x2A38);
+	BK4819_WriteRegister(BK4819_REG_7B, 0x8420);
+}
 
-		BK4819_WriteRegister(BK4819_REG_12, 0x037C);  // 000000 11 011 11 100
-		BK4819_WriteRegister(BK4819_REG_11, 0x027B);  // 000000 10 011 11 011
-		BK4819_WriteRegister(BK4819_REG_10, 0x007A);  // 000000 00 011 11 010
-		BK4819_WriteRegister(BK4819_REG_14, 0x0018);  // 000000 00 000 11 000
+void BK4819_EnableAGC()
+{
+	// TODO: See if this attenuates overloading
+	// signals as well as boosting weak ones
+	//
+	// REG_7E
+	//
+	// <15> 0 AGC Fix Mode.
+	// 1=Fix; 0=Auto.
+	//
+	// <14:12> 0b011 AGC Fix Index.
+	// 011=Max, then 010,001,000,111,110,101,100(min).
+	//
+	// <5:3> 0b101 DC Filter Band Width for Tx (MIC In).
+	// 000=Bypass DC filter;
+	//
+	// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
+	// 000=Bypass DC filter;
 
-		BK4819_WriteRegister(BK4819_REG_49, 0x2A38);
-		BK4819_WriteRegister(BK4819_REG_7B, 0x318C);
+	// default fix index too strong, set to min (011->100)
+	//BK4819_WriteRegister(BK4819_REG_7E, (1u << 15) | (4u << 12) | (5u << 3) | (6u << 0));
 
-		BK4819_WriteRegister(BK4819_REG_7C, 0x595E);
-		BK4819_WriteRegister(BK4819_REG_20, 0x8DEF);
+    BK4819_WriteRegister(BK4819_REG_12, 0x037C);
+    BK4819_WriteRegister(BK4819_REG_11, 0x027B);
+    BK4819_WriteRegister(BK4819_REG_10, 0x007A);
+    BK4819_WriteRegister(BK4819_REG_14, 0x0018);
 
-		for (i = 0; i < 8; i++)
-			// Bug? The bit 0x2000 below overwrites the (i << 13)
-			BK4819_WriteRegister(BK4819_REG_06, ((i << 13) | 0x2500u) + 0x036u);
-	}
+	// undocumented ?
+    BK4819_WriteRegister(BK4819_REG_49, 0x2A38);
+    BK4819_WriteRegister(BK4819_REG_7B, 0x318C);
+    BK4819_WriteRegister(BK4819_REG_7C, 0x595E);
+    BK4819_WriteRegister(BK4819_REG_20, 0x8DEF);
+
+	// fagci had the answer to why we weren't as sensitive!
+    for (unsigned int i = 0; i < 8; i++) {
+      BK4819_WriteRegister(0x06, (i & 7) << 13 | 0x4A << 7 | 0x36);
+    }
 }
 
 void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
