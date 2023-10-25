@@ -247,7 +247,21 @@ static void APP_process_rx(void)
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF) // && IS_FREQ_CHANNEL(g_scan_next_channel))  
 	{
 		if (g_squelch_open)
+		{
+			switch (g_eeprom.scan_resume_mode)
+			{
+				case SCAN_RESUME_TIME:     // stay only for a limited time
+					break;
+				case SCAN_RESUME_CARRIER:  // stay untill the carrier goes away
+					g_scan_pause_10ms      = g_eeprom.scan_hold_time_500ms * 50;
+					g_scan_pause_time_mode = false;
+					break;
+				case SCAN_RESUME_STOP:     // stop scan once we find any signal
+					APP_stop_scan();
+					break;
+			}
 			return;
+		}
 		
 		Mode = END_OF_RX_MODE_END;
 		goto Skip;
@@ -284,7 +298,7 @@ static void APP_process_rx(void)
 	if (g_squelch_open)
 	{
 		if (g_setting_backlight_on_tx_rx >= 2)
-			backlight_turn_on(backlight_tx_rx_time_500ms);
+			backlight_turn_on(backlight_tx_rx_time_500ms); // keep the backlight on while we're receiving
 
 		if (!g_end_of_rx_detected_maybe && IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 		{
@@ -404,11 +418,11 @@ Skip:
 		{
 			case SCAN_RESUME_TIME:     // stay only for a limited time
 				break;
-			case SCAN_RESUME_CARRIER:  // stay till the carrier goes away
+			case SCAN_RESUME_CARRIER:  // stay untill the carrier goes away
 				g_scan_pause_10ms      = g_eeprom.scan_hold_time_500ms * 50;
 				g_scan_pause_time_mode = false;
 				break;
-			case SCAN_RESUME_SEARCH:
+			case SCAN_RESUME_STOP:     // stop scan once we find any signal
 				APP_stop_scan();
 				break;
 		}
@@ -498,7 +512,7 @@ bool APP_start_listening(function_type_t Function, const bool reset_am_fix)
 				g_scan_pause_10ms      = g_eeprom.scan_hold_time_500ms * 50;
 				g_scan_pause_time_mode = false;
 				break;
-			case SCAN_RESUME_SEARCH:
+			case SCAN_RESUME_STOP:
 				g_scan_pause_10ms      = 0;
 				g_scan_pause_time_mode = false;
 				break;
@@ -549,14 +563,14 @@ bool APP_start_listening(function_type_t Function, const bool reset_am_fix)
 			AM_fix_10ms(chan);
 		}
 		else
-			BK4819_WriteRegister(BK4819_REG_13, (lna_short << 8) | (lna << 5) | (mixer << 3) | (pga << 0));
+			BK4819_WriteRegister(0x13, (lna_short << 8) | (lna << 5) | (mixer << 3) | (pga << 0));
 	}
 #else
 	(void)reset_am_fix;
 #endif
 
 	// AF gain - original QS values
-	BK4819_WriteRegister(BK4819_REG_48,
+	BK4819_WriteRegister(0x48,
 		(11u << 12)                 |     // ??? .. 0 to 15, doesn't seem to make any difference
 		( 0u << 10)                 |     // AF Rx Gain-1
 		(g_eeprom.volume_gain << 4) |     // AF Rx Gain-2
@@ -892,11 +906,11 @@ void APP_process_radio_interrupts(void)
 	if (g_screen_to_display == DISPLAY_SEARCH)
 		return;
 
-	while (BK4819_ReadRegister(BK4819_REG_0C) & (1u << 0))
+	while (BK4819_ReadRegister(0x0C) & (1u << 0))
 	{	// BK chip interrupt request
 
-		BK4819_WriteRegister(BK4819_REG_02, 0);
-		const uint16_t interrupt_bits = BK4819_ReadRegister(BK4819_REG_02);
+		BK4819_WriteRegister(0x02, 0);
+		const uint16_t interrupt_bits = BK4819_ReadRegister(0x02);
 
 		if (interrupt_bits & BK4819_REG_02_DTMF_5TONE_FOUND)
 		{	// save the RX'ed DTMF character

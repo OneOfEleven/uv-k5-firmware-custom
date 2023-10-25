@@ -624,17 +624,17 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 	while (1)
 	{	// wait for the interrupt to clear ?
-		const uint16_t status_bits = BK4819_ReadRegister(BK4819_REG_0C);
+		const uint16_t status_bits = BK4819_ReadRegister(0x0C);
 		if ((status_bits & (1u << 0)) == 0)
 			break;
-		BK4819_WriteRegister(BK4819_REG_02, 0);   // clear the interrupt bits
+		BK4819_WriteRegister(0x02, 0);   // clear the interrupt bits
 		SYSTEM_DelayMs(1);
 	}
 
-	BK4819_WriteRegister(BK4819_REG_3F, 0);       // disable interrupts
+	BK4819_WriteRegister(0x3F, 0);       // disable interrupts
 
 	// mic gain 0.5dB/step 0 to 31
-	BK4819_WriteRegister(BK4819_REG_7D, 0xE940 | (g_eeprom.mic_sensitivity_tuning & 0x1f));
+	BK4819_WriteRegister(0x7D, 0xE940 | (g_eeprom.mic_sensitivity_tuning & 0x1f));
 
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_is_noaa_mode)
@@ -654,7 +654,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
 	// AF RX Gain and DAC
-	BK4819_WriteRegister(BK4819_REG_48, 0xB3A8);  // 1011 00 111010 1000
+	BK4819_WriteRegister(0x48, 0xB3A8);  // 1011 00 111010 1000
 
 	interrupt_mask = BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
 
@@ -781,7 +781,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	#endif
 
 	// enable/disable BK4819 selected interrupts
-	BK4819_WriteRegister(BK4819_REG_3F, interrupt_mask);
+	BK4819_WriteRegister(0x3F, interrupt_mask);
 
 	FUNCTION_Init();
 

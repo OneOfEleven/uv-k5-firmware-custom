@@ -76,7 +76,7 @@ beep_type_t g_beep_to_play = BEEP_NONE;
 
 void AUDIO_PlayBeep(beep_type_t Beep)
 {
-	const uint16_t ToneConfig = BK4819_ReadRegister(BK4819_REG_71);
+	const uint16_t ToneConfig = BK4819_ReadRegister(0x71);
 	uint16_t       ToneFrequency;
 	uint16_t       Duration;
 
@@ -218,7 +218,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	SYSTEM_DelayMs(2);
 
 	// restore the register
-	BK4819_WriteRegister(BK4819_REG_71, ToneConfig);
+	BK4819_WriteRegister(0x71, ToneConfig);
 
 	if (g_speaker_enabled)
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);

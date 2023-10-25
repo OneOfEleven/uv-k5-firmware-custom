@@ -841,8 +841,8 @@ void BOARD_EEPROM_LoadCalibration(void)
 		g_eeprom.volume_gain          = (Misc.volume_gain < 64) ? Misc.volume_gain : 58;
 		g_eeprom.dac_gain             = (Misc.dac_gain    < 16) ? Misc.dac_gain    : 8;
 
-		BK4819_WriteRegister(BK4819_REG_3B, 22656 + g_eeprom.BK4819_xtal_freq_low);
-//		BK4819_WriteRegister(BK4819_REG_3C, g_eeprom.BK4819_XTAL_FREQ_HIGH);
+		BK4819_WriteRegister(0x3B, 22656 + g_eeprom.BK4819_xtal_freq_low);
+//		BK4819_WriteRegister(0x3C, g_eeprom.BK4819_XTAL_FREQ_HIGH);
 	}
 }
 

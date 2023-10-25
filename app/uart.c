@@ -384,9 +384,9 @@ static void cmd_0527(void)
 	memset(&reply, 0, sizeof(reply));
 	reply.Header.ID             = 0x0528;
 	reply.Header.Size           = sizeof(reply.Data);
-	reply.Data.RSSI             = BK4819_ReadRegister(BK4819_REG_67) & 0x01FF;
-	reply.Data.ExNoiseIndicator = BK4819_ReadRegister(BK4819_REG_65) & 0x007F;
-	reply.Data.GlitchIndicator  = BK4819_ReadRegister(BK4819_REG_63);
+	reply.Data.RSSI             = BK4819_ReadRegister(0x67) & 0x01FF;
+	reply.Data.ExNoiseIndicator = BK4819_ReadRegister(0x65) & 0x007F;
+	reply.Data.GlitchIndicator  = BK4819_ReadRegister(0x63);
 
 	SendReply(&reply, sizeof(reply));
 }

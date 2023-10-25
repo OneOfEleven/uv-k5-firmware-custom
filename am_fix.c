@@ -451,7 +451,7 @@
 			// remember the new table index
 			gain_table_index_prev[vfo] = index;
 
-			BK4819_WriteRegister(BK4819_REG_13, gain_table[index].reg_val);
+			BK4819_WriteRegister(0x13, gain_table[index].reg_val);
 
 			// offset the RSSI reading to the rest of the firmware to cancel out the gain adjustments we make
 

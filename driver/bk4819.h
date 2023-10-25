@@ -62,8 +62,8 @@ typedef enum BK4819_CSS_scan_result_e BK4819_CSS_scan_result_t;
 extern bool g_rx_idle_mode;
 
 void     BK4819_Init(void);
-uint16_t BK4819_ReadRegister(bk4819_register_t Register);
-void     BK4819_WriteRegister(bk4819_register_t Register, uint16_t Data);
+uint16_t BK4819_ReadRegister(const uint8_t Register);
+void     BK4819_WriteRegister(const uint8_t Register, uint16_t Data);
 void     BK4819_WriteU8(uint8_t Data);
 void     BK4819_WriteU16(uint16_t Data);
 
