@@ -76,7 +76,7 @@ void UI_PrintString(const char *pString, uint8_t Start, uint8_t End, uint8_t Lin
 	size_t Length = strlen(pString);
 
 	if (End > Start)
-		Start += ((End - Start) - (Length * Width)) / 2;
+		Start += ((End - Start) - (Length * Width) - 1) / 2;
 
 	for (i = 0; i < Length; i++)
 	{

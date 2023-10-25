@@ -101,6 +101,7 @@ enum
 	MENU_DTMF_LIST,
 	MENU_DTMF_LIVE_DEC,
 #ifdef ENABLE_MDC1200
+	MENU_MDC1200_MODE,
 	MENU_MDC1200_ID,
 #endif
 	MENU_PTT_ID,
@@ -169,37 +170,40 @@ extern const char         g_sub_menu_bat_save[5][9];
 extern const char         g_sub_menu_tx_timeout[11][7];
 extern const char         g_sub_menu_dual_watch[3][10];
 extern const char         g_sub_menu_cross_vfo[3][10];
-#ifdef ENABLE_VOICE       
+#ifdef ENABLE_VOICE
 	extern const char     g_sub_menu_voice[3][4];
-#endif                    
+#endif
 extern const char         g_sub_menu_scan_car_resume[3][8];
 extern const char         g_sub_menu_mem_disp[4][15];
-#ifdef ENABLE_ALARM       
+#ifdef ENABLE_ALARM
 	extern const char     g_sub_menu_alarm_mode[2][5];
-#endif                    
+#endif
 extern const char         g_sub_menu_dtmf_rsp[4][9];
 extern const char         g_sub_menu_ptt_id[5][15];
+#ifdef ENABLE_MDC1200
+	extern const char     g_sub_menu_mdc1200_mode[4][8];
+#endif
 extern const char         g_sub_menu_pwr_on_msg[4][14];
-extern const char         g_sub_menu_roger_mode[3][16];
+extern const char         g_sub_menu_roger_mode[2][16];
 extern const char         g_sub_menu_reset[2][4];
 extern const char         g_sub_menu_backlight[8][7];
 extern const char         g_sub_menu_rx_tx[4][6];
 #ifdef ENABLE_AM_FIX_TEST1
 	extern const char     g_sub_menu_AM_FIX_test1[4][8];
-#endif                    
+#endif
 extern const char         g_sub_menu_bat_text[3][8];
 extern const char         g_sub_menu_dis_en[2][9];
 extern const char         g_sub_menu_scrambler[11][7];
 #ifdef ENABLE_SIDE_BUTT_MENU
 	extern const char     g_sub_menu_side_butt[9][16];
 #endif
-						  
+
 extern bool               g_in_sub_menu;
-						  
+
 extern uint8_t            g_menu_cursor;
 extern int8_t             g_menu_scroll_direction;
 extern int32_t            g_sub_menu_selection;
-						  
+
 extern char               g_edit_original[17];
 extern char               g_edit[17];
 extern int                g_edit_index;

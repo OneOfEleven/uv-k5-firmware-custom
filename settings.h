@@ -149,7 +149,11 @@ typedef struct {
 	uint8_t  unused2:2;                      //
 	// [11]
 	uint8_t  tx_offset_dir:2;                //
-	uint8_t  unused3:2;                      //
+	#ifdef ENABLE_MDC1200
+		uint8_t mdc1200_mode:2;              //
+	#else
+		uint8_t unused3:2;                   //
+	#endif
 	uint8_t  am_mode:1;                      //
 	uint8_t  unused4:3;                      //
 	// [12]

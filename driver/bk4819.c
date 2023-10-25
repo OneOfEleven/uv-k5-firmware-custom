@@ -121,6 +121,7 @@ void BK4819_Init(void)
 //	BK4819_WriteRegister(0x37, 0x1D0F);
 
 //	DisableAGC(0);
+
 	BK4819_WriteRegister(0x13, 0x03BE);
 	BK4819_WriteRegister(0x12, 0x037B);
 	BK4819_WriteRegister(0x11, 0x027B);
@@ -268,7 +269,7 @@ void BK4819_DisableAGC(void)
 	// 000=Bypass DC filter;
 	//
 	BK4819_WriteRegister(0x7E,
-		(0u << 15) |      // 0  AGC fix mode
+		(1u << 15) |      // 0  AGC fix mode
 		(3u << 12) |      // 3  AGC fix index
 		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
 		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
@@ -345,7 +346,7 @@ void BK4819_EnableAGC(void)
 	//BK4819_WriteRegister(0x7E, (1u << 15) | (4u << 12) | (5u << 3) | (6u << 0));
 
 	BK4819_WriteRegister(0x7E,
-		(1u << 15) |      // 0  AGC fix mode
+		(0u << 15) |      // 0  AGC fix mode
 		(3u << 12) |      // 3  AGC fix index
 		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
 		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
@@ -1980,9 +1981,11 @@ void BK4819_send_MDC1200(const uint8_t op, const uint8_t arg, const uint16_t id)
 	// <15>  1 = Enable TxCTCSS/CDCSS
 	//       0 = Disable
 	//
-	if (BK4819_ReadRegister(0x51) & (1u << 15))
-	{	// need to turn oss the CRCSS/CDCSS
-		BK4819_ExitSubAu();
+	const bool code_enabled = (BK4819_ReadRegister(0x51) & (1u << 15)) ? true : false;
+	if (code_enabled)
+	{	// need to turn off CTCSS/CDCSS
+		BK4819_WriteRegister(0x51, BK4819_ReadRegister(0x51) & ~(1u << 15));
+//		BK4819_ExitSubAu();
 		SYSTEM_DelayMs(10);
 	}
 	
@@ -2203,6 +2206,9 @@ void BK4819_send_MDC1200(const uint8_t op, const uint8_t arg, const uint16_t id)
 	BK4819_WriteRegister(0x3F, 0);   // disable interrupts
 	BK4819_WriteRegister(0x70, 0);
 	BK4819_WriteRegister(0x58, 0);
+
+	if (code_enabled)
+		BK4819_WriteRegister(0x51, BK4819_ReadRegister(0x51) | (1u << 15));
 }
 
 #endif

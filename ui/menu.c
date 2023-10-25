@@ -108,6 +108,7 @@ const t_menu_item g_menu_list[] =
 	{"UpCODE", VOICE_ID_INVALID,                       MENU_UP_CODE               },
 	{"DnCODE", VOICE_ID_INVALID,                       MENU_DN_CODE               }, // was "DWCODE"
 #ifdef ENABLE_MDC1200
+	{"MDCPTT", VOICE_ID_INVALID,                       MENU_MDC1200_MODE          },
 	{"MDC ID", VOICE_ID_INVALID,                       MENU_MDC1200_ID            },
 #endif
 	{"PTT ID", VOICE_ID_INVALID,                       MENU_PTT_ID                },
@@ -279,11 +280,21 @@ const char g_sub_menu_dtmf_rsp[4][9] =
 const char g_sub_menu_ptt_id[5][15] =
 {
 	"OFF",
-	"BEGIN",
-	"END",
-	"BEGIN +\nEND",
+	"BOT",
+	"EOT",
+	"BOT+EOT",
 	"APOLLO\nQUINDAR"
 };
+
+#ifdef ENABLE_MDC1200
+	const char g_sub_menu_mdc1200_mode[4][8] =
+	{
+		"OFF",
+		"BOT",
+		"EOT",
+		"BOT+EOT"
+	};
+#endif
 
 const char g_sub_menu_pwr_on_msg[4][14] =
 {
@@ -293,11 +304,11 @@ const char g_sub_menu_pwr_on_msg[4][14] =
 	"NONE"
 };
 
-const char g_sub_menu_roger_mode[3][16] =
+const char g_sub_menu_roger_mode[2][16] =
 {
 	"OFF",
 	"TX END\nROGER",
-	"TX END\nMDC1200"
+//	"TX END\nMDC1200"
 };
 
 const char g_sub_menu_reset[2][4] =
@@ -996,6 +1007,11 @@ void UI_DisplayMenu(void)
 			break;
 
 		#ifdef ENABLE_MDC1200
+			case MENU_MDC1200_MODE:
+				strcpy(str, "MDC1200\nMODE\n");
+				strcat(str, g_sub_menu_mdc1200_mode[g_sub_menu_selection]);
+				break;
+				
 			case MENU_MDC1200_ID:
 				sprintf(str, "MDC1200\nID\n%04X", g_sub_menu_selection);
 				break;

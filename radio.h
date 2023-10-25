@@ -50,6 +50,14 @@ enum ptt_id_e {
 };
 typedef enum ptt_id_e ptt_id_t;
 
+enum mdc1200_mode_e {
+	MDC1200_MODE_OFF = 0, // OFF
+	MDC1200_MODE_BOT,     // BEGIN OF TX
+	MDC1200_MODE_EOT,     // END OF TX
+	MDC1200_MODE_BOTH     // BOTH
+};
+typedef enum mdc1200_mode_e mdc1200_mode_t;
+
 enum vfo_state_e
 {
 	VFO_STATE_NORMAL = 0,
@@ -109,6 +117,10 @@ typedef struct vfo_info_t
 	uint8_t        dtmf_decoding_enable;
 	ptt_id_t       dtmf_ptt_id_tx_mode;
 
+	#ifdef ENABLE_MDC1200
+		mdc1200_mode_t mdc1200_mode;
+	#endif
+	
 	uint8_t        busy_channel_lock;
 
 	uint8_t        am_mode;

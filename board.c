@@ -756,7 +756,7 @@ void BOARD_EEPROM_load(void)
 
 	// 0F48..0F4F
 	EEPROM_ReadBuffer(0x0F48, Data, 8);
-	g_eeprom.scan_hold_time_500ms = (Data[0] > 20) ? 6 : (Data[0] < 2) ? 6 : Data[0];
+	g_eeprom.scan_hold_time_500ms = (Data[0] > 40) ? 6 : (Data[0] < 2) ? 6 : Data[0];
 
 	if (!g_eeprom.vfo_open)
 	{

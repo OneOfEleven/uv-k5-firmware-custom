@@ -300,6 +300,10 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 				break;
 		}
 
+		#ifdef ENABLE_MDC1200
+			p_vfo->mdc1200_mode = m_channel.mdc1200_mode;
+		#endif
+
 		p_vfo->frequency_reverse = m_channel.frequency_reverse ? true : false;
 		p_vfo->channel_bandwidth = m_channel.channel_bandwidth ? true : false;
 		p_vfo->output_power      = m_channel.tx_power;
@@ -1126,7 +1130,8 @@ void RADIO_tx_eot(void)
 	}
 	else
 #ifdef ENABLE_MDC1200
-	if (g_eeprom.roger_mode == ROGER_MODE_MDC)
+//	if (g_eeprom.roger_mode == ROGER_MODE_MDC)
+	if (g_current_vfo->mdc1200_mode == MDC1200_MODE_EOT || g_current_vfo->mdc1200_mode == MDC1200_MODE_BOTH)
 	{
 		BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID, 0x00, g_eeprom.mdc1200_id);
 	}

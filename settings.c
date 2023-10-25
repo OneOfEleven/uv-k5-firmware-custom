@@ -385,7 +385,9 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, c
 		m_channel.rx_ctcss_cdcss_type  = p_vfo->freq_config_rx.code_type;
 //		m_channel.unused1:2
 		m_channel.tx_ctcss_cdcss_type  = p_vfo->freq_config_tx.code_type;
-//		m_channel.unused2:2
+		#ifdef ENABLE_MDC1200
+			m_channel.mdc1200_mode     = p_vfo->mdc1200_mode;
+		#endif
 		m_channel.tx_offset_dir        = p_vfo->tx_offset_freq_dir;
 //		m_channel.unused3:2
 		m_channel.am_mode              = p_vfo->am_mode & 1u;

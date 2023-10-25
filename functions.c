@@ -33,6 +33,9 @@
 #include "frequencies.h"
 #include "functions.h"
 #include "helper/battery.h"
+#ifdef ENABLE_MDC1200
+	#include "mdc1200.h"
+#endif
 #include "misc.h"
 #include "radio.h"
 #include "settings.h"
@@ -268,9 +271,14 @@ void FUNCTION_Select(function_type_t Function)
 			#endif
 
 			if (!DTMF_Reply())
+			{
+				if (g_current_vfo->mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->mdc1200_mode == MDC1200_MODE_BOTH)
+					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.mdc1200_id);
+				else
 				if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 					BK4819_PlayTone(APOLLO_TONE1_HZ, APOLLO_TONE_MS, 0);
-
+			}
+			
 			if (g_current_vfo->scrambling_type > 0 && g_setting_scramble_enable)
 				BK4819_EnableScramble(g_current_vfo->scrambling_type - 1);
 
