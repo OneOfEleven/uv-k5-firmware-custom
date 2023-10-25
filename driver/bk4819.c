@@ -202,7 +202,6 @@ void BK4819_WriteRegister(bk4819_register_t Register, uint16_t Data)
 	BK4819_WriteU8(Register);
 	BK4819_WriteU16(Data);
 
-	SYSTICK_DelayUs(1U);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
 	SYSTICK_DelayUs(1U);
 
