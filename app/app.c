@@ -1783,9 +1783,10 @@ void APP_time_slice_10ms(void)
 						RADIO_enableTX(false);
 						BK4819_TransmitTone(true, 500);
 						SYSTEM_DelayMs(2);
+						
 						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+						g_speaker_enabled = true;
 
-						g_speaker_enabled     = true;
 						g_alarm_tone_counter_10ms = 0;
 					}
 				}
