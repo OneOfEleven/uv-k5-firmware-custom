@@ -38,6 +38,7 @@ ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
 ENABLE_BIG_FREQ                  := 0
 ENABLE_SMALL_BOLD                := 1
+# trim trailing 44B
 ENABLE_TRIM_TRAILING_ZEROS       := 1
 ENABLE_KEEP_MEM_NAME             := 1
 ENABLE_WIDE_RX                   := 1

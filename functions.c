@@ -272,9 +272,11 @@ void FUNCTION_Select(function_type_t Function)
 
 			if (!DTMF_Reply())
 			{
+			#ifdef ENABLE_MDC1200
 				if (g_current_vfo->mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->mdc1200_mode == MDC1200_MODE_BOTH)
 					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.mdc1200_id);
 				else
+			#endif
 				if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 					BK4819_PlayTone(APOLLO_TONE1_HZ, APOLLO_TONE_MS, 0);
 			}
