@@ -525,9 +525,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 		// clamp the frequency entered to some valid value
 		if (Frequency < FREQ_BAND_TABLE[0].lower)
-		{
 			Frequency = FREQ_BAND_TABLE[0].lower;
-		}
 		else
 		if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
 		{
@@ -536,9 +534,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		}
 		else
 		if (Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
-		{
 			Frequency = FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper;
-		}
 
 		{
 			const frequency_band_t band = FREQUENCY_GetBand(Frequency);
@@ -559,7 +555,6 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			}
 
 			Frequency += g_tx_vfo->step_freq / 2; // for rounding to nearest step size
-
 			Frequency = FREQUENCY_floor_to_step(Frequency, g_tx_vfo->step_freq, FREQ_BAND_TABLE[g_tx_vfo->band].lower, FREQ_BAND_TABLE[g_tx_vfo->band].upper);
 
 			if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
@@ -569,18 +564,13 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			}
 
 			g_tx_vfo->freq_config_rx.frequency = Frequency;
+			g_tx_vfo->freq_config_tx.frequency = Frequency;
 
 			// find the first channel that contains this frequency
 			g_tx_vfo->freq_in_channel = BOARD_find_channel(Frequency);
 
-			// 1of11 .. test to prevent monitor mode being turned off
-			#if 0
-				// this currently also turns monitor mode off :(
-				g_request_save_channel = 1;
-			#else
-				SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
-				RADIO_setup_registers(true);
-			#endif
+			g_request_save_channel = 1;
+			g_vfo_configure_mode   = VFO_CONFIGURE;
 
 			return;
 		}

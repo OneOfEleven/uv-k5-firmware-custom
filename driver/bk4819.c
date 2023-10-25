@@ -195,22 +195,13 @@ void BK4819_WriteRegister(bk4819_register_t Register, uint16_t Data)
 {
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-
 	SYSTICK_DelayUs(1);
-
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
 	BK4819_WriteU8(Register);
-
-	SYSTICK_DelayUs(1);
-
 	BK4819_WriteU16(Data);
-
 	SYSTICK_DelayUs(1);
-
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
-
 	SYSTICK_DelayUs(1);
-
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 }

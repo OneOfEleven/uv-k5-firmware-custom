@@ -8,10 +8,11 @@
 
 // MDC1200 sync bit reversals and packet sync
 //
-// 24-bit pre-amble
+// >= 24-bit pre-amble
 // 40-bit sync
 //
-static const uint8_t header[] = {0x55, 0x55, 0x55, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x07, 0x09, 0x2a, 0x44, 0x6f};
+static const uint8_t pre_amble[] = {0x55, 0x55, 0x55, 0x00, 0x00, 0x00, 0x00, 0x0A};
+static const uint8_t sync[]      = {0x07, 0x09, 0x2a, 0x44, 0x6f};
 
 uint8_t bit_reverse_8(uint8_t n)
 {
@@ -170,12 +171,10 @@ void error_correction(uint8_t *data)
 	}
 }
 
-uint8_t * decode_data(uint8_t *data)
+bool MDC1200_decode_data(uint8_t *data)
 {
 	uint16_t crc1;
 	uint16_t crc2;
-
-//	(void)data;
 
 	{	// de-interleave
 
@@ -183,6 +182,24 @@ uint8_t * decode_data(uint8_t *data)
 		unsigned int k;
 		unsigned int m;
 		uint8_t deinterleaved[(FEC_K * 2) * 8];
+
+		// interleave order
+		//  0, 16, 32, 48, 64, 80,  96,
+		//  1, 17, 33, 49, 65, 81,  97,
+		//  2, 18, 34, 50, 66, 82,  98,
+		//  3, 19, 35, 51, 67, 83,  99,
+		//  4, 20, 36, 52, 68, 84, 100,
+		//  5, 21, 37, 53, 69, 85, 101,
+		//  6, 22, 38, 54, 70, 86, 102,
+		//  7, 23, 39, 55, 71, 87, 103,
+		//  8, 24, 40, 56, 72, 88, 104,
+		//  9, 25, 41, 57, 73, 89, 105,
+		// 10, 26, 42, 58, 74, 90, 106,
+		// 11, 27, 43, 59, 75, 91, 107,
+		// 12, 28, 44, 60, 76, 92, 108,
+		// 13, 29, 45, 61, 77, 93, 109,
+		// 14, 30, 46, 62, 78, 94, 110,
+		// 15, 31, 47, 63, 79, 95, 111
 
 		// de-interleave the received bits
 		for (i = 0, k = 0; i < 16; i++)
@@ -212,9 +229,9 @@ uint8_t * decode_data(uint8_t *data)
 	crc2 = (data[5] << 8) | (data[4] << 0);
 
 	if (crc1 != crc2)
-		return NULL;
+		return false;
 
-	// appears to be a valid packet
+	// valid packet
 
 
 
@@ -223,7 +240,7 @@ uint8_t * decode_data(uint8_t *data)
 
 
 
-	return NULL;
+	return true;
 }
 
 uint8_t * encode_data(uint8_t *data)
@@ -276,11 +293,28 @@ uint8_t * encode_data(uint8_t *data)
 
 		unsigned int i;
 		unsigned int k;
-		unsigned int m;
 		uint8_t interleaved[(FEC_K * 2) * 8];
 
+		// interleave order
+		//  0, 16, 32, 48, 64, 80,  96,
+		//  1, 17, 33, 49, 65, 81,  97,
+		//  2, 18, 34, 50, 66, 82,  98,
+		//  3, 19, 35, 51, 67, 83,  99,
+		//  4, 20, 36, 52, 68, 84, 100,
+		//  5, 21, 37, 53, 69, 85, 101,
+		//  6, 22, 38, 54, 70, 86, 102,
+		//  7, 23, 39, 55, 71, 87, 103,
+		//  8, 24, 40, 56, 72, 88, 104,
+		//  9, 25, 41, 57, 73, 89, 105,
+		// 10, 26, 42, 58, 74, 90, 106,
+		// 11, 27, 43, 59, 75, 91, 107,
+		// 12, 28, 44, 60, 76, 92, 108,
+		// 13, 29, 45, 61, 77, 93, 109,
+		// 14, 30, 46, 62, 78, 94, 110,
+		// 15, 31, 47, 63, 79, 95, 111
+
 		// bit interleaver
-		for (i = 0, k = 0, m = 0; i < (FEC_K * 2); i++)
+		for (i = 0, k = 0; i < (FEC_K * 2); i++)
 		{
 			unsigned int bit_num;
 			const uint8_t b = data[i];
@@ -289,7 +323,7 @@ uint8_t * encode_data(uint8_t *data)
 				interleaved[k] = (b >> bit_num) & 1u;
 				k += 16;
 				if (k >= sizeof(interleaved))
-					k = ++m;
+					k -= sizeof(interleaved) - 1;
 			}
 		}
 
@@ -334,8 +368,10 @@ unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const
 	uint16_t     crc;
 	uint8_t     *p = data;
 
-	memcpy(p, header, sizeof(header));
-	p += sizeof(header);
+	memcpy(p, pre_amble, sizeof(pre_amble));
+	p += sizeof(pre_amble);
+	memcpy(p, sync, sizeof(sync));
+	p += sizeof(sync);
 
 	p[0] = op;
 	p[1] = arg;
@@ -363,17 +399,18 @@ unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const
 	delta_modulation(data, size);
 
 	return size;
-//	return 26;
 }
-
+/*
 unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id, const uint8_t b0, const uint8_t b1, const uint8_t b2, const uint8_t b3)
 {
 	unsigned int size;
 	uint16_t     crc;
 	uint8_t     *p = data;
 
-	memcpy(p, header, sizeof(header));
-	p += sizeof(header);
+	memcpy(p, pre_amble, sizeof(pre_amble));
+	p += sizeof(pre_amble);
+	memcpy(p, sync, sizeof(sync));
+	p += sizeof(sync);
 
 	p[0] = op;
 	p[1] = arg;
@@ -402,15 +439,13 @@ unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const
 	delta_modulation(data, size);
 
 	return size;
-//	return 40;
 }
+*/
 /*
 void test(void)
 {
-	uint8_t data[14 + 14 + 5 + 7];
-
+	uint8_t data[42];
 	const int size = MDC1200_encode_single_packet(data, 0x12, 0x34, 0x5678);
-
 //	const int size = MDC1200_encode_double_packet(data, 0x55, 0x34, 0x5678, 0x0a, 0x0b, 0x0c, 0x0d);
 }
 */

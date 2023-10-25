@@ -12,7 +12,7 @@ ENABLE_OVERLAY                   := 0
 ENABLE_LTO                       := 1
 # UART Programming 2.9 kB
 ENABLE_UART                      := 1
-ENABLE_UART_DEBUG                := 1
+ENABLE_UART_DEBUG                := 0
 # AirCopy 2.5 kB
 ENABLE_AIRCOPY                   := 1
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
@@ -37,7 +37,7 @@ ENABLE_MDC1200                   := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
 ENABLE_BIG_FREQ                  := 0
-ENABLE_SMALL_BOLD                := 0
+ENABLE_SMALL_BOLD                := 1
 ENABLE_TRIM_TRAILING_ZEROS       := 1
 ENABLE_KEEP_MEM_NAME             := 1
 ENABLE_WIDE_RX                   := 1

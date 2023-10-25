@@ -3,6 +3,7 @@
 #define MDC1200H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 // 0x00 (0x81) emergency alarm
 // 0x20 (0x00) emergency alarm ack
@@ -85,6 +86,7 @@ enum mdc1200_op_code_e {
 	MDC1200_OP_CODE_RADIO_CHECK    = 0x63
 };
 
+bool         MDC1200_decode_data(uint8_t *data);
 unsigned int MDC1200_encode_single_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id);
 unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id, const uint8_t b0, const uint8_t b1, const uint8_t b2, const uint8_t b3);
 
