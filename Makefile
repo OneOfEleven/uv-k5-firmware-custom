@@ -481,9 +481,9 @@ all: $(TARGET)
 
 	$(info PYTHON = $(PYTHON))
 
-#	-python fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
-#	-python3 fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
-	-$(PYTHON) fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+	-python fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+	-python3 fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
+#	-$(PYTHON) fw-pack.py $<.bin $(GIT_HASH) $<.packed.bin
 
 	$(SIZE) $<
 
