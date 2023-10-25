@@ -58,33 +58,18 @@ uint32_t bit_reverse_32(uint32_t n)
 			for (k = 8; k > 0; k--)
 				crc = (crc & 1u) ? (crc >> 1) ^ 0x8408 : crc >> 1;
 		}
-		crc ^= 0xffff;
-		return crc;
+		return crc ^ 0xffff;
 	}
-	
+
 #elif 1
 
 	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
-	{
-		unsigned int i;
+	{	// let the CPU do the crc for us :)
 		uint16_t crc;
-
-//		CRC_InitReverse();
-
-		CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_ENABLE;
-
-		for (i = 0; i < data_len; i++)
-			//CRC_DATAIN = data[i];
-			CRC_DATAIN = bit_reverse_8(data[i]);
-		crc = CRC_DATAOUT;
-
-		CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_DISABLE;
-
-//		CRC_Init();
-
-		// bit reverse and invert the final CRC
-		//return crc ^ 0xffff;
-		return bit_reverse_16(crc) ^ 0xffff;
+		CRC_InitReverse();
+		crc = CRC_Calculate(data, data_len);
+		CRC_Init();
+		return crc;
 	}
 
 #else
@@ -97,7 +82,7 @@ uint32_t bit_reverse_32(uint32_t n)
 		for (i = 0; i < data_len; i++)
 		{
 			uint8_t mask;
-			
+
 			// bit reverse each data byte
 			const uint8_t bits = bit_reverse_8(*data++);
 
@@ -115,7 +100,7 @@ uint32_t bit_reverse_32(uint32_t n)
 		// bit reverse and invert the final CRC
 		return bit_reverse_16(crc) ^ 0xffff;
 	}
-	
+
 #endif
 
 // ************************************
@@ -123,7 +108,8 @@ uint32_t bit_reverse_32(uint32_t n)
 #define FEC_K   7
 
 void error_correction(uint8_t *data)
-{
+{	// can correct up to 3 or 4 corrupted bits (I think)
+
 	int     i;
 	uint8_t shift_reg;
 	uint8_t syn;
@@ -147,7 +133,7 @@ void error_correction(uint8_t *data)
 			if (syn & 0x02) k++;
 
 			if (k >= 3)
-			{	// correct bit error
+			{	// correct a bit error
 				int ii = i;
 				int bn = bit_num - 7;
 				if (bn < 0)
@@ -156,7 +142,7 @@ void error_correction(uint8_t *data)
 					ii--;
 				}
 				if (ii >= 0)
-					data[ii] ^= 1u << bn;
+					data[ii] ^= 1u << bn;   // do it
 				syn ^= 0xA6;   // 10100110
 			}
 		}
@@ -203,7 +189,7 @@ bool MDC1200_decode_data(uint8_t *data)
 			}
 		}
 
-		// copy the de-interleaved bits to the data buffer
+		// copy the de-interleaved bits back intoto the data buffer
 		for (i = 0, m = 0; i < (FEC_K * 2); i++)
 		{
 			unsigned int k;
@@ -215,19 +201,31 @@ bool MDC1200_decode_data(uint8_t *data)
 		}
 	}
 
+	// see if we can correct a couple of corrupted bits (if need be)
 	error_correction(data);
 
+	// rx'ed de-interleaved data (min 14 bytes) looks like this ..
+	//
+	// OP  ARG  ID    CRC   STATUS  FEC bits
+	// 01  80   1234  2E3E  00      6580A862DD8808
+
 	crc1 = compute_crc(data, 4);
-	crc2 = (data[5] << 8) | (data[4] << 0);
+	crc2 = ((uint16_t)data[5] << 8) | (data[4] << 0);
 
 	if (crc1 != crc2)
-		return false;
+		return false;   // CRC error, even after using the FEC bits
 
 	// valid packet
 
+	// extract the info
+	//uint8_t  op  = data[0];
+	//uint8_t  arg = data[1];
+	//uint16_t id  = ((uint16_t)data[3] << 8) | (data[2] << 0);
 
 
-	// TODO: more stuff
+
+
+	// TODO: pass the above received radio details over to the display function
 
 
 
@@ -239,14 +237,8 @@ uint8_t * encode_data(uint8_t *data)
 {
 	// R=1/2 K=7 convolutional coder
 	//
-	// op     0x01
-	// arg    0x80
-	// id     0x1234
-	// crc    0x2E3E
-	// status 0x00
-	// FEC    0x6580A862DD8808
-	//
-	// 01 80 1234 2E3E 00 6580A862DD8808
+	// OP  ARG  ID    CRC   STATUS  FEC bits
+	// 01  80   1234  2E3E  00      6580A862DD8808
 	//
 	// 1. reverse the bit order for each byte of the first 7 bytes (to undo the reversal performed for display, above)
 	// 2. feed those bits into a shift register which is preloaded with all zeros
@@ -270,9 +262,9 @@ uint8_t * encode_data(uint8_t *data)
 		}
 	}
 
-	// 01 80 00 23  31 FC  00  65 80 32 0F 99 86 23
-	// 01 80 00 23  31 FC  00  65 80 32 0F 99 86 23
-	
+	// 01 00 00 23  DD F0  00  65 00 00 0F 45 1F 21
+	// 01 00 00 23  DD F0  00  65 00 00 0F 45 1F 21
+
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	{
 		const unsigned int size = FEC_K * 2;
