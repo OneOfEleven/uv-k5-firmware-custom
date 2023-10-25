@@ -1128,7 +1128,7 @@ void RADIO_tx_eot(void)
 #ifdef ENABLE_MDC1200
 	if (g_eeprom.roger_mode == ROGER_MODE_MDC)
 	{
-		BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID, 0x80, g_eeprom.mdc1200_id);
+		BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID, 0x00, g_eeprom.mdc1200_id);
 	}
 	else
 #endif

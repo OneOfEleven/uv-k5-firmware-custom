@@ -783,7 +783,7 @@ void UI_DisplayMain(void)
 						UI_PrintStringSmallest(str, x, (line + 0) * 8, false, true);
 					}
 				}
-				x += smallest_char_spacing * 4;
+				x += (smallest_char_spacing * 4) - 1;
 
 				if (g_eeprom.vfo_info[vfo_num].compand)
 					UI_PrintStringSmallest("C", x, (line + 0) * 8, false, true);

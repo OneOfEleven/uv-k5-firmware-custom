@@ -20,26 +20,40 @@
 void CRC_Init(void)
 {
 	CRC_CR =
-		  CRC_CR_CRC_EN_BITS_DISABLE
-		| CRC_CR_INPUT_REV_BITS_NORMAL
-		| CRC_CR_INPUT_INV_BITS_NORMAL
-		| CRC_CR_OUTPUT_REV_BITS_NORMAL
-		| CRC_CR_OUTPUT_INV_BITS_NORMAL
-		| CRC_CR_DATA_WIDTH_BITS_8
-		| CRC_CR_CRC_SEL_BITS_CRC_16_CCITT;
+		CRC_CR_CRC_EN_BITS_DISABLE    |
+		CRC_CR_INPUT_REV_BITS_NORMAL  |
+		CRC_CR_INPUT_INV_BITS_NORMAL  |
+		CRC_CR_OUTPUT_REV_BITS_NORMAL |
+		CRC_CR_OUTPUT_INV_BITS_NORMAL |
+		CRC_CR_DATA_WIDTH_BITS_8      |
+		CRC_CR_CRC_SEL_BITS_CRC_16_CCITT;
 
 	CRC_IV = 0;
 }
 
-uint16_t CRC_Calculate(const void *pBuffer, uint16_t Size)
+void CRC_InitReverse(void)
 {
-	const uint8_t *data = (const uint8_t *)pBuffer;
+	CRC_CR =
+		CRC_CR_CRC_EN_BITS_DISABLE      |
+		CRC_CR_INPUT_REV_BITS_REVERSED  |
+		CRC_CR_INPUT_INV_BITS_NORMAL    |
+		CRC_CR_OUTPUT_REV_BITS_REVERSED |
+		CRC_CR_OUTPUT_INV_BITS_NORMAL   |
+		CRC_CR_DATA_WIDTH_BITS_8        |
+		CRC_CR_CRC_SEL_BITS_CRC_16_CCITT;
+
+	CRC_IV = 0;
+}
+
+uint16_t CRC_Calculate(const void *buffer, const unsigned int size)
+{
+	const uint8_t *data = (const uint8_t *)buffer;
 	uint16_t       i;
 	uint16_t       crc;
 
 	CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_ENABLE;
 
-	for (i = 0; i < Size; i++)
+	for (i = 0; i < size; i++)
 		CRC_DATAIN = data[i];
 	crc = (uint16_t)CRC_DATAOUT;
 

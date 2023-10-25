@@ -1237,6 +1237,7 @@ void UI_DisplayMenu(void)
 			UI_PrintString(str, sub_menu_x1, sub_menu_x2, 0, 8);
 
 			// channel name
+			memset(str, 0, sizeof(str));
 			BOARD_fetchChannelName(str, g_sub_menu_selection);
 			if (str[0] == 0)
 				strcpy(str, "--");

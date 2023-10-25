@@ -945,8 +945,7 @@ void BOARD_fetchChannelName(char *s, const int channel)
 	if (!RADIO_CheckValidChannel(channel, false, 0))
 		return;
 
-	EEPROM_ReadBuffer(0x0F50 + (channel * 16), s + 0, 8);
-	EEPROM_ReadBuffer(0x0F58 + (channel * 16), s + 8, 2);
+	EEPROM_ReadBuffer(0x0F50 + (channel * 16), s, 10);
 
 	for (i = 0; i < 10; i++)
 		if (s[i] < 32 || s[i] > 127)

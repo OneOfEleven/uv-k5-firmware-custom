@@ -19,8 +19,9 @@
 
 #include <stdint.h>
 
-void CRC_Init(void);
-uint16_t CRC_Calculate(const void *pBuffer, uint16_t Size);
+void     CRC_Init(void);
+void     CRC_InitReverse(void);
+uint16_t CRC_Calculate(const void *buffer, const unsigned int size);
 
 #endif
 

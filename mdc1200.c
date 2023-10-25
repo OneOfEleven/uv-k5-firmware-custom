@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "bsp/dp32g030/crc.h"
+#include "driver/crc.h"
 #include "driver/uart.h"
 #include "mdc1200.h"
 #include "misc.h"
@@ -30,7 +31,7 @@ uint16_t bit_reverse_16(uint16_t n)
 	n = ((n >> 8) & 0x00FFu) | ((n << 8) & 0xFF00u);
    return n;
 }
-
+/*
 uint32_t bit_reverse_32(uint32_t n)
 {
 	n = ((n >>  1) & 0x55555555u) | ((n <<  1) & 0xAAAAAAAAu);
@@ -40,22 +41,12 @@ uint32_t bit_reverse_32(uint32_t n)
 	n = ((n >> 16) & 0x0000FFFFu) | ((n << 16) & 0xFFFF0000u);
 	return n;
 }
+*/
 
-uint16_t reverse_bits(const uint16_t bits_in, const unsigned int num_bits)
-{
-	uint16_t i;
-	uint16_t bit;
-	uint16_t bits_out;
-	for (i = 1u << (num_bits - 1), bit = 1u, bits_out = 0u; i != 0; i >>= 1)
-	{
-		if (bits_in & i)
-			 bits_out |= bit;
-		bit <<= 1;
-	}
-	return bits_out;
-}
+// ************************************
 
-#if 1
+#if 0
+
 	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
 	{	// using the reverse computation avoids having to reverse the bit order during and after
 		unsigned int i;
@@ -70,63 +61,64 @@ uint16_t reverse_bits(const uint16_t bits_in, const unsigned int num_bits)
 		crc ^= 0xffff;
 		return crc;
 	}
-#else
+	
+#elif 1
+
 	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
 	{
-
-		// this can be done using the CPU's own CRC calculator once we know we're ok
-
 		unsigned int i;
+		uint16_t crc;
 
-		#if 0
-			uint16_t crc;
+//		CRC_InitReverse();
 
-			CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_ENABLE;
-		#else
-			uint16_t crc = 0;
-		#endif
+		CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_ENABLE;
+
+		for (i = 0; i < data_len; i++)
+			//CRC_DATAIN = data[i];
+			CRC_DATAIN = bit_reverse_8(data[i]);
+		crc = CRC_DATAOUT;
+
+		CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_DISABLE;
+
+//		CRC_Init();
+
+		// bit reverse and invert the final CRC
+		//return crc ^ 0xffff;
+		return bit_reverse_16(crc) ^ 0xffff;
+	}
+
+#else
+
+	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
+	{
+		unsigned int i;
+		uint16_t crc = 0;
 
 		for (i = 0; i < data_len; i++)
 		{
-			#if 0
+			uint8_t mask;
+			
+			// bit reverse each data byte
+			const uint8_t bits = bit_reverse_8(*data++);
 
-				// bit reverse each data byte before adding it to the CRC
-				// the cortex CPU might have an instruction to bit reverse for us ?
-				//
-				CRC_DATAIN = reverse_bits(data[i], 8);
-				//CRC_DATAIN = bit_reverse_8(data[i]);
-
-			#else
-				uint8_t mask;
-
-				// bit reverse each data byte before adding it to the CRC
-				// the cortex CPU might have an instruction to bit reverse for us ?
-				//
-				const uint8_t bits = reverse_bits(data[i], 8);
-				//const uint8_t bits = bit_reverse_8(*data++);
-
-				for (mask = 0x0080; mask != 0; mask >>= 1)
-				{
-					uint16_t msb = crc & 0x8000;
-					if (bits & mask)
-						msb ^= 0x8000;
-					crc <<= 1;
-					if (msb)
-						crc ^= 0x1021;
-				}
-			#endif
+			for (mask = 0x0080; mask != 0; mask >>= 1)
+			{
+				uint16_t msb = crc & 0x8000;
+				if (bits & mask)
+					msb ^= 0x8000;
+				crc <<= 1;
+				if (msb)
+					crc ^= 0x1021;
+			}
 		}
 
-		#if 0
-			crc    = (uint16_t)CRC_DATAOUT;
-			CRC_CR = (CRC_CR & ~CRC_CR_CRC_EN_MASK) | CRC_CR_CRC_EN_BITS_DISABLE;
-		#endif
-
 		// bit reverse and invert the final CRC
-		return reverse_bits(crc, 16) ^ 0xffff;
-	//	return bit_reverse_16(crc) ^ 0xffff;
+		return bit_reverse_16(crc) ^ 0xffff;
 	}
+	
 #endif
+
+// ************************************
 
 #define FEC_K   7
 
@@ -277,7 +269,10 @@ uint8_t * encode_data(uint8_t *data)
 			data[FEC_K + i] = bo;
 		}
 	}
-/*
+
+	// 01 80 00 23  31 FC  00  65 80 32 0F 99 86 23
+	// 01 80 00 23  31 FC  00  65 80 32 0F 99 86 23
+	
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	{
 		const unsigned int size = FEC_K * 2;
@@ -288,7 +283,7 @@ uint8_t * encode_data(uint8_t *data)
 		UART_SendText("\r\n");
 	}
 	#endif
-*/
+
 	{	// interleave the bits
 
 		unsigned int i;
