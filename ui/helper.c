@@ -204,6 +204,7 @@ void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDispla
 	uint8_t           *pFb0        = g_frame_buffer[Y] + X;
 	uint8_t           *pFb1        = pFb0 + 128;
 	bool               bCanDisplay = false;
+	unsigned int       len         = 6;
 	unsigned int       i           = 0;
 
 	// MHz
@@ -231,8 +232,20 @@ void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDispla
 	*pFb1 = 0x60; pFb0++; pFb1++;
 	*pFb1 = 0x60; pFb0++; pFb1++;
 
+#ifdef ENABLE_TRIM_TRAILING_ZEROS
+	if (pDigits[len + 1] == 0 && pDigits[len + 2] == 0)
+	{
+		if (pDigits[len - 1] == 0)
+		{
+			len--;
+			if (pDigits[len - 1] == 0)
+				len--;
+		}
+	}
+#endif
+
 	// kHz
-	while (i < 6)
+	while (i < len)
 	{
 		const unsigned int Digit = pDigits[i++];
 		memcpy(pFb0, g_font_big_digits[Digit],              char_width);
