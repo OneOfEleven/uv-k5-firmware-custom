@@ -836,7 +836,7 @@ void UI_DisplayMain(void)
 		}
 		UI_PrintStringSmall(str, LCD_WIDTH + 24, 0, line + 1);
 
-		if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
+		if ((state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) && !g_eeprom.vfo_info[vfo_num].am_mode)
 		{	// show the TX power
 			const char pwr_list[] = "LMH";
 			const unsigned int i = g_eeprom.vfo_info[vfo_num].output_power;
