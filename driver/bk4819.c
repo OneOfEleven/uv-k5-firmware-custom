@@ -1272,6 +1272,7 @@ void BK4819_EnableTXLink(void)
 
 void BK4819_PlayDTMF(char Code)
 {
+/*
 	uint16_t tone1 = 0;
 	uint16_t tone2 = 0;
 
@@ -1299,6 +1300,55 @@ void BK4819_PlayDTMF(char Code)
 		BK4819_WriteRegister(BK4819_REG_71, (((uint32_t)tone1 * 103244) + 5000) / 10000);   // with rounding
 	if (tone2 > 0)
 		BK4819_WriteRegister(BK4819_REG_72, (((uint32_t)tone2 * 103244) + 5000) / 10000);   // with rounding
+*/	
+	
+	uint32_t index = ((Code >= 65) ? (Code - 55) : ((Code <= 35) ? 15 :((Code <= 42) ? 14 : (Code - '0'))));
+
+	const uint16_t tones[2][16] =
+	{
+			{ // tone1
+					941,  // '0'
+					679,  // '1'
+					697,  // '2'
+					679,  // '3'
+					770,  // '4'
+					770,  // '5'
+					770,  // '6'
+					852,  // '7'
+					852,  // '8'
+					852,  // '9'
+					679,  // 'A'
+					770,  // 'B'
+					852,  // 'C'
+					941,  // 'D'
+					941,  // '*'
+					941,  // '#'
+			},
+			{ // tone2
+					1336, // '0'
+					1209, // '1'
+					1336, // '2'
+					1477, // '3'
+					1209, // '4'
+					1336, // '5'
+					1477, // '6'
+					1209, // '7'
+					1336, // '8'
+					1477, // '9'
+					1633, // 'A'
+					1633, // 'B'
+					1633, // 'C'
+					1633, // 'D'
+					1209, // '*'
+					1477  // '#'
+			}
+	};
+
+    if (index < 16)
+    {
+    	BK4819_WriteRegister(BK4819_REG_71, (((uint32_t)tones[0][index] * 103244U) + 5000U) / 10000U);   // with rounding
+    	BK4819_WriteRegister(BK4819_REG_72, (((uint32_t)tones[1][index] * 103244U) + 5000U) / 10000U);   // with rounding
+    }	
 }
 
 void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst, uint16_t FirstCodePersistTime, uint16_t HashCodePersistTime, uint16_t CodePersistTime, uint16_t CodeInternalTime)
