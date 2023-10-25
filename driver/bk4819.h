@@ -67,8 +67,8 @@ void     BK4819_WriteRegister(const uint8_t Register, uint16_t Data);
 void     BK4819_WriteU8(uint8_t Data);
 void     BK4819_WriteU16(uint16_t Data);
 
-void     BK4819_DisableAGC();
-void     BK4819_EnableAGC();
+void     BK4819_DisableAGC(void);
+void     BK4819_EnableAGC(void);
 
 void     BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet);
 

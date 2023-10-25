@@ -251,8 +251,28 @@ void BK4819_WriteU16(uint16_t Data)
 	}
 }
 
-void BK4819_DisableAGC()
+void BK4819_DisableAGC(void)
 {
+	// REG_7E
+	//
+	// <15> 0 AGC Fix Mode.
+	// 1=Fix; 0=Auto.
+	//
+	// <14:12> 0b011 AGC Fix Index.
+	// 011=Max, then 010,001,000,111,110,101,100(min).
+	//
+	// <5:3> 0b101 DC Filter Band Width for Tx (MIC In).
+	// 000=Bypass DC filter;
+	//
+	// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
+	// 000=Bypass DC filter;
+	//
+	BK4819_WriteRegister(0x7E,
+		(1u << 15) |      // 0  AGC fix mode
+		(3u << 12) |      // 3  AGC fix index
+		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
+		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
+
 	// REG_10
 	//
 	// 0x0038 Rx AGC Gain Table[0]. (Index Max->Min is 3,2,1,0,-1)
@@ -290,10 +310,7 @@ void BK4819_DisableAGC()
 	//         2 = -21dB
 	//         1 = -27dB
 	//         0 = -33dB
-
-	// undoes BK4819_EnableAGC reg write
-	//BK4819_WriteRegister(0x7E, (0u << 15));
-
+	//
 	BK4819_WriteRegister(0x13, (3u << 8) | (2u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
 	BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
 	BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
@@ -305,7 +322,7 @@ void BK4819_DisableAGC()
 	BK4819_WriteRegister(0x7B, 0x8420);
 }
 
-void BK4819_EnableAGC()
+void BK4819_EnableAGC(void)
 {
 	// TODO: See if this attenuates overloading
 	// signals as well as boosting weak ones
@@ -326,6 +343,12 @@ void BK4819_EnableAGC()
 
 	// default fix index too strong, set to min (011->100)
 	//BK4819_WriteRegister(0x7E, (1u << 15) | (4u << 12) | (5u << 3) | (6u << 0));
+
+	BK4819_WriteRegister(0x7E,
+		(0u << 15) |      // 0  AGC fix mode
+		(3u << 12) |      // 3  AGC fix index
+		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
+		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
 
 	BK4819_WriteRegister(0x13, (3u << 8) | (2u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
     BK4819_WriteRegister(0x12, 0x037C);

@@ -51,7 +51,7 @@
 #ifdef ENABLE_F_CAL_MENU
 	void writeXtalFreqCal(const int32_t value, const bool update_eeprom)
 	{
-		BK4819_WriteRegister(BK4819_REG_3B, 22656 + value);
+		BK4819_WriteRegister(0x3B, 22656 + value);
 
 		if (update_eeprom)
 		{
