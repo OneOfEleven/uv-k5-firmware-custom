@@ -242,13 +242,21 @@ void SETTINGS_save(void)
 
 	{
 		struct {
-			uint32_t password;
-			uint32_t spare;
+			uint32_t     password;
+			#ifdef ENABLE_MDC1200
+				uint16_t mdc1200_id;     // 1of11
+				uint8_t  spare[2];
+			#else
+				uint8_t  spare[4];
+			#endif
 		} __attribute__((packed)) array;
 
 		memset(&array, 0xff, sizeof(array));
 		#ifdef ENABLE_PWRON_PASSWORD
 			array.password = g_eeprom.power_on_password;
+		#endif
+		#ifdef ENABLE_MDC1200
+			array.mdc1200_id = g_eeprom.mdc1200_id;
 		#endif
 
 		EEPROM_WriteBuffer8(0x0E98, &array);

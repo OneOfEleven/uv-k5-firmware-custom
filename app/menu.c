@@ -329,6 +329,13 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(g_sub_menu_dtmf_rsp) - 1;
 			break;
 
+		#ifdef ENABLE_MDC1200
+			case MENU_MDC1200_ID:
+				*pMin = 0;
+				*pMax = 0xffff;
+				break;
+		#endif
+		
 		case MENU_PTT_ID:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_ptt_id) - 1;
@@ -702,6 +709,12 @@ void MENU_AcceptSetting(void)
 		case MENU_DTMF_PRE:
 			g_eeprom.dtmf_preload_time = g_sub_menu_selection * 10;
 			break;
+
+		#ifdef ENABLE_MDC1200
+			case MENU_MDC1200_ID:
+				g_eeprom.mdc1200_id = g_sub_menu_selection;
+				break;
+		#endif
 
 		case MENU_PTT_ID:
 			g_tx_vfo->dtmf_ptt_id_tx_mode = g_sub_menu_selection;
@@ -1198,6 +1211,12 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_DTMF_PRE:
 			g_sub_menu_selection = g_eeprom.dtmf_preload_time / 10;
 			break;
+
+		#ifdef ENABLE_MDC1200
+			case MENU_MDC1200_ID:
+				g_sub_menu_selection = g_eeprom.mdc1200_id;
+				break;
+		#endif
 
 		case MENU_PTT_ID:
 			g_sub_menu_selection = g_tx_vfo->dtmf_ptt_id_tx_mode;

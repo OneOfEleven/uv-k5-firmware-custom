@@ -156,8 +156,9 @@ uint8_t  BK4819_GetCTCType(void);
 void     BK4819_start_fsk_rx(const unsigned int packet_size);
 
 void     BK4819_PlayRoger(void);
+
 #ifdef ENABLE_MDC1200
-	void BK4819_PlayRogerMDC1200(void);
+	void BK4819_send_MDC1200(const uint8_t op, const uint8_t arg, const uint16_t id);
 #endif
 
 void     BK4819_Enable_AfDac_DiscMode_TxDsp(void);
