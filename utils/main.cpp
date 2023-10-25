@@ -36,10 +36,10 @@
 	//   <7:5> = LNA Gain
 	//           7 =   0dB
 	//           6 =  -2dB
-	//           5 =  -4dB
+	//           5 =  -4dB   < original value
 	//           4 =  -6dB
 	//           3 =  -9dB
-	//           2 = -14dB   < original value
+	//           2 = -14dB
 	//           1 = -19dB
 	//           0 = -24dB
 	//
@@ -87,7 +87,7 @@ void create_gain_table(const char *filename)
 	const int16_t pga_dB[8]       = { (-33), (-27), (-21), (-15), (-9), (-6), (-3), (0)};
 
 	const uint8_t orig_lna_short = 3;
-	const uint8_t orig_lna       = 2;
+	const uint8_t orig_lna       = 5;
 	const uint8_t orig_mixer     = 3;
 	const uint8_t orig_pga       = 6;
 
@@ -581,7 +581,7 @@ int main(int argc, char* argv[])
 
 	rotate_font("uv-k5_small.bin",         "uv-k5_small.c");
 	rotate_font("uv-k5_small_bold.bin",    "uv-k5_small_bold.c");
-	rotate_font_4x5("uv-k5_small_4x5.bin", "uv-k5_small_4x5.c");
+//	rotate_font_4x5("uv-k5_small_4x5.bin", "uv-k5_small_4x5.c");
 
 	return 0;
 }

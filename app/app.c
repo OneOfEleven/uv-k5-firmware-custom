@@ -68,8 +68,9 @@
 #include "ui/ui.h"
 
 // original QS front end register settings
+// 0x03BE   00000 011 101 11 110
 const uint8_t orig_lna_short = 3;   //   0dB
-const uint8_t orig_lna       = 2;   // -14dB
+const uint8_t orig_lna       = 5;   //  -4dB
 const uint8_t orig_mixer     = 3;   //   0dB
 const uint8_t orig_pga       = 6;   //  -3dB
 
@@ -570,19 +571,28 @@ bool APP_start_listening(function_type_t Function, const bool reset_am_fix)
 			AM_fix_10ms(chan);
 		}
 		else
+		{
 			BK4819_WriteRegister(0x13, (lna_short << 8) | (lna << 5) | (mixer << 3) | (pga << 0));
+		}
 	}
 #else
 	(void)reset_am_fix;
 #endif
 
 	// AF gain - original QS values
-	BK4819_WriteRegister(0x48,
-		(11u << 12)                 |     // ??? .. 0 to 15, doesn't seem to make any difference
-		( 0u << 10)                 |     // AF Rx Gain-1
-		(g_eeprom.volume_gain << 4) |     // AF Rx Gain-2
-		(g_eeprom.dac_gain    << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
-
+	if (g_rx_vfo->am_mode)
+	{
+		BK4819_WriteRegister(0x48, 0xB3A8);
+	}
+	else
+	{
+		BK4819_WriteRegister(0x48,
+			(11u << 12)                 |     // ??? .. 0 to 15, doesn't seem to make any difference
+			( 0u << 10)                 |     // AF Rx Gain-1
+			(g_eeprom.volume_gain << 4) |     // AF Rx Gain-2
+			(g_eeprom.dac_gain    << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
+	}
+	
 	#ifdef ENABLE_VOICE
 		#ifdef MUTE_AUDIO_FOR_VOICE
 			if (g_voice_write_index == 0)

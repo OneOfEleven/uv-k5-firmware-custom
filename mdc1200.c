@@ -9,13 +9,16 @@
 
 #define FEC_K   7
 
-// MDC1200 sync bit reversals and packet sync
+// **********************************************************
+
+// pre-amble and sync pattern
 //
 // >= 24-bit pre-amble
-// 40-bit sync
+//    40-bit sync
 //
-static const uint8_t pre_amble[] = {0x00, 0x00, 0x00, 0x00, 0x00};
-static const uint8_t sync[]      = {0xCC, 0x07, 0x09, 0x2a, 0x44, 0x6f};
+static const uint8_t pre_amble[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0xCC};
+static const uint8_t sync[]      = {0x07, 0x09, 0x2a, 0x44, 0x6f};
+
 /*
 uint8_t bit_reverse_8(uint8_t n)
 {
@@ -45,6 +48,7 @@ uint32_t bit_reverse_32(uint32_t n)
 }
 */
 // ************************************
+// common
 
 #if 0
 
@@ -105,6 +109,7 @@ uint32_t bit_reverse_32(uint32_t n)
 #endif
 
 // ************************************
+// RX
 
 void error_correction(uint8_t *data)
 {	// can correct up to 3 or 4 corrupted bits (I think)
@@ -145,26 +150,6 @@ void error_correction(uint8_t *data)
 				syn ^= 0xA6;   // 10100110
 			}
 		}
-	}
-}
-
-void xor_modulation(uint8_t *data, const unsigned int size)
-{	// exclusive-or succesive bits - the entire packet
-	unsigned int i;
-	uint8_t prev_bit = 0;
-	for (i = 0; i < size; i++)
-	{
-		int bit_num;
-		uint8_t in  = data[i];
-		uint8_t out = 0;
-		for (bit_num = 7; bit_num >= 0; bit_num--)
-		{
-			const uint8_t new_bit = (in >> bit_num) & 1u;
-			if (new_bit != prev_bit)
-				out |= 1u << bit_num;        // previous bit and new bit are different - send a '1'
-			prev_bit = new_bit;
-		}
-		data[i] = out ^ 0xff;
 	}
 }
 /*
@@ -254,6 +239,29 @@ bool decode_data(uint8_t *data)
 	crc2 = ((uint16_t)data[5] << 8) | (data[4] << 0);
 
 	return (crc1 == crc2) ? true : false;
+}
+
+// **********************************************************
+// TX
+
+void xor_modulation(uint8_t *data, const unsigned int size)
+{	// exclusive-or succesive bits - the entire packet
+	unsigned int i;
+	uint8_t prev_bit = 0;
+	for (i = 0; i < size; i++)
+	{
+		int bit_num;
+		uint8_t in  = data[i];
+		uint8_t out = 0;
+		for (bit_num = 7; bit_num >= 0; bit_num--)
+		{
+			const uint8_t new_bit = (in >> bit_num) & 1u;
+			if (new_bit != prev_bit)
+				out |= 1u << bit_num;        // previous bit and new bit are different - send a '1'
+			prev_bit = new_bit;
+		}
+		data[i] = out ^ 0xff;
+	}
 }
 
 uint8_t * encode_data(uint8_t *data)
@@ -430,6 +438,9 @@ unsigned int MDC1200_encode_double_packet(uint8_t *data, const uint8_t op, const
 	return size;
 }
 */
+
+// **********************************************************
+// RX
 
 struct {
 	uint8_t      bit;
@@ -616,6 +627,8 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 
 	return false;
 }
+
+// **********************************************************
 
 /*
 void test(void)

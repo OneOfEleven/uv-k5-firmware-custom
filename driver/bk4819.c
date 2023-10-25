@@ -53,8 +53,8 @@ void BK4819_Init(void)
 	BK4819_WriteRegister(0x37, 0x1D0F);
 	BK4819_WriteRegister(0x36, 0x0022);
 
-//	BK4819_DisableAGC();
-	BK4819_EnableAGC();
+	BK4819_DisableAGC();
+//	BK4819_EnableAGC();
 
 	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
 
@@ -312,7 +312,7 @@ void BK4819_DisableAGC(void)
 	//         1 = -27dB
 	//         0 = -33dB
 	//
-	BK4819_WriteRegister(0x13, (3u << 8) | (2u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
+	BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
 	BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
 	BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
 	BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
@@ -351,7 +351,7 @@ void BK4819_EnableAGC(void)
 		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
 		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
 
-	BK4819_WriteRegister(0x13, (3u << 8) | (2u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
+	BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
     BK4819_WriteRegister(0x12, 0x037C);
     BK4819_WriteRegister(0x11, 0x027B);
     BK4819_WriteRegister(0x10, 0x007A);
