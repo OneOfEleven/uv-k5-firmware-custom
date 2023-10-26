@@ -143,14 +143,14 @@ void UI_DisplaySearch(void)
 					break;
 
 				case SEARCH_CSS_STATE_FOUND:
-					strcpy(String, "* repeat  M save");
+					strcpy(String, "* repeat M save");
 					text_centered = true;
 					break;
 
 				case SEARCH_CSS_STATE_FAILED:
 					if (!g_search_single_frequency)
 					{
-						strcpy(String, "* repeat  M save");
+						strcpy(String, "* repeat M save");
 						text_centered = true;
 						break;
 					}
@@ -176,7 +176,7 @@ void UI_DisplaySearch(void)
 			break;
 
 		case SEARCH_EDIT_STATE_SAVE_CONFIRM:
-			strcpy(String, "* repeat  Save ?");
+			strcpy(String, "* repeat Save ?");
 			text_centered = true;
 			break;
 	}

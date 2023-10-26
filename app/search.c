@@ -217,7 +217,7 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 
 		case SEARCH_EDIT_STATE_SAVE_CHAN:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("edit save chan\r\n");
+//				UART_SendText("edit save chan\r\n");
 			#endif
 
 			if (g_input_box_index > 0)
@@ -235,7 +235,7 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 
 		case SEARCH_EDIT_STATE_SAVE_CONFIRM:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("edit save confirm\r\n");
+//				UART_SendText("edit save confirm\r\n");
 			#endif
 
 			if (!g_search_single_frequency)
@@ -428,9 +428,9 @@ void SEARCH_Start(void)
 
 #if 1
 		// this is why it needs such a strong signal
-		BK4819_set_rf_filter_path(0xFFFFFFFF);                 // disable the LNA filter paths
+		BK4819_set_rf_filter_path(0xFFFFFFFF);  // disable the LNA filter paths - why it needs a strong signal
 #else
-		BK4819_set_rf_filter_path(g_rx_vfo->p_rx->frequency);  // lets have a play ;)
+		BK4819_set_rf_filter_path(g_rx_vfo->p_rx->frequency);  // lets have a play !
 #endif
 
 		BK4819_EnableFrequencyScan();

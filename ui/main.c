@@ -749,28 +749,6 @@ void UI_DisplayMain(void)
 			{	// frequency mode
 				#ifdef ENABLE_BIG_FREQ
 					big_freq(frequency, x, line);
-/*					
-					NUMBER_ToDigits(frequency, str);  // 8 digits
-
-					// show the main large frequency digits
-					UI_DisplayFrequency(str, x, line, false, false);
-
-					// show the remaining 2 small frequency digits
-					#ifdef ENABLE_TRIM_TRAILING_ZEROS
-					{
-						unsigned int small_num = 2;
-						if (str[7] == 0)
-						{
-							small_num--;
-							if (str[6] == 0)
-								small_num--;
-						}
-						UI_Displaysmall_digits(small_num, str + 6, x + 81, line + 1, true);
-					}
-					#else
-						UI_Displaysmall_digits(2, str + 6, x + 81, line + 1, true);
-					#endif
-*/
 				#else
 					// show the frequency in the main font
 

@@ -70,22 +70,26 @@ void UI_GenerateChannelStringEx(char *pString, const char *prefix, const uint8_t
 		sprintf(pString + strlen(prefix), "%03u", ChannelNumber + 1);
 }
 
-void UI_PrintString(const char *pString, uint8_t Start, uint8_t End, uint8_t Line, uint8_t Width)
+void UI_PrintString(const char *str, unsigned int start, const unsigned int end, const unsigned int line, const unsigned int width)
 {
+	const size_t length = strlen(str);
 	size_t i;
-	size_t Length = strlen(pString);
 
-	if (End > Start)
-		Start += ((End - Start) - (Length * Width) - 1) / 2;
-
-	for (i = 0; i < Length; i++)
+	if (end > start)
 	{
-		if (pString[i] >= ' ' && pString[i] < 127)
+		const int ofs = ((int)(end - start) - (length * width) - 1) / 2;
+		if (ofs > 0 && (start + ofs) <= end)
+			start += ofs;
+	}
+
+	for (i = 0; i < length; i++)
+	{
+		if (str[i] >= ' ' && str[i] < 127)
 		{
-			const unsigned int index = pString[i] - ' ';
-			const unsigned int ofs   = (unsigned int)Start + (i * Width);
-			memcpy(g_frame_buffer[Line + 0] + ofs, &g_font_big[index][0], 8);
-			memcpy(g_frame_buffer[Line + 1] + ofs, &g_font_big[index][8], 7);
+			const unsigned int index = str[i] - ' ';
+			const unsigned int ofs   = start + (i * width);
+			memcpy(g_frame_buffer[line + 0] + ofs, &g_font_big[index][0], 8);
+			memcpy(g_frame_buffer[line + 1] + ofs, &g_font_big[index][8], 7);
 		}
 	}
 }
@@ -105,7 +109,11 @@ void UI_print_string(
 	uint8_t           *f_buf;
 
 	if (end > start)
-		start += ((end - start) - (length * char_pitch)) / 2;
+	{
+		const int ofs = ((int)(end - start) - (length * char_pitch) - 1) / 2;
+		if (ofs > 0 && (start + ofs) <= end)
+			start += ofs;
+	}
 
 	f_buf = g_frame_buffer[line] + start;
 

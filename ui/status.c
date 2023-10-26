@@ -99,24 +99,29 @@ void UI_DisplayStatus(const bool test_display)
 		else
 	#endif
 		// SCAN indicator
-		if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_screen_to_display == DISPLAY_SEARCH || test_display)
+		if (g_scan_state_dir != SCAN_STATE_DIR_OFF ||
+		    g_screen_to_display == DISPLAY_SEARCH ||
+		    test_display)
 		{
-			if (g_scan_next_channel <= USER_CHANNEL_LAST)
-			{	// channel mode
-				if (g_eeprom.scan_list_default == 0)
-					UI_PrintStringSmallBuffer("1", line + x);
+			if (g_search_css_state == SEARCH_CSS_STATE_OFF) // don't display this if in search mode
+			{
+				if (g_scan_next_channel <= USER_CHANNEL_LAST)
+				{	// channel mode
+					if (g_eeprom.scan_list_default == 0)
+						UI_PrintStringSmallBuffer("1", line + x);
+					else
+					if (g_eeprom.scan_list_default == 1)
+						UI_PrintStringSmallBuffer("2", line + x);
+					else
+					if (g_eeprom.scan_list_default == 2)
+						UI_PrintStringSmallBuffer("*", line + x);
+				}
 				else
-				if (g_eeprom.scan_list_default == 1)
-					UI_PrintStringSmallBuffer("2", line + x);
-				else
-				if (g_eeprom.scan_list_default == 2)
-					UI_PrintStringSmallBuffer("*", line + x);
+				{	// frequency mode
+					UI_PrintStringSmallBuffer("S", line + x);
+				}
+				x1 = x + 7;
 			}
-			else
-			{	// frequency mode
-				UI_PrintStringSmallBuffer("S", line + x);
-			}
-			x1 = x + 7;
 		}
 	}
 	x += 7;  // font character width

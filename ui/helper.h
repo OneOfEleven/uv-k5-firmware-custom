@@ -22,7 +22,7 @@
 
 void UI_GenerateChannelString(char *pString, const uint8_t Channel, const char separating_char);
 void UI_GenerateChannelStringEx(char *pString, const char *prefix, const uint8_t ChannelNumber);
-void UI_PrintString(const char *pString, uint8_t Start, uint8_t End, uint8_t Line, uint8_t Width);
+void UI_PrintString(const char *str, unsigned int start, const unsigned int end, const unsigned int line, const unsigned int width);
 void UI_PrintStringSmall(const char *str, const unsigned int start, const unsigned int end, const unsigned int line);
 #ifdef ENABLE_SMALL_BOLD
 	void UI_PrintStringSmallBold(const char *str, const unsigned int start, const unsigned int end, const unsigned int line);
