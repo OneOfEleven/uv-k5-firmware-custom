@@ -458,7 +458,6 @@ bool DTMF_Reply(void)
 		g_eeprom.dtmf_code_interval_time);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-
 	g_speaker_enabled = false;
 
 	BK4819_ExitDTMF_TX(false);

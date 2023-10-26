@@ -563,8 +563,57 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
 	BK4819_WriteRegister(0x31, REG_31_Value | (1u << 2));    // VOX Enable
 }
 
+void BK4819_set_TX_deviation(unsigned int level)
+{
+	if (level > 4095)
+		level = 4095;
+	
+	// REG_40
+	//
+	// <15:13> 0 ???
+	//         0 ~ 7
+	//
+	// <12>    1 enable RF TX deviation
+	//         1 = enable
+	//         0 = disable
+	//
+	// <11:0>  0x04D0 RF TX deviation tuning (both in-band signal and sub-audio)
+	//         0 ~ 4095
+	//
+//	BK4819_WriteRegister(0x40, (0u << 12) | (1232 << 0));   // 000 0 010011010000
+	BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & 0xf000) | (level << 0));
+}
+
 void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const bool weak_no_different)
 {
+	// REG_2B   0
+	//
+	// <10>     0 AF RX HPF 300Hz filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <9>      0 AF RX LPF 3kHz filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <8>      0 AF RX de-emphasis filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <2>      0 AF TX HPF 300Hz filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <1>      0 AF TX LPF filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <0>      0 AF TX pre-emphasis filter
+	//          0 = enable
+	//          1 = disable
+	//
+//	BK4819_WriteRegister(0x2B, 0);
+	
 	// REG_43
 	// <15>    0 ???
 	//
@@ -2138,28 +2187,67 @@ void BK4819_reset_fsk(void)
 		uint16_t fsk_reg59;
 		uint8_t  packet[42];
 	
+		BK4819_ExitTxMute();
+
+		#if 1
+			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+			BK4819_SetAF(BK4819_AF_MUTE);
+		#else
+			// let the user hear the FSK being sent
+			BK4819_SetAF(BK4819_AF_BEEP);
+			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+		#endif
+		
+		// *******************
+		// need to turn off CTCSS/CDCSS during FFSK
+	
 		// REG_51
 		//
 		// <15>  1 = Enable TxCTCSS/CDCSS
 		//       0 = Disable
 		//
-		const bool code_enabled = (BK4819_ReadRegister(0x51) & (1u << 15)) ? true : false;
-		if (code_enabled)
-		{	// need to turn off CTCSS/CDCSS
-			BK4819_WriteRegister(0x51, BK4819_ReadRegister(0x51) & ~(1u << 15));
-	//		BK4819_ExitSubAu();
-			SYSTEM_DelayMs(10);
-		}
+		const uint16_t css_val = BK4819_ReadRegister(0x51);
+		BK4819_WriteRegister(0x51, 0);
+
+		// *******************************************
+	
+		// REG_40
+		//
+		// <15:13> 0 ???
+		//         0 ~ 7
+		//
+		// <12>    1 enable RF TX deviation
+		//         1 = enable
+		//         0 = disable
+		//
+		// <11:0>  0x04D0 RF TX deviation tuning (both in-band signal and sub-audio)
+		//         0 ~ 4095
 		
+		const uint16_t tx_dev = BK4819_ReadRegister(0x40);
+	//	BK4819_WriteRegister(0x40, (0u << 12) | (1232 << 0));   // 000 0 010011010000
+		BK4819_WriteRegister(0x40, (tx_dev & 0xf000) | (1050 << 0));  // reduce the deviation a little
+
+		// *******************************************
+
+		BK4819_WriteRegister(0x30,
+			(1u  << 15) |    // enable  VCO calibration
+			(1u  << 14) |    // enable something or other
+			(0u  << 10) |    // diable  RX link
+			(1u  <<  9) |    // enable  AF DAC
+			(1u  <<  8) |    // enable  DISC mode, what's DISC mode ?
+			(15u <<  4) |    // enable  PLL/VCO
+			(1u  <<  3) |    // enable  PA gain
+			(0u  <<  2) |    // disable MIC ADC
+			(1u  <<  1) |    // enable  TX DSP
+			(0u  <<  0));    // disable RX DSP
+
+		SYSTEM_DelayMs(20);
+		
+		// *******************************************
+
 		// create the MDC1200 packet
 		const unsigned int size = MDC1200_encode_single_packet(packet, op, arg, id);
-	
-		BK4819_SetAF(BK4819_AF_MUTE);
-	//	BK4819_SetAF(BK4819_AF_BEEP);
-	
-		BK4819_EnableTXLink();
-		SYSTEM_DelayMs(10);
-	
+
 		// MDC1200 uses 1200/1800 Hz FSK tone frequencies 1200 bits/s 
 		//
 		BK4819_WriteRegister(0x58, // 0x37C3);   // 001 101 11 11 00 001 1
@@ -2225,13 +2313,13 @@ void BK4819_reset_fsk(void)
 		//        1 = enable
 		//        0 = disable
 		//
-		// <14:8> 0 TONE-1 gain
+		// <14:8> 0 TONE-1 tuning
 		//
 		// <7>    0 TONE-2
 		//        1 = enable
 		//        0 = disable
 		//
-		// <6:0>  0 TONE-2 / FSK gain
+		// <6:0>  0 TONE-2 / FSK tuning
 		//        0 ~ 127
 		//
 		// enable tone-2, set gain
@@ -2240,8 +2328,8 @@ void BK4819_reset_fsk(void)
 			( 0u << 15) |    // 0
 			( 0u <<  8) |    // 0
 			( 1u <<  7) |    // 1
-	//		(96u <<  0));    // 96
-			(127u <<  0));    // produces the best undistorted waveform, this is not gain but affects filtering
+		//	(96u <<  0));    // 96
+			(127u <<  0));   // 127 produces nicer waveform
 	
 		// REG_59
 		//
@@ -2362,21 +2450,46 @@ void BK4819_reset_fsk(void)
 			}
 		}
 		
-		// disable TX
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER); // don't need the speaker enabled during TX
+
+		// disable FSK
 		BK4819_WriteRegister(0x59, fsk_reg59);
 	
 		BK4819_WriteRegister(0x3F, 0);   // disable interrupts
 		BK4819_WriteRegister(0x70, 0);
 		BK4819_WriteRegister(0x58, 0);
-	
-		if (code_enabled)
-			BK4819_WriteRegister(0x51, BK4819_ReadRegister(0x51) | (1u << 15));
+
+		// restore the original TX deviation level
+		BK4819_WriteRegister(0x40, tx_dev);
+
+		// restore the CTCSS/CDCSS setting
+		BK4819_WriteRegister(0x51, css_val);
+
+		// ****************
+		
+		BK4819_EnterTxMute();
+
+		BK4819_SetAF(BK4819_AF_MUTE);
+				
+		BK4819_WriteRegister(0x30,
+			(1u  << 15) |    // enable  VCO calibration
+			(1u  << 14) |    // enable something or other
+			(0u  << 10) |    // diable  RX link
+			(0u  <<  9) |    // disable AF DAC
+			(1u  <<  8) |    // enable  DISC mode, what's DISC mode ?
+			(15u <<  4) |    // enable  PLL/VCO
+			(1u  <<  3) |    // enable  PA gain
+			(1u  <<  2) |    // enable  MIC ADC
+			(1u  <<  1) |    // enable  TX DSP
+			(0u  <<  0));    // disable RX DSP
+			
+		BK4819_ExitTxMute();
 	}
 #endif
 
 void BK4819_Enable_AfDac_DiscMode_TxDsp(void)
 {
-	BK4819_WriteRegister(0x30, 0x0000);
+	BK4819_WriteRegister(0x30, 0);
 	BK4819_WriteRegister(0x30, 0x0302);
 }
 

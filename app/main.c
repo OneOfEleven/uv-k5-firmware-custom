@@ -370,7 +370,7 @@ void processFKeyFunction(const key_code_t Key)
 
 		case KEY_8:    // R
 
-			if (g_scan_state_dir == SCAN_STATE_DIR_OFF)
+			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 			{
 				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 				return;

@@ -2726,7 +2726,6 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 					if (!key_pressed)
 					{
 						GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-
 						g_speaker_enabled = false;
 
 						BK4819_ExitDTMF_TX(false);
