@@ -88,7 +88,7 @@ void AIRCOPY_init(void)
 
 	g_fsk_write_index = 0;
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
-	BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
+	BK4819_start_aircopy_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 
 	GUI_SelectNextDisplay(DISPLAY_AIRCOPY);
 }
@@ -281,13 +281,13 @@ void AIRCOPY_process_fsk_tx_10ms(void)
 	if (g_aircopy_state == AIRCOPY_RX)
 	{
 		g_fsk_write_index = 0;
-		BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
+		BK4819_start_aircopy_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 	}
 	else
 	if (g_aircopy_state == AIRCOPY_TX)
 	{
 		g_fsk_write_index = 0;
-		BK4819_start_fsk_rx(AIRCOPY_REQ_PACKET_SIZE);
+		BK4819_start_aircopy_fsk_rx(AIRCOPY_REQ_PACKET_SIZE);
 	}
 }
 
@@ -352,7 +352,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	{	// FSK RX is disabled, enable it
 		g_fsk_write_index = 0;
 		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
-		BK4819_start_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
+		BK4819_start_aircopy_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
 	}
 
 	status = BK4819_ReadRegister(0x0C);
@@ -415,7 +415,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 
 	// restart the RX
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);     // LED off
-	BK4819_start_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
+	BK4819_start_aircopy_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
 
 	g_update_display = true;
 
@@ -601,7 +601,7 @@ send_req:
 	}
 	AIRCOPY_stop_fsk_tx();
 
-	BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
+	BK4819_start_aircopy_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 }
 
 static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
@@ -733,7 +733,7 @@ static void AIRCOPY_Key_EXIT(bool key_pressed, bool key_held)
 		g_aircopy_rx_errors_crc     = 0;
 		g_aircopy_state             = AIRCOPY_RX;
 
-		BK4819_start_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
+		BK4819_start_aircopy_fsk_rx(AIRCOPY_DATA_PACKET_SIZE);
 
 		g_update_display = true;
 		GUI_DisplayScreen();

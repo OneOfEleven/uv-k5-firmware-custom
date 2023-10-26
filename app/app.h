@@ -23,7 +23,7 @@
 #include "frequencies.h"
 #include "radio.h"
 
-extern const uint8_t orig_lna_short;
+extern const uint8_t orig_lnas;
 extern const uint8_t orig_lna;
 extern const uint8_t orig_mixer;
 extern const uint8_t orig_pga;

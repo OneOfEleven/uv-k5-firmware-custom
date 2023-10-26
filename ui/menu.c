@@ -661,25 +661,29 @@ void UI_DisplayMenu(void)
 			if (!g_in_sub_menu || g_input_box_index == 0)
 			{
 				sprintf(str, "%d.%05u", g_sub_menu_selection / 100000, abs(g_sub_menu_selection) % 100000);
+				#ifdef ENABLE_TRIM_TRAILING_ZEROS
+					NUMBER_trim_trailing_zeros(str);
+				#endif
 				UI_PrintString(str, sub_menu_x1, sub_menu_x2, 1, 8);
 			}
 			else
 			{
-				for (i = 0; i < 3; i++)
-					str[i + 0] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
-				str[3] = '.';
-				for (i = 3; i < 6; i++)
-					str[i + 1] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
-				str[ 7] = '-';
-				str[ 8] = '-';
-				str[ 9] = 0;
-				str[10] = 0;
-				str[11] = 0;
+				memset(str, 0, sizeof(str));
+				i = 0;
+				while (i < 3)
+				{
+					str[i] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
+					i++;
+				}
+				str[i] = '.';
+				while (i < 8)
+				{
+					str[1 + i] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';			
+					i++;
+				}
 				UI_PrintString(str, sub_menu_x1, sub_menu_x2, 1, 8);
 			}
-
 			UI_PrintString("MHz",  sub_menu_x1, sub_menu_x2, 3, 8);
-
 			already_printed = true;
 			break;
 
@@ -847,6 +851,10 @@ void UI_DisplayMenu(void)
 			{	// show the frequency so that the user knows the channels frequency
 				const uint32_t frequency = BOARD_fetchChannelFrequency(g_sub_menu_selection);
 				sprintf(str + strlen(str), "\n%u.%05u", frequency / 100000, frequency % 100000);
+
+				#ifdef ENABLE_TRIM_TRAILING_ZEROS
+					NUMBER_trim_trailing_zeros(str);
+				#endif
 			}
 
 			break;
@@ -1060,14 +1068,14 @@ void UI_DisplayMenu(void)
 				g_usb_current);
 			break;
 
-#ifdef ENABLE_SIDE_BUTT_MENU
-		case MENU_SIDE1_SHORT:
-		case MENU_SIDE1_LONG:
-		case MENU_SIDE2_SHORT:
-		case MENU_SIDE2_LONG:
-			strcpy(str, g_sub_menu_side_butt[g_sub_menu_selection]);
-			break;
-#endif
+		#ifdef ENABLE_SIDE_BUTT_MENU
+			case MENU_SIDE1_SHORT:
+			case MENU_SIDE1_LONG:
+			case MENU_SIDE2_SHORT:
+			case MENU_SIDE2_LONG:
+				strcpy(str, g_sub_menu_side_butt[g_sub_menu_selection]);
+				break;
+		#endif
 
 		case MENU_VERSION:
 		{	// show the version string on multiple lines - if need be
@@ -1135,11 +1143,11 @@ void UI_DisplayMenu(void)
 				case FREQ_LOCK_446:
 					strcpy(str, "446.00625\n~\n446.19375");
 					break;
-#ifdef ENABLE_TX_UNLOCK
+				#ifdef ENABLE_TX_UNLOCK
 					case FREQ_LOCK_TX_UNLOCK:
 						sprintf(str, "UNLOCKED\n%u~%u", BX4819_BAND1.lower / 100000, BX4819_BAND2.upper / 100000);
 						break;
-#endif
+				#endif
 			}
 			break;
 
@@ -1151,9 +1159,15 @@ void UI_DisplayMenu(void)
 
 					writeXtalFreqCal(g_sub_menu_selection, false);
 
-					sprintf(str, "%d\n%u.%06u\nMHz",
+					sprintf(str, "%d\n%u.%06u",
 						g_sub_menu_selection,
 						xtal_Hz / 1000000, xtal_Hz % 1000000);
+
+					#ifdef ENABLE_TRIM_TRAILING_ZEROS
+						NUMBER_trim_trailing_zeros(str);
+					#endif
+
+					strcat(str, "\nMHz");
 				}
 				break;
 		#endif

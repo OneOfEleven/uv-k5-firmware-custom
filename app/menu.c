@@ -32,6 +32,7 @@
 #include "driver/gpio.h"
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
+#include "driver/uart.h"
 #include "frequencies.h"
 #include "helper/battery.h"
 #include "misc.h"
@@ -43,10 +44,6 @@
 #include "ui/menu.h"
 #include "ui/menu.h"
 #include "ui/ui.h"
-
-#ifndef ARRAY_SIZE
-	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
-#endif
 
 #ifdef ENABLE_F_CAL_MENU
 	void writeXtalFreqCal(const int32_t value, const bool update_eeprom)
@@ -1442,7 +1439,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 	{
 		uint32_t Frequency;
 
-		if (g_input_box_index < 6)
+		if (g_input_box_index < 8)
 		{	// not yet enough characters
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = (voice_id_t)Key;
@@ -1457,7 +1454,23 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		NUMBER_Get(g_input_box, &Frequency);
 		g_input_box_index = 0;
 
-		g_sub_menu_selection = FREQUENCY_floor_to_step(Frequency + (g_tx_vfo->step_freq / 2), g_tx_vfo->step_freq, 0, Frequency + (g_tx_vfo->step_freq / 2));
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("offset 3 %u\r\n", Frequency);
+		#endif
+
+		#if 0
+		{	// round
+			const uint32_t step_size = g_tx_vfo->step_freq;
+			Frequency = ((Frequency + (step_size / 2)) / step_size) * step_size;
+		}
+		#endif
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("offset 4 %u\r\n", Frequency);
+		#endif
+		
+		g_sub_menu_selection = Frequency;
+
 		return;
 	}
 
@@ -1617,16 +1630,16 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 
 	if (!g_in_sub_menu)
 	{
-#ifdef ENABLE_VOICE
+		#ifdef ENABLE_VOICE
 			if (g_menu_cursor != MENU_SCRAMBLER)
 				g_another_voice_id = g_menu_list[g_menu_list_sorted[g_menu_cursor]].voice_id;
-#endif
+		#endif
 
-#if 1
+		#if 1
 			if (g_menu_cursor == MENU_MEM_DEL || g_menu_cursor == MENU_MEM_NAME)
 				if (!RADIO_CheckValidChannel(g_sub_menu_selection, false, 0))
 					return;  // invalid channel
-#endif
+		#endif
 
 		g_ask_for_confirmation = 0;
 		g_in_sub_menu       = true;
@@ -1705,44 +1718,44 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 
 					if (g_menu_cursor == MENU_RESET)
 					{
-#ifdef ENABLE_VOICE
+						#ifdef ENABLE_VOICE
 							AUDIO_SetVoiceID(0, VOICE_ID_CONFIRM);
 							AUDIO_PlaySingleVoice(true);
-#endif
+						#endif
 
 						MENU_AcceptSetting();
 
-#if defined(ENABLE_OVERLAY)
+						#if defined(ENABLE_OVERLAY)
 							overlay_FLASH_RebootToBootloader();
-#else
+						#else
 							NVIC_SystemReset();
-#endif
+						#endif
 					}
 
 					g_flag_accept_setting  = true;
-					g_in_sub_menu        = false;
+					g_in_sub_menu          = false;
 					g_ask_for_confirmation = 0;
 			}
 		}
 		else
 		{
 			g_flag_accept_setting = true;
-			g_in_sub_menu       = false;
+			g_in_sub_menu         = false;
 		}
 	}
 
 	if (g_css_scan_mode != CSS_SCAN_MODE_OFF)
 	{
-		g_css_scan_mode  = CSS_SCAN_MODE_OFF;
+		g_css_scan_mode = CSS_SCAN_MODE_OFF;
 		g_update_status = true;
 	}
 
-#ifdef ENABLE_VOICE
+	#ifdef ENABLE_VOICE
 		if (g_menu_cursor == MENU_SCRAMBLER)
 			g_another_voice_id = (g_sub_menu_selection == 0) ? VOICE_ID_SCRAMBLER_OFF : VOICE_ID_SCRAMBLER_ON;
 		else
 			g_another_voice_id = VOICE_ID_CONFIRM;
-#endif
+	#endif
 
 	g_input_box_index = 0;
 }
@@ -1874,22 +1887,6 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 		return;
 	}
 
-	if (g_menu_cursor == MENU_OFFSET)
-	{
-		int32_t Offset = (Direction * g_tx_vfo->step_freq) + g_sub_menu_selection;
-		if (Offset < 99999990)
-		{
-			if (Offset < 0)
-				Offset = 99999990;
-		}
-		else
-			Offset = 0;
-
-		g_sub_menu_selection     = FREQUENCY_floor_to_step(Offset, g_tx_vfo->step_freq, 0, Offset);
-		g_request_display_screen = DISPLAY_MENU;
-		return;
-	}
-
 	VFO = 0;
 
 	#pragma GCC diagnostic push
@@ -1897,6 +1894,34 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 
 	switch (g_menu_cursor)
 	{
+		case MENU_OFFSET:
+		{
+			const int32_t max_freq = 100000000;
+			const int32_t step_size = g_tx_vfo->step_freq;
+			int32_t offset = (int32_t)g_sub_menu_selection + (Direction * step_size);
+			
+			// wrap
+			if (offset >= max_freq)
+				offset = 0;                    
+			else
+			if (offset < 0)
+				offset = max_freq - step_size;
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_printf("offset 1 %u %u\r\n", offset, step_size);
+			#endif
+
+			offset = ((offset + (step_size / 2)) / step_size) * step_size;  // round
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_printf("offset 2 %u %u\r\n", offset, step_size);
+			#endif
+			
+			g_sub_menu_selection = offset;
+			g_request_display_screen = DISPLAY_MENU;
+			return;
+		}
+
 		case MENU_MEM_DEL:
 		case MENU_1_CALL:
 		case MENU_MEM_NAME:

@@ -86,17 +86,17 @@
 	//           if I don't add the brackets, reading the table returns unexpected/different values !!!
 	//
 	//
-////	static const int16_t lna_short_dB[] = {  -19,   -16,   -11,     0};   // was (but wrong)
-//	static const int16_t lna_short_dB[] = { (-33), (-30), (-24),    0};   // corrected'ish
-//	static const int16_t lna_dB[]       = { (-24), (-19), (-14), ( -9), (-6), (-4), (-2), 0};
-//	static const int16_t mixer_dB[]     = { ( -8), ( -6), ( -3),    0};
-//	static const int16_t pga_dB[]       = { (-33), (-27), (-21), (-15), (-9), (-6), (-3), 0};
+////	static const int16_t lnas_dB[] = {  -19,   -16,   -11,     0};   // was (but wrong)
+//	static const int16_t lnas_dB[]     = { (-33), (-30), (-24),    0};   // corrected'ish
+//	static const int16_t lna_dB[]      = { (-24), (-19), (-14), ( -9), (-6), (-4), (-2), 0};
+//	static const int16_t mixer_dB[]    = { ( -8), ( -6), ( -3),    0};
+//	static const int16_t pga_dB[]      = { (-33), (-27), (-21), (-15), (-9), (-6), (-3), 0};
 
 	// lookup table is hugely easier than writing code to do the same
 	//
 	static const t_gain_table gain_table[] =
 	{
-		{0x035E, -17},         //   0 .. 3 2 3 6 ..   0dB -14dB  0dB  -3dB .. -17dB original
+		{0x03BE, -7},   //  3 5 3 6 ..  0dB  -4dB  0dB  -3dB .. -7dB original
 
 #ifdef ENABLE_AM_FIX_TEST1
 
@@ -199,15 +199,15 @@
 		{0x038F, -12},         //  85 .. 3 4 1 7 ..   0dB  -6dB -6dB   0dB .. -12dB
 		{0x03E6, -11},         //  86 .. 3 7 0 6 ..   0dB   0dB -8dB  -3dB .. -11dB
 		{0x03AF, -10},         //  87 .. 3 5 1 7 ..   0dB  -4dB -6dB   0dB .. -10dB
-		{0x03F5, -9 },         //  88 .. 3 7 2 5 ..   0dB   0dB -3dB  -6dB ..  -9dB
-		{0x03D6, -8 },         //  89 .. 3 6 2 6 ..   0dB  -2dB -3dB  -3dB ..  -8dB
-		{0x03BE, -7 },         //  90 .. 3 5 3 6 ..   0dB  -4dB  0dB  -3dB ..  -7dB original
-		{0x03F6, -6 },         //  91 .. 3 7 2 6 ..   0dB   0dB -3dB  -3dB ..  -6dB
-		{0x03DE, -5 },         //  92 .. 3 6 3 6 ..   0dB  -2dB  0dB  -3dB ..  -5dB
-		{0x03BF, -4 },         //  93 .. 3 5 3 7 ..   0dB  -4dB  0dB   0dB ..  -4dB
-		{0x03F7, -3 },         //  94 .. 3 7 2 7 ..   0dB   0dB -3dB   0dB ..  -3dB
-		{0x03DF, -2 },         //  95 .. 3 6 3 7 ..   0dB  -2dB  0dB   0dB ..  -2dB
-		{0x03FF, 0  },         //  96 .. 3 7 3 7 ..   0dB   0dB  0dB   0dB ..   0dB
+		{0x03F5,  -9},         //  88 .. 3 7 2 5 ..   0dB   0dB -3dB  -6dB ..  -9dB
+		{0x03D6,  -8},         //  89 .. 3 6 2 6 ..   0dB  -2dB -3dB  -3dB ..  -8dB
+		{0x03BE,  -7},         //  90 .. 3 5 3 6 ..   0dB  -4dB  0dB  -3dB ..  -7dB original
+		{0x03F6,  -6},         //  91 .. 3 7 2 6 ..   0dB   0dB -3dB  -3dB ..  -6dB
+		{0x03DE,  -5},         //  92 .. 3 6 3 6 ..   0dB  -2dB  0dB  -3dB ..  -5dB
+		{0x03BF,  -4},         //  93 .. 3 5 3 7 ..   0dB  -4dB  0dB   0dB ..  -4dB
+		{0x03F7,  -3},         //  94 .. 3 7 2 7 ..   0dB   0dB -3dB   0dB ..  -3dB
+		{0x03DF,  -2},         //  95 .. 3 6 3 7 ..   0dB  -2dB  0dB   0dB ..  -2dB
+		{0x03FF,   0},         //  96 .. 3 7 3 7 ..   0dB   0dB  0dB   0dB ..   0dB
 	};
 
 	static const unsigned int original_index = 90;
@@ -217,7 +217,7 @@
 	#ifdef ENABLE_AM_FIX_SHOW_DATA
 		// display update rate
 		static const unsigned int display_update_rate = 250 / 10;   // max 250ms display update rate
-		unsigned int counter = 0;
+		unsigned int display_update_tick = 0;
 	#endif
 
 	#ifdef ENABLE_AM_FIX_TEST1
@@ -230,78 +230,57 @@
 	// used simply to detect a changed gain setting
 	unsigned int gain_table_index_prev[2] = {0, 0};
 
-	// holds the previous RSSI level .. we do an average of old + new RSSI reading
-	int16_t prev_rssi[2] = {0, 0};
-
 	// to help reduce gain hunting, peak hold count down tick
 	unsigned int hold_counter[2] = {0, 0};
+
+	// holds the previous RSSI level .. we do an average of old + new RSSI reading
+	int16_t prev_rssi[2] = {0, 0};
 
 	// used to correct the RSSI readings after our RF gain adjustments
 	int16_t rssi_gain_diff[2] = {0, 0};
 
-	// used to limit the max RF gain
-	unsigned int max_index = ARRAY_SIZE(gain_table) - 1;
-
 	#ifndef ENABLE_AM_FIX_TEST1
-		// -89dBm, any higher and the AM demodulator starts to saturate/clip/distort
+		// -89 dBm, any higher and the AM demodulator starts to saturate/clip/distort
 		const int16_t desired_rssi = (-89 + 160) * 2;
 	#endif
 
 	void AM_fix_init(void)
 	{	// called at boot-up
-
-		unsigned int i;
-
-		for (i = 0; i < 2; i++)
+		unsigned int vfo;
+		for (vfo = 0; vfo < 2; vfo++)
 		{
 			#ifdef ENABLE_AM_FIX_TEST1
-				gain_table_index[i] = 1 + g_setting_am_fix_test1;
+				gain_table_index[vfo] = 1 + g_setting_am_fix_test1;
 			#else
-				gain_table_index[i] = original_index;  // re-start with original QS setting
+				gain_table_index[vfo] = original_index;  // re-start with original QS setting
 			#endif
+//			AM_fix_reset(vfo);
 		}
-
-		#if 0
-		{	// set a maximum gain to use
-//			const int16_t max_gain_dB = gain_dB[original_index];
-			const int16_t max_gain_dB = -10;
-
-			max_index = ARRAY_SIZE(gain_table);
-			while (--max_index > 1)
-//				if (gain_dB[max_index] <= max_gain_dB)
-				if (gain_table[max_index].gain_dB <= max_gain_dB)
-					break;
-		}
-		#else
-			// use the full range of available gains
-			max_index = ARRAY_SIZE(gain_table) - 1;
-		#endif
 	}
 
 	void AM_fix_reset(const int vfo)
 	{	// reset the AM fixer upper
 
+		if (vfo < 0 || vfo >= 2)
+			return;
+
 		#ifdef ENABLE_AM_FIX_SHOW_DATA
-			counter = 0;
+			display_update_tick = 0;
 		#endif
 
-		prev_rssi[vfo] = 0;
-
-		hold_counter[vfo] = 0;
-
-		rssi_gain_diff[vfo] = 0;
-
+		prev_rssi[vfo]             = 0;
+		hold_counter[vfo]          = 0;
+		rssi_gain_diff[vfo]        = 0;
+		gain_table_index_prev[vfo] = 0;
 		#ifdef ENABLE_AM_FIX_TEST1
 //			gain_table_index[vfo] = 1 + g_setting_am_fix_test1;
 		#else
 //			gain_table_index[vfo] = original_index;  // re-start with original QS setting
 		#endif
-
-		gain_table_index_prev[vfo] = 0;
 	}
 
 	// adjust the RX gain to try and prevent the AM demodulator from
-	// saturating/overloading/clipping (distorted AM audio)
+	// saturating (distorted AM audio)
 	//
 	// we're actually doing the BK4819's job for it here, but as the chip
 	// won't/don't do it for itself, we're left to bodging it ourself by
@@ -318,31 +297,31 @@
 			case FUNCTION_PANADAPTER:
 			case FUNCTION_POWER_SAVE:
 				#ifdef ENABLE_AM_FIX_SHOW_DATA
-					counter = display_update_rate;  // queue up a display update as soon as we switch to RX mode
+					display_update_tick = display_update_rate;  // queue up a display update as soon as we switch to RX mode
 				#endif
 				return;
 
 			// only adjust stuff if we're in one of these modes
 			case FUNCTION_FOREGROUND:
+			case FUNCTION_NEW_RECEIVE:
 			case FUNCTION_RECEIVE:
 			case FUNCTION_MONITOR:
-			case FUNCTION_NEW_RECEIVE:
 				break;
 		}
 
 		#ifdef ENABLE_AM_FIX_SHOW_DATA
-			if (counter > 0)
+			if (display_update_tick > 0)
 			{
-				if (++counter >= display_update_rate)
+				if (++display_update_tick >= display_update_rate)
 				{	// trigger a display update
-					counter        = 0;
+					display_update_tick = 0;
 					g_update_display = true;
 				}
 			}
 		#endif
 
 		{	// sample the current RSSI level
-			// average it with the previous rssi (a bit of noise/spike immunity)
+			// average it with the previous rssi (a teeny bit of noise/spike immunity)
 			const int16_t new_rssi = BK4819_GetRSSI();
 			rssi                   = (prev_rssi[vfo] > 0) ? (prev_rssi[vfo] + new_rssi) / 2 : new_rssi;
 			prev_rssi[vfo]         = new_rssi;
@@ -355,10 +334,10 @@
 			if (g_current_rssi[vfo] != new_rssi)
 			{
 				g_current_rssi[vfo] = new_rssi;
-		
-				if (counter == 0)
+
+				if (display_update_tick == 0)
 				{	// trigger a display update
-					counter        = 1;
+					display_update_tick = 1;
 					g_update_display = true;
 				}
 			}
@@ -418,28 +397,23 @@
 					index--;     // slow step-by-step gain reduction
 			}
 
-			index = (index < 1) ? 1 : (index > max_index) ? max_index : index;
+			index = (index < 1) ? 1 : (index > (ARRAY_SIZE(gain_table) - 1)) ? ARRAY_SIZE(gain_table) - 1 : index;
 
 			if (gain_table_index[vfo] != index)
 			{
-				gain_table_index[vfo] = index;
-				hold_counter[vfo] = 30;       // 300ms hold
+				gain_table_index[vfo] = index;  // save new gain setting to use
+				hold_counter[vfo] = 30;         // 300ms hold
 			}
 		}
 
-		if (diff_dB >= -6)                    // 6dB hysterisis (help reduce gain hunting)
-			hold_counter[vfo] = 30;           // 300ms hold
+		if (diff_dB >= -6)                      // 6dB hysterisis (help reduce gain hunting)
+			hold_counter[vfo] = 30;             // 300ms hold
 
 		if (hold_counter[vfo] == 0)
 		{	// hold has been released, we're free to increase gain
 			const unsigned int index = gain_table_index[vfo] + 1;                 // move up to next gain index
-			gain_table_index[vfo] = (index <= max_index) ? index : max_index;     // limit the gain index
+			gain_table_index[vfo] = (index < ARRAY_SIZE(gain_table)) ? index : ARRAY_SIZE(gain_table) - 1;  // limit the gain level we use
 		}
-
-		#if 0
-			if (gain_table_index[vfo] == gain_table_index_prev[vfo])
-				return;     // no gain change - this is to reduce writing to the BK chip on ever call
-		#endif
 
 #endif
 
@@ -447,9 +421,10 @@
 
 			const unsigned int index = gain_table_index[vfo];
 
-			// remember the new table index
+			// remember the new gain table index
 			gain_table_index_prev[vfo] = index;
 
+			// set the RF front end gains
 			BK4819_WriteRegister(0x13, gain_table[index].reg_val);
 
 			// offset the RSSI reading to the rest of the firmware to cancel out the gain adjustments we make
@@ -462,9 +437,9 @@
 		g_current_rssi[vfo] = rssi - rssi_gain_diff[vfo];
 
 		#ifdef ENABLE_AM_FIX_SHOW_DATA
-			if (counter == 0)
+			if (display_update_tick == 0)
 			{
-				counter        = 1;
+				display_update_tick = 1;
 				g_update_display = true;
 			}
 		#endif
@@ -479,7 +454,7 @@
 				const unsigned int index = gain_table_index[vfo];
 //				sprintf(s, "%2u.%u %4ddB %3u", index, ARRAY_SIZE(gain_table) - 1, gain_table[index].gain_dB, prev_rssi[vfo]);
 				sprintf(s, "%2u %4ddB %3u", index, gain_table[index].gain_dB, prev_rssi[vfo]);
-				counter = 0;
+				display_update_tick = 0;
 			}
 		}
 

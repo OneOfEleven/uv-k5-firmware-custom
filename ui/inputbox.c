@@ -16,6 +16,7 @@
 
 #include <string.h>
 
+#include "misc.h"
 #include "ui/inputbox.h"
 
 char    g_input_box[8];
@@ -24,6 +25,9 @@ uint8_t g_input_box_index;
 uint32_t INPUTBOX_value(void)
 {
 	int i = g_input_box_index;
+	if (i > (int)ARRAY_SIZE(g_input_box))
+		i = ARRAY_SIZE(g_input_box);
+
 	uint32_t val = 0;
 	uint32_t mul = 1;
 	while (--i >= 0)
@@ -34,6 +38,7 @@ uint32_t INPUTBOX_value(void)
 			mul *= 10;
 		}
 	}
+
 	return val;
 }
 
