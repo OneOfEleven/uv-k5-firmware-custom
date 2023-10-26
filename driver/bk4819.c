@@ -586,34 +586,6 @@ void BK4819_set_TX_deviation(unsigned int level)
 
 void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const bool weak_no_different)
 {
-	// REG_2B   0
-	//
-	// <10>     0 AF RX HPF 300Hz filter
-	//          0 = enable
-	//          1 = disable
-	//
-	// <9>      0 AF RX LPF 3kHz filter
-	//          0 = enable
-	//          1 = disable
-	//
-	// <8>      0 AF RX de-emphasis filter
-	//          0 = enable
-	//          1 = disable
-	//
-	// <2>      0 AF TX HPF 300Hz filter
-	//          0 = enable
-	//          1 = disable
-	//
-	// <1>      0 AF TX LPF filter
-	//          0 = enable
-	//          1 = disable
-	//
-	// <0>      0 AF TX pre-emphasis filter
-	//          0 = enable
-	//          1 = disable
-	//
-//	BK4819_WriteRegister(0x2B, 0);
-	
 	// REG_43
 	// <15>    0 ???
 	//
@@ -1839,8 +1811,8 @@ uint8_t BK4819_GetCTCType(void)
 			( 0u << 15) |
 			( 0u <<  8) |
 			( 1u <<  7) |
-			(96u <<  0));
-//			(127u <<  0));  // best waveform
+//			(96u <<  0));
+			(127u <<  0));  // best waveform
 
 		// REG_72
 		//

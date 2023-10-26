@@ -160,7 +160,7 @@ void AIRCOPY_start_fsk_tx(const int request_block_num)
 	//          0 = enable
 	//          1 = disable
 	//
-	BK4819_WriteRegister(0x2B, (1u << 2) | (1u << 0));  // try to improve the TX waveform
+//	BK4819_WriteRegister(0x2B, (1u << 2) | (1u << 0));  // try to improve the TX waveform
 
 	// REG_59
 	//

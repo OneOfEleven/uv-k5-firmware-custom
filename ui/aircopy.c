@@ -57,9 +57,27 @@ void UI_DisplayAircopy(void)
 
 	if (g_input_box_index == 0)
 	{	// show frequency
+
+		const unsigned int x = 16;
+		
 		NUMBER_ToDigits(g_rx_vfo->freq_config_rx.frequency, str);
-		UI_DisplayFrequency(str, 16, 2, 0, 0);
-		UI_Displaysmall_digits(2, str + 6, 97, 3, true);
+		UI_DisplayFrequency(str, x, 2, 0, 0);
+		
+		// show the remaining 2 small frequency digits
+		#ifdef ENABLE_TRIM_TRAILING_ZEROS
+		{
+			unsigned int small_num = 2;
+			if (str[7] == 0)
+			{
+				small_num--;
+				if (str[6] == 0)
+					small_num--;
+			}
+			UI_Displaysmall_digits(small_num, str + 6, x + 81, 3, true);
+		}
+		#else
+			UI_Displaysmall_digits(2, str + 6, x + 81, 3, true);
+		#endif
 	}
 	else
 	{	// user is entering a new frequency
