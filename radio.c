@@ -528,16 +528,16 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 		// make low and mid even lower
 		if (p_vfo->output_power == OUTPUT_POWER_LOW)
 		{
-			TX_power[0] /= 5;
-			TX_power[1] /= 5;
-			TX_power[2] /= 5;
+			TX_power[0] /= 5;    //TX_power[0] /= 8; 
+			TX_power[1] /= 5;    //TX_power[1] /= 8;
+			TX_power[2] /= 5;    //TX_power[2] /= 8; get more low power
 		}
 		else
 		if (p_vfo->output_power == OUTPUT_POWER_MID)
 		{
-			TX_power[0] /= 3;
-			TX_power[1] /= 3;
-			TX_power[2] /= 3;
+			TX_power[0] /= 3;    //TX_power[0] /= 5;
+			TX_power[1] /= 3;    //TX_power[1] /= 5;
+			TX_power[2] /= 3;    //TX_power[2] /= 5;   get more low power
 		}
 	#endif
 
