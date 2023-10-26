@@ -144,7 +144,7 @@ ifeq ($(ENABLE_FMRADIO), 1)
 	OBJS += driver/bk1080.o
 endif
 OBJS += driver/bk4819.o
-ifeq ($(filter $(ENABLE_AIRCOPY) $(ENABLE_UART), 1), 1)
+ifeq ($(filter $(ENABLE_AIRCOPY) $(ENABLE_UART) $(ENABLE_MDC1200), 1), 1)
 	OBJS += driver/crc.o
 endif
 OBJS += driver/eeprom.o
