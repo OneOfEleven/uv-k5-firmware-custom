@@ -37,7 +37,7 @@ ENABLE_TX1750                    := 0
 ENABLE_MDC1200                   := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
-ENABLE_BIG_FREQ                  := 1
+ENABLE_BIG_FREQ                  := 0
 ENABLE_SMALL_BOLD                := 0
 # trim trailing 0.044 kB
 ENABLE_TRIM_TRAILING_ZEROS       := 1

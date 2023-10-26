@@ -95,7 +95,7 @@ void UI_DisplayLock(void)
 						case KEY_7:
 						case KEY_8:
 						case KEY_9:
-							INPUTBOX_Append(Key - KEY_0);
+							INPUTBOX_append(Key - KEY_0);
 
 							if (g_input_box_index < 6)   // 6 frequency digits
 							{

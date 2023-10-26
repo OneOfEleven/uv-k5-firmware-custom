@@ -2289,7 +2289,7 @@ void BK4819_reset_fsk(void)
 					(0u <<  9) |   // 0 ~ 1   1 = invert data when TX
 					(0u <<  8) |   // 0 ~ 1   ???
 					(0u <<  4) |   // 0 ~ 15  preamble length
-					(1u <<  3) |   // 0 ~ 1       sync length
+					(0u <<  3) |   // 0 ~ 1       sync length
 					(0u <<  0);    // 0 ~ 7   ???
 	
 		// Set entire packet length (not including the pre-amble and sync bytes we can't seem to disable)
