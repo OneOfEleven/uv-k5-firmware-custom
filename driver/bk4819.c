@@ -313,16 +313,16 @@ void BK4819_DisableAGC(void)
 	//         0 = -33dB
 	//
 	BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
-    BK4819_WriteRegister(0x12, 0x037C);
-    BK4819_WriteRegister(0x11, 0x027B);
-    BK4819_WriteRegister(0x10, 0x007A);
-    BK4819_WriteRegister(0x14, 0x0018);
+	BK4819_WriteRegister(0x12, 0x037C);  // 000000 11 011 11 100
+	BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
+	BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
+	BK4819_WriteRegister(0x14, 0x0018);  // 000000 00 000 11 000
 
 	// undocumented ?
-    BK4819_WriteRegister(0x49, 0x2A38);
-    BK4819_WriteRegister(0x7B, 0x318C);
-    BK4819_WriteRegister(0x7C, 0x595E);
-    BK4819_WriteRegister(0x20, 0x8DEF);
+	BK4819_WriteRegister(0x49, 0x2A38);
+	BK4819_WriteRegister(0x7B, 0x318C);
+	BK4819_WriteRegister(0x7C, 0x595E);
+	BK4819_WriteRegister(0x20, 0x8DEF);
 
 	// fagci had the answer to why we weren't as sensitive!
 	for (unsigned int i = 0; i < 8; i++)
