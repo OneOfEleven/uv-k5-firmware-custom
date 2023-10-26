@@ -313,14 +313,20 @@ void BK4819_DisableAGC(void)
 	//         0 = -33dB
 	//
 	BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
-	BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
-	BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
-	BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
-	BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
+    BK4819_WriteRegister(0x12, 0x037C);
+    BK4819_WriteRegister(0x11, 0x027B);
+    BK4819_WriteRegister(0x10, 0x007A);
+    BK4819_WriteRegister(0x14, 0x0018);
 
 	// undocumented ?
-	BK4819_WriteRegister(0x49, 0x2A38);
-	BK4819_WriteRegister(0x7B, 0x8420);
+    BK4819_WriteRegister(0x49, 0x2A38);
+    BK4819_WriteRegister(0x7B, 0x318C);
+    BK4819_WriteRegister(0x7C, 0x595E);
+    BK4819_WriteRegister(0x20, 0x8DEF);
+
+	// fagci had the answer to why we weren't as sensitive!
+	for (unsigned int i = 0; i < 8; i++)
+		BK4819_WriteRegister(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));
 }
 
 void BK4819_EnableAGC(void)
@@ -342,8 +348,9 @@ void BK4819_EnableAGC(void)
 	// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
 	// 000=Bypass DC filter;
 
-	// default fix index too strong, set to min (011->100)
-	//BK4819_WriteRegister(0x7E, (1u << 15) | (4u << 12) | (5u << 3) | (6u << 0));
+	// TBR: I believe the above filter values do the following:
+	// High-Pass (300Hz?), Low-Pass (3kHz?), De-Emphasis (attenuates higher freq range)
+	// This assumes the same filter layout as REG_2B
 
 	BK4819_WriteRegister(0x7E,
 		(0u << 15) |      // 0  AGC fix mode
@@ -351,21 +358,17 @@ void BK4819_EnableAGC(void)
 		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
 		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
 
+	// In theory, AGC should auto-adjust LNA values
+	// In practice, it seems to work against us
 	BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
-    BK4819_WriteRegister(0x12, 0x037C);
-    BK4819_WriteRegister(0x11, 0x027B);
-    BK4819_WriteRegister(0x10, 0x007A);
-    BK4819_WriteRegister(0x14, 0x0018);
+	BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
+	BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
+	BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
+	BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
 
 	// undocumented ?
-    BK4819_WriteRegister(0x49, 0x2A38);
-    BK4819_WriteRegister(0x7B, 0x318C);
-    BK4819_WriteRegister(0x7C, 0x595E);
-    BK4819_WriteRegister(0x20, 0x8DEF);
-
-	// fagci had the answer to why we weren't as sensitive!
-	for (unsigned int i = 0; i < 8; i++)
-		BK4819_WriteRegister(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));
+	BK4819_WriteRegister(0x49, 0x2A38);
+	BK4819_WriteRegister(0x7B, 0x8420);
 }
 
 void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
