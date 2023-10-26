@@ -134,6 +134,34 @@ void AIRCOPY_start_fsk_tx(const int request_block_num)
 	// turn the TX on
 	RADIO_enableTX(true);
 
+	// REG_2B   0
+	//
+	// <10>     0 AF RX HPF 300Hz filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <9>      0 AF RX LPF 3kHz filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <8>      0 AF RX de-emphasis filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <2>      0 AF TX HPF 300Hz filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <1>      0 AF TX LPF filter
+	//          0 = enable
+	//          1 = disable
+	//
+	// <0>      0 AF TX pre-emphasis filter
+	//          0 = enable
+	//          1 = disable
+	//
+	BK4819_WriteRegister(0x2B, (1u << 2) | (1u << 0));  // try to improve the TX waveform
+
 	// REG_59
 	//
 	// <15>  0 TX FIFO
@@ -216,6 +244,9 @@ void AIRCOPY_stop_fsk_tx(void)
 	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);           // LED off
 
 	BK4819_reset_fsk();
+
+	// restore TX/RX filtering
+	BK4819_WriteRegister(0x2B, 0);
 
 	if (g_aircopy_state == AIRCOPY_TX)
 	{

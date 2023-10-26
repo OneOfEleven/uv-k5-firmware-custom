@@ -817,14 +817,14 @@ void BK4819_SetupSquelch(
 	//        1 = Enable
 	//        0 = Disable
 	//
-	// <14:8> 0 TONE1 tuning gain
+	// <14:8> 0 TONE1 tuning
 	//        0 ~ 127
 	//
 	// <7>    0 Enable TONE2
 	//        1 = Enable
 	//        0 = Disable
 	//
-	// <6:0>  0 TONE2/FSK tuning gain
+	// <6:0>  0 TONE2/FSK tuning
 	//        0 ~ 127
 	//
 	BK4819_WriteRegister(0x70, 0);
@@ -1839,8 +1839,8 @@ uint8_t BK4819_GetCTCType(void)
 			( 0u << 15) |
 			( 0u <<  8) |
 			( 1u <<  7) |
-//			(96u <<  0));
-			(127u <<  0));  // best waveform
+			(96u <<  0));
+//			(127u <<  0));  // best waveform
 
 		// REG_72
 		//
@@ -2119,7 +2119,7 @@ void BK4819_reset_fsk(void)
 				( 0u << 15) |    // 0
 				( 0u <<  8) |    // 0
 				( 1u <<  7) |    // 1
-				(96u <<  0));    // 96 (127 looks better)
+				(96u <<  0));    // 96
 			
 			BK4819_WriteRegister(0x72, ((1200u * 103244) + 5000) / 10000);   // with rounding
 	
@@ -2187,6 +2187,9 @@ void BK4819_reset_fsk(void)
 		uint16_t fsk_reg59;
 		uint8_t  packet[42];
 	
+		// create the MDC1200 packet
+		const unsigned int size = MDC1200_encode_single_packet(packet, op, arg, id);
+
 		BK4819_ExitTxMute();
 
 		#if 1
@@ -2226,6 +2229,34 @@ void BK4819_reset_fsk(void)
 		const uint16_t tx_dev = BK4819_ReadRegister(0x40);
 	//	BK4819_WriteRegister(0x40, (0u << 12) | (1232 << 0));   // 000 0 010011010000
 		BK4819_WriteRegister(0x40, (tx_dev & 0xf000) | (1050 << 0));  // reduce the deviation a little
+			
+		// REG_2B   0
+		//
+		// <10>     0 AF RX HPF 300Hz filter
+		//          0 = enable
+		//          1 = disable
+		//
+		// <9>      0 AF RX LPF 3kHz filter
+		//          0 = enable
+		//          1 = disable
+		//
+		// <8>      0 AF RX de-emphasis filter
+		//          0 = enable
+		//          1 = disable
+		//
+		// <2>      0 AF TX HPF 300Hz filter
+		//          0 = enable
+		//          1 = disable
+		//
+		// <1>      0 AF TX LPF filter
+		//          0 = enable
+		//          1 = disable
+		//
+		// <0>      0 AF TX pre-emphasis filter
+		//          0 = enable
+		//          1 = disable
+		//
+		BK4819_WriteRegister(0x2B, (1u << 2) | (1u << 0));
 
 		// *******************************************
 
@@ -2244,9 +2275,6 @@ void BK4819_reset_fsk(void)
 		SYSTEM_DelayMs(20);
 		
 		// *******************************************
-
-		// create the MDC1200 packet
-		const unsigned int size = MDC1200_encode_single_packet(packet, op, arg, id);
 
 		// MDC1200 uses 1200/1800 Hz FSK tone frequencies 1200 bits/s 
 		//
@@ -2328,9 +2356,9 @@ void BK4819_reset_fsk(void)
 			( 0u << 15) |    // 0
 			( 0u <<  8) |    // 0
 			( 1u <<  7) |    // 1
-		//	(96u <<  0));    // 96
-			(127u <<  0));   // 127 produces nicer waveform
-	
+			(96u <<  0));    // 96
+//			(127u <<  0));
+			
 		// REG_59
 		//
 		// <15>  0 TX FIFO
@@ -2461,6 +2489,9 @@ void BK4819_reset_fsk(void)
 
 		// restore the original TX deviation level
 		BK4819_WriteRegister(0x40, tx_dev);
+
+		// restore TX/RX filtering
+		BK4819_WriteRegister(0x2B, 0);
 
 		// restore the CTCSS/CDCSS setting
 		BK4819_WriteRegister(0x51, css_val);
