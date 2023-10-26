@@ -33,16 +33,18 @@ ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
 # Tx Alarm 0.6 kB
 ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 0
+# MDC1200 0.892 kB
 ENABLE_MDC1200                   := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
-ENABLE_BIG_FREQ                  := 0
-ENABLE_SMALL_BOLD                := 1
-# trim trailing 44B
+ENABLE_BIG_FREQ                  := 1
+ENABLE_SMALL_BOLD                := 0
+# trim trailing 0.044 kB
 ENABLE_TRIM_TRAILING_ZEROS       := 1
 ENABLE_KEEP_MEM_NAME             := 1
 ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
+# Freq calibration 0.188 kB
 ENABLE_F_CAL_MENU                := 0
 ENABLE_TX_UNLOCK                 := 0
 ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1
@@ -58,7 +60,8 @@ ENABLE_KILL_REVIVE               := 0
 # AM Fix 0.8 kB
 ENABLE_AM_FIX                    := 1
 ENABLE_AM_FIX_SHOW_DATA          := 0
-ENABLE_SQUELCH_MORE_SENSITIVE    := 0
+# Squelch 0.012 kB .. can't be right ?
+ENABLE_SQUELCH_MORE_SENSITIVE    := 1
 ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
 ENABLE_FASTER_CHANNEL_SCAN       := 1
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
