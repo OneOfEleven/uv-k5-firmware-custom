@@ -787,6 +787,11 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		}
 	#endif
 
+	#ifdef ENABLE_MDC1200
+		BK4819_enable_mdc1200_rx(true);
+		interrupt_mask |= BK4819_ReadRegister(0x3F) | BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL;
+	#endif
+
 	// enable/disable BK4819 selected interrupts
 	BK4819_WriteRegister(0x3F, interrupt_mask);
 

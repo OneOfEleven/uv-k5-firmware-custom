@@ -258,7 +258,7 @@ CFLAGS =
 
 ifeq ($(ENABLE_CLANG),0)
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
-	CFLAGS += -Os -Werror -mcpu=cortex-m0 -fmodulo-sched -freorder-blocks-algorithm=stc -std=c11 -MMD
+	CFLAGS += -Os -Werror -mcpu=cortex-m0 -freorder-blocks-algorithm=stc -std=c11 -MMD
 else
 	# Oz needed to make it fit on flash
 	CFLAGS += -Oz -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD

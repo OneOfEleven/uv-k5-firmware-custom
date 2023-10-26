@@ -889,9 +889,11 @@ void BK4819_RX_TurnOn(void)
 	//
 	BK4819_WriteRegister(0x37, 0x1F0F);  // 0001 1111 0000 1111
 
-	// Turn off everything
+	// turn everything off
 	BK4819_WriteRegister(0x30, 0);
 
+	// and on again ..
+	//
 	// Enable  VCO Calibration
 	// Enable  RX Link
 	// Enable  AF DAC
@@ -901,7 +903,7 @@ void BK4819_RX_TurnOn(void)
 	// Disable TX DSP
 	// Enable  RX DSP
 	//
-	BK4819_WriteRegister(0x30, 0xbff1); // 1 0 1111 1 1 1111 0 0 0 1
+	BK4819_WriteRegister(0x30, 0xBFF1); // 1 0 1111 1 1 1111 0 0 0 1
 }
 
 void BK4819_set_rf_filter_path(uint32_t Frequency)
@@ -1784,6 +1786,27 @@ uint8_t BK4819_GetCTCType(void)
 	return (BK4819_ReadRegister(0x0C) >> 10) & 3u;
 }
 
+void BK4819_reset_fsk(void)
+{
+	const uint16_t fsk_reg59 =
+		(0u << 15) |   // 0 or 1   1 = clear TX FIFO
+		(0u << 14) |   // 0 or 1   1 = clear RX FIFO
+		(0u << 13) |   // 0 or 1   1 = scramble
+		(0u << 12) |   // 0 or 1   1 = enable RX
+		(0u << 11) |   // 0 or 1   1 = enable TX
+		(0u << 10) |   // 0 or 1   1 = invert data when RX
+		(0u <<  9) |   // 0 or 1   1 = invert data when TX
+		(0u <<  8) |   // 0 or 1   ???
+		(6u <<  4) |   // 0 ~ 15   preamble Length Selection
+		(1u <<  3) |   // 0 or 1   sync length selection
+		(0u <<  0);    // 0 ~ 7    ???
+	
+	BK4819_WriteRegister(0x3F, 0);   // disable interrupts
+	BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59); // clear FIFO's
+	BK4819_WriteRegister(0x59, (0u << 15) | (0u << 14) | fsk_reg59);
+	BK4819_Idle();
+}
+
 #ifdef ENABLE_AIRCOPY
 	void BK4819_SetupAircopy(const unsigned int packet_size)
 	{
@@ -1898,30 +1921,7 @@ uint8_t BK4819_GetCTCType(void)
 		//
 		BK4819_WriteRegister(0x5D, ((packet_size - 1) << 8));
 	}
-#endif
 
-void BK4819_reset_fsk(void)
-{
-	const uint16_t fsk_reg59 =
-		(0u << 15) |   // 0 or 1   1 = clear TX FIFO
-		(0u << 14) |   // 0 or 1   1 = clear RX FIFO
-		(0u << 13) |   // 0 or 1   1 = scramble
-		(0u << 12) |   // 0 or 1   1 = enable RX
-		(0u << 11) |   // 0 or 1   1 = enable TX
-		(0u << 10) |   // 0 or 1   1 = invert data when RX
-		(0u <<  9) |   // 0 or 1   1 = invert data when TX
-		(0u <<  8) |   // 0 or 1   ???
-		(6u <<  4) |   // 0 ~ 15   preamble Length Selection
-		(1u <<  3) |   // 0 or 1   sync length selection
-		(0u <<  0);    // 0 ~ 7    ???
-	
-	BK4819_WriteRegister(0x3F, 0);   // disable interrupts
-	BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59); // clear FIFO's
-	BK4819_WriteRegister(0x59, (0u << 15) | (0u << 14) | fsk_reg59);
-	BK4819_Idle();
-}
-
-#ifdef ENABLE_AIRCOPY
 	void BK4819_start_aircopy_fsk_rx(const unsigned int packet_size)
 	{
 		uint16_t fsk_reg59;
@@ -1988,13 +1988,13 @@ void BK4819_reset_fsk(void)
 					(1u <<  3) |   // 0 or 1   sync length selection
 					(0u <<  0);    // 0 ~ 7    ???
 	
-		BK4819_WriteRegister(0x59, (1u << 14) | fsk_reg59);               // clear RX fifo
+		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);  // clear FIFO's
 		BK4819_WriteRegister(0x59, (1u << 13) | (1u << 12) | fsk_reg59);  // enable scrambler, enable RX
 	}
 #endif
 
 #ifdef ENABLE_MDC1200
-	void BK4819_enable_mdc1200_ffsk_rx(const bool enable)
+	void BK4819_enable_mdc1200_rx(const bool enable)
 	{
 		// REG_70
 		//
@@ -2087,7 +2087,20 @@ void BK4819_reset_fsk(void)
 	
 		if (enable)
 		{
-			BK4819_WriteRegister(0x70,   // 0 0000000 1 1100000
+			const uint16_t fsk_reg59 =
+				(0u << 15) |   // 1 = clear TX FIFO
+				(0u << 14) |   // 1 = clear RX FIFO
+				(0u << 13) |   // 1 = scramble
+				(0u << 12) |   // 1 = enable RX
+				(0u << 11) |   // 1 = enable TX
+				(0u << 10) |   // 1 = invert data when RX
+				(0u <<  9) |   // 1 = invert data when TX
+				(0u <<  8) |   // ???
+				(0u <<  4) |   // 0 ~ 15 preamble length selection .. mdc1200 does not send bit reversals :(
+				(1u <<  3) |   // 0/1 sync length selection
+				(0u <<  0);    // 0 ~ 7  ???
+	
+			BK4819_WriteRegister(0x70,
 				( 0u << 15) |    // 0
 				( 0u <<  8) |    // 0
 				( 1u <<  7) |    // 1
@@ -2095,7 +2108,7 @@ void BK4819_reset_fsk(void)
 			
 			BK4819_WriteRegister(0x72, ((1200u * 103244) + 5000) / 10000);   // with rounding
 	
-			BK4819_WriteRegister(0x58, // 0x37C3);  001 101 11 11 00 001 1
+			BK4819_WriteRegister(0x58,
 				(1u << 13) |		// 1 FSK TX mode selection
 									//   0 = FSK 1.2K and FSK 2.4K TX .. no tones, direct FM
 									//   1 = FFSK 1200 / 1800 TX
@@ -2142,10 +2155,35 @@ void BK4819_reset_fsk(void)
 									//   0 = disable
 									//   1 = enable
 
-			// enable CRC ???
-			BK4819_WriteRegister(0x5C, 0x5665);      // 010101100 1 100101
+			// 0000 0100 1000 1101 1011 1111 0110 0110 0101 1000
+			// 0    4    8    D    B    F    6    6    5    8
+			//
+			// REG_5A
+			//
+			// <15:8> sync byte 0
+			// < 7:0> sync byte 1
+			BK4819_WriteRegister(0x5A, 0x8DBF);
+			// <15:8> sync byte 2
+			// < 7:0> sync byte 3
+			BK4819_WriteRegister(0x5B, 0x6658);
 	
-			BK4819_WriteRegister(0x5D, (15u << 8));  // packet size (16 bytes)
+			// disable CRC
+			BK4819_WriteRegister(0x5C, 0x5625 | (0u << 6));
+
+			// packet size (14 bytes)
+			BK4819_WriteRegister(0x5D, ((14u - 1) << 8));  
+
+			// clear FIFO's then enable RX
+			BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
+			BK4819_WriteRegister(0x59, (1u << 12) | fsk_reg59);
+
+			// clear interrupt flags
+			BK4819_WriteRegister(0x02, 0);    
+	
+			BK4819_RX_TurnOn();
+	
+			// enable interrupts
+			BK4819_WriteRegister(0x3F, BK4819_ReadRegister(0x3F) | BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
 		}
 		else
 		{
@@ -2383,8 +2421,8 @@ void BK4819_reset_fsk(void)
 		// Set entire packet length (not including the pre-amble and sync bytes we can't seem to disable)
 		BK4819_WriteRegister(0x5D, ((size - 1) << 8));
 	
-		BK4819_WriteRegister(0x59, (1u << 15) | fsk_reg59);   // clear TX fifo by setting the FIFO reset bit
-		BK4819_WriteRegister(0x59, (0u << 15) | fsk_reg59);   // release the reset bit
+		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);   // clear FIFO's
+		BK4819_WriteRegister(0x59, fsk_reg59);                             // release the FIFO reset
 	
 		// REG_5A
 		//

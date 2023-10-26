@@ -1033,6 +1033,54 @@ void APP_process_radio_interrupts(void)
 				UART_printf("squelch opened\r\n");
 			#endif
 		}
+
+		#ifdef ENABLE_MDC1200
+		{
+			const uint16_t sync_flags = BK4819_ReadRegister(0x0B);
+			
+//			if (sync_flags & ((1u << 7) | (1u << 6)))
+//			{	// RX sync found (pos or neg version)
+//				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//					UART_printf("fsk rx sync\r\n");
+//				#endif
+//			}
+
+			if (sync_flags & (1u << 7))
+			{	// RX sync neg found
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("fsk rx sync neg\r\n");
+				#endif
+			}
+			
+			if (sync_flags & (1u << 6))
+			{	// RX sync pos found
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("fsk rx sync pos\r\n");
+				#endif
+			}
+
+			if (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC)
+			{
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("fsk rx sync\r\n");
+				#endif
+			}
+			
+			if (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED)
+			{
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("fsk rx finished\r\n");
+				#endif
+			}
+			
+			if (interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL)
+			{
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("fsk rx almost full\r\n");
+				#endif
+			}
+		}
+		#endif
 	}
 }
 

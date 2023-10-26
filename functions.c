@@ -192,6 +192,10 @@ void FUNCTION_Select(function_type_t Function)
 					g_dual_watch_delay_10ms = g_eeprom.scan_hold_time_500ms * 50;
 			}
 
+			#ifdef ENABLE_MDC1200
+				BK4819_enable_mdc1200_rx(false);
+			#endif
+
 			// if DTMF is enabled when TX'ing, it changes the TX audio filtering ! .. 1of11
 			// so MAKE SURE that DTMF is disabled - until needed
 			BK4819_DisableDTMF();

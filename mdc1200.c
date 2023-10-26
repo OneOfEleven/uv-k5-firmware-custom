@@ -1,13 +1,12 @@
 
 #include <string.h>
 
-#include "bsp/dp32g030/crc.h"
 #include "driver/crc.h"
 #include "driver/uart.h"
 #include "mdc1200.h"
 #include "misc.h"
 
-#define FEC_K   7
+#define FEC_K   7     	// R=1/2 K=7 convolutional coder
 
 // **********************************************************
 
@@ -16,7 +15,7 @@
 // >= 24-bit pre-amble
 //    40-bit sync
 //
-//static const uint8_t pre_amble[] = {0x00, 0x00, 0x00, 0x00, 0xCC};  / add some bit reversals just before the sync pattern
+//static const uint8_t pre_amble[] = {0x00, 0x00, 0x00, 0xCC};  / add some bit reversals just before the sync pattern
 static const uint8_t pre_amble[] = {0x00, 0x00, 0x00};
 static const uint8_t sync[]      = {0x07, 0x09, 0x2a, 0x44, 0x6f};
 
@@ -51,10 +50,21 @@ uint32_t bit_reverse_32(uint32_t n)
 // ************************************
 // common
 
-#if 0
+#if 1
 
 	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
-	{	// using the reverse computation avoids having to reverse the bit order during and after
+	{	// let the CPU's hardware do some work :)
+		uint16_t crc;
+		CRC_InitReverse();
+		crc = CRC_Calculate(data, data_len);
+		CRC_Init();
+		return crc;
+	}
+
+#elif 1
+
+	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
+	{	// using the reverse computation and polynominal avoids having to reverse the bit order during and after
 		unsigned int i;
 		uint16_t crc = 0;
 		for (i = 0; i < data_len; i++)
@@ -65,17 +75,6 @@ uint32_t bit_reverse_32(uint32_t n)
 				crc = (crc & 1u) ? (crc >> 1) ^ 0x8408 : crc >> 1;
 		}
 		return crc ^ 0xffff;
-	}
-
-#elif 1
-
-	uint16_t compute_crc(const uint8_t *data, const unsigned int data_len)
-	{	// let the CPU do the crc for us :)
-		uint16_t crc;
-		CRC_InitReverse();
-		crc = CRC_Calculate(data, data_len);
-		CRC_Init();
-		return crc;
 	}
 
 #else
@@ -147,7 +146,7 @@ void error_correction(uint8_t *data)
 					ii--;
 				}
 				if (ii >= 0)
-					data[ii] ^= 1u << bn;   // do it
+					data[ii] ^= 1u << bn;   // fix a bit
 				syn ^= 0xA6;   // 10100110
 			}
 		}
@@ -186,7 +185,7 @@ bool decode_data(uint8_t *data)
 		unsigned int i;
 		unsigned int k;
 		unsigned int m;
-		uint8_t deinterleaved[(FEC_K * 2) * 8];
+		uint8_t deinterleaved[(FEC_K * 2) * 8];  // temp individual bit storage
 
 		// interleave order
 		//  0, 16, 32, 48, 64, 80,  96,
@@ -216,7 +215,7 @@ bool decode_data(uint8_t *data)
 			}
 		}
 
-		// copy the de-interleaved bits back intoto the data buffer
+		// copy the de-interleaved bits back into the data buffer
 		for (i = 0, m = 0; i < (FEC_K * 2); i++)
 		{
 			unsigned int k;
@@ -228,7 +227,7 @@ bool decode_data(uint8_t *data)
 		}
 	}
 
-	// see if we can correct a couple of corrupted bits (if need be)
+	// try to correct the odd corrupted bit
 	error_correction(data);
 
 	// rx'ed de-interleaved data (min 14 bytes) looks like this ..
@@ -459,7 +458,7 @@ void MDC1200_reset_rx(void)
 {
 	memset(&rx, 0, sizeof(rx));
 }
-	
+
 bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16_t *unit_id)
 {
 	unsigned int i;
@@ -470,7 +469,7 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 		rx.prev_bit = rx.bit;
 
 		rx.bit = (rx_byte >> k) & 1u;
-	
+
 		if (rx.stage == 0)
 		{	// scanning for the pre-amble
 			rx.xor_bit = rx.bit & 1u;
@@ -481,12 +480,12 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 			if (rx.inverted_sync)
 				rx.xor_bit ^= 1u;
 		}
-	
+
 		rx.shift_reg = (rx.shift_reg << 1) | (rx.xor_bit & 1u);
 		rx.bit_count++;
-	
+
 		// *********
-	
+
 		if (rx.stage == 0)
 		{	// looking for pre-amble
 			if (rx.bit_count < 20 || (rx.shift_reg & 0xfffff) != 1u)
@@ -495,11 +494,11 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 			rx.xor_bit   = 1;
 			rx.stage     = 1;
 			rx.bit_count = 1;
-	
+
 			//s.printf("%5u %2u %u pre-amble found", index, rx_bit_count, rx_packet_stage);
 			//Memo1->Lines->Add(s);
 		}
-	
+
 		if (rx.stage < 2)
 		{
 			//s.printf("%5u %3u %u ", index, rx_bit_count, rx_packet_stage);
@@ -514,21 +513,21 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 			//}
 			//Memo1->Lines->Add(s);
 		}
-	
+
 		if (rx.stage == 1)
 		{	// looking for the 40-bit sync pattern, it follows the 24-bit pre-amble
-	
+
 			const unsigned int sync_bit_ok_threshold = 32;
-	
+
 			if (rx.bit_count >= sync_bit_ok_threshold)
 			{
 				// 40-bit sync pattern
 				uint64_t sync_nor = 0x07092a446fu;            // normal
 				uint64_t sync_inv = 0xffffffffffu ^ sync_nor; // bit inverted
-	
+
 				sync_nor ^= rx.shift_reg;
 				sync_inv ^= rx.shift_reg;
-	
+
 				unsigned int nor_count = 0;
 				unsigned int inv_count = 0;
 				for (i = 40; i > 0; i--, sync_nor >>= 1, sync_inv >>= 1)
@@ -538,12 +537,12 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 				}
 				nor_count = 40 - nor_count;
 				inv_count = 40 - inv_count;
-	
+
 				if (nor_count >= sync_bit_ok_threshold || inv_count >= sync_bit_ok_threshold)
 				{	// good enough
-	
+
 					rx.inverted_sync = (inv_count > nor_count) ? true : false;
-	
+
 					//String s;
 					//s.printf("%5u %2u %u sync found %s %u bits ",
 					//	index,
@@ -551,7 +550,7 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 					//	rx_packet_stage,
 					//	rx_inverted_sync ? "inv" : "nor",
 					//	rx_inverted_sync ? inv_count : nor_count);
-	
+
 					//for (int i = 4; i >= 0; i--)
 					//{
 					//	String s2;
@@ -562,13 +561,13 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 					//	s += s2;
 					//}
 					//Memo1->Lines->Add(s);
-	
+
 					rx.data_index = 0;
 					rx.bit_count     = 0;
 					rx.stage++;
 				}
 			}
-			
+
 			continue;
 		}
 
@@ -581,14 +580,14 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 			continue;
 
 		rx.bit_count = 0;
-	
+
 		// 55 55 55 55 55 55 55 07 09 2A 44 6F 94 9C 22 20 32 A4 1A 37 1E 3A 00 98 2C 84
-	
+
 		rx.data[rx.data_index++] = rx.shift_reg & 0xff;  // save the last 8 bits
-	
+
 		if (rx.data_index < (FEC_K * 2))
 			continue;
-			
+
 		//	s.printf("%5u %3u %u %2u ", index, rx_bit_count, rx_packet_stage, rx_buffer.size());
 		//	for (i = 0; i < rx_data_index; i++)
 		//	{
@@ -598,7 +597,7 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 		//		s += s2;
 		//	}
 		//	Memo1->Lines->Add(s);
-	
+
 		if (!decode_data(rx.data))
 		{
 			MDC1200_reset_rx();
@@ -609,7 +608,7 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 		*op      = rx.data[0];
 		*arg     = rx.data[1];
 		*unit_id = ((uint16_t)rx.data[3] << 8) | (rx.data[2] << 0);
-	
+
 		//s.printf("%5u %3u %u %2u decoded ", index, rx_bit_count, rx_packet_stage, rx_buffer.size());
 		//for (i = 0; i < 14; i++)
 		//{
@@ -622,7 +621,7 @@ bool MDC1200_process_rx(const uint8_t rx_byte, uint8_t *op, uint8_t *arg, uint16
 
 		// reset the detector
 		MDC1200_reset_rx();
-		
+
 		return true;
 	}
 
