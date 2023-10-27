@@ -560,7 +560,7 @@ void MENU_AcceptSetting(void)
 				g_eeprom.vox_switch = g_sub_menu_selection != 0;
 				if (g_eeprom.vox_switch)
 					g_eeprom.vox_level = g_sub_menu_selection - 1;
-				BOARD_EEPROM_LoadCalibration();
+				BOARD_eeprom_loadCalibration();
 				g_flag_reconfigure_vfos = true;
 				g_update_status         = true;
 				break;
@@ -658,7 +658,7 @@ void MENU_AcceptSetting(void)
 
 		case MENU_MIC_GAIN:
 			g_eeprom.mic_sensitivity = g_sub_menu_selection;
-			BOARD_EEPROM_LoadCalibration();
+			BOARD_eeprom_loadCalibration();
 			g_flag_reconfigure_vfos = true;
 			break;
 
@@ -1898,7 +1898,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 	{
 		case MENU_OFFSET:
 		{
-			const int32_t max_freq = 100000000;
+			const int32_t max_freq = MAX_TX_OFFSET;
 			const int32_t step_size = g_tx_vfo->step_freq;
 			int32_t offset = (int32_t)g_sub_menu_selection + (Direction * step_size);
 			

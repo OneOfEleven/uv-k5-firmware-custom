@@ -69,7 +69,7 @@ void UI_DisplayFM(void)
 
 		if (g_fm_scan_state == FM_SCAN_OFF)
 		{
-			if (!g_eeprom.fm_is_channel_mode)
+			if (!g_eeprom.fm_channel_mode)
 			{
 				for (i = 0; i < ARRAY_SIZE(g_fm_channels); i++)
 				{
@@ -109,7 +109,7 @@ void UI_DisplayFM(void)
 			sprintf(String + strlen(String), " (%u.%u)", freq / 10, freq % 10);
 	}
 	else
-	if (g_eeprom.fm_is_channel_mode && g_input_box_index > 0)
+	if (g_eeprom.fm_channel_mode && g_input_box_index > 0)
 	{	// user is entering a channel number
 		UI_GenerateChannelString(String, g_fm_channel_position, ' ');
 	}

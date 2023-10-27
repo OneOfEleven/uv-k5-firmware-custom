@@ -843,9 +843,20 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 			// find the first channel that contains this frequency
 			g_tx_vfo->freq_in_channel = BOARD_find_channel(g_tx_vfo->freq_config_rx.frequency);
 
-			// only update eeprom when the key is released - saves a LOT of wear and tear on the little eeprom
 			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
-
+			
+			RADIO_ApplyOffset(g_tx_vfo);
+			if (!g_tx_vfo->frequency_reverse)
+			{
+				g_tx_vfo->p_rx = &g_tx_vfo->freq_config_rx;
+				g_tx_vfo->p_tx = &g_tx_vfo->freq_config_tx;
+			}
+			else
+			{
+				g_tx_vfo->p_rx = &g_tx_vfo->freq_config_tx;
+				g_tx_vfo->p_tx = &g_tx_vfo->freq_config_rx;
+			}
+			
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //				UART_printf("save chan\r\n");
 			#endif

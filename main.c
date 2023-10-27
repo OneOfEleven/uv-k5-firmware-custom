@@ -101,9 +101,9 @@ void Main(void)
 
 	BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);
 
-	BOARD_EEPROM_load();
+	BOARD_eeprom_load();
 
-	BOARD_EEPROM_LoadCalibration();
+	BOARD_eeprom_loadCalibration();
 
 	RADIO_configure_channel(0, VFO_CONFIGURE_RELOAD);
 	RADIO_configure_channel(1, VFO_CONFIGURE_RELOAD);

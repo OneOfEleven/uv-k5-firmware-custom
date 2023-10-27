@@ -517,12 +517,12 @@ void BOARD_Init(void)
 	#endif
 }
 
-void BOARD_EEPROM_load(void)
+void BOARD_eeprom_load(void)
 {
 	unsigned int i;
 	uint8_t      Data[16];
 
-	memset(Data, 0, sizeof(Data));
+//	memset(Data, 0, sizeof(Data));
 
 	// 0E70..0E77
 	EEPROM_ReadBuffer(0x0E70, Data, 8);
@@ -533,7 +533,7 @@ void BOARD_EEPROM_load(void)
 		g_eeprom.noaa_auto_scan   = (Data[3] <  2) ? Data[3] : false;
 	#endif
 	#ifdef ENABLE_KEYLOCK
-		g_eeprom.key_lock             = (Data[4] <  2) ? Data[4] : false;
+		g_eeprom.key_lock         = (Data[4] <  2) ? Data[4] : false;
 	#endif
 	#ifdef ENABLE_VOX
 		g_eeprom.vox_switch       = (Data[5] <  2) ? Data[5] : false;
@@ -556,35 +556,30 @@ void BOARD_EEPROM_load(void)
 
 	// 0E80..0E87
 	EEPROM_ReadBuffer(0x0E80, Data, 8);
-	g_eeprom.screen_channel[0]   = IS_VALID_CHANNEL(Data[0]) ? Data[0] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
-	g_eeprom.screen_channel[1]   = IS_VALID_CHANNEL(Data[3]) ? Data[3] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
-	g_eeprom.user_channel[0]     = IS_USER_CHANNEL(Data[1])  ? Data[1] : USER_CHANNEL_FIRST;
-	g_eeprom.user_channel[1]     = IS_USER_CHANNEL(Data[4])  ? Data[4] : USER_CHANNEL_FIRST;
-	g_eeprom.freq_channel[0]     = IS_FREQ_CHANNEL(Data[2])  ? Data[2] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
-	g_eeprom.freq_channel[1]     = IS_FREQ_CHANNEL(Data[5])  ? Data[5] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
+	g_eeprom.screen_channel[0]     = IS_VALID_CHANNEL(Data[0]) ? Data[0] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
+	g_eeprom.screen_channel[1]     = IS_VALID_CHANNEL(Data[3]) ? Data[3] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
+	g_eeprom.user_channel[0]       = IS_USER_CHANNEL(Data[1])  ? Data[1] : USER_CHANNEL_FIRST;
+	g_eeprom.user_channel[1]       = IS_USER_CHANNEL(Data[4])  ? Data[4] : USER_CHANNEL_FIRST;
+	g_eeprom.freq_channel[0]       = IS_FREQ_CHANNEL(Data[2])  ? Data[2] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
+	g_eeprom.freq_channel[1]       = IS_FREQ_CHANNEL(Data[5])  ? Data[5] : (FREQ_CHANNEL_FIRST + BAND6_400MHz);
 	#ifdef ENABLE_NOAA
-		g_eeprom.noaa_channel[0] = IS_NOAA_CHANNEL(Data[6])  ? Data[6] : NOAA_CHANNEL_FIRST;
-		g_eeprom.noaa_channel[1] = IS_NOAA_CHANNEL(Data[7])  ? Data[7] : NOAA_CHANNEL_FIRST;
+		g_eeprom.noaa_channel[0]   = IS_NOAA_CHANNEL(Data[6])  ? Data[6] : NOAA_CHANNEL_FIRST;
+		g_eeprom.noaa_channel[1]   = IS_NOAA_CHANNEL(Data[7])  ? Data[7] : NOAA_CHANNEL_FIRST;
 	#endif
 
 #ifdef ENABLE_FMRADIO
 	{	// 0E88..0E8F
 		struct
 		{
-			uint16_t SelectedFrequency;
-			uint8_t  SelectedChannel;
-			uint8_t  IsMrMode;
-			uint8_t  Padding[8];
-		} __attribute__((packed)) FM;
+			uint16_t freq;
+			uint8_t  chan;
+			uint8_t  chan_mode;
+		} __attribute__((packed)) fm;
 
-		EEPROM_ReadBuffer(0x0E88, &FM, 8);
-		if (FM.SelectedFrequency < FM_RADIO_BAND.lower || FM.SelectedFrequency > FM_RADIO_BAND.upper)
-			g_eeprom.fm_selected_frequency = 960;
-		else
-			g_eeprom.fm_selected_frequency = FM.SelectedFrequency;
-
-		g_eeprom.fm_selected_channel = FM.SelectedChannel;
-		g_eeprom.fm_is_channel_mode        = (FM.IsMrMode < 2) ? FM.IsMrMode : false;
+		EEPROM_ReadBuffer(0x0E88, &fm, sizeof(fm));
+		g_eeprom.fm_selected_frequency = (fm.freq >= FM_RADIO_BAND.lower && fm.freq < FM_RADIO_BAND.upper) ? fm.freq : FM_RADIO_BAND.lower;
+		g_eeprom.fm_selected_channel   = fm.chan;
+		g_eeprom.fm_channel_mode       = fm.chan_mode ? true : false;
 	}
 
 	// 0E40..0E67
@@ -794,7 +789,7 @@ void BOARD_EEPROM_load(void)
 #endif
 }
 
-void BOARD_EEPROM_LoadCalibration(void)
+void BOARD_eeprom_loadCalibration(void)
 {
 //	uint8_t Mic;
 

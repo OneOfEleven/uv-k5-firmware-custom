@@ -80,12 +80,12 @@ int FM_ConfigureChannelState(void)
 {
 	g_eeprom.fm_frequency_playing = g_eeprom.fm_selected_frequency;
 
-	if (g_eeprom.fm_is_channel_mode)
+	if (g_eeprom.fm_channel_mode)
 	{
 		const uint8_t Channel = FM_FindNextChannel(g_eeprom.fm_selected_channel, FM_CHANNEL_UP);
 		if (Channel == 0xFF)
 		{
-			g_eeprom.fm_is_channel_mode = false;
+			g_eeprom.fm_channel_mode = false;
 			return -1;
 		}
 
@@ -160,7 +160,7 @@ void FM_PlayAndUpdate(void)
 
 	if (g_fm_auto_scan)
 	{
-		g_eeprom.fm_is_channel_mode  = true;
+		g_eeprom.fm_channel_mode  = true;
 		g_eeprom.fm_selected_channel = 0;
 	}
 
@@ -261,7 +261,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			if (g_fm_scan_state != FM_SCAN_OFF)
 				return;
 
-			State = g_eeprom.fm_is_channel_mode ? STATE_USER_MODE : STATE_FREQ_MODE;
+			State = g_eeprom.fm_channel_mode ? STATE_USER_MODE : STATE_FREQ_MODE;
 		}
 
 		INPUTBOX_append(Key);
@@ -368,7 +368,7 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			break;
 
 		case KEY_3:
-			g_eeprom.fm_is_channel_mode = !g_eeprom.fm_is_channel_mode;
+			g_eeprom.fm_channel_mode = !g_eeprom.fm_channel_mode;
 
 			if (!FM_ConfigureChannelState())
 			{
@@ -478,7 +478,7 @@ static void FM_Key_MENU(bool key_pressed, bool key_held)
 	if (g_fm_scan_state == FM_SCAN_OFF)
 	{	// not scanning
 
-		if (!g_eeprom.fm_is_channel_mode)
+		if (!g_eeprom.fm_channel_mode)
 		{	// frequency mode
 
 			if (g_ask_to_save)
@@ -578,7 +578,7 @@ static void FM_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Step)
 		return;
 	}
 
-	if (g_eeprom.fm_is_channel_mode)
+	if (g_eeprom.fm_channel_mode)
 	{	// we're in channel mode
 		const uint8_t Channel = FM_FindNextChannel(g_eeprom.fm_selected_channel + Step, Step);
 		if (Channel == 0xFF || g_eeprom.fm_selected_channel == Channel)
@@ -659,7 +659,7 @@ void FM_Play(void)
 			g_fm_play_count_down_10ms = 0;
 			g_fm_found_frequency      = true;
 
-			if (!g_eeprom.fm_is_channel_mode)
+			if (!g_eeprom.fm_channel_mode)
 				g_eeprom.fm_selected_frequency = g_eeprom.fm_frequency_playing;
 
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);

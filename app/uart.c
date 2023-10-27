@@ -371,7 +371,7 @@ static void cmd_051D(const uint8_t *pBuffer)
 
 		#ifdef INCLUDE_AES
 			if (reload_eeprom)
-				BOARD_EEPROM_load();
+				BOARD_eeprom_load();
 		#endif
 	}
 

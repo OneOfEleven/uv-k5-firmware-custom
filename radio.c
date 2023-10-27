@@ -259,11 +259,15 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		EEPROM_ReadBuffer(Base, &m_channel, sizeof(m_channel));
 
 		p_vfo->freq_config_rx.frequency =  m_channel.frequency;
-		p_vfo->tx_offset_freq           = (m_channel.offset < 100000000) ? m_channel.offset : 0;
-		p_vfo->tx_offset_freq_dir       = (m_channel.tx_offset_dir <= TX_OFFSET_FREQ_DIR_SUB) ? m_channel.tx_offset_dir : TX_OFFSET_FREQ_DIR_OFF;
+
+		p_vfo->tx_offset_freq           = (m_channel.tx_offset < MAX_TX_OFFSET) ? m_channel.tx_offset : 0;
+		p_vfo->tx_offset_freq_dir       = (m_channel.tx_offset_dir < TX_OFFSET_FREQ_DIR_LAST) ? m_channel.tx_offset_dir : TX_OFFSET_FREQ_DIR_OFF;
+
 		p_vfo->am_mode                  =  m_channel.am_mode;
+
 		p_vfo->step_setting             = (m_channel.step_setting < ARRAY_SIZE(STEP_FREQ_TABLE)) ? m_channel.step_setting : STEP_12_5kHz;
 		p_vfo->step_freq                = STEP_FREQ_TABLE[p_vfo->step_setting];
+
 		p_vfo->scrambling_type          = (m_channel.scrambler < ARRAY_SIZE(g_sub_menu_scrambler)) ? m_channel.scrambler : 0;
 
 		p_vfo->freq_config_rx.code_type = m_channel.rx_ctcss_cdcss_type;
