@@ -48,11 +48,6 @@
 #include "ui/menu.h"
 #include "version.h"
 
-void _putchar(char c)
-{
-	UART_Send((uint8_t *)&c, 1);
-}
-
 void Main(void)
 {
 	unsigned int i;
@@ -95,6 +90,10 @@ void Main(void)
 
 	BK4819_Init();
 
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("bk4819  id %04X  rev %04X\r\n", BK4819_ReadRegister(0x00), BK4819_ReadRegister(0x01));
+	#endif
+	
 #ifdef ENABLE_MDC1200
 	mdc1200_init();
 #endif
