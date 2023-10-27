@@ -853,10 +853,10 @@ void UI_DisplayMain(void)
 		#ifdef ENABLE_TX_WHEN_AM
 			if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
 		#else
-			if ((state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) && !g_current_vfo->am_mode) // not allowed to TX if in AM mode
+			if ((state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) && !g_eeprom.vfo_info[vfo_num].am_mode) // not allowed to TX if in AM mode
 		#endif
 		{
-			if (FREQUENCY_tx_freq_check(g_current_vfo->p_tx->frequency) == 0)
+			if (FREQUENCY_tx_freq_check(g_eeprom.vfo_info[vfo_num].p_tx->frequency) == 0)
 			{	// show the TX power
 				const char pwr_list[] = "LMH";
 				const unsigned int i = g_eeprom.vfo_info[vfo_num].output_power;
