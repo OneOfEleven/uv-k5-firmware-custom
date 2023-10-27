@@ -25,8 +25,12 @@ const uint8_t mdc1200_sync[5]     = {0x07, 0x09, 0x2a, 0x44, 0x6f};
 //    0000 0111 0000 1001 0010 1010 0100 0100 0110 1111
 //
 // after successive bit xorring:
+//
 //    0000 0100 1000 1101 1011 1111 0110 0110 0101 1000
 //    0x048DBF6658
+//
+//    1111 1011 0111 0010 0100 0000 1001 1001 1010 0111   .. bit inverted
+//    0xFB724099A7
 //
 uint8_t mdc1200_sync_suc_xor[sizeof(mdc1200_sync)];
 
@@ -487,8 +491,12 @@ bool MDC1200_process_rx(
 	uint8_t *arg,
 	uint16_t *unit_id)
 {
-	const uint8_t *buffer8 = (const uint8_t *)buffer; 
+	const uint8_t *buffer8 = (const uint8_t *)buffer;
 	unsigned int   index;
+
+	// FB 72 40 99 A7
+	// FB 72 40 99 A7   BF 3B 4F CD 45 06 CC D1 CC D1 CC D1 CC 2B
+	// FB 72 40 99 A7   BA 24 FC F8 43 05 CA D1 CC FF 1B FF 1B 2B
 
 	memset(&rx, 0, sizeof(rx));
 
@@ -498,71 +506,36 @@ bool MDC1200_process_rx(
 		int          bit;
 
 		const uint8_t rx_byte = buffer8[index];
-		
+
 		for (bit = 7; bit >= 0; bit--)
 		{
 			rx.prev_bit = rx.bit;
-	
+
 			rx.bit = (rx_byte >> bit) & 1u;
-	
-			if (rx.stage == 0)
-			{	// scanning for the pre-amble
-				rx.xor_bit = rx.bit & 1u;
-			}
-			else
-			{
-				rx.xor_bit = (rx.xor_bit ^ rx.bit) & 1u;
-				if (rx.inverted_sync)
-					rx.xor_bit ^= 1u;
-			}
-	
+
+			rx.xor_bit = (rx.xor_bit ^ rx.bit) & 1u;
+			if (rx.stage > 0 && rx.inverted_sync)
+				rx.xor_bit ^= 1u;
+
 			rx.shift_reg = (rx.shift_reg << 1) | (rx.xor_bit & 1u);
 			rx.bit_count++;
-	
+
 			// *********
-	
+
 			if (rx.stage == 0)
-			{	// looking for pre-amble
-				if (rx.bit_count < 20 || (rx.shift_reg & 0xfffff) != 1u)
-					continue;
-	
-				rx.xor_bit   = 1;
-				rx.stage     = 1;
-				rx.bit_count = 1;
-	
-				//s.printf("%5u %2u %u pre-amble found", index, rx_bit_count, rx_packet_stage);
-				//Memo1->Lines->Add(s);
-			}
-	
-			if (rx.stage < 2)
-			{
-				//s.printf("%5u %3u %u ", index, rx_bit_count, rx_packet_stage);
-				//for (uint64_t mask = 1ull << ((sizeof(rx_shift_reg) * 8) - 1); mask != 0; mask >>= 1)
-				//	s += (rx_shift_reg & mask) ? '#' : '.';
-				//s += "  ";
-				//for (int i = sizeof(rx_shift_reg) - 1; i >= 0; i--)
-				//{
-				//	String s2;
-				//	s2.printf(" %02X", (uint8_t)(rx_shift_reg >> (i * 8)));
-				//	s += s2;
-				//}
-				//Memo1->Lines->Add(s);
-			}
-	
-			if (rx.stage == 1)
-			{	// looking for the 40-bit sync pattern, it follows the 24-bit pre-amble
-	
+			{	// looking for the 40-bit sync pattern
+
 				const unsigned int sync_bit_ok_threshold = 32;
-	
+
 				if (rx.bit_count >= sync_bit_ok_threshold)
 				{
 					// 40-bit sync pattern
 					uint64_t sync_nor = 0x07092a446fu;            // normal
 					uint64_t sync_inv = 0xffffffffffu ^ sync_nor; // bit inverted
-	
+
 					sync_nor ^= rx.shift_reg;
 					sync_inv ^= rx.shift_reg;
-	
+
 					unsigned int nor_count = 0;
 					unsigned int inv_count = 0;
 					for (i = 40; i > 0; i--, sync_nor >>= 1, sync_inv >>= 1)
@@ -572,95 +545,72 @@ bool MDC1200_process_rx(
 					}
 					nor_count = 40 - nor_count;
 					inv_count = 40 - inv_count;
-	
+
 					if (nor_count >= sync_bit_ok_threshold || inv_count >= sync_bit_ok_threshold)
 					{	// good enough
-	
+
 						rx.inverted_sync = (inv_count > nor_count) ? true : false;
-	
-						//String s;
-						//s.printf("%5u %2u %u sync found %s %u bits ",
-						//	index,
-						//	rx_bit_count,
-						//	rx_packet_stage,
-						//	rx_inverted_sync ? "inv" : "nor",
-						//	rx_inverted_sync ? inv_count : nor_count);
-	
-						//for (int i = 4; i >= 0; i--)
-						//{
-						//	String s2;
-						//	uint8_t b = rx_shift_reg >> (8 * i);
-						//	if (rx_inverted_sync)
-						//		b ^= 0xff;
-						//	s2.printf(" %02X", b);
-						//	s += s2;
-						//}
-						//Memo1->Lines->Add(s);
-	
-						rx.data_index = 0;
+						rx.data_index    = 0;
 						rx.bit_count     = 0;
 						rx.stage++;
+
+						#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+							UART_printf("mdc1200 rx sync %s\r\n", rx.inverted_sync ? "inv" : "nor");
+						#endif
 					}
 				}
-	
+
 				continue;
 			}
-	
-			// *********
-	
-			if (rx.stage < 2)
-				continue;
-	
+
 			if (rx.bit_count < 8)
 				continue;
-	
+
 			rx.bit_count = 0;
-	
-			// 55 55 55 55 55 55 55 07 09 2A 44 6F 94 9C 22 20 32 A4 1A 37 1E 3A 00 98 2C 84
-	
+
+			// 07 09 2A 44 6F 94 9C 22 20 32 A4 1A 37 1E 3A 00 98 2C 84
+
 			rx.data[rx.data_index++] = rx.shift_reg & 0xff;  // save the last 8 bits
-	
+
 			if (rx.data_index < (FEC_K * 2))
 				continue;
-	
-			//	s.printf("%5u %3u %u %2u ", index, rx_bit_count, rx_packet_stage, rx_buffer.size());
-			//	for (i = 0; i < rx_data_index; i++)
-			//	{
-			//		String s2;
-			//		const uint8_t b = rx_buffer[i];
-			//		s2.printf(" %02X", b);
-			//		s += s2;
-			//	}
-			//	Memo1->Lines->Add(s);
-	
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("mdc1200 rx ");
+				for (i = 0; i < rx.data_index; i++)
+					UART_printf(" %02X", rx.data[i]);
+				UART_SendText("\r\n");
+			#endif
+
 			if (!decode_data(rx.data))
 			{
 				MDC1200_reset_rx();
+	
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_SendText("mdc1200 rx decode error\r\n");
+				#endif
+
 				continue;
 			}
-	
+
 			// extract the info from the packet
 			*op      = rx.data[0];
 			*arg     = rx.data[1];
 			*unit_id = ((uint16_t)rx.data[3] << 8) | (rx.data[2] << 0);
-	
-			//s.printf("%5u %3u %u %2u decoded ", index, rx_bit_count, rx_packet_stage, rx_buffer.size());
-			//for (i = 0; i < 14; i++)
-			//{
-			//	String s2;
-			//	const uint8_t b = data[i];
-			//	s2.printf(" %02X", b);
-			//	s += s2;
-			//}
-			//Memo1->Lines->Add(s);
-	
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_printf("mdc1200 rx  op %02X  arg %02X  id %04X\r\n", *op, *arg, *unit_id);
+			#endif
+
 			// reset the detector
 			MDC1200_reset_rx();
-	
+
 			return true;
 		}
 	}
-	
+
+	MDC1200_reset_rx();
+
 	return false;
 }
 
@@ -679,4 +629,6 @@ void mdc1200_init(void)
 {
 	memcpy(mdc1200_sync_suc_xor, mdc1200_sync, sizeof(mdc1200_sync));
 	xor_modulation(mdc1200_sync_suc_xor, sizeof(mdc1200_sync_suc_xor));
+
+	MDC1200_reset_rx();
 }

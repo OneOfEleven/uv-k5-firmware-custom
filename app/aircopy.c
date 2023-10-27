@@ -411,6 +411,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	for (i = 0; i < 4; i++)
 	{
 		const uint16_t word = BK4819_ReadRegister(0x5F);
+
 		if (g_fsk_write_index < ARRAY_SIZE(g_fsk_buffer))
 			g_fsk_buffer[g_fsk_write_index++] = word;
 	}
