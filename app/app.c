@@ -17,6 +17,9 @@
 #include <string.h>
 #include <stdlib.h>  // abs()
 
+#ifdef ENABLE_AM_FIX
+	#include "am_fix.h"
+#endif
 #include "app/action.h"
 #ifdef ENABLE_AIRCOPY
 	#include "app/aircopy.h"
@@ -47,7 +50,6 @@
 #if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	#include "driver/uart.h"
 #endif
-#include "am_fix.h"
 #include "dtmf.h"
 #include "external/printf/printf.h"
 #include "frequencies.h"
@@ -230,7 +232,7 @@ static void APP_process_new_receive(void)
 		}
 	}
 
-	APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, false);
+	APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
 }
 
 enum end_of_rx_mode_e {
@@ -473,7 +475,7 @@ static void APP_process_function(void)
 	#pragma GCC diagnostic pop
 }
 
-bool APP_start_listening(function_type_t Function, const bool reset_am_fix)
+bool APP_start_listening(function_type_t Function)
 {
 	const unsigned int chan = g_eeprom.rx_vfo;
 //	const unsigned int chan = g_rx_vfo->channel_save;
@@ -556,24 +558,6 @@ bool APP_start_listening(function_type_t Function, const bool reset_am_fix)
 
 		g_update_status = true;
 	}
-
-#ifdef ENABLE_AM_FIX
-	{	// RF RX front end gain
-
-		if (g_rx_vfo->am_mode && g_setting_am_fix)
-		{	// AM RX mode
-			if (reset_am_fix)
-				AM_fix_reset(chan);   // TODO: only reset it when moving channel/frequency .. or do we ???
-			AM_fix_10ms(chan);
-		}
-		else
-		{	// original setting
-			BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
-		}
-	}
-#else
-	(void)reset_am_fix;
-#endif
 
 	// AF gain - original QS values
 	if (g_rx_vfo->am_mode)
@@ -1318,7 +1302,7 @@ void APP_process(void)
 
 			if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE) // && !g_scan_pause_time_mode)
 			{
-				APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
+				APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
 			}
 			else
 			if (g_scan_pause_10ms == 0)
@@ -1338,7 +1322,7 @@ void APP_process(void)
 
 				if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE && !g_scan_pause_time_mode)
 				{
-					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
+					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
 				}
 				else
 				{	// switch to next channel
@@ -1353,7 +1337,7 @@ void APP_process(void)
 
 				if (g_current_function == FUNCTION_NEW_RECEIVE && !g_scan_pause_time_mode)
 				{
-					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE, true);
+					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
 				}
 				else
 				{	// switch to next frequency
@@ -1850,7 +1834,9 @@ void APP_time_slice_10ms(void)
 	#ifdef ENABLE_AM_FIX
 //		if (g_eeprom.vfo_info[g_eeprom.rx_vfo].am_mode && g_setting_am_fix)
 		if (g_rx_vfo->am_mode && g_setting_am_fix)
+		{
 			AM_fix_10ms(g_eeprom.rx_vfo);
+		}
 	#endif
 
 	if (g_current_function != FUNCTION_POWER_SAVE || !g_rx_idle_mode)

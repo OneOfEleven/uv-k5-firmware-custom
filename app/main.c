@@ -833,7 +833,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 			#ifdef ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS
 				if (key_held && !monitor_was_enabled && g_current_function == FUNCTION_MONITOR)
 				{	// re-enable the squelch
-					APP_start_listening(FUNCTION_RECEIVE, false);
+					APP_start_listening(FUNCTION_RECEIVE);
 					g_monitor_enabled = false;
 				}
 			#endif
@@ -953,7 +953,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 						if (key_held && key_pressed && !monitor_was_enabled)
 						{	// open the squelch if the user holds the key down
 							g_monitor_enabled = true;
-							APP_start_listening(FUNCTION_MONITOR, false);
+							APP_start_listening(FUNCTION_MONITOR);
 						}
 					#endif
 

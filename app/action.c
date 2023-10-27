@@ -85,7 +85,7 @@ void ACTION_Monitor(void)
 		#endif
 		g_monitor_enabled = true;
 		RADIO_setup_registers(true);
-		APP_start_listening(FUNCTION_MONITOR, false);
+		APP_start_listening(FUNCTION_MONITOR);
 		return;
 	}
 

@@ -21,6 +21,9 @@
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
 #endif
+#ifdef ENABLE_AM_FIX
+	#include "am_fix.h"
+#endif
 #include "audio.h"
 #include "board.h"
 #include "bsp/dp32g030/gpio.h"
@@ -391,6 +394,29 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	}
 
 	RADIO_ConfigureSquelchAndOutputPower(p_vfo);
+
+#ifdef ENABLE_AM_FIX
+	if (p_vfo->am_mode && g_setting_am_fix)
+	{
+		AM_fix_reset(VFO);
+		AM_fix_10ms(VFO);
+	}
+	else
+	{  // don't do agc in FM mode
+		BK4819_DisableAGC();
+		BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
+	}
+#else
+	if (p_vfo->am_mode)
+	{
+		BK4819_EnableAGC();
+	}
+	else
+	{  // don't do agc in FM mode
+		BK4819_DisableAGC();
+		BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
+	}
+#endif
 
 	if (IS_FREQ_CHANNEL(Channel))
 		p_vfo->freq_in_channel = BOARD_find_channel(Frequency); // remember if a channel has this frequency
@@ -804,7 +830,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	if (switch_to_function_foreground)
 	{
 		if (g_monitor_enabled)
-			APP_start_listening(FUNCTION_MONITOR, false);
+			APP_start_listening(FUNCTION_MONITOR);
 		else
 			FUNCTION_Select(FUNCTION_FOREGROUND);
 	}

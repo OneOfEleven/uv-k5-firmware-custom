@@ -53,8 +53,11 @@ void BK4819_Init(void)
 	BK4819_WriteRegister(0x37, 0x1D0F);
 	BK4819_WriteRegister(0x36, 0x0022);
 
-//	BK4819_DisableAGC();
-	BK4819_EnableAGC();
+#ifdef ENABLE_AM_FIX
+	BK4819_DisableAGC();
+#else
+	BK4819_EnableAGC();  // only do this in linear modulation modes, not FM
+#endif
 
 	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
 

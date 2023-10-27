@@ -32,7 +32,7 @@
 #include "driver/st7565.h"
 #include "driver/system.h"
 #include "driver/systick.h"
-#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+#if defined(ENABLE_UART)
 	#include "driver/uart.h"
 #endif
 #include "helper/battery.h"
