@@ -356,13 +356,13 @@ void BK4819_EnableAGC(void)
     BK4819_WriteRegister(0x11, 0x027B);
     BK4819_WriteRegister(0x10, 0x007A);
     BK4819_WriteRegister(0x14, 0x0018);
-
+/*
 	// undocumented ?
     BK4819_WriteRegister(0x49, 0x2A38);
     BK4819_WriteRegister(0x7B, 0x318C);
     BK4819_WriteRegister(0x7C, 0x595E);
     BK4819_WriteRegister(0x20, 0x8DEF);
-
+*/
 	// fagci had the answer to why we weren't as sensitive!
 	for (unsigned int i = 0; i < 8; i++)
 		BK4819_WriteRegister(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));
@@ -567,7 +567,7 @@ void BK4819_set_TX_deviation(unsigned int level)
 {
 	if (level > 4095)
 		level = 4095;
-	
+
 	// REG_40
 	//
 	// <15:13> 0 ???
@@ -1064,7 +1064,7 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 
 	BK4819_WriteRegister(0x71, scale_freq(frequency));
 	BK4819_ExitTxMute();
-	
+
 //	SYSTEM_DelayMs(2);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);	// enable speaker
 	SYSTEM_DelayMs(2);
@@ -1149,7 +1149,7 @@ void BK4819_Idle(void)
 {
 	BK4819_WriteRegister(0x30, 0);
 }
-
+/*
 void BK4819_ExitBypass(void)
 {
 	BK4819_SetAF(BK4819_AF_MUTE);
@@ -1186,10 +1186,10 @@ void BK4819_ExitBypass(void)
 		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
 		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
 }
-
+*/
 void BK4819_PrepareTransmit(void)
 {
-	BK4819_ExitBypass();
+//	BK4819_ExitBypass();
 	BK4819_ExitTxMute();
 	BK4819_TxOn_Beep();
 }
@@ -1325,8 +1325,8 @@ void BK4819_PlayDTMF(char Code)
 		BK4819_WriteRegister(0x71, (((uint32_t)tone1 * 103244) + 5000) / 10000);   // with rounding
 	if (tone2 > 0)
 		BK4819_WriteRegister(0x72, (((uint32_t)tone2 * 103244) + 5000) / 10000);   // with rounding
-*/	
-	
+*/
+
 	uint32_t index = ((Code >= 65) ? (Code - 55) : ((Code <= 35) ? 15 :((Code <= 42) ? 14 : (Code - '0'))));
 
 	const uint16_t tones[2][16] =
@@ -1373,7 +1373,7 @@ void BK4819_PlayDTMF(char Code)
     {
     	BK4819_WriteRegister(0x71, (((uint32_t)tones[0][index] * 103244u) + 5000u) / 10000u);   // with rounding
     	BK4819_WriteRegister(0x72, (((uint32_t)tones[1][index] * 103244u) + 5000u) / 10000u);   // with rounding
-    }	
+    }
 }
 
 void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst, uint16_t FirstCodePersistTime, uint16_t HashCodePersistTime, uint16_t CodePersistTime, uint16_t CodeInternalTime)
@@ -1800,7 +1800,7 @@ void BK4819_reset_fsk(void)
 		(6u <<  4) |   // 0 ~ 15   preamble Length Selection
 		(1u <<  3) |   // 0 or 1   sync length selection
 		(0u <<  0);    // 0 ~ 7    ???
-	
+
 	BK4819_WriteRegister(0x3F, 0);   // disable interrupts
 	BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59); // clear FIFO's
 	BK4819_WriteRegister(0x59, (0u << 15) | (0u << 14) | fsk_reg59);
@@ -1925,19 +1925,19 @@ void BK4819_reset_fsk(void)
 	void BK4819_start_aircopy_fsk_rx(const unsigned int packet_size)
 	{
 		uint16_t fsk_reg59;
-	
+
 		BK4819_reset_fsk();
-	
+
 		BK4819_WriteRegister(0x02, 0);    // clear interrupt flags
-	
+
 		// set the packet size
 		BK4819_WriteRegister(0x5D, ((packet_size - 1) << 8));
-	
+
 		BK4819_RX_TurnOn();
-	
+
 	//	BK4819_WriteRegister(0x3F,                             BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
 		BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
-	
+
 		// REG_59
 		//
 		// <15>  0 TX FIFO
@@ -1987,7 +1987,7 @@ void BK4819_reset_fsk(void)
 					(4u <<  4) |   // 0 ~ 15   preamble Length Selection .. 1of11 .. a little shorter than the TX length
 					(1u <<  3) |   // 0 or 1   sync length selection
 					(0u <<  0);    // 0 ~ 7    ???
-	
+
 		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);  // clear FIFO's
 		BK4819_WriteRegister(0x59, (1u << 13) | (1u << 12) | fsk_reg59);  // enable scrambler, enable RX
 	}
@@ -2001,18 +2001,18 @@ void BK4819_reset_fsk(void)
 		// <15>    0 TONE-1
 		//         1 = enable
 		//         0 = disable
-		//         
+		//
 		// <14:8>  0 TONE-1 gain
-		//         
+		//
 		// <7>     0 TONE-2
 		//         1 = enable
 		//         0 = disable
-		//         
+		//
 		// <6:0>   0 TONE-2 / FSK gain
 		//         0 ~ 127
 		//
 		// enable tone-2, set gain
-	
+
 		// REG_72
 		//
 		// <15:0>  0x2854 TONE-2 / FSK frequency control word
@@ -2020,7 +2020,7 @@ void BK4819_reset_fsk(void)
 		//         = freq(Hz) * 10.48576 for XTAL 12.8M / 19.2M / 25.6M / 38.4M
 		//
 		// tone-2 = 1200Hz
-	
+
 		// REG_58
 		//
 		// <15:13> 1 FSK TX mode selection
@@ -2068,23 +2068,23 @@ void BK4819_reset_fsk(void)
 		// <0>     1 FSK enable
 		//         0 = disable
 		//         1 = enable
-	
+
 		// REG_5C
 		//
 		// <15:7>  ???
-		//         
+		//
 		// <6>     1 CRC option enable
 		//         0 = disable
 		//         1 = enable
-		//         
+		//
 		// <5:0>   ???
 		//
 		// disable CRC
-	
+
 		// REG_5D
 		//
 		// set the packet size
-	
+
 		if (enable)
 		{
 			const uint16_t fsk_reg59 =
@@ -2099,15 +2099,15 @@ void BK4819_reset_fsk(void)
 				(0u <<  4) |   // 0 ~ 15 preamble length selection .. mdc1200 does not send bit reversals :(
 				(1u <<  3) |   // 0/1 sync length selection
 				(0u <<  0);    // 0 ~ 7  ???
-	
+
 			BK4819_WriteRegister(0x70,
 				( 0u << 15) |    // 0
 				( 0u <<  8) |    // 0
 				( 1u <<  7) |    // 1
 				(96u <<  0));    // 96
-			
+
 			BK4819_WriteRegister(0x72, ((1200u * 103244) + 5000) / 10000);   // with rounding
-	
+
 			BK4819_WriteRegister(0x58,
 				(1u << 13) |		// 1 FSK TX mode selection
 									//   0 = FSK 1.2K and FSK 2.4K TX .. no tones, direct FM
@@ -2155,33 +2155,33 @@ void BK4819_reset_fsk(void)
 									//   0 = disable
 									//   1 = enable
 
-			// 0000 0100 1000 1101 1011 1111 0110 0110 0101 1000
-			// 0    4    8    D    B    F    6    6    5    8
-			//
-			// REG_5A
+			// REG_5A .. bytes 0 & 1 sync pattern
 			//
 			// <15:8> sync byte 0
 			// < 7:0> sync byte 1
-			BK4819_WriteRegister(0x5A, 0x8DBF);
+			BK4819_WriteRegister(0x5A, ((uint16_t)mdc1200_sync_suc_xor[0] << 8) | (mdc1200_sync_suc_xor[1] << 0));
+
+			// REG_5B .. bytes 2 & 3 sync pattern
+			//
 			// <15:8> sync byte 2
 			// < 7:0> sync byte 3
-			BK4819_WriteRegister(0x5B, 0x6658);
-	
+			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[2] << 8) | (mdc1200_sync_suc_xor[3] << 0));
+
 			// disable CRC
 			BK4819_WriteRegister(0x5C, 0x5625 | (0u << 6));
 
-			// packet size (14 bytes)
-			BK4819_WriteRegister(0x5D, ((14u - 1) << 8));  
+			// packet size .. 14 bytes - size of a single mdc1200 packet
+			BK4819_WriteRegister(0x5D, (((sizeof(mdc1200_sync_suc_xor) - 4 + 14) - 1) << 8));
 
 			// clear FIFO's then enable RX
 			BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
 			BK4819_WriteRegister(0x59, (1u << 12) | fsk_reg59);
 
 			// clear interrupt flags
-			BK4819_WriteRegister(0x02, 0);    
-	
+			BK4819_WriteRegister(0x02, 0);
+
 			BK4819_RX_TurnOn();
-	
+
 			// enable interrupts
 			BK4819_WriteRegister(0x3F, BK4819_ReadRegister(0x3F) | BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
 		}
@@ -2196,7 +2196,7 @@ void BK4819_reset_fsk(void)
 	{
 		uint16_t fsk_reg59;
 		uint8_t  packet[42];
-	
+
 		// create the MDC1200 packet
 		const unsigned int size = MDC1200_encode_single_packet(packet, op, arg, id);
 
@@ -2210,10 +2210,10 @@ void BK4819_reset_fsk(void)
 			BK4819_SetAF(BK4819_AF_BEEP);
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 		#endif
-		
+
 		// *******************
 		// need to turn off CTCSS/CDCSS during FFSK
-	
+
 		// REG_51
 		//
 		// <15>  1 = Enable TxCTCSS/CDCSS
@@ -2223,7 +2223,7 @@ void BK4819_reset_fsk(void)
 		BK4819_WriteRegister(0x51, 0);
 
 		// *******************************************
-	
+
 		// REG_40
 		//
 		// <15:13> 0 ???
@@ -2235,11 +2235,11 @@ void BK4819_reset_fsk(void)
 		//
 		// <11:0>  0x04D0 RF TX deviation tuning (both in-band signal and sub-audio)
 		//         0 ~ 4095
-		
+
 		const uint16_t tx_dev = BK4819_ReadRegister(0x40);
 	//	BK4819_WriteRegister(0x40, (0u << 12) | (1232 << 0));   // 000 0 010011010000
 		BK4819_WriteRegister(0x40, (tx_dev & 0xf000) | (1050 << 0));  // reduce the deviation a little
-			
+
 		// REG_2B   0
 		//
 		// <10>     0 AF RX HPF 300Hz filter
@@ -2283,10 +2283,10 @@ void BK4819_reset_fsk(void)
 			(0u  <<  0));    // disable RX DSP
 
 		SYSTEM_DelayMs(20);
-		
+
 		// *******************************************
 
-		// MDC1200 uses 1200/1800 Hz FSK tone frequencies 1200 bits/s 
+		// MDC1200 uses 1200/1800 Hz FSK tone frequencies 1200 bits/s
 		//
 		BK4819_WriteRegister(0x58, // 0x37C3);   // 001 101 11 11 00 001 1
 			(1u << 13) |		// 1 FSK TX mode selection
@@ -2334,7 +2334,7 @@ void BK4819_reset_fsk(void)
 			(1u << 0));			// 1 FSK enable
 								//   0 = disable
 								//   1 = enable
-	
+
 		// REG_72
 		//
 		// <15:0> 0x2854 TONE-2 / FSK frequency control word
@@ -2344,7 +2344,7 @@ void BK4819_reset_fsk(void)
 		// tone-2 = 1200Hz
 		//
 		BK4819_WriteRegister(0x72, ((1200u * 103244) + 5000) / 10000);   // with rounding
-	
+
 		// REG_70
 		//
 		// <15>   0 TONE-1
@@ -2368,7 +2368,7 @@ void BK4819_reset_fsk(void)
 			( 1u <<  7) |    // 1
 			(96u <<  0));    // 96
 //			(127u <<  0));
-			
+
 		// REG_59
 		//
 		// <15>  0 TX FIFO
@@ -2417,27 +2417,27 @@ void BK4819_reset_fsk(void)
 					(0u <<  4) |   // 0 ~ 15  preamble length
 					(0u <<  3) |   // 0 ~ 1       sync length
 					(0u <<  0);    // 0 ~ 7   ???
-	
+
 		// Set entire packet length (not including the pre-amble and sync bytes we can't seem to disable)
 		BK4819_WriteRegister(0x5D, ((size - 1) << 8));
-	
+
 		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);   // clear FIFO's
 		BK4819_WriteRegister(0x59, fsk_reg59);                             // release the FIFO reset
-	
+
 		// REG_5A
 		//
 		// <15:8> 0x55 FSK Sync Byte 0 (Sync Byte 0 first, then 1,2,3)
 		// <7:0>  0x55 FSK Sync Byte 1
 		//
 		BK4819_WriteRegister(0x5A, 0x0000);                   // bytes 1 & 2
-	
+
 		// REG_5B
 		//
 		// <15:8> 0x55 FSK Sync Byte 2 (Sync Byte 0 first, then 1,2,3)
 		// <7:0>  0xAA FSK Sync Byte 3
 		//
 		BK4819_WriteRegister(0x5B, 0x0000);                   // bytes 2 & 3
-	
+
 		// CRC setting (plus other stuff we don't know what)
 		//
 		// REG_5C
@@ -2454,28 +2454,28 @@ void BK4819_reset_fsk(void)
 		//
 	//	BK4819_WriteRegister(0x5C, 0xAA30);   // 101010100 0 110000
 		BK4819_WriteRegister(0x5C, 0);        // setting to '0' doesn't make any difference !
-	
+
 		{	// load the entire packet data into the TX FIFO buffer
 			unsigned int i;
 			const uint16_t *p = (const uint16_t *)packet;
 			for (i = 0; i < (size / sizeof(p[0])); i++)
 				BK4819_WriteRegister(0x5F, p[i]);  // load 16-bits at a time
 		}
-	
+
 		// enable tx interrupt
 		BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
-	
+
 		// enable TX
 		BK4819_WriteRegister(0x59, (1u << 11) | fsk_reg59);
-	
+
 		{	// packet time is ..
 			// 173ms for PTT ID, acks, emergency
 			// 266ms for call alert and sel-calls
-	
+
 			// allow up to 350ms for the TX to complete
 			// if it takes any longer then somethings gone wrong, we shut the TX down
-			unsigned int timeout = 350 / 5;      
-	
+			unsigned int timeout = 350 / 5;
+
 			while (timeout-- > 0)
 			{
 				SYSTEM_DelayMs(5);
@@ -2487,12 +2487,12 @@ void BK4819_reset_fsk(void)
 				}
 			}
 		}
-		
+
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER); // don't need the speaker enabled during TX
 
 		// disable FSK
 		BK4819_WriteRegister(0x59, fsk_reg59);
-	
+
 		BK4819_WriteRegister(0x3F, 0);   // disable interrupts
 		BK4819_WriteRegister(0x70, 0);
 		BK4819_WriteRegister(0x58, 0);
@@ -2507,11 +2507,11 @@ void BK4819_reset_fsk(void)
 		BK4819_WriteRegister(0x51, css_val);
 
 		// ****************
-		
+
 		BK4819_EnterTxMute();
 
 		BK4819_SetAF(BK4819_AF_MUTE);
-				
+
 		BK4819_WriteRegister(0x30,
 			(1u  << 15) |    // enable  VCO calibration
 			(1u  << 14) |    // enable something or other
@@ -2523,7 +2523,7 @@ void BK4819_reset_fsk(void)
 			(1u  <<  2) |    // enable  MIC ADC
 			(1u  <<  1) |    // enable  TX DSP
 			(0u  <<  0));    // disable RX DSP
-			
+
 		BK4819_ExitTxMute();
 	}
 #endif

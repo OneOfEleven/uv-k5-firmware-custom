@@ -25,7 +25,9 @@
 #include "app/search.h"
 #include "audio.h"
 #include "driver/keyboard.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "dtmf.h"
 #include "external/printf/printf.h"
 #include "functions.h"

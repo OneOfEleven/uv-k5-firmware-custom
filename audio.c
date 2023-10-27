@@ -29,7 +29,9 @@
 #include "driver/gpio.h"
 #include "driver/system.h"
 #include "driver/systick.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"

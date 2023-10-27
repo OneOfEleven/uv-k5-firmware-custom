@@ -30,7 +30,9 @@
 #endif
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"

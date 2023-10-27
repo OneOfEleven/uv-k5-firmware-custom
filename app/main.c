@@ -32,7 +32,9 @@
 #include "bsp/dp32g030/gpio.h"
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "dtmf.h"
 #include "frequencies.h"
 #include "misc.h"

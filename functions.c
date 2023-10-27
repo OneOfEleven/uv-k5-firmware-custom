@@ -29,7 +29,9 @@
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
 #include "driver/system.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "frequencies.h"
 #include "functions.h"
 #include "helper/battery.h"

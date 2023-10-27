@@ -44,7 +44,9 @@
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "am_fix.h"
 #include "dtmf.h"
 #include "external/printf/printf.h"
@@ -492,7 +494,7 @@ bool APP_start_listening(function_type_t Function, const bool reset_am_fix)
 	#endif
 
 	#ifdef ENABLE_MDC1200
-		MDC1200_reset_rx();
+//		MDC1200_reset_rx();
 	#endif
 
 	// clear the other vfo's rssi level (to hide the antenna symbol)
@@ -586,7 +588,7 @@ bool APP_start_listening(function_type_t Function, const bool reset_am_fix)
 			(g_eeprom.volume_gain << 4) |     // AF Rx Gain-2
 			(g_eeprom.dac_gain    << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
 	}
-	
+
 	#ifdef ENABLE_VOICE
 		#ifdef MUTE_AUDIO_FOR_VOICE
 			if (g_voice_write_index == 0)
@@ -920,8 +922,10 @@ void APP_process_radio_interrupts(void)
 	while (BK4819_ReadRegister(0x0C) & (1u << 0))
 	{	// BK chip interrupt request
 
+		uint16_t interrupt_bits;
+		
 		BK4819_WriteRegister(0x02, 0);
-		const uint16_t interrupt_bits = BK4819_ReadRegister(0x02);
+		interrupt_bits = BK4819_ReadRegister(0x02);
 
 		if (interrupt_bits & BK4819_REG_02_DTMF_5TONE_FOUND)
 		{	// save the RX'ed DTMF character
@@ -1016,8 +1020,8 @@ void APP_process_radio_interrupts(void)
 
 		if (interrupt_bits & BK4819_REG_02_SQUELCH_CLOSED)
 		{
-			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 			g_squelch_open = false;
+			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_printf("squelch closed\r\n");
@@ -1026,7 +1030,6 @@ void APP_process_radio_interrupts(void)
 
 		if (interrupt_bits & BK4819_REG_02_SQUELCH_OPENED)
 		{
-//			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
 			g_squelch_open = true;
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
@@ -1036,48 +1039,119 @@ void APP_process_radio_interrupts(void)
 
 		#ifdef ENABLE_MDC1200
 		{
-			const uint16_t sync_flags = BK4819_ReadRegister(0x0B);
-			
-//			if (sync_flags & ((1u << 7) | (1u << 6)))
-//			{	// RX sync found (pos or neg version)
-//				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//					UART_printf("fsk rx sync\r\n");
-//				#endif
-//			}
+			const uint16_t rx_sync_flags   = BK4819_ReadRegister(0x0B);
+			const bool rx_sync_neg         = (rx_sync_flags & (1u << 7)) ? true : false;
+			const bool rx_sync_pos         = (rx_sync_flags & (1u << 6)) ? true : false;
+			const bool rx_sync             = (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC) ? true : false;
+			const bool rx_finished         = (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED) ? true : false;
+			const bool rx_fifo_almost_full = (interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL) ? true : false;
 
-			if (sync_flags & (1u << 7))
+			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
+
+			if (rx_sync_neg)
 			{	// RX sync neg found
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 					UART_printf("fsk rx sync neg\r\n");
 				#endif
 			}
-			
-			if (sync_flags & (1u << 6))
+
+			if (rx_sync_pos)
 			{	// RX sync pos found
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 					UART_printf("fsk rx sync pos\r\n");
 				#endif
 			}
 
-			if (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC)
+			if (rx_sync)
 			{
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 					UART_printf("fsk rx sync\r\n");
 				#endif
 			}
+
+			if (rx_fifo_almost_full)
+			{
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("fsk rx almost full\r\n");
+				#endif
+			}
 			
-			if (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED)
+			if (rx_finished)
 			{
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 					UART_printf("fsk rx finished\r\n");
 				#endif
 			}
 			
-			if (interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL)
+			if (rx_fifo_almost_full)
 			{
+				uint8_t            buffer[sizeof(mdc1200_sync_suc_xor) + 14];
+				unsigned int       i;
+				uint8_t            op;
+				uint8_t            arg;
+				uint16_t           unit_id;
+				const uint16_t     fsk_reg59 = BK4819_ReadRegister(0x59) & ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));
+				const unsigned int sync_size = (fsk_reg59 & (1u << 3)) ? 4 : 2; 
+//				const unsigned int size      = 1 + ((BK4819_ReadRegister(0x5D) >> 8) & 0xffff);
+				const unsigned int size      = sizeof(buffer) - sync_size;
+				
+				// 40 C4 B0 32 BA F9 33 18 35 08 83 F6 0C C9
+				// 0100000011000100101100000011001010111010111110010011001100011000001101010000100010000011111101100000110011001001
+
+				// 0100000011000100101100000011001010111010111110010011001100011000001101010000100010000011111101100000000011110101
+				// 1011111100111011010011111100110101000101000001101100110011100111110010101111011101111100000010011111111100001010
+
+				// BF 3B 4F CD 45 06 CC E7 CA F7 7C 09 FF 0A
+
+				{	// fetch RX'ed data .. 16-bits at a time
+
+					unsigned int k = 0;
+
+					// precede the data with the missing sync pattern
+					for (i = 0; i < sync_size; i++)
+						buffer[k++] = mdc1200_sync_suc_xor[i] ^ (rx_sync_neg ? 0xff : 0);
+
+					for (i = 0; i < (size / 2); i++)
+					{
+						const uint16_t word = BK4819_ReadRegister(0x5F);
+						buffer[k++] = (word >> 8) & 0xff;
+						buffer[k++] = (word >> 0) & 0xff;
+					}
+				}
+
+				// clear FIFO's then enable RX
+				BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
+				BK4819_WriteRegister(0x59, (1u << 12) | fsk_reg59);
+
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					UART_printf("fsk rx almost full\r\n");
+					UART_SendText("fsk rx ");
+					for (i = 0; i < sizeof(buffer); i++)
+						UART_printf(" %02X", buffer[i]);
+					UART_SendText("\r\n");
 				#endif
+
+				if (!g_squelch_open)
+					BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
+
+				if (MDC1200_process_rx(
+					buffer,
+					sizeof(buffer),
+//					(sync_flags & (1u << 7)) ? true : false, // true if the sync pattern is bit inverted
+					&op,
+					&arg,
+					&unit_id))
+				{
+					g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
+
+					// TODO: display the packet
+
+
+					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+						UART_printf("MDC1200  op %02X  arg %02X  id %04X\r\n", op, arg, unit_id);
+					#endif
+
+
+				}
 			}
 		}
 		#endif

@@ -28,7 +28,9 @@
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/system.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "frequencies.h"
 #include "misc.h"
 #include "radio.h"

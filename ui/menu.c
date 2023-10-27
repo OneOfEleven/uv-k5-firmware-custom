@@ -26,7 +26,9 @@
 #include "driver/bk4819.h"
 #include "driver/eeprom.h"   // EEPROM_ReadBuffer()
 #include "driver/st7565.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "external/printf/printf.h"
 #include "frequencies.h"
 #include "helper/battery.h"

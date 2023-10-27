@@ -14,7 +14,7 @@ ENABLE_LTO                       := 1
 ENABLE_UART                      := 1
 ENABLE_UART_DEBUG                := 1
 # AirCopy 2.5 kB
-ENABLE_AIRCOPY                   := 1
+ENABLE_AIRCOPY                   := 0
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
 # FM Radio 4.2 kB

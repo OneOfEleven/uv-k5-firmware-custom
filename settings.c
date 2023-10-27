@@ -20,7 +20,9 @@
 	#include "app/fm.h"
 #endif
 #include "driver/eeprom.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "misc.h"
 #include "settings.h"
 

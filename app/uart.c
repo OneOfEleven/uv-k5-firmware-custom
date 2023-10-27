@@ -33,7 +33,9 @@
 #include "driver/crc.h"
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART)
+	#include "driver/uart.h"
+#endif
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"

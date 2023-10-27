@@ -32,7 +32,9 @@
 #include "driver/gpio.h"
 #include "driver/keyboard.h"
 #include "driver/st7565.h"
-#include "driver/uart.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "frequencies.h"
 #include "helper/battery.h"
 #include "misc.h"
