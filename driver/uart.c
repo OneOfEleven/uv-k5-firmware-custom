@@ -113,18 +113,16 @@ void UART_LogSendText(const void *str)
 		UART_Send(str, strlen(str));
 }
 
-#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-	void UART_printf(const char *str, ...)
-	{
-		char text[256];
-		int  len;
-		
-		va_list va;
-		va_start(va, str);
-			len = vsnprintf(text, sizeof(text), str, va);
-		va_end(va);
+void UART_printf(const char *str, ...)
+{
+	char text[256];
+	int  len;
 	
-		UART_Send(text, len);
-		//UART_Send(text, strlen(text));
-	}
-#endif
+	va_list va;
+	va_start(va, str);
+		len = vsnprintf(text, sizeof(text), str, va);
+	va_end(va);
+
+	UART_Send(text, len);
+	//UART_Send(text, strlen(text));
+}

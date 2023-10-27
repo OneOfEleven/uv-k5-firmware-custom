@@ -27,9 +27,7 @@ void UART_Send(const void *pBuffer, uint32_t Size);
 void UART_SendText(const void *str);
 void UART_LogSend(const void *pBuffer, uint32_t Size);
 void UART_LogSendText(const void *str);
-#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-	void UART_printf(const char *str, ...);
-#endif
+void UART_printf(const char *str, ...);
 
 #endif
 
