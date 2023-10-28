@@ -216,7 +216,7 @@ bool                  g_cxcss_tail_found;
 bool                  g_squelch_open;
 
 uint8_t               g_flash_light_state;
-volatile uint16_t     g_flash_light_blink_counter;
+uint16_t              g_flash_light_blink_tick_10ms;
 
 bool                  g_flag_end_tx;
 uint16_t              g_low_batteryCountdown;
