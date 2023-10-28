@@ -637,20 +637,19 @@ void MDC1200_process_rx(const uint16_t interrupt_bits)
 	const bool rx_fifo_almost_full = (interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL) ? true : false;
 	const bool rx_finished         = (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED) ? true : false;
 
-	const unsigned int sync_size   = (fsk_reg59 & (1u << 3)) ? 4 : 2;
+//	const unsigned int sync_size   = (fsk_reg59 & (1u << 3)) ? 4 : 2;
 
 	if (rx_sync)
 	{
 //		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
-
-		//mdc1200_rx_ready = false;
 
 		mdc1200_rx_buffer_index = 0;
 
 		{	// precede the data with the missing sync pattern (it's not part of the packet data)
 			unsigned int i;
 			memset(mdc1200_rx_buffer, 0, sizeof(mdc1200_rx_buffer));
-			for (i = 0; i < sync_size; i++)
+//			for (i = 0; i < sync_size; i++)
+			for (i = 0; i < sizeof(mdc1200_sync_suc_xor); i++)
 				mdc1200_rx_buffer[mdc1200_rx_buffer_index++] = mdc1200_sync_suc_xor[i] ^ (rx_sync_neg ? 0xFF : 0x00);
 		}
 
@@ -683,10 +682,11 @@ void MDC1200_process_rx(const uint16_t interrupt_bits)
 		const unsigned int count = BK4819_ReadRegister(0x5E) & (7u << 0);  // almost full threshold
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("mdc1200 full %2u %2u ", mdc1200_rx_buffer_index, count);
+			const unsigned int packet_size = 1 + (BK4819_ReadRegister(0x5D) >> 8);
+			UART_printf("mdc1200 full %2u %2u %2u ", mdc1200_rx_buffer_index, count, packet_size);
 		#endif
 
-		// fetch RX'ed data
+		// fetch received packet data
 		for (i = 0; i < count; i++)
 		{
 			const uint16_t word = BK4819_ReadRegister(0x5F) ^ (rx_sync_neg ? 0xFFFF : 0x0000);
@@ -732,7 +732,7 @@ void MDC1200_process_rx(const uint16_t interrupt_bits)
 				&mdc1200_arg,
 				&mdc1200_unit_id))
 			{
-				mdc1200_rx_ready_tick_500ms = 2 * 6;  // 6 seconds
+				mdc1200_rx_ready_tick_500ms = 2 * 6;  // 6 second MDC display time
 
 				g_update_display = true;
 				

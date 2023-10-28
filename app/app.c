@@ -2135,8 +2135,8 @@ void APP_time_slice_500ms(void)
 	if (g_dtmf_rx_live_timeout > 0)
 	{
 		#ifdef ENABLE_RX_SIGNAL_BAR
-			if (center_line == CENTER_LINE_DTMF_DEC ||
-				center_line == CENTER_LINE_NONE)  // wait till the center line is free for us to use before timing out
+			if (g_center_line == CENTER_LINE_DTMF_DEC ||
+				g_center_line == CENTER_LINE_NONE)  // wait till the center line is free for us to use before timing out
 		#endif
 		{
 			if (--g_dtmf_rx_live_timeout == 0)

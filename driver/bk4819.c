@@ -2173,24 +2173,27 @@ void BK4819_reset_fsk(void)
 			//
 			// <15:8> sync byte 0
 			// < 7:0> sync byte 1
-			BK4819_WriteRegister(0x5A, ((uint16_t)mdc1200_sync_suc_xor[0] << 8) | (mdc1200_sync_suc_xor[1] << 0));
+//			BK4819_WriteRegister(0x5A, ((uint16_t)mdc1200_sync_suc_xor[0] << 8) | (mdc1200_sync_suc_xor[1] << 0));
+			BK4819_WriteRegister(0x5A, ((uint16_t)mdc1200_sync_suc_xor[1] << 8) | (mdc1200_sync_suc_xor[2] << 0));
 
 			// REG_5B .. bytes 2 & 3 sync pattern
 			//
 			// <15:8> sync byte 2
 			// < 7:0> sync byte 3
-			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[2] << 8) | (mdc1200_sync_suc_xor[3] << 0));
+//			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[2] << 8) | (mdc1200_sync_suc_xor[3] << 0));
+			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[3] << 8) | (mdc1200_sync_suc_xor[4] << 0));
 
 			// disable CRC
-			BK4819_WriteRegister(0x5C, 0x5625);   // 010101100 0 100101
-//			BK4819_WriteRegister(0x5C, 0xAA30);   // 101010100 0 110000
+			BK4819_WriteRegister(0x5C, 0x5625);   // 01010110 0 0 100101
+//			BK4819_WriteRegister(0x5C, 0xAA30);   // 10101010 0 0 110000
 
 			// set the almost full threshold
 			BK4819_WriteRegister(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
 
 			{	// packet size .. sync + 14 bytes - size of a single mdc1200 packet
-				uint16_t size = sizeof(mdc1200_sync_suc_xor) + (MDC1200_FEC_K * 2);
-				size -= (fsk_reg59 & (1u << 3)) ? 4 : 2; 
+//				uint16_t size = 1 + (MDC1200_FEC_K * 2);
+				uint16_t size = 0 + (MDC1200_FEC_K * 2);
+//				size -= (fsk_reg59 & (1u << 3)) ? 4 : 2; 
 				size = ((size + 1) / 2) * 2;             // round up to even, else FSK RX doesn't work
 				BK4819_WriteRegister(0x5D, ((size - 1) << 8));
 			}
@@ -2474,8 +2477,11 @@ void BK4819_reset_fsk(void)
 		//
 		// disable CRC
 		//
-//		BK4819_WriteRegister(0x5C, 0x5625);   // 010101100 0 100101
-		BK4819_WriteRegister(0x5C, 0xAA30);   // 101010100 0 110000
+		// NB, this also affects TX pre-amble in some way
+		//
+		BK4819_WriteRegister(0x5C, 0x5625);   // 010101100 0 100101
+//		BK4819_WriteRegister(0x5C, 0xAA30);   // 101010100 0 110000
+//		BK4819_WriteRegister(0x5C, 0x0030);   // 000000000 0 110000
 
 		{	// load the entire packet data into the TX FIFO buffer
 			unsigned int i;
