@@ -242,10 +242,14 @@ void Main(void)
 
 	while (1)
 	{
-		if (!g_next_time_slice && !g_next_time_slice_500ms)
+		// Mask interrupts
+		__asm volatile ("cpsid i");
+		if (!g_next_time_slice)
 			// Idle condition, hint the MCU to sleep
-			// CMSIS suggests GCC reorders memory and is undesired
+			// CMSIS suggests GCC reorders memory and is undesirable
 			__asm volatile ("wfi":::"memory");
+		// Unmask interrupts
+		__asm volatile ("cpsie i");
 
 		APP_process();
 
