@@ -135,7 +135,11 @@ void toggle_chan_scanlist(void)
 			// find the first channel that contains this frequency
 			g_tx_vfo->freq_in_channel = BOARD_find_channel(g_tx_vfo->freq_config_tx.frequency);
 
-			g_request_save_vfo = true;
+			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_printf("chan-vfo %u\r\n", g_tx_vfo->channel_save);
+			#endif
 
 			g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
 			//g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
@@ -150,7 +154,7 @@ void toggle_chan_scanlist(void)
 			// search the channels to see if the frequency is already present
 			unsigned int chan = BOARD_find_channel(g_eeprom.vfo_info[vfo].p_tx->frequency);
 			if (chan > USER_CHANNEL_LAST)
-			{	// find next next free channel
+			{	// not found - find next free channel to save too
 				//for (chan = g_eeprom.screen_channel[vfo]; chan <= USER_CHANNEL_LAST; chan++)
 				for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
 					if (!RADIO_CheckValidChannel(chan, false, vfo))
@@ -848,7 +852,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 			RADIO_ApplyOffset(g_tx_vfo, true);
 			
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//				UART_printf("save chan\r\n");
+				UART_printf("save chan %u\r\n", g_tx_vfo->channel_save);
 			#endif
 		}
 	}

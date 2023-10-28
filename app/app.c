@@ -2124,9 +2124,14 @@ void APP_time_slice_500ms(void)
 
 	#ifdef ENABLE_MDC1200
 		if (mdc1200_rx_ready_tick_500ms > 0)
+		{
 			if (--mdc1200_rx_ready_tick_500ms == 0)
+			{
 				if (g_center_line == CENTER_LINE_MDC1200)
 					g_center_line = CENTER_LINE_NONE;
+				g_update_display = true;
+			}
+		}
 	#endif
 
 	if (g_dtmf_rx_live_timeout > 0)
