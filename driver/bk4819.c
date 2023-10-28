@@ -22,6 +22,9 @@
 #include "driver/gpio.h"
 #include "driver/system.h"
 #include "driver/systick.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "misc.h"
 #ifdef ENABLE_MDC1200
 	#include "mdc1200.h"
@@ -32,6 +35,8 @@
 #endif
 
 static uint16_t gBK4819_GpioOutState;
+
+BK4819_filter_bandwidth_t m_bandwidth = BK4819_FILTER_BW_NARROW;
 
 bool g_rx_idle_mode;
 
@@ -575,25 +580,13 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
 	BK4819_WriteRegister(0x31, REG_31_Value | (1u << 2));    // VOX Enable
 }
 
-void BK4819_set_TX_deviation(unsigned int level)
+void BK4819_set_TX_deviation(const bool narrow)
 {
-	if (level > 4095)
-		level = 4095;
-
-	// REG_40
-	//
-	// <15:13> 0 ???
-	//         0 ~ 7
-	//
-	// <12>    1 enable RF TX deviation
-	//         1 = enable
-	//         0 = disable
-	//
-	// <11:0>  0x04D0 RF TX deviation tuning (both in-band signal and sub-audio)
-	//         0 ~ 4095
-	//
-//	BK4819_WriteRegister(0x40, (0u << 12) | (1232 << 0));   // 000 0 010011010000
-	BK4819_WriteRegister(0x40, (BK4819_ReadRegister(0x40) & 0xf000) | (level << 0));
+	const uint8_t scrambler = (BK4819_ReadRegister(0x31) >> 1) & 1u;
+	uint16_t deviation = narrow ? 900 : 1232;  // 0 ~ 4095
+	if (scrambler)
+		deviation -= 200;
+	BK4819_WriteRegister(0x40, (3u << 12) | deviation);
 }
 
 void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const bool weak_no_different)
@@ -648,6 +641,8 @@ void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const 
 
 	uint16_t val;
 
+	m_bandwidth = Bandwidth;
+	
 	switch (Bandwidth)
 	{
 		default:
@@ -2249,7 +2244,7 @@ void BK4819_reset_fsk(void)
 			BK4819_SetAF(BK4819_AF_BEEP);
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 		#endif
-		SYSTEM_DelayMs(2);
+//		SYSTEM_DelayMs(2);
 
 		// REG_51
 		//
@@ -2259,18 +2254,23 @@ void BK4819_reset_fsk(void)
 		const uint16_t css_val = BK4819_ReadRegister(0x51);
 		BK4819_WriteRegister(0x51, 0);
 
-		// REG_40
-		//
-		// <15:13> 0 ???    0 ~ 7
-		// <12>    1 enable RF TX deviation    0 = disable  1 = enable
-		// <11:0>  0x04D0 RF TX deviation tuning (both in-band signal and sub-audio)   0 ~ 4095
-		//
-		// reduce the deviation a little
-		//
-		const uint16_t tx_dev = BK4819_ReadRegister(0x40);
-		//BK4819_WriteRegister(0x40, (0u << 12) | (1232 << 0));   // 000 0 010011010000
-		BK4819_WriteRegister(0x40, (tx_dev & 0xf000) | (1000 << 0));
-
+		// set the FM deviation level
+		const uint16_t dev_val = BK4819_ReadRegister(0x40);
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//			UART_printf("tx dev %04X\r\n", dev_val);
+		#endif
+		{
+			uint16_t deviation = 850;
+			switch (m_bandwidth)
+			{
+				case BK4819_FILTER_BW_WIDE:     deviation = 1050; break;
+				case BK4819_FILTER_BW_NARROW:   deviation =  850; break;
+				case BK4819_FILTER_BW_NARROWER: deviation =  750; break;
+			}
+			//BK4819_WriteRegister(0x40, (3u << 12) | (deviation & 0xfff));
+			BK4819_WriteRegister(0x40, (dev_val & 0xf000) | (deviation & 0xfff));
+		}
+		
 		// REG_2B   0
 		//
 		// <10>     0 AF RX HPF 300Hz filter     0 = enable 1 = disable
@@ -2282,6 +2282,7 @@ void BK4819_reset_fsk(void)
 		//
 		// disable the 300Hz HPF and FM pre-emphasis filter
 		//
+		const uint16_t filt_val = BK4819_ReadRegister(0x2B);
 		BK4819_WriteRegister(0x2B, (1u << 2) | (1u << 0));
 
 		// *******************************************
@@ -2401,15 +2402,12 @@ void BK4819_reset_fsk(void)
 					(0u << 10) |   // 0/1     1 = invert data when RX
 					(0u <<  9) |   // 0/1     1 = invert data when TX
 					(0u <<  8) |   // 0/1     ???
-					(4u <<  4) |   // 0 ~ 15  preamble length
+					(3u <<  4) |   // 0 ~ 15  preamble length .. bit toggling
 					(1u <<  3) |   // 0/1     sync length
 					(0u <<  0);    // 0 ~ 7   ???
 
-		// Set entire packet length (not including the pre-amble and sync bytes we can't seem to disable)
+		// Set packet length (not including pre-amble and sync bytes that we can't seem to disable)
 		BK4819_WriteRegister(0x5D, ((size - 1) << 8));
-
-		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);   // clear FIFO's
-		BK4819_WriteRegister(0x59, fsk_reg59);                             // release the FIFO reset
 
 		// REG_5A
 		//
@@ -2443,6 +2441,9 @@ void BK4819_reset_fsk(void)
 //		BK4819_WriteRegister(0x5C, 0xAA30);   // 101010100 0 110000
 //		BK4819_WriteRegister(0x5C, 0x0030);   // 000000000 0 110000
 
+		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);   // clear FIFO's
+		BK4819_WriteRegister(0x59, fsk_reg59);                             // release the FIFO reset
+
 		{	// load the entire packet data into the TX FIFO buffer
 			unsigned int i;
 			const uint16_t *p = (const uint16_t *)packet;
@@ -2462,11 +2463,11 @@ void BK4819_reset_fsk(void)
 
 			// allow up to 310ms for the TX to complete
 			// if it takes any longer then somethings gone wrong, we shut the TX down
-			unsigned int timeout = 310 / 5;
+			unsigned int timeout = 300 / 4;
 
 			while (timeout-- > 0)
 			{
-				SYSTEM_DelayMs(5);
+				SYSTEM_DelayMs(4);
 				if (BK4819_ReadRegister(0x0C) & (1u << 0))
 				{	// we have interrupt flags
 					BK4819_WriteRegister(0x02, 0);
@@ -2485,11 +2486,11 @@ void BK4819_reset_fsk(void)
 		BK4819_WriteRegister(0x70, 0);
 		BK4819_WriteRegister(0x58, 0);
 
-		// restore the original TX deviation level
-		BK4819_WriteRegister(0x40, tx_dev);
+		// restore FM deviation level
+		BK4819_WriteRegister(0x40, dev_val);
 
 		// restore TX/RX filtering
-		BK4819_WriteRegister(0x2B, 0);
+		BK4819_WriteRegister(0x2B, filt_val);
 
 		// restore the CTCSS/CDCSS setting
 		BK4819_WriteRegister(0x51, css_val);

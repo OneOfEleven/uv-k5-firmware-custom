@@ -77,7 +77,7 @@ void     BK4819_SetCTCSSFrequency(uint32_t BaudRate);
 void     BK4819_SetTailDetection(const uint32_t freq_10Hz);
 void     BK4819_EnableVox(uint16_t Vox1Threshold, uint16_t Vox0Threshold);
 
-void     BK4819_set_TX_deviation(unsigned int level);
+void     BK4819_set_TX_deviation(const bool narrow);
 
 void     BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const bool weak_no_different);
 
