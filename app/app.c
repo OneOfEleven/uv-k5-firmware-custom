@@ -1423,7 +1423,7 @@ void APP_process_flash_light_10ms(void)
 			break;
 
 		case FLASHLIGHT_ON:
-				GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
 			break;
 
 		case FLASHLIGHT_BLINK:
@@ -1432,9 +1432,12 @@ void APP_process_flash_light_10ms(void)
 			break;
 
 		case FLASHLIGHT_SOS:
-			{
-				const unsigned int bit = (g_flash_light_blink_tick_10ms / 15) % (32 + 6);  // 150ms tick
-				if (bit < 32 && (sos & (1u << (31 - bit))))
+			{	// 150ms tick
+				// '15' sets the morse speed, lower value = faster speed
+				// '+ 6' lengthens the loop time
+				const unsigned int num_bits = sizeof(sos) * 8;
+				const unsigned int bit = (g_flash_light_blink_tick_10ms / 15) % (num_bits + 6);
+				if (bit < num_bits && (sos & (1u << ((num_bits - 1) - bit))))
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);   // ON
 				else
 					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT); // OFF
