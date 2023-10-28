@@ -78,9 +78,6 @@ const uint8_t orig_lna   = 5;   //  -4dB
 const uint8_t orig_mixer = 3;   //   0dB
 const uint8_t orig_pga   = 6;   //  -3dB
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
 static void APP_process_key(const key_code_t Key, const bool key_pressed, const bool key_held);
 
 static void APP_update_rssi(const int vfo)
@@ -742,6 +739,8 @@ static void APP_next_channel(void)
 					}
 				}
 
+			// Fallthrough
+
 			case SCAN_NEXT_CHAN_SCANLIST2:
 				if (chan2 >= 0)
 				{
@@ -752,6 +751,8 @@ static void APP_next_channel(void)
 						break;
 					}
 				}
+
+			// Fallthrough
 
 			// this bit doesn't yet work if the other VFO is a frequency
 			case SCAN_NEXT_CHAN_DUAL_WATCH:
@@ -767,6 +768,8 @@ static void APP_next_channel(void)
 //						break;
 //					}
 //				}
+
+			// Fallthrough
 
 			default:
 			case SCAN_NEXT_CHAN_USER:
@@ -1433,11 +1436,11 @@ void APP_process_flash_light_10ms(void)
 
 		case FLASHLIGHT_SOS:
 			{	// 150ms tick
-				// '15' sets the morse speed, lower value = faster speed
+				// '16' sets the morse speed, lower value = faster speed
 				// '+ 6' lengthens the loop time
 				const unsigned int num_bits = sizeof(sos) * 8;
-				const unsigned int bit = (g_flash_light_blink_tick_10ms / 15) % (num_bits + 6);
-				if (bit < num_bits && (sos & (1u << ((num_bits - 1) - bit))))
+				const unsigned int bit = (g_flash_light_blink_tick_10ms / 16) % (num_bits + 6);
+				if (bit < num_bits && (sos & (1u << (num_bits - 1 - bit))))
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);   // ON
 				else
 					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT); // OFF
@@ -3018,6 +3021,3 @@ Skip:
 	g_request_display_screen = DISPLAY_INVALID;
 	g_update_display         = true;
 }
-
-#pragma GCC diagnostic pop
-

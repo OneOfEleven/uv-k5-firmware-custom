@@ -458,11 +458,11 @@ void MENU_AcceptSetting(void)
 			g_request_save_channel = 1;
 			return;
 
-		#pragma GCC diagnostic push
-		#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
 		case MENU_TX_CTCSS:
 			pConfig = &g_tx_vfo->freq_config_tx;
+
+			// Fallthrough
+
 		case MENU_RX_CTCSS:
 			if (g_sub_menu_selection == 0)
 			{
@@ -488,8 +488,6 @@ void MENU_AcceptSetting(void)
 
 			g_request_save_channel = 1;
 			return;
-
-		#pragma GCC diagnostic pop
 
 		case MENU_SHIFT_DIR:
 			g_tx_vfo->tx_offset_freq_dir = g_sub_menu_selection;
@@ -1369,7 +1367,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		{
 			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Wtype-limits"
-
+	
 			if (Key >= KEY_0 && Key <= KEY_9)
 			{
 				g_edit[g_edit_index] = '0' + Key - KEY_0;
@@ -1395,9 +1393,6 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 	if (!g_in_sub_menu)
 	{
-		#pragma GCC diagnostic push
-		#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
 		switch (g_input_box_index)
 		{
 			case 2:
@@ -1418,6 +1413,8 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 				g_input_box[0]    = g_input_box[1];
 				g_input_box_index = 1;
 
+			// Fallthrough
+
 			case 1:
 				value = g_input_box[0];
 				if (value > 0 && value <= g_menu_list_count)
@@ -1428,8 +1425,6 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 				}
 				break;
 		}
-
-		#pragma GCC diagnostic pop
 
 		g_input_box_index = 0;
 
@@ -1891,9 +1886,6 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 
 	VFO = 0;
 
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
 	switch (g_menu_cursor)
 	{
 		case MENU_OFFSET:
@@ -1932,6 +1924,9 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 
 		case MENU_SLIST2:
 			VFO = 1;
+
+			// Fallthrough
+
 		case MENU_SLIST1:
 			bCheckScanList = true;
 			break;
@@ -1941,8 +1936,6 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 			g_request_display_screen = DISPLAY_MENU;
 			return;
 	}
-
-	#pragma GCC diagnostic pop
 
 	Channel = RADIO_FindNextChannel(g_sub_menu_selection + Direction, Direction, bCheckScanList, VFO);
 	if (Channel != 0xFF)

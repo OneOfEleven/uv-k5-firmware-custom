@@ -14,10 +14,6 @@
  *     limitations under the License.
  */
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-#pragma GCC diagnostic pop
-
 #include <string.h>
 #include <stdlib.h>  // abs()
 
@@ -681,8 +677,6 @@ void UI_DisplayMain(void)
 
 			if (g_eeprom.screen_channel[vfo_num] <= USER_CHANNEL_LAST)
 			{	// it's a channel
-				#pragma GCC diagnostic push
-				#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 
 				switch (g_eeprom.channel_display_mode)
 				{
@@ -741,8 +735,6 @@ void UI_DisplayMain(void)
 
 						break;
 				}
-
-				#pragma GCC diagnostic pop
 			}
 			else
 //			if (IS_FREQ_CHANNEL(g_eeprom.screen_channel[vfo_num]))

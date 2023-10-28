@@ -39,9 +39,6 @@
 #include "ui/inputbox.h"
 #include "ui/ui.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
 static void ACTION_FlashLight(void)
 {
 	switch (g_flash_light_state)
@@ -62,6 +59,8 @@ static void ACTION_FlashLight(void)
 			break;
 
 		case FLASHLIGHT_SOS:
+
+		// Fallthrough
 
 		default:
 			g_flash_light_state = FLASHLIGHT_OFF;
@@ -428,5 +427,3 @@ void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key
 			break;
 	}
 }
-
-#pragma GCC diagnostic pop

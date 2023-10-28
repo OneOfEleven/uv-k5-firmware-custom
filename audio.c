@@ -156,9 +156,6 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 
 	SYSTEM_DelayMs(60);
 
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
 	switch (Beep)
 	{
 		case BEEP_880HZ_60MS_TRIPLE_BEEP:
@@ -167,12 +164,16 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			BK4819_EnterTxMute();
 			SYSTEM_DelayMs(20);
 
+			// Fallthrough
+
 		case BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL:
 		case BEEP_500HZ_60MS_DOUBLE_BEEP:
 			BK4819_ExitTxMute();
 			SYSTEM_DelayMs(60);
 			BK4819_EnterTxMute();
 			SYSTEM_DelayMs(20);
+
+			// Fallthrough
 
 		case BEEP_1KHZ_60MS_OPTIONAL:
 			BK4819_ExitTxMute();
@@ -197,8 +198,6 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			Duration = 500;
 			break;
 	}
-
-	#pragma GCC diagnostic pop
 
 	SYSTEM_DelayMs(Duration);
 

@@ -87,9 +87,6 @@ void UI_DisplayAircopy(void)
 	// **********************************
 	// lower TX/RX status text line
 
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
 	switch (g_aircopy_state)
 	{
 		case AIRCOPY_READY:
@@ -131,8 +128,6 @@ void UI_DisplayAircopy(void)
 			UI_PrintString(str, 0, LCD_WIDTH, 5, 7);
 			break;
 	}
-
-	#pragma GCC diagnostic pop
 
 	// **********************************
 

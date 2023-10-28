@@ -126,7 +126,7 @@ void RADIO_InitInfo(vfo_info_t *p_vfo, const uint8_t ChannelSave, const uint32_t
 {
 	if (p_vfo == NULL)
 		return;
-	
+
 	memset(p_vfo, 0, sizeof(*p_vfo));
 
 	p_vfo->band                     = FREQUENCY_GetBand(Frequency);
@@ -346,11 +346,11 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		p_vfo->frequency_reverse        = 0;
 		p_vfo->tx_offset_freq_dir       = TX_OFFSET_FREQ_DIR_OFF;
 		p_vfo->tx_offset_freq           = 0;
-		
-		
+
+
 		// TODO: also update other settings such as step size
-		
-		
+
+
 	}
 
 	p_vfo->freq_config_rx.frequency = Frequency;
@@ -425,7 +425,7 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 	Base = (Band < BAND4_174MHz) ? 0x1E60 : 0x1E00;
 
 	squelch_level = (p_vfo->squelch_level > 0) ? p_vfo->squelch_level : g_eeprom.squelch_level;
-	
+
 	// note that 'noise' and 'glitch' values are inverted compared to 'rssi' values
 
 	if (squelch_level == 0)
@@ -547,7 +547,7 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 		// make low and mid even lower
 		if (p_vfo->output_power == OUTPUT_POWER_LOW)
 		{
-			TX_power[0] /= 5;    //TX_power[0] /= 8; 
+			TX_power[0] /= 5;    //TX_power[0] /= 8;
 			TX_power[1] /= 5;    //TX_power[1] /= 8;
 			TX_power[2] /= 5;    //TX_power[2] /= 8; get more low power
 		}
@@ -638,13 +638,13 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
 	switch (Bandwidth)
 	{
 		default:
 			Bandwidth = BK4819_FILTER_BW_WIDE;
+
+			// Fallthrough
+
 		case BK4819_FILTER_BW_WIDE:
 		case BK4819_FILTER_BW_NARROW:
 			#ifdef ENABLE_AM_FIX
@@ -655,8 +655,6 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			#endif
 			break;
 	}
-
-	#pragma GCC diagnostic pop
 
 	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);         // LED off
 	BK4819_SetupPowerAmplifier(0, 0);
@@ -895,13 +893,13 @@ void RADIO_enableTX(const bool fsk_tx)
 
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
 
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
 	switch (Bandwidth)
 	{
 		default:
 			Bandwidth = BK4819_FILTER_BW_WIDE;
+
+			// Fallthrough
+
 		case BK4819_FILTER_BW_WIDE:
 		case BK4819_FILTER_BW_NARROW:
 			#ifdef ENABLE_AM_FIX
@@ -912,8 +910,6 @@ void RADIO_enableTX(const bool fsk_tx)
 			#endif
 			break;
 	}
-
-	#pragma GCC diagnostic pop
 
 	// if DTMF is enabled when TX'ing, it changes the TX audio filtering ! .. 1of11
 	// so MAKE SURE that DTMF is disabled - until needed
@@ -1180,6 +1176,6 @@ void RADIO_tx_eot(void)
 	{
 		BK4819_PlayTone(APOLLO_TONE2_HZ, APOLLO_TONE_MS, 28);
 	}
-	
+
 	BK4819_ExitDTMF_TX(true);
 }
