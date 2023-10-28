@@ -393,27 +393,29 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		return;                                                // no flagged interrupts
 
 	// read the interrupt flags
-	BK4819_WriteRegister(0x02, 0);                    // clear them
+	BK4819_WriteRegister(0x02, 0);                             // clear them
 	interrupt_bits = BK4819_ReadRegister(0x02);
 
 	if (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC)
-		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);    // LED on
 
 	if (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED)
-		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);   // LED off
 
 	if ((interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL) == 0)
 		return;
 
-	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);       // LED on
+	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);        // LED on
 
-	// fetch RX'ed data
-	for (i = 0; i < 4; i++)
-	{
-		const uint16_t word = BK4819_ReadRegister(0x5F);
+	{	// fetch RX'ed data
+		const unsigned int count = BK4819_ReadRegister(0x5E) & (7u << 0); // almost full threshold
+		for (i = 0; i < count; i++)
+		{
+			const uint16_t word = BK4819_ReadRegister(0x5F);
 
-		if (g_fsk_write_index < ARRAY_SIZE(g_fsk_buffer))
-			g_fsk_buffer[g_fsk_write_index++] = word;
+			if (g_fsk_write_index < ARRAY_SIZE(g_fsk_buffer))
+				g_fsk_buffer[g_fsk_write_index++] = word;
+		}
 	}
 
 	// REG_0B read only

@@ -265,12 +265,11 @@ void FUNCTION_Select(function_type_t Function)
 					SYSTEM_DelayMs(2);
 
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+					g_speaker_enabled = true;
 
 					#ifdef ENABLE_ALARM
 						g_alarm_tone_counter_10ms = 0;
 					#endif
-
-					g_speaker_enabled = true;
 					break;
 				}
 				else
@@ -280,7 +279,10 @@ void FUNCTION_Select(function_type_t Function)
 			{
 			#ifdef ENABLE_MDC1200
 				if (g_current_vfo->mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->mdc1200_mode == MDC1200_MODE_BOTH)
+				{
+					SYSTEM_DelayMs(150);
 					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.mdc1200_id);
+				}
 				else
 			#endif
 				if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)

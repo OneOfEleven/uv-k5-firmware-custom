@@ -147,7 +147,7 @@ uint8_t  RADIO_FindNextChannel(uint8_t ChNum, scan_state_dir_t Direction, bool b
 void     RADIO_InitInfo(vfo_info_t *p_vfo, const uint8_t ChannelSave, const uint32_t Frequency);
 void     RADIO_configure_channel(const unsigned int VFO, const unsigned int configure);
 void     RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo);
-void     RADIO_ApplyOffset(vfo_info_t *p_vfo);
+void     RADIO_ApplyOffset(vfo_info_t *p_vfo, const bool set_pees);
 void     RADIO_select_vfos(void);
 void     RADIO_setup_registers(bool switch_to_function_foreground);
 #ifdef ENABLE_NOAA

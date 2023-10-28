@@ -65,9 +65,11 @@ void Main(void)
 		| SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE;
 
 	SYSTICK_Init();
+	
 #ifdef ENABLE_UART
 	UART_Init();
 #endif
+
 	BOARD_Init();
 
 	#if defined(ENABLE_UART)
@@ -91,11 +93,11 @@ void Main(void)
 	BK4819_Init();
 
 	#if defined(ENABLE_UART)
-		UART_printf("bk4819  id %04X  rev %04X\r\n", BK4819_ReadRegister(0x00), BK4819_ReadRegister(0x01));
+		UART_printf("BK4819  id %04X  rev %04X\r\n", BK4819_ReadRegister(0x00), BK4819_ReadRegister(0x01));
 	#endif
 	
 #ifdef ENABLE_MDC1200
-	mdc1200_init();
+	MDC1200_init();
 #endif
 
 	BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);

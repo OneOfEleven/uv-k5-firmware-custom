@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define MDC1200_FEC_K   7     	// R=1/2 K=7 convolutional coder
+
 // 0x00 (0x81) emergency alarm
 // 0x20 (0x00) emergency alarm ack
 //
@@ -90,18 +92,15 @@ typedef enum mdc1200_op_code_e mdc1200_op_code_t;
 extern const uint8_t mdc1200_sync[5];
 extern uint8_t mdc1200_sync_suc_xor[sizeof(mdc1200_sync)];
 
-unsigned int MDC1200_encode_single_packet(void *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id);
+extern uint8_t  mdc1200_op;
+extern uint8_t  mdc1200_arg;
+extern uint16_t mdc1200_unit_id;
+extern uint8_t  mdc1200_rx_ready_tick_500ms;
+
+unsigned int   MDC1200_encode_single_packet(void *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id);
 //unsigned int MDC1200_encode_double_packet(void *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id, const uint8_t b0, const uint8_t b1, const uint8_t b2, const uint8_t b3);
-
-void MDC1200_reset_rx(void);
-bool MDC1200_process_rx(
-	const void *buffer,
-	const unsigned int size,
-	//const bool inverted,
-	uint8_t *op,
-	uint8_t *arg,
-	uint16_t *unit_id);
-
-void mdc1200_init(void);
+void           MDC1200_reset_rx(void);
+void           MDC1200_process_rx(const uint16_t interrupt_bits);
+void           MDC1200_init(void);
 
 #endif

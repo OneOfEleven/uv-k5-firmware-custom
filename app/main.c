@@ -128,7 +128,7 @@ void toggle_chan_scanlist(void)
 			g_eeprom.tx_vfo                     = vfo;
 
 			RADIO_select_vfos();
-			RADIO_ApplyOffset(g_tx_vfo);
+			RADIO_ApplyOffset(g_tx_vfo, false);
 			RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
 			RADIO_setup_registers(true);
 
@@ -844,18 +844,8 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 			g_tx_vfo->freq_in_channel = BOARD_find_channel(g_tx_vfo->freq_config_rx.frequency);
 
 			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
-			
-			RADIO_ApplyOffset(g_tx_vfo);
-			if (!g_tx_vfo->frequency_reverse)
-			{
-				g_tx_vfo->p_rx = &g_tx_vfo->freq_config_rx;
-				g_tx_vfo->p_tx = &g_tx_vfo->freq_config_tx;
-			}
-			else
-			{
-				g_tx_vfo->p_rx = &g_tx_vfo->freq_config_tx;
-				g_tx_vfo->p_tx = &g_tx_vfo->freq_config_rx;
-			}
+
+			RADIO_ApplyOffset(g_tx_vfo, true);
 			
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //				UART_printf("save chan\r\n");

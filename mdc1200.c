@@ -1,14 +1,13 @@
 
 #include <string.h>
 
+#include "driver/bk4819.h"
 #include "driver/crc.h"
 #if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	#include "driver/uart.h"
 #endif
 #include "mdc1200.h"
 #include "misc.h"
-
-#define FEC_K   7     	// R=1/2 K=7 convolutional coder
 
 // **********************************************************
 
@@ -136,7 +135,7 @@ void error_correction(void *data)
 	uint8_t syn;
 	uint8_t *data8 = (uint8_t *)data;
 
-	for (i = 0, shift_reg = 0, syn = 0; i < FEC_K; i++)
+	for (i = 0, shift_reg = 0, syn = 0; i < MDC1200_FEC_K; i++)
 	{
 		const uint8_t bi = data8[i];
 		int bit_num;
@@ -147,7 +146,7 @@ void error_correction(void *data)
 
 			shift_reg = (shift_reg << 1) | ((bi >> bit_num) & 1u);
 			b         = ((shift_reg >> 6) ^ (shift_reg >> 5) ^ (shift_reg >> 2) ^ (shift_reg >> 0)) & 1u;
-			syn       = (syn << 1) | (((b ^ (data8[i + FEC_K] >> bit_num)) & 1u) ? 1u : 0u);
+			syn       = (syn << 1) | (((b ^ (data8[i + MDC1200_FEC_K] >> bit_num)) & 1u) ? 1u : 0u);
 
 			if (syn & 0x80) k++;
 			if (syn & 0x20) k++;
@@ -205,7 +204,7 @@ bool decode_data(void *data)
 		unsigned int i;
 		unsigned int k;
 		unsigned int m;
-		uint8_t deinterleaved[(FEC_K * 2) * 8];  // temp individual bit storage
+		uint8_t deinterleaved[(MDC1200_FEC_K * 2) * 8];  // temp individual bit storage
 
 		// interleave order
 		//  0, 16, 32, 48, 64, 80,  96,
@@ -228,7 +227,7 @@ bool decode_data(void *data)
 		// de-interleave the received bits
 		for (i = 0, k = 0; i < 16; i++)
 		{
-			for (m = 0; m < FEC_K; m++)
+			for (m = 0; m < MDC1200_FEC_K; m++)
 			{
 				const unsigned int n = (m * 16) + i;
 				deinterleaved[k++] = (data8[n >> 3] >> ((7 - n) & 7u)) & 1u;
@@ -236,7 +235,7 @@ bool decode_data(void *data)
 		}
 
 		// copy the de-interleaved bits back into the data buffer
-		for (i = 0, m = 0; i < (FEC_K * 2); i++)
+		for (i = 0, m = 0; i < (MDC1200_FEC_K * 2); i++)
 		{
 			unsigned int k;
 			uint8_t b = 0;
@@ -302,7 +301,7 @@ uint8_t * encode_data(void *data)
 	{	// add the FEC bits to the end of the data
 		unsigned int i;
 		uint8_t shift_reg = 0;
-		for (i = 0; i < FEC_K; i++)
+		for (i = 0; i < MDC1200_FEC_K; i++)
 		{
 			unsigned int  bit_num;
 			const uint8_t bi = data8[i];
@@ -312,7 +311,7 @@ uint8_t * encode_data(void *data)
 				shift_reg = (shift_reg << 1) | ((bi >> bit_num) & 1u);
 				bo |= (((shift_reg >> 6) ^ (shift_reg >> 5) ^ (shift_reg >> 2) ^ (shift_reg >> 0)) & 1u) << bit_num;
 			}
-			data8[FEC_K + i] = bo;
+			data8[MDC1200_FEC_K + i] = bo;
 		}
 	}
 
@@ -320,7 +319,7 @@ uint8_t * encode_data(void *data)
 /*
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	{
-		const unsigned int size = FEC_K * 2;
+		const unsigned int size = MDC1200_FEC_K * 2;
 		unsigned int i;
 		UART_printf("mdc1200 tx1 %u ", size);
 		for (i = 0; i < size; i++)
@@ -333,7 +332,7 @@ uint8_t * encode_data(void *data)
 
 		unsigned int i;
 		unsigned int k;
-		uint8_t interleaved[(FEC_K * 2) * 8];   // temp individual bit storage
+		uint8_t interleaved[(MDC1200_FEC_K * 2) * 8];   // temp individual bit storage
 
 		// interleave order
 		//  0, 16, 32, 48, 64, 80,  96,
@@ -354,7 +353,7 @@ uint8_t * encode_data(void *data)
 		// 15, 31, 47, 63, 79, 95, 111
 
 		// bit interleaver
-		for (i = 0, k = 0; i < (FEC_K * 2); i++)
+		for (i = 0, k = 0; i < (MDC1200_FEC_K * 2); i++)
 		{
 			unsigned int bit_num;
 			const uint8_t b = data8[i];
@@ -368,7 +367,7 @@ uint8_t * encode_data(void *data)
 		}
 
 		// copy the interleaved bits back to the data buffer
-		for (i = 0, k = 0; i < (FEC_K * 2); i++)
+		for (i = 0, k = 0; i < (MDC1200_FEC_K * 2); i++)
 		{
 			int bit_num;
 			uint8_t b = 0;
@@ -379,7 +378,7 @@ uint8_t * encode_data(void *data)
 		}
 	}
 
-	return data8 + (FEC_K * 2);
+	return data8 + (MDC1200_FEC_K * 2);
 }
 
 unsigned int MDC1200_encode_single_packet(void *data, const uint8_t op, const uint8_t arg, const uint16_t unit_id)
@@ -483,7 +482,7 @@ void MDC1200_reset_rx(void)
 	memset(&rx, 0, sizeof(rx));
 }
 
-bool MDC1200_process_rx(
+bool MDC1200_process_rx_data(
 	const void *buffer,
 	const unsigned int size,
 	//const bool inverted,
@@ -494,30 +493,30 @@ bool MDC1200_process_rx(
 	const uint8_t *buffer8 = (const uint8_t *)buffer;
 	unsigned int   index;
 
-	// FB 72 40 99 A7
-	// FB 72 40 99 A7   BF 3B 4F CD 45 06 CC D1 CC D1 CC D1 CC 2B
-	// FB 72 40 99 A7   BA 24 FC F8 43 05 CA D1 CC FF 1B FF 1B 2B
+	// 04 8D BF 66 58   sync
+	// FB 72 40 99 A7   inverted sync
+	//
+	// 04 8D BF 66 58   40 C4 B0 32 BA F9 33 18 35 08 83 F6 0C 36 .. 80 87 20 23 2C AE 22 10 26 0F 02 A4 08 24
+	// 04 8D BF 66 58   45 DB 03 07 BC FA 35 2E 33 0E 83 0E 83 69 .. 86 92 02 05 28 AC 26 34 22 0B 02 0B 02 4E
 
 	memset(&rx, 0, sizeof(rx));
 
 	for (index = 0; index < size; index++)
 	{
-		unsigned int i;
-		int          bit;
-
+		int           bit;
 		const uint8_t rx_byte = buffer8[index];
 
 		for (bit = 7; bit >= 0; bit--)
 		{
+			unsigned int i;
+
 			rx.prev_bit = rx.bit;
 
 			rx.bit = (rx_byte >> bit) & 1u;
 
-			rx.xor_bit = (rx.xor_bit ^ rx.bit) & 1u;
-			if (rx.stage > 0 && rx.inverted_sync)
-				rx.xor_bit ^= 1u;
+			rx.xor_bit = (rx.xor_bit ^ rx.bit) & 1u;  // toggle our bit if the rx bit is high
 
-			rx.shift_reg = (rx.shift_reg << 1) | (rx.xor_bit & 1u);
+			rx.shift_reg = (rx.shift_reg << 1) | rx.xor_bit;
 			rx.bit_count++;
 
 			// *********
@@ -527,7 +526,7 @@ bool MDC1200_process_rx(
 
 				const unsigned int sync_bit_ok_threshold = 32;
 
-				if (rx.bit_count >= sync_bit_ok_threshold)
+				if (rx.bit_count >= 40)
 				{
 					// 40-bit sync pattern
 					uint64_t sync_nor = 0x07092a446fu;            // normal
@@ -546,16 +545,23 @@ bool MDC1200_process_rx(
 					nor_count = 40 - nor_count;
 					inv_count = 40 - inv_count;
 
+					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					//	UART_SendText("mdc1200 rx sync pat ");
+					//	for (i = 64; i > 0; i--)
+					//		UART_printf("%u", (uint8_t)((rx.shift_reg >> (i - 1))) & 1u);
+					//	UART_SendText("\r\n");
+					#endif
+
 					if (nor_count >= sync_bit_ok_threshold || inv_count >= sync_bit_ok_threshold)
 					{	// good enough
 
 						rx.inverted_sync = (inv_count > nor_count) ? true : false;
 						rx.data_index    = 0;
 						rx.bit_count     = 0;
-						rx.stage++;
+						rx.stage         = 1;
 
 						#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-							UART_printf("mdc1200 rx sync %s\r\n", rx.inverted_sync ? "inv" : "nor");
+							//UART_printf("mdc1200 rx sync %s\r\n", rx.inverted_sync ? "inv" : "nor");
 						#endif
 					}
 				}
@@ -568,15 +574,13 @@ bool MDC1200_process_rx(
 
 			rx.bit_count = 0;
 
-			// 07 09 2A 44 6F 94 9C 22 20 32 A4 1A 37 1E 3A 00 98 2C 84
-
 			rx.data[rx.data_index++] = rx.shift_reg & 0xff;  // save the last 8 bits
 
-			if (rx.data_index < (FEC_K * 2))
+			if (rx.data_index < (MDC1200_FEC_K * 2))
 				continue;
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("mdc1200 rx ");
+				UART_SendText("mdc1200 dec ");
 				for (i = 0; i < rx.data_index; i++)
 					UART_printf(" %02X", rx.data[i]);
 				UART_SendText("\r\n");
@@ -585,9 +589,9 @@ bool MDC1200_process_rx(
 			if (!decode_data(rx.data))
 			{
 				MDC1200_reset_rx();
-	
+
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					UART_SendText("mdc1200 rx decode error\r\n");
+					UART_SendText("mdc1200 dec err\r\n");
 				#endif
 
 				continue;
@@ -596,10 +600,10 @@ bool MDC1200_process_rx(
 			// extract the info from the packet
 			*op      = rx.data[0];
 			*arg     = rx.data[1];
-			*unit_id = ((uint16_t)rx.data[3] << 8) | (rx.data[2] << 0);
+			*unit_id = ((uint16_t)rx.data[2] << 8) | (rx.data[3] << 0);
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_printf("mdc1200 rx  op %02X  arg %02X  id %04X\r\n", *op, *arg, *unit_id);
+				//UART_printf("mdc1200  op %02X  arg %02X  id %04X\r\n", *op, *arg, *unit_id);
 			#endif
 
 			// reset the detector
@@ -614,6 +618,149 @@ bool MDC1200_process_rx(
 	return false;
 }
 
+uint8_t      mdc1200_rx_buffer[sizeof(mdc1200_sync_suc_xor) + (MDC1200_FEC_K * 2)];
+unsigned int mdc1200_rx_buffer_index = 0;
+
+uint8_t  mdc1200_op;
+uint8_t  mdc1200_arg;
+uint16_t mdc1200_unit_id;
+uint8_t  mdc1200_rx_ready_tick_500ms;
+
+void MDC1200_process_rx(const uint16_t interrupt_bits)
+{
+	const uint16_t rx_sync_flags   = BK4819_ReadRegister(0x0B);
+	const uint16_t fsk_reg59       = BK4819_ReadRegister(0x59) & ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));
+
+	const bool rx_sync             = (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC) ? true : false;
+	const bool rx_sync_neg         = (rx_sync_flags & (1u << 7)) ? true : false;
+	const bool rx_sync_pos         = (rx_sync_flags & (1u << 6)) ? true : false;
+	const bool rx_fifo_almost_full = (interrupt_bits & BK4819_REG_02_FSK_FIFO_ALMOST_FULL) ? true : false;
+	const bool rx_finished         = (interrupt_bits & BK4819_REG_02_FSK_RX_FINISHED) ? true : false;
+
+	const unsigned int sync_size   = (fsk_reg59 & (1u << 3)) ? 4 : 2;
+
+	if (rx_sync)
+	{
+//		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
+
+		//mdc1200_rx_ready = false;
+
+		mdc1200_rx_buffer_index = 0;
+
+		{	// precede the data with the missing sync pattern (it's not part of the packet data)
+			unsigned int i;
+			memset(mdc1200_rx_buffer, 0, sizeof(mdc1200_rx_buffer));
+			for (i = 0; i < sync_size; i++)
+				mdc1200_rx_buffer[mdc1200_rx_buffer_index++] = mdc1200_sync_suc_xor[i] ^ (rx_sync_neg ? 0xFF : 0x00);
+		}
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_SendText("mdc1200 syn");
+		#endif
+
+		if (rx_sync_neg)
+		{	// RX sync neg found
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("-");
+			#endif
+		}
+
+		if (rx_sync_pos)
+		{	// RX sync pos found
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_SendText("+");
+			#endif
+		}
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_SendText("\r\n");
+		#endif
+	}
+
+	if (rx_fifo_almost_full)
+	{
+		unsigned int i;
+		const unsigned int count = BK4819_ReadRegister(0x5E) & (7u << 0);  // almost full threshold
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("mdc1200 full %2u %2u ", mdc1200_rx_buffer_index, count);
+		#endif
+
+		// fetch RX'ed data
+		for (i = 0; i < count; i++)
+		{
+			const uint16_t word = BK4819_ReadRegister(0x5F) ^ (rx_sync_neg ? 0xFFFF : 0x0000);
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+				UART_printf(" %04X", word);
+			#endif
+
+			if (mdc1200_rx_buffer_index < sizeof(mdc1200_rx_buffer))
+				mdc1200_rx_buffer[mdc1200_rx_buffer_index++] = (word >> 0) & 0xff;
+
+			if (mdc1200_rx_buffer_index < sizeof(mdc1200_rx_buffer))
+				mdc1200_rx_buffer[mdc1200_rx_buffer_index++] = (word >> 8) & 0xff;
+		}
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_SendText("\r\n");
+		#endif
+
+		if (mdc1200_rx_buffer_index >= sizeof(mdc1200_rx_buffer))
+		{
+			BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
+			BK4819_WriteRegister(0x59, (1u << 12) | fsk_reg59);
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			{
+				unsigned int i;
+				UART_SendText("mdc1200 ");
+				for (i = 0; i < mdc1200_rx_buffer_index; i++)
+					UART_printf(" %02X", mdc1200_rx_buffer[i]);
+				UART_SendText("\r\n");
+			}
+			#endif
+
+//			if (!g_squelch_open)
+//				BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
+
+			if (MDC1200_process_rx_data(
+				mdc1200_rx_buffer,
+				mdc1200_rx_buffer_index,
+//				(sync_flags & (1u << 7)) ? true : false, // true if the sync pattern is bit inverted
+				&mdc1200_op,
+				&mdc1200_arg,
+				&mdc1200_unit_id))
+			{
+				mdc1200_rx_ready_tick_500ms = 2 * 6;  // 6 seconds
+
+				g_update_display = true;
+				
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("MDC1200  op %02X  arg %02X  id %04X\r\n", mdc1200_op, mdc1200_arg, mdc1200_unit_id);
+				#endif
+			}
+
+			mdc1200_rx_buffer_index = 0;
+		}
+	}
+
+	if (rx_finished)
+	{
+		mdc1200_rx_buffer_index = 0;
+
+//		if (!g_squelch_open)
+//			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
+
+		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
+		BK4819_WriteRegister(0x59, (1u << 12) | fsk_reg59);
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_SendText("mdc1200 fin\r\n");
+		#endif
+	}
+}
+
 // **********************************************************
 
 /*
@@ -625,7 +772,7 @@ void test(void)
 }
 */
 
-void mdc1200_init(void)
+void MDC1200_init(void)
 {
 	memcpy(mdc1200_sync_suc_xor, mdc1200_sync, sizeof(mdc1200_sync));
 	xor_modulation(mdc1200_sync_suc_xor, sizeof(mdc1200_sync_suc_xor));

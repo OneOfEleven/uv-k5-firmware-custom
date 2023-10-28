@@ -292,10 +292,10 @@ void BK4819_DisableAGC(void)
 	// <7:5>   LNA Gain
 	//         7 =   0dB
 	//         6 =  -2dB
-	//         5 =  -4dB
+	//         5 =  -4dB <<<
 	//         4 =  -6dB
 	//         3 =  -9dB
-	//         2 = -14dB <<<
+	//         2 = -14dB
 	//         1 = -19dB
 	//         0 = -24dB
 	//
@@ -321,61 +321,63 @@ void BK4819_DisableAGC(void)
 	BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
 	BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
 
-	// undocumented ?
+	// ??
 	BK4819_WriteRegister(0x49, 0x2A38);
 	BK4819_WriteRegister(0x7B, 0x8420);
 }
 
-void BK4819_EnableAGC(void)
-{
-	// TODO: See if this attenuates overloading
-	// signals as well as boosting weak ones
-	//
-	// REG_7E
-	//
-	// <15> 0 AGC Fix Mode.
-	// 1=Fix; 0=Auto.
-	//
-	// <14:12> 0b011 AGC Fix Index.
-	// 011=Max, then 010,001,000,111,110,101,100(min).
-	//
-	// <5:3> 0b101 DC Filter Band Width for Tx (MIC In).
-	// 000=Bypass DC filter;
-	//
-	// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
-	// 000=Bypass DC filter;
-
-	BK4819_WriteRegister(0x7E,
-		(0u << 15) |      // 0  AGC fix mode
-		(3u << 12) |      // 3  AGC fix index
-		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
-		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
-
-	// TBR: fagci has this listed as two values, agc_rssi and lna_peak_rssi
-	// This is why AGC appeared to do nothing as-is for Rx
-	//
-	// REG_62
-	//
-	// <15:8> 0xFF AGC RSSI
-	//
-	// <7:0> 0xFF LNA Peak RSSI
-	//
-	// TBR: Using S9+30 (173) and S9 (143) as suggested values
-	BK4819_WriteRegister(0x62, (173u << 8) | (143u << 0));
-
-	// AGC auto-adjusts the following LNA values, no need to set them ourselves
-	//BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
-	//BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
-	//BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
-	//BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
-	//BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
-
-	BK4819_WriteRegister(0x49, 0x2A38);
-	BK4819_WriteRegister(0x7B, 0x8420);
-
-	for (unsigned int i = 0; i < 8; i++)
-		BK4819_WriteRegister(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));
-}
+#ifndef ENABLE_AM_FIX
+	void BK4819_EnableAGC(void)
+	{
+		// TODO: See if this attenuates overloading
+		// signals as well as boosting weak ones
+		//
+		// REG_7E
+		//
+		// <15> 0 AGC Fix Mode.
+		// 1=Fix; 0=Auto.
+		//
+		// <14:12> 0b011 AGC Fix Index.
+		// 011=Max, then 010,001,000,111,110,101,100(min).
+		//
+		// <5:3> 0b101 DC Filter Band Width for Tx (MIC In).
+		// 000=Bypass DC filter;
+		//
+		// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
+		// 000=Bypass DC filter;
+	
+		BK4819_WriteRegister(0x7E,
+			(0u << 15) |      // 0  AGC fix mode
+			(3u << 12) |      // 3  AGC fix index
+			(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
+			(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
+	
+		// TBR: fagci has this listed as two values, agc_rssi and lna_peak_rssi
+		// This is why AGC appeared to do nothing as-is for Rx
+		//
+		// REG_62
+		//
+		// <15:8> 0xFF AGC RSSI
+		//
+		// <7:0> 0xFF LNA Peak RSSI
+		//
+		// TBR: Using S9+30 (173) and S9 (143) as suggested values
+		BK4819_WriteRegister(0x62, (173u << 8) | (143u << 0));
+	
+		// AGC auto-adjusts the following LNA values, no need to set them ourselves
+		//BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
+		//BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
+		//BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
+		//BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
+		//BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
+	
+		BK4819_WriteRegister(0x49, 0x2A38);
+		BK4819_WriteRegister(0x7B, 0x8420);
+	
+		for (unsigned int i = 0; i < 8; i++)
+			BK4819_WriteRegister(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));
+	}
+#endif
 
 void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
 {
@@ -1939,6 +1941,9 @@ void BK4819_reset_fsk(void)
 
 		BK4819_WriteRegister(0x02, 0);    // clear interrupt flags
 
+		// set the almost full threshold
+		BK4819_WriteRegister(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
+
 		// set the packet size
 		BK4819_WriteRegister(0x5D, ((packet_size - 1) << 8));
 
@@ -2141,7 +2146,7 @@ void BK4819_reset_fsk(void)
 				(3u << 8) |			// 0 FSK RX gain
 									//   0 ~ 3
 									//
-				(3u << 6) |			// 0 ???
+				(0u << 6) |			// 0 ???
 									//   0 ~ 3
 									//
 				(0u << 4) |			// 0 FSK preamble type selection
@@ -2177,11 +2182,16 @@ void BK4819_reset_fsk(void)
 			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[2] << 8) | (mdc1200_sync_suc_xor[3] << 0));
 
 			// disable CRC
-			BK4819_WriteRegister(0x5C, 0x5625);
+			BK4819_WriteRegister(0x5C, 0x5625);   // 010101100 0 100101
+//			BK4819_WriteRegister(0x5C, 0xAA30);   // 101010100 0 110000
 
-			{	// packet size .. 14 bytes - size of a single mdc1200 packet
-				uint16_t size = sizeof(mdc1200_sync_suc_xor) + 14;
+			// set the almost full threshold
+			BK4819_WriteRegister(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
+
+			{	// packet size .. sync + 14 bytes - size of a single mdc1200 packet
+				uint16_t size = sizeof(mdc1200_sync_suc_xor) + (MDC1200_FEC_K * 2);
 				size -= (fsk_reg59 & (1u << 3)) ? 4 : 2; 
+				size = ((size + 1) / 2) * 2;             // round up to even, else FSK RX doesn't work
 				BK4819_WriteRegister(0x5D, ((size - 1) << 8));
 			}
 	
@@ -2250,7 +2260,7 @@ void BK4819_reset_fsk(void)
 
 		const uint16_t tx_dev = BK4819_ReadRegister(0x40);
 	//	BK4819_WriteRegister(0x40, (0u << 12) | (1232 << 0));   // 000 0 010011010000
-		BK4819_WriteRegister(0x40, (tx_dev & 0xf000) | (1050 << 0));  // reduce the deviation a little
+		BK4819_WriteRegister(0x40, (tx_dev & 0xf000) | (1000 << 0));  // reduce the deviation a little
 
 		// REG_2B   0
 		//
@@ -2294,7 +2304,7 @@ void BK4819_reset_fsk(void)
 			(1u  <<  1) |    // enable  TX DSP
 			(0u  <<  0));    // disable RX DSP
 
-		SYSTEM_DelayMs(20);
+		SYSTEM_DelayMs(10);
 
 		// *******************************************
 
@@ -2464,8 +2474,8 @@ void BK4819_reset_fsk(void)
 		//
 		// disable CRC
 		//
-	//	BK4819_WriteRegister(0x5C, 0xAA30);   // 101010100 0 110000
-		BK4819_WriteRegister(0x5C, 0);        // setting to '0' doesn't make any difference !
+//		BK4819_WriteRegister(0x5C, 0x5625);   // 010101100 0 100101
+		BK4819_WriteRegister(0x5C, 0xAA30);   // 101010100 0 110000
 
 		{	// load the entire packet data into the TX FIFO buffer
 			unsigned int i;
@@ -2477,7 +2487,7 @@ void BK4819_reset_fsk(void)
 		// enable tx interrupt
 		BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
 
-		// enable TX
+		// enable FSK TX
 		BK4819_WriteRegister(0x59, (1u << 11) | fsk_reg59);
 
 		{	// packet time is ..

@@ -366,23 +366,12 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		p_vfo->tx_offset_freq = FREQUENCY_floor_to_step(p_vfo->tx_offset_freq + (p_vfo->step_freq / 2), p_vfo->step_freq, 0, p_vfo->tx_offset_freq + p_vfo->step_freq);
 	}
 
-	RADIO_ApplyOffset(p_vfo);
+	RADIO_ApplyOffset(p_vfo, true);
 
 	// channel name
 	memset(p_vfo->name, 0, sizeof(p_vfo->name));
 	if (Channel <= USER_CHANNEL_LAST)
 		EEPROM_ReadBuffer(0x0F50 + (Channel * 16), p_vfo->name, 10);	// only 10 bytes used
-
-	if (!p_vfo->frequency_reverse)
-	{
-		p_vfo->p_rx = &p_vfo->freq_config_rx;
-		p_vfo->p_tx = &p_vfo->freq_config_tx;
-	}
-	else
-	{
-		p_vfo->p_rx = &p_vfo->freq_config_tx;
-		p_vfo->p_tx = &p_vfo->freq_config_rx;
-	}
 
 	if (p_vfo->am_mode)
 	{	// freq/chan is in AM mode
@@ -583,7 +572,7 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 	// *******************************
 }
 
-void RADIO_ApplyOffset(vfo_info_t *p_vfo)
+void RADIO_ApplyOffset(vfo_info_t *p_vfo, const bool set_pees)
 {
 	uint32_t Frequency = p_vfo->freq_config_rx.frequency;
 
@@ -606,6 +595,20 @@ void RADIO_ApplyOffset(vfo_info_t *p_vfo)
 		Frequency = FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper;
 
 	p_vfo->freq_config_tx.frequency = Frequency;
+
+	if (set_pees)
+	{
+		if (!p_vfo->frequency_reverse)
+		{
+			p_vfo->p_rx = &p_vfo->freq_config_rx;
+			p_vfo->p_tx = &p_vfo->freq_config_tx;
+		}
+		else
+		{
+			p_vfo->p_rx = &p_vfo->freq_config_tx;
+			p_vfo->p_tx = &p_vfo->freq_config_rx;
+		}
+	}
 }
 
 static void RADIO_SelectCurrentVfo(void)
