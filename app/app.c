@@ -1422,11 +1422,11 @@ void APP_process_flash_light_10ms(void)
 	switch (g_flash_light_state)
 	{
 		case FLASHLIGHT_OFF:
-			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+//			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
 			break;
 
 		case FLASHLIGHT_ON:
-			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+//			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
 			break;
 
 		case FLASHLIGHT_BLINK:
@@ -1447,7 +1447,516 @@ void APP_process_flash_light_10ms(void)
 			}
 			break;
 	}
-}	
+}
+
+void APP_process_scan(void)
+{
+	#ifdef ENABLE_VOICE
+		if (g_voice_write_index != 0)
+			return;
+	#endif
+
+	if ((g_current_function == FUNCTION_FOREGROUND  ||
+	     g_current_function == FUNCTION_NEW_RECEIVE ||
+	     g_current_function == FUNCTION_RECEIVE)    &&
+		 g_current_display_screen != DISPLAY_SEARCH &&
+	     g_scan_state_dir != SCAN_STATE_DIR_OFF     &&
+	    !g_ptt_is_pressed)
+	{	// RF scanning
+	
+		if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE) // && !g_scan_pause_time_mode)
+		{
+			APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
+		}
+		else
+		if (g_scan_pause_10ms == 0)
+		{	// switch to next channel
+			g_scan_pause_time_mode = false;
+			g_rx_reception_mode    = RX_MODE_NONE;
+	
+			if (g_scan_next_channel <= USER_CHANNEL_LAST)
+				APP_next_channel();
+			else
+			if (IS_FREQ_CHANNEL(g_scan_next_channel))
+				APP_next_freq();
+		}
+/*  
+		if (g_scan_next_channel <= USER_CHANNEL_LAST)
+		{	// channel mode
+	
+			if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE && !g_scan_pause_time_mode)
+			{
+				APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
+			}
+			else
+			{	// switch to next channel
+				g_scan_pause_time_mode = false;
+				g_rx_reception_mode    = RX_MODE_NONE;
+				APP_next_channel();
+			}
+		}
+		else
+		if (IS_FREQ_CHANNEL(g_scan_next_channel))
+		{	// frequency mode
+	
+			if (g_current_function == FUNCTION_NEW_RECEIVE && !g_scan_pause_time_mode)
+			{
+				APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
+			}
+			else
+			{	// switch to next frequency
+				g_scan_pause_time_mode = false;
+				g_rx_reception_mode    = RX_MODE_NONE;
+				APP_next_freq();
+			}
+		}
+*/  
+	
+	}
+	
+	if (g_css_scan_mode == CSS_SCAN_MODE_SCANNING && g_scan_pause_10ms == 0)
+		MENU_SelectNextCode();
+	
+	#ifdef ENABLE_NOAA
+		if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_is_noaa_mode && g_schedule_noaa)
+		{
+			APP_next_noaa();
+	
+			RADIO_setup_registers(false);
+	
+			g_noaa_tick_10ms = 7;      // 70ms
+			g_schedule_noaa  = false;
+		}
+	#endif
+	
+	// toggle between the VFO's if dual watch is enabled
+	if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
+		g_dual_watch_delay_10ms == 0 &&
+		!g_ptt_is_pressed &&
+		#ifdef ENABLE_FMRADIO
+			!g_fm_radio_mode &&
+		#endif
+		g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
+		g_current_display_screen != DISPLAY_SEARCH &&
+		g_scan_state_dir == SCAN_STATE_DIR_OFF &&
+		g_css_scan_mode == CSS_SCAN_MODE_OFF &&
+		g_current_function != FUNCTION_POWER_SAVE &&
+		(g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_POWER_SAVE))
+	{
+		APP_toggle_dual_watch_vfo();    // toggle between the two VFO's
+	
+		if (g_rx_vfo_is_active && g_current_display_screen == DISPLAY_MAIN)
+			GUI_SelectNextDisplay(DISPLAY_MAIN);
+	
+		g_rx_vfo_is_active  = false;
+		g_rx_reception_mode = RX_MODE_NONE;
+	}
+}
+
+void APP_process_search(void)
+{
+	uint32_t                 Result;
+	int32_t                  Delta;
+	uint16_t                 CtcssFreq;
+	BK4819_CSS_scan_result_t ScanResult;
+
+	if (g_current_display_screen != DISPLAY_SEARCH)
+		return;
+	
+	g_search_freq_css_timer_10ms++;
+	
+	if (g_search_delay_10ms > 0)
+	{
+		if (--g_search_delay_10ms > 0)
+		{
+			APP_check_keys();
+			return;
+		}
+	}
+	
+	if (g_search_edit_state != SEARCH_EDIT_STATE_NONE)
+	{	// waiting for user input choice
+		APP_check_keys();
+		return;
+	}
+	
+	g_update_display = true;
+	GUI_SelectNextDisplay(DISPLAY_SEARCH);
+	
+	switch (g_search_css_state)
+	{
+		case SEARCH_CSS_STATE_OFF:
+	
+			if (g_search_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
+			{	// FREQ/CTCSS/CDCSS search timeout
+	
+				if (!g_search_single_frequency)
+				{	// FREQ search timeout
+					#ifdef ENABLE_FREQ_SEARCH_TIMEOUT
+						BK4819_DisableFrequencyScan();
+	
+						g_search_css_state = SEARCH_CSS_STATE_FREQ_FAILED;
+	
+						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+						g_update_status  = true;
+						g_update_display = true;
+						break;
+					#endif
+				}
+				else
+				{	// CTCSS/CDCSS search timeout
+					#ifdef ENABLE_CODE_SEARCH_TIMEOUT
+						BK4819_DisableFrequencyScan();
+	
+						g_search_css_state = SEARCH_CSS_STATE_FREQ_FAILED;
+	
+						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+						g_update_status  = true;
+						g_update_display = true;
+						break;
+					#endif
+				}
+			}
+	
+			if (!BK4819_GetFrequencyScanResult(&Result))
+				break;   // still scanning
+	
+			// accept only within 1kHz
+			Delta = Result - g_search_frequency;
+			g_search_hit_count = (abs(Delta) < 100) ? g_search_hit_count + 1 : 0;
+	
+			BK4819_DisableFrequencyScan();
+	
+			g_search_frequency = Result;
+	
+			if (g_search_hit_count < 3)
+			{	// keep scanning for an RF carrier
+				BK4819_EnableFrequencyScan();
+			}
+			else
+			{	// RF carrier found
+				//
+				// stop RF search and start CTCSS/CDCSS search
+	
+				BK4819_SetScanFrequency(g_search_frequency);
+	
+				g_search_css_result_type     = CODE_TYPE_NONE;
+				g_search_css_result_code     = 0xff;
+				g_search_hit_count           = 0;
+				g_search_use_css_result      = false;
+				g_search_freq_css_timer_10ms = 0;
+				g_search_css_state           = SEARCH_CSS_STATE_SCANNING;
+	
+				g_update_status  = true;
+				g_update_display = true;
+				GUI_SelectNextDisplay(DISPLAY_SEARCH);
+			}
+	
+			g_search_delay_10ms = scan_freq_css_delay_10ms;
+			break;
+	
+		case SEARCH_CSS_STATE_SCANNING:
+	
+			if (g_search_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
+			{	// CTCSS/CDCSS search timeout
+	
+				#if defined(ENABLE_CODE_SEARCH_TIMEOUT)
+					g_search_css_state = SEARCH_CSS_STATE_FAILED;
+	
+					BK4819_Disable();
+	
+					AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+					g_update_status  = true;
+					g_update_display = true;
+					break;
+	
+				#else
+					if (!g_search_single_frequency)
+					{
+						g_search_css_state = SEARCH_CSS_STATE_FAILED;
+	
+						BK4819_Disable();
+	
+						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+						g_update_status  = true;
+						g_update_display = true;
+						break;
+					}
+				#endif
+			}
+	
+			ScanResult = BK4819_GetCxCSSScanResult(&Result, &CtcssFreq);
+			if (ScanResult == BK4819_CSS_RESULT_NOT_FOUND)
+				break;
+	
+			BK4819_Disable();
+	
+			if (ScanResult == BK4819_CSS_RESULT_CDCSS)
+			{	// found a CDCSS code
+				const uint8_t code = DCS_GetCdcssCode(Result);
+				if (code != 0xFF)
+				{
+					g_search_hit_count       = 0;
+					g_search_css_result_type = CODE_TYPE_DIGITAL;
+					g_search_css_result_code = code;
+					g_search_css_state       = SEARCH_CSS_STATE_FOUND;
+					g_search_use_css_result  = true;
+	
+					AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+					g_update_status  = true;
+					g_update_display = true;
+				}
+				else
+				{
+					g_search_hit_count       = 0;
+					g_search_css_result_type = CODE_TYPE_NONE;
+					g_search_css_result_code = code;
+					g_search_use_css_result  = false;
+				}
+			}
+			else
+			if (ScanResult == BK4819_CSS_RESULT_CTCSS)
+			{	// found a CTCSS tone
+				const uint8_t code = DCS_GetCtcssCode(CtcssFreq);
+				if (code != 0xFF)
+				{
+					if (code == g_search_css_result_code &&
+					    g_search_css_result_type == CODE_TYPE_CONTINUOUS_TONE)
+					{
+						if (++g_search_hit_count >= 3)
+						{
+							g_search_css_state      = SEARCH_CSS_STATE_FOUND;
+							g_search_use_css_result = true;
+	
+							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+							g_update_status  = true;
+							g_update_display = true;
+						}
+					}
+					else
+					{
+						g_search_hit_count       = 1;
+						g_search_css_result_type = CODE_TYPE_CONTINUOUS_TONE;
+						g_search_css_result_code = code;
+						g_search_use_css_result  = false;
+					}
+				}
+				else
+				{
+					g_search_hit_count       = 0;
+					g_search_css_result_type = CODE_TYPE_NONE;
+					g_search_css_result_code = 0xff;
+					g_search_use_css_result  = false;
+				}
+			}
+	
+			if (g_search_css_state == SEARCH_CSS_STATE_OFF ||
+			    g_search_css_state == SEARCH_CSS_STATE_SCANNING)
+			{	// re-start scan
+				BK4819_SetScanFrequency(g_search_frequency);
+				g_search_delay_10ms = scan_freq_css_delay_10ms;
+			}
+	
+			GUI_SelectNextDisplay(DISPLAY_SEARCH);
+			break;
+	
+		//case SEARCH_CSS_STATE_FOUND:
+		//case SEARCH_CSS_STATE_FAILED:
+		//case SEARCH_CSS_STATE_REPEAT:
+		default:
+			break;
+	}
+}
+
+void APP_process_transmit(void)
+{	
+	if (g_current_function != FUNCTION_TRANSMIT)
+		return;
+
+	#ifdef ENABLE_ALARM
+		if (g_alarm_state == ALARM_STATE_TXALARM || g_alarm_state == ALARM_STATE_ALARM)
+		{	// TX alarm tone
+	
+			uint16_t Tone;
+	
+			g_alarm_running_counter_10ms++;
+	
+			// loop alarm tone frequency 300Hz ~ 1500Hz ~ 300Hz
+			Tone = 300 + (g_alarm_tone_counter_10ms++ * 50);
+			if (Tone >= ((1500 * 2) - 300))
+			{
+				Tone = 300;
+				g_alarm_tone_counter_10ms = 0;
+			}
+	
+			BK4819_SetScrambleFrequencyControlWord((Tone <= 1500) ? Tone : (1500 * 2) - Tone);
+	
+			if (g_eeprom.alarm_mode == ALARM_MODE_TONE && g_alarm_running_counter_10ms == 512)
+			{
+				g_alarm_running_counter_10ms = 0;
+	
+				if (g_alarm_state == ALARM_STATE_TXALARM)
+				{
+					g_alarm_state = ALARM_STATE_ALARM;
+	
+					RADIO_EnableCxCSS();
+					BK4819_SetupPowerAmplifier(0, 0);
+					BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);   // PA off
+					BK4819_Enable_AfDac_DiscMode_TxDsp();
+					BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);          // LED off
+	
+					GUI_DisplayScreen();
+				}
+				else
+				{
+					g_alarm_state = ALARM_STATE_TXALARM;
+	
+					GUI_DisplayScreen();
+	
+					RADIO_enableTX(false);
+					BK4819_TransmitTone(true, 500);
+					SYSTEM_DelayMs(2);
+	
+					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+					g_speaker_enabled = true;
+	
+					g_alarm_tone_counter_10ms = 0;
+				}
+			}
+		}
+	#endif
+	
+	// repeater tail tone elimination
+	if (g_rtte_count_down > 0)
+	{
+		if (--g_rtte_count_down == 0)
+		{
+			FUNCTION_Select(FUNCTION_FOREGROUND);
+			g_update_status  = true;
+			g_update_display = true;
+		}
+	}
+}
+
+void APP_process_power_save(void)
+{
+	if (g_schedule_power_save)
+	{
+		#ifdef ENABLE_NOAA
+			if (
+			#ifdef ENABLE_FMRADIO
+				g_fm_radio_mode                          ||
+			#endif
+				g_ptt_is_pressed                         ||
+				g_key_held                               ||
+				g_eeprom.battery_save == 0               ||
+				g_scan_state_dir != SCAN_STATE_DIR_OFF   ||
+				g_css_scan_mode != CSS_SCAN_MODE_OFF     ||
+				g_current_display_screen != DISPLAY_MAIN ||
+				g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+			{
+				g_battery_save_tick_10ms = battery_save_count_10ms;
+			}
+			else
+			if ((IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[0]) &&
+				IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[1])) ||
+				!g_is_noaa_mode)
+			{
+				FUNCTION_Select(FUNCTION_POWER_SAVE);
+			}
+			else
+			{
+				g_battery_save_tick_10ms = battery_save_count_10ms;
+			}
+		#else
+			if (
+				#ifdef ENABLE_FMRADIO
+					g_fm_radio_mode                      ||
+				#endif                                   
+				g_ptt_is_pressed                         ||
+				g_key_held                               ||
+				g_eeprom.battery_save == 0               ||
+				g_scan_state_dir != SCAN_STATE_DIR_OFF   ||
+				g_css_scan_mode != CSS_SCAN_MODE_OFF     ||
+				g_current_display_screen != DISPLAY_MAIN ||
+				g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+			{
+				g_battery_save_tick_10ms = battery_save_count_10ms;
+			}
+			else
+			{
+				FUNCTION_Select(FUNCTION_POWER_SAVE);
+			}
+		#endif
+		
+		g_schedule_power_save = false;
+	}
+	
+	#ifdef ENABLE_VOICE
+		if (g_voice_write_index != 0)
+			return;
+	#endif
+
+	if (!g_power_save_expired || g_current_function != FUNCTION_POWER_SAVE)
+		return;
+	
+	// wake up, enable RX then go back to sleep
+	
+	if (g_rx_idle_mode)
+	{
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			//UART_SendText("ps wake up\r\n");
+		#endif
+	
+		BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
+	
+		#ifdef ENABLE_VOX
+			if (g_eeprom.vox_switch)
+				BK4819_EnableVox(g_eeprom.vox1_threshold, g_eeprom.vox0_threshold);
+		#endif
+	
+		if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
+			g_scan_state_dir == SCAN_STATE_DIR_OFF &&
+			g_css_scan_mode == CSS_SCAN_MODE_OFF)
+		{	// dual watch mode, toggle between the two VFO's
+			APP_toggle_dual_watch_vfo();
+			g_update_rssi = false;
+		}
+	
+		FUNCTION_Init();
+	
+		g_power_save_10ms = power_save1_10ms; // come back here in a bit
+		g_rx_idle_mode    = false;            // RX is awake
+	}
+	else
+	if (g_eeprom.dual_watch == DUAL_WATCH_OFF  ||
+		g_scan_state_dir != SCAN_STATE_DIR_OFF ||
+		g_css_scan_mode != CSS_SCAN_MODE_OFF   ||
+		g_update_rssi)
+	{	// dual watch mode, go back to sleep
+	
+		APP_update_rssi(g_eeprom.rx_vfo);
+	
+		// go back to sleep
+	
+		g_power_save_10ms = g_eeprom.battery_save * 10;
+		g_rx_idle_mode    = true;
+	
+		BK4819_DisableVox();
+		BK4819_Sleep();
+		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
+	}
+	else
+	{
+		// toggle between the two VFO's
+		APP_toggle_dual_watch_vfo();
+	
+		g_update_rssi     = true;
+		g_power_save_10ms = power_save1_10ms;
+	}
+	
+	g_power_save_expired = false;
+}
 
 // this is called once every 500ms
 void APP_time_slice_500ms(void)
@@ -1810,20 +2319,20 @@ void APP_time_slice_10ms(void)
 	#ifdef ENABLE_AIRCOPY
 		if (g_current_display_screen == DISPLAY_AIRCOPY)
 		{	// we're in AIRCOPY mode
-	
+
 			if (g_aircopy_state == AIRCOPY_TX)
 				AIRCOPY_process_fsk_tx_10ms();
-	
+
 			AIRCOPY_process_fsk_rx_10ms();
-	
+
 			APP_check_keys();
-	
+
 			if (g_update_display)
 				GUI_DisplayScreen();
-	
+
 			if (g_update_status)
 				UI_DisplayStatus(false);
-	
+
 			return;
 		}
 	#endif
@@ -1836,7 +2345,7 @@ void APP_time_slice_10ms(void)
 			__enable_irq();
 		}
 	#endif
-	
+
 	if (g_current_function == FUNCTION_TRANSMIT && (g_tx_timeout_reached || g_serial_config_tick_500ms > 0))
 	{	// transmitter timed out or must de-key
 
@@ -1930,9 +2439,9 @@ void APP_time_slice_10ms(void)
 
 		return;
 	}
-	
+
 	// ***************************************************
-	
+
 	if (g_current_function != FUNCTION_POWER_SAVE || !g_rx_idle_mode)
 		APP_process_radio_interrupts();
 
@@ -1965,73 +2474,8 @@ void APP_time_slice_10ms(void)
 			g_vox_pause_count_down--;
 	#endif
 
-	if (g_current_function == FUNCTION_TRANSMIT)
-	{
-		#ifdef ENABLE_ALARM
-			if (g_alarm_state == ALARM_STATE_TXALARM || g_alarm_state == ALARM_STATE_ALARM)
-			{	// TX alarm tone
-
-				uint16_t Tone;
-
-				g_alarm_running_counter_10ms++;
-
-				// loop alarm tone frequency 300Hz ~ 1500Hz ~ 300Hz
-				Tone = 300 + (g_alarm_tone_counter_10ms++ * 50);
-				if (Tone >= ((1500 * 2) - 300))
-				{
-					Tone = 300;
-					g_alarm_tone_counter_10ms = 0;
-				}
-
-				BK4819_SetScrambleFrequencyControlWord((Tone <= 1500) ? Tone : (1500 * 2) - Tone);
-
-				if (g_eeprom.alarm_mode == ALARM_MODE_TONE && g_alarm_running_counter_10ms == 512)
-				{
-					g_alarm_running_counter_10ms = 0;
-
-					if (g_alarm_state == ALARM_STATE_TXALARM)
-					{
-						g_alarm_state = ALARM_STATE_ALARM;
-
-						RADIO_EnableCxCSS();
-						BK4819_SetupPowerAmplifier(0, 0);
-						BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);   // PA off
-						BK4819_Enable_AfDac_DiscMode_TxDsp();
-						BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);          // LED off
-
-						GUI_DisplayScreen();
-					}
-					else
-					{
-						g_alarm_state = ALARM_STATE_TXALARM;
-
-						GUI_DisplayScreen();
-
-						RADIO_enableTX(false);
-						BK4819_TransmitTone(true, 500);
-						SYSTEM_DelayMs(2);
-
-						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-						g_speaker_enabled = true;
-
-						g_alarm_tone_counter_10ms = 0;
-					}
-				}
-			}
-		#endif
-
-		// repeater tail tone elimination
-		if (g_rtte_count_down > 0)
-		{
-			if (--g_rtte_count_down == 0)
-			{
-				FUNCTION_Select(FUNCTION_FOREGROUND);
-				g_update_status  = true;
-				g_update_display = true;
-			}
-		}
-	}
-
+	APP_process_transmit();
+	
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode && g_fm_restore_tick_10ms > 0)
 		{
@@ -2043,218 +2487,10 @@ void APP_time_slice_10ms(void)
 		}
 	#endif
 
-	if (g_current_display_screen == DISPLAY_SEARCH)
-	{
-		uint32_t                 Result;
-		int32_t                  Delta;
-		uint16_t                 CtcssFreq;
-		BK4819_CSS_scan_result_t ScanResult;
-
-		g_search_freq_css_timer_10ms++;
-
-		if (g_search_delay_10ms > 0)
-		{
-			if (--g_search_delay_10ms > 0)
-			{
-				APP_check_keys();
-				return;
-			}
-		}
-
-		if (g_search_edit_state != SEARCH_EDIT_STATE_NONE)
-		{	// waiting for user input choice
-			APP_check_keys();
-			return;
-		}
-
-		g_update_display = true;
-		GUI_SelectNextDisplay(DISPLAY_SEARCH);
-
-		switch (g_search_css_state)
-		{
-			case SEARCH_CSS_STATE_OFF:
-
-				if (g_search_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
-				{	// FREQ/CTCSS/CDCSS search timeout
-
-					if (!g_search_single_frequency)
-					{	// FREQ search timeout
-						#ifdef ENABLE_FREQ_SEARCH_TIMEOUT
-							BK4819_DisableFrequencyScan();
-
-							g_search_css_state = SEARCH_CSS_STATE_FREQ_FAILED;
-
-							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-							g_update_status  = true;
-							g_update_display = true;
-							break;
-						#endif
-					}
-					else
-					{	// CTCSS/CDCSS search timeout
-						#ifdef ENABLE_CODE_SEARCH_TIMEOUT
-							BK4819_DisableFrequencyScan();
-
-							g_search_css_state = SEARCH_CSS_STATE_FREQ_FAILED;
-
-							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-							g_update_status  = true;
-							g_update_display = true;
-							break;
-						#endif
-					}
-				}
-
-				if (!BK4819_GetFrequencyScanResult(&Result))
-					break;   // still scanning
-
-				// accept only within 1kHz
-				Delta = Result - g_search_frequency;
-				g_search_hit_count = (abs(Delta) < 100) ? g_search_hit_count + 1 : 0;
-
-				BK4819_DisableFrequencyScan();
-
-				g_search_frequency = Result;
-
-				if (g_search_hit_count < 3)
-				{	// keep scanning for an RF carrier
-					BK4819_EnableFrequencyScan();
-				}
-				else
-				{	// RF carrier found
-					//
-					// stop RF search and start CTCSS/CDCSS search
-
-					BK4819_SetScanFrequency(g_search_frequency);
-
-					g_search_css_result_type     = CODE_TYPE_NONE;
-					g_search_css_result_code     = 0xff;
-					g_search_hit_count           = 0;
-					g_search_use_css_result      = false;
-					g_search_freq_css_timer_10ms = 0;
-					g_search_css_state           = SEARCH_CSS_STATE_SCANNING;
-
-					g_update_status  = true;
-					g_update_display = true;
-					GUI_SelectNextDisplay(DISPLAY_SEARCH);
-				}
-
-				g_search_delay_10ms = scan_freq_css_delay_10ms;
-				break;
-
-			case SEARCH_CSS_STATE_SCANNING:
-
-				if (g_search_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
-				{	// CTCSS/CDCSS search timeout
-
-					#if defined(ENABLE_CODE_SEARCH_TIMEOUT)
-						g_search_css_state = SEARCH_CSS_STATE_FAILED;
-
-						BK4819_Disable();
-
-						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-						g_update_status  = true;
-						g_update_display = true;
-						break;
-
-					#else
-						if (!g_search_single_frequency)
-						{
-							g_search_css_state = SEARCH_CSS_STATE_FAILED;
-
-							BK4819_Disable();
-
-							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-							g_update_status  = true;
-							g_update_display = true;
-							break;
-						}
-					#endif
-				}
-
-				ScanResult = BK4819_GetCxCSSScanResult(&Result, &CtcssFreq);
-				if (ScanResult == BK4819_CSS_RESULT_NOT_FOUND)
-					break;
-
-				BK4819_Disable();
-
-				if (ScanResult == BK4819_CSS_RESULT_CDCSS)
-				{	// found a CDCSS code
-					const uint8_t code = DCS_GetCdcssCode(Result);
-					if (code != 0xFF)
-					{
-						g_search_hit_count       = 0;
-						g_search_css_result_type = CODE_TYPE_DIGITAL;
-						g_search_css_result_code = code;
-						g_search_css_state       = SEARCH_CSS_STATE_FOUND;
-						g_search_use_css_result  = true;
-
-						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-						g_update_status  = true;
-						g_update_display = true;
-					}
-					else
-					{
-						g_search_hit_count       = 0;
-						g_search_css_result_type = CODE_TYPE_NONE;
-						g_search_css_result_code = code;
-						g_search_use_css_result  = false;
-					}
-				}
-				else
-				if (ScanResult == BK4819_CSS_RESULT_CTCSS)
-				{	// found a CTCSS tone
-					const uint8_t code = DCS_GetCtcssCode(CtcssFreq);
-					if (code != 0xFF)
-					{
-						if (code == g_search_css_result_code &&
-						    g_search_css_result_type == CODE_TYPE_CONTINUOUS_TONE)
-						{
-							if (++g_search_hit_count >= 3)
-							{
-								g_search_css_state      = SEARCH_CSS_STATE_FOUND;
-								g_search_use_css_result = true;
-
-								AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-								g_update_status  = true;
-								g_update_display = true;
-							}
-						}
-						else
-						{
-							g_search_hit_count       = 1;
-							g_search_css_result_type = CODE_TYPE_CONTINUOUS_TONE;
-							g_search_css_result_code = code;
-							g_search_use_css_result  = false;
-						}
-					}
-					else
-					{
-						g_search_hit_count       = 0;
-						g_search_css_result_type = CODE_TYPE_NONE;
-						g_search_css_result_code = 0xff;
-						g_search_use_css_result  = false;
-					}
-				}
-
-				if (g_search_css_state == SEARCH_CSS_STATE_OFF ||
-				    g_search_css_state == SEARCH_CSS_STATE_SCANNING)
-				{	// re-start scan
-					BK4819_SetScanFrequency(g_search_frequency);
-					g_search_delay_10ms = scan_freq_css_delay_10ms;
-				}
-
-				GUI_SelectNextDisplay(DISPLAY_SEARCH);
-				break;
-
-			//case SEARCH_CSS_STATE_FOUND:
-			//case SEARCH_CSS_STATE_FAILED:
-			//case SEARCH_CSS_STATE_REPEAT:
-			default:
-				break;
-		}
-	}
-
+	APP_process_scan();
+	
+	APP_process_search();
+	
 	APP_check_keys();
 }
 
@@ -2303,107 +2539,6 @@ void APP_process(void)
 			APP_process_vox();
 	#endif
 
-	#ifdef ENABLE_VOICE
-		if (g_voice_write_index == 0)
-	#endif
-	{
-		if ((g_current_function == FUNCTION_FOREGROUND  ||
-		     g_current_function == FUNCTION_NEW_RECEIVE ||
-		     g_current_function == FUNCTION_RECEIVE)    &&
-			g_current_display_screen != DISPLAY_SEARCH  &&
-		    g_scan_state_dir != SCAN_STATE_DIR_OFF      &&
-		    !g_ptt_is_pressed)
-		{	// RF scanning
-
-			if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE) // && !g_scan_pause_time_mode)
-			{
-				APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
-			}
-			else
-			if (g_scan_pause_10ms == 0)
-			{	// switch to next channel
-				g_scan_pause_time_mode = false;
-				g_rx_reception_mode    = RX_MODE_NONE;
-
-				if (g_scan_next_channel <= USER_CHANNEL_LAST)
-					APP_next_channel();
-				else
-				if (IS_FREQ_CHANNEL(g_scan_next_channel))
-					APP_next_freq();
-			}
-/*
-			if (g_scan_next_channel <= USER_CHANNEL_LAST)
-			{	// channel mode
-
-				if (g_current_code_type == CODE_TYPE_NONE && g_current_function == FUNCTION_NEW_RECEIVE && !g_scan_pause_time_mode)
-				{
-					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
-				}
-				else
-				{	// switch to next channel
-					g_scan_pause_time_mode = false;
-					g_rx_reception_mode    = RX_MODE_NONE;
-					APP_next_channel();
-				}
-			}
-			else
-			if (IS_FREQ_CHANNEL(g_scan_next_channel))
-			{	// frequency mode
-
-				if (g_current_function == FUNCTION_NEW_RECEIVE && !g_scan_pause_time_mode)
-				{
-					APP_start_listening(g_monitor_enabled ? FUNCTION_MONITOR : FUNCTION_RECEIVE);
-				}
-				else
-				{	// switch to next frequency
-					g_scan_pause_time_mode = false;
-					g_rx_reception_mode    = RX_MODE_NONE;
-					APP_next_freq();
-				}
-			}
-*/
-
-		}
-
-		if (g_css_scan_mode == CSS_SCAN_MODE_SCANNING && g_scan_pause_10ms == 0)
-			MENU_SelectNextCode();
-
-		#ifdef ENABLE_NOAA
-			if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_is_noaa_mode && g_schedule_noaa)
-			{
-				APP_next_noaa();
-
-				RADIO_setup_registers(false);
-
-				g_noaa_tick_10ms = 7;      // 70ms
-				g_schedule_noaa  = false;
-			}
-		#endif
-
-		// toggle between the VFO's if dual watch is enabled
-		if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
-			g_dual_watch_delay_10ms == 0 &&
-			!g_ptt_is_pressed &&
-			#ifdef ENABLE_FMRADIO
-				!g_fm_radio_mode &&
-			#endif
-			g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
-			g_current_display_screen != DISPLAY_SEARCH &&
-			g_scan_state_dir == SCAN_STATE_DIR_OFF &&
-			g_css_scan_mode == CSS_SCAN_MODE_OFF &&
-			g_current_function != FUNCTION_POWER_SAVE &&
-			(g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_POWER_SAVE))
-		{
-			APP_toggle_dual_watch_vfo();    // toggle between the two VFO's
-	
-			if (g_rx_vfo_is_active && g_current_display_screen == DISPLAY_MAIN)
-				GUI_SelectNextDisplay(DISPLAY_MAIN);
-	
-			g_rx_vfo_is_active  = false;
-			g_rx_reception_mode = RX_MODE_NONE;
-		}
-	}
-	
 #ifdef ENABLE_FMRADIO
 	if (g_schedule_fm                          &&
 		g_fm_scan_state    != FM_SCAN_OFF      &&
@@ -2416,123 +2551,7 @@ void APP_process(void)
 	}
 #endif
 
-	if (g_schedule_power_save)
-	{
-		#ifdef ENABLE_NOAA
-			if (
-			#ifdef ENABLE_FMRADIO
-			    g_fm_radio_mode                          ||
-			#endif
-				g_ptt_is_pressed                         ||
-			    g_key_held                               ||
-				g_eeprom.battery_save == 0               ||
-			    g_scan_state_dir != SCAN_STATE_DIR_OFF   ||
-			    g_css_scan_mode != CSS_SCAN_MODE_OFF     ||
-			    g_current_display_screen != DISPLAY_MAIN ||
-			    g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-			{
-				g_battery_save_tick_10ms = battery_save_count_10ms;
-			}
-			else
-			if ((IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[0]) &&
-			     IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[1])) ||
-			     !g_is_noaa_mode)
-			{
-				FUNCTION_Select(FUNCTION_POWER_SAVE);
-			}
-			else
-			{
-				g_battery_save_tick_10ms = battery_save_count_10ms;
-			}
-		#else
-			if (
-				#ifdef ENABLE_FMRADIO
-					g_fm_radio_mode                    ||
-			    #endif
-				g_ptt_is_pressed                       ||
-			    g_key_held                             ||
-				g_eeprom.battery_save == 0             ||
-			    g_scan_state_dir != SCAN_STATE_DIR_OFF ||
-			    g_css_scan_mode != CSS_SCAN_MODE_OFF   ||
-			    g_current_display_screen != DISPLAY_MAIN    ||
-			    g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-			{
-				g_battery_save_tick_10ms = battery_save_count_10ms;
-			}
-			else
-			{
-				FUNCTION_Select(FUNCTION_POWER_SAVE);
-			}
-		#endif
-
-		g_schedule_power_save = false;
-	}
-
-#ifdef ENABLE_VOICE
-	if (g_voice_write_index == 0)
-#endif
-	{
-		if (g_power_save_expired && g_current_function == FUNCTION_POWER_SAVE)
-		{	// wake up, enable RX then go back to sleep
-			if (g_rx_idle_mode)
-			{
-				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-					//UART_SendText("ps wake up\r\n");
-				#endif
-
-				BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable();
-
-				#ifdef ENABLE_VOX
-					if (g_eeprom.vox_switch)
-						BK4819_EnableVox(g_eeprom.vox1_threshold, g_eeprom.vox0_threshold);
-				#endif
-
-				if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
-					g_scan_state_dir == SCAN_STATE_DIR_OFF &&
-					g_css_scan_mode == CSS_SCAN_MODE_OFF)
-				{	// dual watch mode, toggle between the two VFO's
-					APP_toggle_dual_watch_vfo();
-					g_update_rssi = false;
-				}
-
-				FUNCTION_Init();
-
-				g_power_save_10ms = power_save1_10ms; // come back here in a bit
-				g_rx_idle_mode    = false;            // RX is awake
-			}
-			else
-			if (g_eeprom.dual_watch == DUAL_WATCH_OFF  ||
-				g_scan_state_dir != SCAN_STATE_DIR_OFF ||
-				g_css_scan_mode != CSS_SCAN_MODE_OFF   ||
-				g_update_rssi)
-			{	// dual watch mode, go back to sleep
-
-				APP_update_rssi(g_eeprom.rx_vfo);
-
-				// go back to sleep
-
-				g_power_save_10ms = g_eeprom.battery_save * 10;
-				g_rx_idle_mode    = true;
-
-				BK4819_DisableVox();
-				BK4819_Sleep();
-				BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
-
-				// Authentic device checked removed
-
-			}
-			else
-			{
-				// toggle between the two VFO's
-				APP_toggle_dual_watch_vfo();
-
-				g_update_rssi     = true;
-				g_power_save_10ms = power_save1_10ms;
-			}
-
-			g_power_save_expired = false;
-		}
-	}
+	APP_process_power_save();
 }
 
 static void APP_process_key(const key_code_t Key, const bool key_pressed, const bool key_held)
