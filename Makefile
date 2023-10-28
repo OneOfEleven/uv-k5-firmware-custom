@@ -70,7 +70,7 @@ ENABLE_RX_SIGNAL_BAR             := 0
 # Tx Timeout Bar 0.2 kB
 ENABLE_TX_TIMEOUT_BAR            := 0
 # Tx Audio Bar 0.3 kB
-ENABLE_TX_AUDIO_BAR              := 0
+ENABLE_TX_AUDIO_BAR              := 1
 # Side Button Menu 0.3 kB
 ENABLE_SIDE_BUTT_MENU            := 1
 # Key Lock 0.4 kB

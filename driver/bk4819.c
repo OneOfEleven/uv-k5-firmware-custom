@@ -2226,75 +2226,8 @@ void BK4819_reset_fsk(void)
 		// create the MDC1200 packet
 		const unsigned int size = MDC1200_encode_single_packet(packet, op, arg, id);
 
-		BK4819_ExitTxMute();
-
-		#if 1
-			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-			BK4819_SetAF(BK4819_AF_MUTE);
-		#else
-			// let the user hear the FSK being sent
-			BK4819_SetAF(BK4819_AF_BEEP);
-			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-		#endif
-
-		// *******************
-		// need to turn off CTCSS/CDCSS during FFSK
-
-		// REG_51
-		//
-		// <15>  1 = Enable TxCTCSS/CDCSS
-		//       0 = Disable
-		//
-		const uint16_t css_val = BK4819_ReadRegister(0x51);
-		BK4819_WriteRegister(0x51, 0);
-
-		// *******************************************
-
-		// REG_40
-		//
-		// <15:13> 0 ???
-		//         0 ~ 7
-		//
-		// <12>    1 enable RF TX deviation
-		//         1 = enable
-		//         0 = disable
-		//
-		// <11:0>  0x04D0 RF TX deviation tuning (both in-band signal and sub-audio)
-		//         0 ~ 4095
-
-		const uint16_t tx_dev = BK4819_ReadRegister(0x40);
-	//	BK4819_WriteRegister(0x40, (0u << 12) | (1232 << 0));   // 000 0 010011010000
-		BK4819_WriteRegister(0x40, (tx_dev & 0xf000) | (1000 << 0));  // reduce the deviation a little
-
-		// REG_2B   0
-		//
-		// <10>     0 AF RX HPF 300Hz filter
-		//          0 = enable
-		//          1 = disable
-		//
-		// <9>      0 AF RX LPF 3kHz filter
-		//          0 = enable
-		//          1 = disable
-		//
-		// <8>      0 AF RX de-emphasis filter
-		//          0 = enable
-		//          1 = disable
-		//
-		// <2>      0 AF TX HPF 300Hz filter
-		//          0 = enable
-		//          1 = disable
-		//
-		// <1>      0 AF TX LPF filter
-		//          0 = enable
-		//          1 = disable
-		//
-		// <0>      0 AF TX pre-emphasis filter
-		//          0 = enable
-		//          1 = disable
-		//
-		BK4819_WriteRegister(0x2B, (1u << 2) | (1u << 0));
-
-		// *******************************************
+		//BK4819_ExitTxMute();
+		BK4819_WriteRegister(0x50, 0x3B20);  // 0011 1011 0010 0000
 
 		BK4819_WriteRegister(0x30,
 			(1u  << 15) |    // enable  VCO calibration
@@ -2308,10 +2241,52 @@ void BK4819_reset_fsk(void)
 			(1u  <<  1) |    // enable  TX DSP
 			(0u  <<  0));    // disable RX DSP
 
-		SYSTEM_DelayMs(10);
+		#if 1
+			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+			BK4819_SetAF(BK4819_AF_MUTE);
+		#else
+			// let the user hear the FSK being sent
+			BK4819_SetAF(BK4819_AF_BEEP);
+			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+		#endif
+		SYSTEM_DelayMs(2);
+
+		// REG_51
+		//
+		// <15>  TxCTCSS/CDCSS   0 = disable 1 = Enable
+		//
+		// turn off CTCSS/CDCSS during FFSK
+		const uint16_t css_val = BK4819_ReadRegister(0x51);
+		BK4819_WriteRegister(0x51, 0);
+
+		// REG_40
+		//
+		// <15:13> 0 ???    0 ~ 7
+		// <12>    1 enable RF TX deviation    0 = disable  1 = enable
+		// <11:0>  0x04D0 RF TX deviation tuning (both in-band signal and sub-audio)   0 ~ 4095
+		//
+		// reduce the deviation a little
+		//
+		const uint16_t tx_dev = BK4819_ReadRegister(0x40);
+		//BK4819_WriteRegister(0x40, (0u << 12) | (1232 << 0));   // 000 0 010011010000
+		BK4819_WriteRegister(0x40, (tx_dev & 0xf000) | (1000 << 0));
+
+		// REG_2B   0
+		//
+		// <10>     0 AF RX HPF 300Hz filter     0 = enable 1 = disable
+		// <9>      0 AF RX LPF 3kHz filter      0 = enable 1 = disable
+		// <8>      0 AF RX de-emphasis filter   0 = enable 1 = disable
+		// <2>      0 AF TX HPF 300Hz filter     0 = enable 1 = disable
+		// <1>      0 AF TX LPF filter           0 = enable 1 = disable
+		// <0>      0 AF TX pre-emphasis filter  0 = enable 1 = disable
+		//
+		// disable the 300Hz HPF and FM pre-emphasis filter
+		//
+		BK4819_WriteRegister(0x2B, (1u << 2) | (1u << 0));
 
 		// *******************************************
-
+		// setup the FFSK modem as best we can for MDC1200
+		
 		// MDC1200 uses 1200/1800 Hz FSK tone frequencies 1200 bits/s
 		//
 		BK4819_WriteRegister(0x58, // 0x37C3);   // 001 101 11 11 00 001 1
@@ -2397,27 +2372,13 @@ void BK4819_reset_fsk(void)
 
 		// REG_59
 		//
-		// <15>  0 TX FIFO
-		//       1 = clear
-		//
-		// <14>  0 RX FIFO
-		//       1 = clear
-		//
-		// <13>  0 FSK Scramble
-		//       1 = Enable
-		//
-		// <12>  0 FSK RX
-		//       1 = Enable
-		//
-		// <11>  0 FSK TX
-		//       1 = Enable
-		//
-		// <10>  0 FSK data when RX
-		//       1 = Invert
-		//
-		// <9>   0 FSK data when TX
-		//       1 = Invert
-		//
+		// <15>  0 TX FIFO             1 = clear
+		// <14>  0 RX FIFO             1 = clear
+		// <13>  0 FSK Scramble        1 = Enable
+		// <12>  0 FSK RX              1 = Enable
+		// <11>  0 FSK TX              1 = Enable
+		// <10>  0 FSK data when RX    1 = Invert
+		// <9>   0 FSK data when TX    1 = Invert
 		// <8>   0 ???
 		//
 		// <7:4> 0 FSK preamble length selection
@@ -2432,16 +2393,16 @@ void BK4819_reset_fsk(void)
 		//
 		// <2:0> 0 ???
 		//
-		fsk_reg59 = (0u << 15) |   // 0 ~ 1   1 = clear TX FIFO
-					(0u << 14) |   // 0 ~ 1   1 = clear RX FIFO
-					(0u << 13) |   // 0 ~ 1   1 = scramble
-					(0u << 12) |   // 0 ~ 1   1 = enable RX
-					(0u << 11) |   // 0 ~ 1   1 = enable TX
-					(0u << 10) |   // 0 ~ 1   1 = invert data when RX
-					(0u <<  9) |   // 0 ~ 1   1 = invert data when TX
-					(0u <<  8) |   // 0 ~ 1   ???
-					(0u <<  4) |   // 0 ~ 15  preamble length
-					(0u <<  3) |   // 0 ~ 1       sync length
+		fsk_reg59 = (0u << 15) |   // 0/1     1 = clear TX FIFO
+					(0u << 14) |   // 0/1     1 = clear RX FIFO
+					(0u << 13) |   // 0/1     1 = scramble
+					(0u << 12) |   // 0/1     1 = enable RX
+					(0u << 11) |   // 0/1     1 = enable TX
+					(0u << 10) |   // 0/1     1 = invert data when RX
+					(0u <<  9) |   // 0/1     1 = invert data when TX
+					(0u <<  8) |   // 0/1     ???
+					(1u <<  4) |   // 0 ~ 15  preamble length
+					(1u <<  3) |   // 0/1     sync length
 					(0u <<  0);    // 0 ~ 7   ???
 
 		// Set entire packet length (not including the pre-amble and sync bytes we can't seem to disable)
@@ -2470,9 +2431,7 @@ void BK4819_reset_fsk(void)
 		//
 		// <15:7> ???
 		//
-		// <6>    1 CRC option enable
-		//        0 = disable
-		//        1 = enable
+		// <6>    1 CRC option enable    0 = disable  1 = enable
 		//
 		// <5:0>  ???
 		//
@@ -2501,9 +2460,9 @@ void BK4819_reset_fsk(void)
 			// 173ms for PTT ID, acks, emergency
 			// 266ms for call alert and sel-calls
 
-			// allow up to 350ms for the TX to complete
+			// allow up to 310ms for the TX to complete
 			// if it takes any longer then somethings gone wrong, we shut the TX down
-			unsigned int timeout = 350 / 5;
+			unsigned int timeout = 310 / 5;
 
 			while (timeout-- > 0)
 			{
@@ -2535,11 +2494,11 @@ void BK4819_reset_fsk(void)
 		// restore the CTCSS/CDCSS setting
 		BK4819_WriteRegister(0x51, css_val);
 
-		// ****************
+		//BK4819_EnterTxMute();
+		BK4819_WriteRegister(0x50, 0xBB20); // 1011 1011 0010 0000
 
-		BK4819_EnterTxMute();
-
-		BK4819_SetAF(BK4819_AF_MUTE);
+		//BK4819_SetAF(BK4819_AF_MUTE);
+		BK4819_WriteRegister(0x47, (6u << 12) | (BK4819_AF_MUTE << 8) | (1u << 6) | (0u << 0));
 
 		BK4819_WriteRegister(0x30,
 			(1u  << 15) |    // enable  VCO calibration
@@ -2553,7 +2512,8 @@ void BK4819_reset_fsk(void)
 			(1u  <<  1) |    // enable  TX DSP
 			(0u  <<  0));    // disable RX DSP
 
-		BK4819_ExitTxMute();
+		//BK4819_ExitTxMute();
+		BK4819_WriteRegister(0x50, 0x3B20);  // 0011 1011 0010 0000
 	}
 #endif
 

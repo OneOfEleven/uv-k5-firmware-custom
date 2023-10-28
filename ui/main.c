@@ -158,22 +158,19 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 #ifdef ENABLE_TX_AUDIO_BAR
 
-	uint32_t sqrt16(uint32_t value)
-	{	// return square root of 'value'
-		unsigned int shift = 16;         // this is the number of bits supplied in 'value' .. 2 ~ 32
-		uint32_t     bit   = 1u << --shift;
-		uint32_t     sqrti = 0;
-		while (bit)
+	// linear search, ascending, using addition
+	uint16_t isqrt(const uint32_t y)
+	{
+		uint16_t L = 0;
+		uint32_t a = 1;
+		uint32_t d = 3;
+		while (a <= y)
 		{
-			const uint32_t temp = ((sqrti << 1) | bit) << shift--;
-			if (value >= temp)
-			{
-				value -= temp;
-				sqrti |= bit;
-			}
-			bit >>= 1;
+			a += d;	// (a + 1) ^ 2
+			d += 2;
+			L += 1;
 		}
-		return sqrti;
+		return L;
 	}
 
 	bool UI_DisplayAudioBar(const bool now)
@@ -223,7 +220,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 				// make non-linear to make more sensitive at low values
 				const unsigned int level      = voice_amp * 8;
-				const unsigned int sqrt_level = sqrt16((level < 65535) ? level : 65535);
+				const unsigned int sqrt_level = isqrt((level < 65535) ? level : 65535);
 				const unsigned int len        = (sqrt_level <= bar_width) ? sqrt_level : bar_width;
 
 				draw_bar(p_line + bar_x, len, bar_width);

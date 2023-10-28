@@ -280,18 +280,45 @@ void FUNCTION_Select(function_type_t Function)
 			#ifdef ENABLE_MDC1200
 				if (g_current_vfo->mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->mdc1200_mode == MDC1200_MODE_BOTH)
 				{
-					SYSTEM_DelayMs(150);
+					BK4819_WriteRegister(0x30,
+						(1u  << 15) |    // enable  VCO calibration
+						(1u  << 14) |    // enable something or other
+						(0u  << 10) |    // diable  RX link
+						(1u  <<  9) |    // enable  AF DAC
+						(1u  <<  8) |    // enable  DISC mode, what's DISC mode ?
+						(15u <<  4) |    // enable  PLL/VCO
+						(1u  <<  3) |    // enable  PA gain
+						(0u  <<  2) |    // disable MIC ADC
+						(1u  <<  1) |    // enable  TX DSP
+						(0u  <<  0));    // disable RX DSP
+					SYSTEM_DelayMs(120);
 					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.mdc1200_id);
 				}
 				else
 			#endif
 				if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+				{
 					BK4819_PlayTone(APOLLO_TONE1_HZ, APOLLO_TONE_MS, 0);
+				}
+			}
+/*			
+			BK4819_WriteRegister(0x30,
+				(1u  << 15) |    // enable  VCO calibration
+				(1u  << 14) |    // enable  something or other
+				(0u  << 10) |    // diable  RX link
+				(1u  <<  9) |    // enable  AF DAC
+				(1u  <<  8) |    // enable  DISC mode, what's DISC mode ?
+				(15u <<  4) |    // enable  PLL/VCO
+				(1u  <<  3) |    // enable  PA gain
+				(1u  <<  2) |    // enable  MIC ADC
+				(1u  <<  1) |    // enable  TX DSP
+				(0u  <<  0));    // disable RX DSP
+*/
+			if (g_current_vfo->scrambling_type > 0 && g_setting_scramble_enable)
+			{
+				BK4819_EnableScramble(g_current_vfo->scrambling_type - 1);
 			}
 			
-			if (g_current_vfo->scrambling_type > 0 && g_setting_scramble_enable)
-				BK4819_EnableScramble(g_current_vfo->scrambling_type - 1);
-
 			break;
 
 		case FUNCTION_PANADAPTER:
