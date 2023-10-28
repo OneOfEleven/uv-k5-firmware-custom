@@ -102,7 +102,7 @@ void UI_DisplayStatus(const bool test_display)
 		if (g_scan_state_dir != SCAN_STATE_DIR_OFF || test_display)
 		{
 			// don't display this if in search mode
-			if (g_screen_to_display != DISPLAY_SEARCH)
+			if (g_current_display_screen != DISPLAY_SEARCH)
 			{
 				if (g_scan_next_channel <= USER_CHANNEL_LAST)
 				{	// channel mode
@@ -145,7 +145,7 @@ void UI_DisplayStatus(const bool test_display)
 		    g_scan_state_dir != SCAN_STATE_DIR_OFF  ||
 			g_css_scan_mode != CSS_SCAN_MODE_OFF    ||
 			(g_current_function != FUNCTION_FOREGROUND && g_current_function != FUNCTION_POWER_SAVE) ||
-			g_screen_to_display == DISPLAY_SEARCH)
+			g_current_display_screen == DISPLAY_SEARCH)
 		{
 			memcpy(line + x, BITMAP_TDR_HOLDING, sizeof(BITMAP_TDR_HOLDING));
 		}

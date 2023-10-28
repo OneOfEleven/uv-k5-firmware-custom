@@ -31,7 +31,7 @@ void UI_DisplayAircopy(void)
 	const uint8_t errors = g_aircopy_rx_errors_fsk_crc + g_aircopy_rx_errors_magic + g_aircopy_rx_errors_crc;
 	char str[17];
 
-	if (g_screen_to_display != DISPLAY_AIRCOPY)
+	if (g_current_display_screen != DISPLAY_AIRCOPY)
 		return;
 
 	// clear screen/display buffer

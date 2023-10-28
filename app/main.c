@@ -65,7 +65,7 @@ void toggle_chan_scanlist(void)
 		return;
 	}
 
-	if (g_screen_to_display != DISPLAY_MAIN     ||
+	if (g_current_display_screen != DISPLAY_MAIN     ||
 		g_current_function == FUNCTION_TRANSMIT ||
 		g_current_function == FUNCTION_PANADAPTER)
 	{
@@ -157,7 +157,7 @@ void toggle_chan_scanlist(void)
 						break;
 			}
 
-			g_screen_to_display = DISPLAY_INVALID;
+			g_current_display_screen = DISPLAY_INVALID;
 			GUI_SelectNextDisplay(DISPLAY_MENU);
 			g_menu_cursor       = MENU_MEM_SAVE;
 			g_in_sub_menu    = true;
@@ -169,7 +169,7 @@ void toggle_chan_scanlist(void)
 
 				g_sub_menu_selection = chan;
 				g_flag_refresh_menu  = false;
-				g_screen_to_display  = DISPLAY_MENU;
+				g_current_display_screen  = DISPLAY_MENU;
 				g_update_display     = false;
 				UI_DisplayMenu();
 			}
@@ -188,7 +188,7 @@ void processFKeyFunction(const key_code_t Key)
 	uint8_t Band;
 	uint8_t Vfo = g_eeprom.tx_vfo;
 
-	if (g_current_function == FUNCTION_TRANSMIT || g_screen_to_display == DISPLAY_MENU)
+	if (g_current_function == FUNCTION_TRANSMIT || g_current_display_screen == DISPLAY_MENU)
 	{
 		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
@@ -424,7 +424,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 		if (key_pressed)
 		{	// and pressed
-			if (g_screen_to_display == DISPLAY_MAIN)
+			if (g_current_display_screen == DISPLAY_MAIN)
 			{
 				if (g_input_box_index > 0)
 				{	// clear the user box
@@ -697,7 +697,7 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 
 			g_fkey_pressed = false;
 
-			if (g_screen_to_display == DISPLAY_MAIN)
+			if (g_current_display_screen == DISPLAY_MAIN)
 			{
 				if (g_input_box_index > 0)
 				{	// delete any inputted chars

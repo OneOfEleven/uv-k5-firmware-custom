@@ -86,7 +86,7 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 	{
 		unsigned int timeout_secs = 0;
 
-		if (g_current_function != FUNCTION_TRANSMIT || g_screen_to_display != DISPLAY_MAIN)
+		if (g_current_function != FUNCTION_TRANSMIT || g_current_display_screen != DISPLAY_MAIN)
 			return false;
 
 		if (g_center_line != CENTER_LINE_NONE && g_center_line != CENTER_LINE_TX_TIMEOUT)
@@ -100,7 +100,7 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 		else
 			timeout_secs = 60 * 15;  // 15 minutes
 
-		if (timeout_secs == 0 || g_tx_timer_count_down_500ms == 0)
+		if (timeout_secs == 0 || g_tx_timer_tick_500ms == 0)
 			return false;
 
 		{
@@ -108,7 +108,7 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 			const unsigned int txt_width = 7 * 6;                 // 6 text chars
 			const unsigned int bar_x     = 2 + txt_width + 4;     // X coord of bar graph
 			const unsigned int bar_width = LCD_WIDTH - 1 - bar_x;
-			const unsigned int secs      = g_tx_timer_count_down_500ms / 2;
+			const unsigned int secs      = g_tx_timer_tick_500ms / 2;
 			const unsigned int level     = ((secs * bar_width) + (timeout_secs / 2)) / timeout_secs;   // with rounding
 //			const unsigned int level     = (((timeout_secs - secs) * bar_width) + (timeout_secs / 2)) / timeout_secs;   // with rounding
 			const unsigned int len       = (level <= bar_width) ? level : bar_width;
@@ -178,7 +178,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 	bool UI_DisplayAudioBar(const bool now)
 	{
-		if (g_current_function != FUNCTION_TRANSMIT || g_screen_to_display != DISPLAY_MAIN)
+		if (g_current_function != FUNCTION_TRANSMIT || g_current_display_screen != DISPLAY_MAIN)
 			return false;
 
 		if (g_center_line != CENTER_LINE_NONE && g_center_line != CENTER_LINE_AUDIO_BAR)
@@ -198,7 +198,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 			const unsigned int txt_width = 7 * 3;                 // 3 text chars
 			const unsigned int bar_x     = 2 + txt_width + 4;     // X coord of bar graph
 			const unsigned int bar_width = LCD_WIDTH - 1 - bar_x;
-			const unsigned int secs      = g_tx_timer_count_down_500ms / 2;
+			const unsigned int secs      = g_tx_timer_tick_500ms / 2;
 			uint8_t           *p_line    = g_frame_buffer[line];
 			char               s[16];
 
@@ -272,7 +272,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 			#endif
 
 			if (g_current_function == FUNCTION_TRANSMIT ||
-				g_screen_to_display != DISPLAY_MAIN ||
+				g_current_display_screen != DISPLAY_MAIN ||
 				g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 				return false;     // display is in use
 
@@ -381,7 +381,7 @@ void UI_update_rssi(const int16_t rssi, const int vfo)
 			return;    // display is in use
 		#endif
 
-		if (g_current_function == FUNCTION_TRANSMIT || g_screen_to_display != DISPLAY_MAIN)
+		if (g_current_function == FUNCTION_TRANSMIT || g_current_display_screen != DISPLAY_MAIN)
 			return;    // display is in use
 
 		p_line = g_frame_buffer[Line - 1];
@@ -448,7 +448,7 @@ void UI_DisplayMain(void)
 	// clear the screen
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
-	if (g_serial_config_count_down_500ms > 0)
+	if (g_serial_config_tick_500ms > 0)
 	{
 		backlight_turn_on(10);		// 5 seconds
 		UI_PrintString("UART", 0, LCD_WIDTH, 1, 8);
@@ -910,7 +910,7 @@ void UI_DisplayMain(void)
 	}
 
 	if (g_center_line == CENTER_LINE_NONE &&
-		g_screen_to_display == DISPLAY_MAIN &&
+		g_current_display_screen == DISPLAY_MAIN &&
 		g_dtmf_call_state == DTMF_CALL_STATE_NONE)
 	{	// we're free to use the middle line
 
@@ -979,7 +979,7 @@ void UI_DisplayMain(void)
 					const unsigned int len = strlen(g_dtmf_rx_live);
 					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
 
-					if (g_screen_to_display != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+					if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 						return;
 
 					g_center_line = CENTER_LINE_DTMF_DEC;
@@ -994,7 +994,7 @@ void UI_DisplayMain(void)
 					const unsigned int len = g_dtmf_rx_index;
 					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
 
-					if (g_screen_to_display != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+					if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 						return;
 
 					g_center_line = CENTER_LINE_DTMF_DEC;
@@ -1009,7 +1009,7 @@ void UI_DisplayMain(void)
 				else
 				if (g_charging_with_type_c)
 				{	// show the battery charge state
-					if (g_screen_to_display != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+					if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 						return;
 
 					g_center_line = CENTER_LINE_CHARGE_DATA;

@@ -27,6 +27,9 @@
 #include "bsp/dp32g030/syscon.h"
 #include "board.h"
 #include "driver/backlight.h"
+#ifdef ENABLE_FMRADIO
+	#include "driver/bk1080.h"
+#endif
 #include "driver/bk4819.h"
 #include "driver/gpio.h"
 #include "driver/st7565.h"
@@ -65,7 +68,7 @@ void Main(void)
 		| SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE;
 
 	SYSTICK_Init();
-	
+
 #ifdef ENABLE_UART
 	UART_Init();
 #endif
@@ -94,8 +97,11 @@ void Main(void)
 
 	#if defined(ENABLE_UART)
 		UART_printf("BK4819  id %04X  rev %04X\r\n", BK4819_ReadRegister(0x00), BK4819_ReadRegister(0x01));
+		#ifdef ENABLE_FMRADIO
+			UART_printf("BK1080  id %04X  rev %04X\r\n", BK1080_ReadRegister(0x01), BK1080_ReadRegister(0x00));
+		#endif
 	#endif
-	
+
 #ifdef ENABLE_MDC1200
 	MDC1200_init();
 #endif
@@ -121,7 +127,7 @@ void Main(void)
 	#ifdef ENABLE_CONTRAST
 		ST7565_SetContrast(g_setting_contrast);
 	#endif
-	
+
 	#ifdef ENABLE_AM_FIX
 		AM_fix_init();
 	#endif

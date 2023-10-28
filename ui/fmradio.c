@@ -18,6 +18,7 @@
 
 #include "app/fm.h"
 #include "driver/backlight.h"
+#include "driver/bk1080.h"
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
 #include "misc.h"
@@ -30,7 +31,7 @@
 void UI_DisplayFM(void)
 {
 	unsigned int i;
-	char         String[16];
+	char         str[22];
 
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
@@ -38,8 +39,8 @@ void UI_DisplayFM(void)
 	if (g_eeprom.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
 		backlight_turn_on(0);
-		UI_PrintString("Long press #", 0, LCD_WIDTH, 1, 8);
-		UI_PrintString("to unlock",    0, LCD_WIDTH, 3, 8);
+		UI_PrintString("Long press #", 0, LCD_WIDTH - 1, 1, 8);
+		UI_PrintString("to unlock",    0, LCD_WIDTH - 1, 3, 8);
 		ST7565_BlitFullScreen();
 		return;
 	}
@@ -48,7 +49,7 @@ void UI_DisplayFM(void)
 	// *************************************
 	// upper text line
 	
-	UI_PrintString("FM", 0, 127, 0, 12);
+	UI_PrintString("FM", 0, LCD_WIDTH - 1, 0, 12);
 
 	// *************************************
 	// middle text line
@@ -56,16 +57,16 @@ void UI_DisplayFM(void)
 	if (g_ask_to_save)
 	{
 		const unsigned int freq = g_eeprom.fm_frequency_playing;
-		sprintf(String, "SAVE %u.%u ?", freq / 10, freq % 10);
+		sprintf(str, "SAVE %u.%u ?", freq / 10, freq % 10);
 	}
 	else
 	if (g_ask_to_delete)
 	{
-		strcpy(String, "DELETE ?");
+		strcpy(str, "DELETE ?");
 	}
 	else
 	{
-		memset(String, 0, sizeof(String));
+		memset(str, 0, sizeof(str));
 
 		if (g_fm_scan_state == FM_SCAN_OFF)
 		{
@@ -75,43 +76,43 @@ void UI_DisplayFM(void)
 				{
 					if (g_eeprom.fm_frequency_playing == g_fm_channels[i])
 					{
-						sprintf(String, "VFO (CH %u)", 1 + i);
+						sprintf(str, "VFO (CH %u)", 1 + i);
 						break;
 					}
 				}
 
 				if (i >= ARRAY_SIZE(g_fm_channels))
-					strcpy(String, "VFO");
+					strcpy(str, "VFO");
 			}
 			else
-				sprintf(String, "CH %u", 1 + g_eeprom.fm_selected_channel);
+				sprintf(str, "CH %u", 1 + g_eeprom.fm_selected_channel);
 		}
 		else
 		if (!g_fm_auto_scan)
-			strcpy(String, "FREQ SCAN");
+			strcpy(str, "FREQ SCAN");
 		else
-			sprintf(String, "A-SCAN %2u", 1 + g_fm_channel_position);
+			sprintf(str, "A-SCAN %2u", 1 + g_fm_channel_position);
 	}
 
-	UI_PrintString(String, 0, 127, 2, 10);
+	UI_PrintString(str, 0, LCD_WIDTH - 1, 2, 10);
 
 	// *************************************
 	// lower text line
 	
-	memset(String, 0, sizeof(String));
+	memset(str, 0, sizeof(str));
 
 	if (g_ask_to_save)
 	{	// channel mode
 		const unsigned int chan = g_fm_channel_position;
 		const uint32_t     freq = g_fm_channels[chan];
-		UI_GenerateChannelString(String, chan, ' ');
+		UI_GenerateChannelString(str, chan, ' ');
 		if (FM_CheckValidChannel(chan))
-			sprintf(String + strlen(String), " (%u.%u)", freq / 10, freq % 10);
+			sprintf(str + strlen(str), " (%u.%u)", freq / 10, freq % 10);
 	}
 	else
 	if (g_eeprom.fm_channel_mode && g_input_box_index > 0)
 	{	// user is entering a channel number
-		UI_GenerateChannelString(String, g_fm_channel_position, ' ');
+		UI_GenerateChannelString(str, g_fm_channel_position, ' ');
 	}
 	else
 	if (!g_ask_to_delete)
@@ -119,8 +120,12 @@ void UI_DisplayFM(void)
 		if (g_input_box_index == 0)
 		{	// frequency mode
 			const uint32_t freq = g_eeprom.fm_frequency_playing;
-			NUMBER_ToDigits(freq * 10000, String);
-			UI_DisplayFrequency(String, 23, 4, false, true);
+			NUMBER_ToDigits(freq * 10000, str);
+#ifdef ENABLE_TRIM_TRAILING_ZEROS
+			UI_DisplayFrequency(str, 30, 4, false, true);
+#else
+			UI_DisplayFrequency(str, 23, 4, false, true);
+#endif
 		}
 		else
 		{	// user is entering a frequency
@@ -131,10 +136,23 @@ void UI_DisplayFM(void)
 	{	// delete channel
 		const uint32_t chan = g_eeprom.fm_selected_channel;
 		const uint32_t freq = g_fm_channels[chan];
-		sprintf(String, "CH %u (%u.%u)", 1 + chan, freq / 10, freq % 10);
+		sprintf(str, "CH %u (%u.%u)", 1 + chan, freq / 10, freq % 10);
 	}
 
-	UI_PrintString(String, 0, 127, 4, (strlen(String) >= 8) ? 8 : 10);
+	UI_PrintString(str, 0, LCD_WIDTH - 1, 4, (strlen(str) >= 8) ? 8 : 10);
+	
+	// *************************************
+
+	{
+		const uint16_t val_07 = BK1080_ReadRegister(0x07);
+		const uint16_t val_0A = BK1080_ReadRegister(0x0A);
+		sprintf(str, "%s %s %2udBuV %2u",
+			((val_0A >> 9) & 1u) ? "STE" : "ste",
+			((val_0A >> 8) & 1u) ? "ST"  : "st",
+			 (val_0A >> 0) & 0x00ff,
+			 (val_07 >> 0) & 0x000f);
+		UI_PrintStringSmall(str, 0, LCD_WIDTH, 6);
+	}
 	
 	// *************************************
 

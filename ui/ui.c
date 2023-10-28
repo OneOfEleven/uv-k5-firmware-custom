@@ -35,7 +35,7 @@
 #include "ui/search.h"
 #include "ui/ui.h"
 
-gui_display_type_t g_screen_to_display;
+gui_display_type_t g_current_display_screen;
 gui_display_type_t g_request_display_screen = DISPLAY_INVALID;
 uint8_t            g_ask_for_confirmation;
 bool               g_ask_to_save;
@@ -45,7 +45,7 @@ void GUI_DisplayScreen(void)
 {
 	g_update_display = false;
 
-	switch (g_screen_to_display)
+	switch (g_current_display_screen)
 	{
 		case DISPLAY_MAIN:
 			UI_DisplayMain();
@@ -81,12 +81,12 @@ void GUI_SelectNextDisplay(gui_display_type_t Display)
 	if (Display == DISPLAY_INVALID)
 		return;
 
-	if (g_screen_to_display != Display)
+	if (g_current_display_screen != Display)
 	{
 		DTMF_clear_input_box();
 
 		g_input_box_index      = 0;
-		g_in_sub_menu       = false;
+		g_in_sub_menu          = false;
 		g_css_scan_mode        = CSS_SCAN_MODE_OFF;
 		g_scan_state_dir       = SCAN_STATE_DIR_OFF;
 		#ifdef ENABLE_FMRADIO
@@ -100,6 +100,6 @@ void GUI_SelectNextDisplay(gui_display_type_t Display)
 		g_update_status        = true;
 	}
 
-	g_screen_to_display = Display;
+	g_current_display_screen = Display;
 	g_update_display    = true;
 }

@@ -53,14 +53,14 @@ char               g_dtmf_id[4];
 char               g_dtmf_caller[4];
 char               g_dtmf_callee[4];
 dtmf_state_t       g_dtmf_state;
-uint8_t            g_dtmf_decode_ring_count_down_500ms;
+uint8_t            g_dtmf_decode_ring_tick_500ms;
 uint8_t            g_dtmf_chosen_contact;
 uint8_t            g_dtmf_auto_reset_time_500ms;
 dtmf_call_state_t  g_dtmf_call_state;
 dtmf_reply_state_t g_dtmf_reply_state;
 dtmf_call_mode_t   g_dtmf_call_mode;
 bool               g_dtmf_is_tx;
-uint8_t            g_dtmf_tx_stop_count_down_500ms;
+uint8_t            g_dtmf_tx_stop_tick_500ms;
 bool               g_dtmf_IsGroupCall;
 
 void DTMF_clear_RX(void)
@@ -367,16 +367,16 @@ void DTMF_HandleRequest(void)
 			switch (g_eeprom.dtmf_decode_response)
 			{
 				case DTMF_DEC_RESPONSE_BOTH:
-					g_dtmf_decode_ring_count_down_500ms = dtmf_decode_ring_countdown_500ms;
+					g_dtmf_decode_ring_tick_500ms = dtmf_decode_ring_500ms;
 				case DTMF_DEC_RESPONSE_REPLY:
 					g_dtmf_reply_state = DTMF_REPLY_AAAAA;
 					break;
 				case DTMF_DEC_RESPONSE_RING:
-					g_dtmf_decode_ring_count_down_500ms = dtmf_decode_ring_countdown_500ms;
+					g_dtmf_decode_ring_tick_500ms = dtmf_decode_ring_500ms;
 					break;
 				default:
 				case DTMF_DEC_RESPONSE_NONE:
-					g_dtmf_decode_ring_count_down_500ms = 0;
+					g_dtmf_decode_ring_tick_500ms = 0;
 					g_dtmf_reply_state = DTMF_REPLY_NONE;
 					break;
 			}

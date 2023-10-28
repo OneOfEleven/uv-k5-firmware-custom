@@ -85,14 +85,14 @@ extern char               g_dtmf_id[4];
 extern char               g_dtmf_caller[4];
 extern char               g_dtmf_callee[4];
 extern dtmf_state_t       g_dtmf_state;
-extern uint8_t            g_dtmf_decode_ring_count_down_500ms;
+extern uint8_t            g_dtmf_decode_ring_tick_500ms;
 extern uint8_t            g_dtmf_chosen_contact;
 extern uint8_t            g_dtmf_auto_reset_time_500ms;
 extern dtmf_call_state_t  g_dtmf_call_state;
 extern dtmf_reply_state_t g_dtmf_reply_state;
 extern dtmf_call_mode_t   g_dtmf_call_mode;
 extern bool               g_dtmf_is_tx;
-extern uint8_t            g_dtmf_tx_stop_count_down_500ms;
+extern uint8_t            g_dtmf_tx_stop_tick_500ms;
 
 void DTMF_clear_RX(void);
 bool DTMF_ValidateCodes(char *pCode, const unsigned int size);

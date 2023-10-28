@@ -14,14 +14,14 @@ ENABLE_LTO                       := 1
 ENABLE_UART                      := 1
 ENABLE_UART_DEBUG                := 1
 # AirCopy 2.5 kB
-ENABLE_AIRCOPY                   := 1
+ENABLE_AIRCOPY                   := 0
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
 # FM Radio 4.2 kB
+ENABLE_FMRADIO_64_76             := 0
 ENABLE_FMRADIO_76_90             := 0
-ENABLE_FMRADIO_68_108            := 0
 ENABLE_FMRADIO_76_108            := 0
-ENABLE_FMRADIO_875_108           := 0
+ENABLE_FMRADIO_875_108           := 1
 # NOAA 1.2 kB
 ENABLE_NOAA                      := 0
 # Voice 1.7 kB
@@ -105,7 +105,7 @@ ifeq ($(ENABLE_LTO),1)
 	ENABLE_OVERLAY := 0
 endif
 
-ifeq ($(filter $(ENABLE_FMRADIO_76_90) $(ENABLE_FMRADIO_68_108) $(ENABLE_FMRADIO_76_108) $(ENABLE_FMRADIO_875_108), 1), 1)
+ifeq ($(filter $(ENABLE_FMRADIO_64_76) $(ENABLE_FMRADIO_76_90) $(ENABLE_FMRADIO_76_108) $(ENABLE_FMRADIO_875_108), 1), 1)
 	ENABLE_FMRADIO := 1
 else
 	ENABLE_FMRADIO := 0
@@ -295,11 +295,11 @@ endif
 ifeq ($(ENABLE_AIRCOPY_RX_REBOOT),1)
 	CFLAGS += -DENABLE_AIRCOPY_RX_REBOOT
 endif
+ifeq ($(ENABLE_FMRADIO_64_76),1)
+	CFLAGS += -DENABLE_FMRADIO_64_76
+endif
 ifeq ($(ENABLE_FMRADIO_76_90),1)
 	CFLAGS += -DENABLE_FMRADIO_76_90
-endif
-ifeq ($(ENABLE_FMRADIO_68_108),1)
-	CFLAGS += -DENABLE_FMRADIO_68_108
 endif
 ifeq ($(ENABLE_FMRADIO_76_108),1)
 	CFLAGS += -DENABLE_FMRADIO_76_108

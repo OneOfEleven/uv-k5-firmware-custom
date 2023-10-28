@@ -129,7 +129,7 @@ typedef enum voice_id_e voice_id_t;
 	extern voice_id_t        g_voice_id[8];
 	extern uint8_t           g_voice_read_index;
 	extern uint8_t           g_voice_write_index;
-	extern volatile uint16_t g_count_down_to_play_next_voice_10ms;
+	extern volatile uint16_t g_tick_to_play_next_voice_10ms;
 	extern volatile bool     g_flag_play_queued_voice;
 	extern voice_id_t        g_another_voice_id;
 

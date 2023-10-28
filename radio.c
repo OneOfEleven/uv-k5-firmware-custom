@@ -675,6 +675,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 	// mic gain 0.5dB/step 0 to 31
 	BK4819_WriteRegister(0x7D, 0xE940 | (g_eeprom.mic_sensitivity_tuning & 0x1f));
+//	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
 
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_is_noaa_mode)
@@ -873,7 +874,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			{
 				g_is_noaa_mode          = true;
 				g_noaa_channel         = g_rx_vfo->channel_save - NOAA_CHANNEL_FIRST;
-				g_noaa_count_down_10ms = noaa_count_down_2_10ms;
+				g_noaa_tick_10ms = noaa_tick_2_10ms;
 				g_schedule_noaa        = false;
 			}
 			else
@@ -925,7 +926,7 @@ void RADIO_enableTX(const bool fsk_tx)
 
 	BK4819_PrepareTransmit();
 	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, true);                // PA on
-	if (g_screen_to_display != DISPLAY_AIRCOPY)
+	if (g_current_display_screen != DISPLAY_AIRCOPY)
 		BK4819_SetupPowerAmplifier(g_current_vfo->txp_calculated_setting, g_current_vfo->p_tx->frequency);
 	else
 		BK4819_SetupPowerAmplifier(0, g_current_vfo->p_tx->frequency);      // very low power when in AIRCOPY mode
@@ -965,7 +966,7 @@ void RADIO_Setg_vfo_state(vfo_state_t State)
 		g_vfo_state[1] = VFO_STATE_NORMAL;
 
 		#ifdef ENABLE_FMRADIO
-			g_fm_resume_count_down_500ms = 0;
+			g_fm_resume_tick_500ms = 0;
 		#endif
 	}
 	else
@@ -982,7 +983,7 @@ void RADIO_Setg_vfo_state(vfo_state_t State)
 		}
 
 		#ifdef ENABLE_FMRADIO
-			g_fm_resume_count_down_500ms = fm_resume_countdown_500ms;
+			g_fm_resume_tick_500ms = fm_resume_500ms;
 		#endif
 	}
 
@@ -1025,7 +1026,7 @@ void RADIO_PrepareTX(void)
 		}
 		else
 	#endif
-	if (!g_setting_tx_enable || g_serial_config_count_down_500ms > 0)
+	if (!g_setting_tx_enable || g_serial_config_tick_500ms > 0)
 	{	// TX is disabled or config upload/download in progress
 		State = VFO_STATE_TX_DISABLE;
 	}
@@ -1067,7 +1068,7 @@ void RADIO_PrepareTX(void)
 		{
 			g_dtmf_is_tx                    = true;
 			g_dtmf_call_state               = DTMF_CALL_STATE_NONE;
-			g_dtmf_tx_stop_count_down_500ms = dtmf_txstop_countdown_500ms;
+			g_dtmf_tx_stop_tick_500ms = dtmf_txstop_500ms;
 		}
 		else
 		{
@@ -1078,19 +1079,19 @@ void RADIO_PrepareTX(void)
 
 	FUNCTION_Select(FUNCTION_TRANSMIT);
 
-	g_tx_timer_count_down_500ms = 0;    // no timeout
+	g_tx_timer_tick_500ms = 0;    // no timeout
 
 	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 		if (g_alarm_state == ALARM_STATE_OFF)
 	#endif
 	{
 		if (g_eeprom.tx_timeout_timer == 0)
-			g_tx_timer_count_down_500ms = 60;   // 30 sec
+			g_tx_timer_tick_500ms = 60;   // 30 sec
 		else
 		if (g_eeprom.tx_timeout_timer < (ARRAY_SIZE(g_sub_menu_tx_timeout) - 1))
-			g_tx_timer_count_down_500ms = 120 * g_eeprom.tx_timeout_timer;  // minutes
+			g_tx_timer_tick_500ms = 120 * g_eeprom.tx_timeout_timer;  // minutes
 		else
-			g_tx_timer_count_down_500ms = 120 * 15;  // 15 minutes
+			g_tx_timer_tick_500ms = 120 * 15;  // 15 minutes
 	}
 
 	g_tx_timeout_reached = false;

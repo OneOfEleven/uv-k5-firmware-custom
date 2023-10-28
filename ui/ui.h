@@ -31,7 +31,7 @@ enum gui_display_type_e
 };
 typedef enum gui_display_type_e gui_display_type_t;
 
-extern gui_display_type_t g_screen_to_display;
+extern gui_display_type_t g_current_display_screen;
 extern gui_display_type_t g_request_display_screen;
 extern uint8_t            g_ask_for_confirmation;
 extern bool               g_ask_to_save;

@@ -106,7 +106,7 @@ void BATTERY_GetReadings(const bool bDisplayBatteryLevel)
 
 	g_battery_voltage_average = (Voltage * 760) / g_battery_calibration[3];
 
-	if ((g_screen_to_display == DISPLAY_MENU) && g_menu_cursor == MENU_VOLTAGE)
+	if ((g_current_display_screen == DISPLAY_MENU) && g_menu_cursor == MENU_VOLTAGE)
 		g_update_display = true;
 
 	if (g_usb_current < 501)

@@ -54,7 +54,7 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 	{	// f-key held
 
 		#ifdef ENABLE_KEYLOCK
-		if (key_pressed && g_screen_to_display != DISPLAY_MENU && g_current_function != FUNCTION_TRANSMIT)
+		if (key_pressed && g_current_display_screen != DISPLAY_MENU && g_current_function != FUNCTION_TRANSMIT)
 		{	// toggle the keyboad lock
 
 			#ifdef ENABLE_VOICE
@@ -101,7 +101,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 {
 	g_input_box_index = 0;
 
-	if (!key_pressed || g_serial_config_count_down_500ms > 0)
+	if (!key_pressed || g_serial_config_tick_500ms > 0)
 	{	// PTT released
 
 		if (g_current_function == FUNCTION_TRANSMIT)
@@ -129,7 +129,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 
 			RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
 
-			if (g_screen_to_display != DISPLAY_MENU)     // 1of11 .. don't close the menu
+			if (g_current_display_screen != DISPLAY_MENU)     // 1of11 .. don't close the menu
 				g_request_display_screen = DISPLAY_MAIN;
 		}
 
@@ -143,11 +143,11 @@ void GENERIC_Key_PTT(bool key_pressed)
 	#endif
 
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF ||   // freq/chan scanning
-	    g_screen_to_display == DISPLAY_SEARCH  ||   // CTCSS/CDCSS scanning
+	    g_current_display_screen == DISPLAY_SEARCH  ||   // CTCSS/CDCSS scanning
 	    g_css_scan_mode != CSS_SCAN_MODE_OFF)       //   "     "
 	{	// we're scanning .. stop
 
-		if (g_screen_to_display == DISPLAY_SEARCH)
+		if (g_current_display_screen == DISPLAY_SEARCH)
 		{	// CTCSS/CDCSS scanning .. stop
 			g_eeprom.cross_vfo_rx_tx = g_backup_cross_vfo_rx_tx;
 			g_search_flag_stop_scan  = true;
@@ -184,7 +184,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 			goto cancel_tx;
 		}
 
-		if (g_screen_to_display == DISPLAY_FM)
+		if (g_current_display_screen == DISPLAY_FM)
 			goto start_tx;	// listening to the FM radio .. start TX'ing
 	#endif
 
@@ -194,7 +194,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 		return;
 	}
 
-	if (g_screen_to_display != DISPLAY_MENU)     // 1of11 .. don't close the menu
+	if (g_current_display_screen != DISPLAY_MENU)     // 1of11 .. don't close the menu
 		g_request_display_screen = DISPLAY_MAIN;
 
 	if (!g_dtmf_input_mode && g_dtmf_input_box_index == 0)
@@ -247,7 +247,7 @@ cancel_tx:
 
 done:
 	g_ptt_debounce = 0;
-	if (g_screen_to_display != DISPLAY_MENU && g_request_display_screen != DISPLAY_FM)     // 1of11 .. don't close the menu
+	if (g_current_display_screen != DISPLAY_MENU && g_request_display_screen != DISPLAY_FM)     // 1of11 .. don't close the menu
 		g_request_display_screen = DISPLAY_MAIN;
 	g_update_status  = true;
 	g_update_display = true;

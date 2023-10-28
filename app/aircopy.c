@@ -73,7 +73,7 @@ uint16_t           g_fsk_buffer[AIRCOPY_DATA_PACKET_SIZE / 2];
 unsigned int       g_fsk_write_index;
 uint16_t           g_fsk_tx_timeout_10ms;
 
-uint8_t            aircopy_send_count_down_10ms;
+uint8_t            aircopy_send_tick_10ms;
 
 void AIRCOPY_init(void)
 {
@@ -255,7 +255,7 @@ void AIRCOPY_stop_fsk_tx(void)
 		g_aircopy_block_number++;
 
 		// TX pause/gap time till we start the next packet
-		aircopy_send_count_down_10ms = 250 / 10;   // 250ms
+		aircopy_send_tick_10ms = 250 / 10;   // 250ms
 
 		g_update_display = true;
 		GUI_DisplayScreen();
@@ -278,8 +278,8 @@ void AIRCOPY_process_fsk_tx_10ms(void)
 			if (g_fsk_write_index > 0)
 				return;        // currently RX'ing a packet
 
-			if (aircopy_send_count_down_10ms > 0)
-				if (--aircopy_send_count_down_10ms > 0)
+			if (aircopy_send_tick_10ms > 0)
+				if (--aircopy_send_tick_10ms > 0)
 					return;    // not yet time to TX next packet
 
 			if (g_aircopy_block_number >= g_aircopy_block_max)
@@ -526,7 +526,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 			else
 			{	// send them the block they want
 				g_aircopy_block_number       = block_num;  // go to the block number they want
-				aircopy_send_count_down_10ms = 0;          // TX asap
+				aircopy_send_tick_10ms = 0;          // TX asap
 			}
 		}
 
@@ -800,7 +800,7 @@ static void AIRCOPY_Key_MENU(bool key_pressed, bool key_held)
 		g_aircopy_rx_errors_magic    = 0;
 		g_aircopy_rx_errors_crc      = 0;
 		g_fsk_tx_timeout_10ms        = 0;
-		aircopy_send_count_down_10ms = 0;
+		aircopy_send_tick_10ms = 0;
 		g_aircopy_state              = AIRCOPY_TX;
 
 		g_update_display = true;

@@ -59,9 +59,10 @@ void BK4819_Init(void)
 	BK4819_EnableAGC();  // only do this in linear modulation modes, not FM
 #endif
 
+//	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
+//	BK4819_WriteRegister(0x7D, 0xE940);  // 111010010100 0000
+	BK4819_WriteRegister(0x7D, 0xE940 | 0x1f);
 	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
-
-	BK4819_WriteRegister(0x7D, 0xE940);
 
 	// REG_48 .. RX AF level
 	//

@@ -27,10 +27,10 @@ uint32_t g_aircopy_freq = 41002500;
 const freq_band_table_t AIR_BAND = {10800000, 13700000};
 
 // FM broadcast band lower/upper limit
-#if   defined(ENABLE_FMRADIO_76_90)
-	const freq_band_table_t FM_RADIO_BAND = {760, 900};
-#elif defined(ENABLE_FMRADIO_68_108)
-	const freq_band_table_t FM_RADIO_BAND = {680, 1080};
+#if   defined(ENABLE_FMRADIO_64_76)
+	const freq_band_table_t FM_RADIO_BAND = {640,  760};
+#elif defined(ENABLE_FMRADIO_76_90)
+	const freq_band_table_t FM_RADIO_BAND = {760,  900};
 #elif defined(ENABLE_FMRADIO_76_108)
 	const freq_band_table_t FM_RADIO_BAND = {760, 1080};
 #elif defined(ENABLE_FMRADIO_875_108)

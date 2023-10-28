@@ -34,7 +34,7 @@ void UI_DisplaySearch(void)
 	char String[17];
 	bool text_centered = false;
 
-	if (g_screen_to_display != DISPLAY_SEARCH)
+	if (g_current_display_screen != DISPLAY_SEARCH)
 		return;
 	
 	// clear display buffer

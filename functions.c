@@ -70,15 +70,15 @@ void FUNCTION_Init(void)
 	g_squelch_open     = false;
 
 	g_flag_tail_tone_elimination_complete   = false;
-	g_tail_tone_elimination_count_down_10ms = 0;
+	g_tail_tone_elimination_tick_10ms = 0;
 	g_found_ctcss                           = false;
 	g_found_cdcss                           = false;
-	g_found_ctcss_count_down_10ms           = 0;
-	g_found_cdcss_count_down_10ms           = 0;
+	g_found_ctcss_tick_10ms           = 0;
+	g_found_cdcss_tick_10ms           = 0;
 	g_end_of_rx_detected_maybe              = false;
 
 	#ifdef ENABLE_NOAA
-		g_noaa_count_down_10ms = 0;
+		g_noaa_tick_10ms = 0;
 	#endif
 
 	g_update_status = true;
@@ -123,7 +123,7 @@ void FUNCTION_Select(function_type_t Function)
 
 			#ifdef ENABLE_FMRADIO
 				if (g_fm_radio_mode)
-					g_fm_restore_count_down_10ms = fm_restore_countdown_10ms;
+					g_fm_restore_tick_10ms = fm_restore_10ms;
 			#endif
 
 			if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT ||
@@ -174,7 +174,7 @@ void FUNCTION_Select(function_type_t Function)
 
 			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
 
-			if (g_screen_to_display != DISPLAY_MENU)     // 1of11 .. don't close the menu
+			if (g_current_display_screen != DISPLAY_MENU)     // 1of11 .. don't close the menu
 				GUI_SelectNextDisplay(DISPLAY_MAIN);
 
 			return;
@@ -303,11 +303,11 @@ void FUNCTION_Select(function_type_t Function)
 			break;
 	}
 
-	g_battery_save_count_down_10ms = battery_save_count_10ms;
+	g_battery_save_tick_10ms = battery_save_count_10ms;
 	g_schedule_power_save          = false;
 
 	#ifdef ENABLE_FMRADIO
-		g_fm_restore_count_down_10ms = 0;
+		g_fm_restore_tick_10ms = 0;
 	#endif
 
 	g_update_status = true;
