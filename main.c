@@ -236,8 +236,21 @@ void Main(void)
 		#endif
 	}
 
+	// Everything is initialised, set SLEEP* bits
+	SYSCON_REGISTER |= SYSCON_REGISTER_SLEEPONEXIT_BITS_ENABLE;
+	SYSCON_REGISTER |= SYSCON_REGISTER_SLEEPDEEP_BITS_ENABLE;
+
 	while (1)
 	{
+		// Mask interrupts
+		__asm volatile ("cpsid i");
+		if (!g_next_time_slice)
+			// Idle condition, hint the MCU to sleep
+			// CMSIS suggests GCC reorders memory and is undesirable
+			__asm volatile ("wfi":::"memory");
+		// Unmask interrupts
+		__asm volatile ("cpsie i");
+
 		APP_process();
 
 		if (g_next_time_slice)
