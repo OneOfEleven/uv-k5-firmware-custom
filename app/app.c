@@ -1838,6 +1838,39 @@ void APP_process_transmit(void)
 	}
 }
 
+void APP_process_functions(void)
+{
+	switch (g_current_function)
+	{
+		case FUNCTION_FOREGROUND:
+			APP_check_for_new_receive();
+			break;
+
+		case FUNCTION_TRANSMIT:
+			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
+				backlight_turn_on(backlight_tx_rx_time_500ms);
+			break;
+
+		case FUNCTION_NEW_RECEIVE:
+			APP_process_new_receive();
+
+		case FUNCTION_MONITOR:
+			break;
+
+		case FUNCTION_RECEIVE:
+			APP_process_rx();
+			break;
+
+		case FUNCTION_POWER_SAVE:
+			if (!g_rx_idle_mode)
+				APP_check_for_new_receive();
+			break;
+
+		case FUNCTION_PANADAPTER:
+			break;
+	}
+}
+
 void APP_process_power_save(void)
 {
 	if (g_schedule_power_save)
@@ -2413,20 +2446,7 @@ void APP_time_slice_10ms(void)
 		GUI_SelectNextDisplay(DISPLAY_MAIN);
 	}
 
-	#ifdef ENABLE_BOOT_BEEPS
-		if (g_boot_counter_10ms > 0 && (g_boot_counter_10ms % 25) == 0)
-			AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
-	#endif
-
-	#ifdef ENABLE_VOICE
-		if (g_flag_play_queued_voice)
-		{
-			g_flag_play_queued_voice = false;
-			AUDIO_PlayQueuedVoice();
-		}
-	#endif
-
-	if (g_reduced_service)
+	if (g_reduced_service || g_serial_config_tick_500ms > 0)
 	{
 		if (g_current_function == FUNCTION_TRANSMIT)
 			g_tx_timeout_reached = true;
@@ -2445,6 +2465,8 @@ void APP_time_slice_10ms(void)
 	if (g_current_function != FUNCTION_POWER_SAVE || !g_rx_idle_mode)
 		APP_process_radio_interrupts();
 
+	APP_process_functions();
+
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{	// transmitting
 		#ifdef ENABLE_TX_AUDIO_BAR
@@ -2452,6 +2474,19 @@ void APP_time_slice_10ms(void)
 				UI_DisplayAudioBar(true);
 		#endif
 	}
+
+	#ifdef ENABLE_BOOT_BEEPS
+		if (g_boot_counter_10ms > 0 && (g_boot_counter_10ms % 25) == 0)
+			AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
+	#endif
+
+	#ifdef ENABLE_VOICE
+		if (g_flag_play_queued_voice)
+		{
+			g_flag_play_queued_voice = false;
+			AUDIO_PlayQueuedVoice();
+		}
+	#endif
 
 	if (g_update_display)
 		GUI_DisplayScreen();
@@ -2474,8 +2509,27 @@ void APP_time_slice_10ms(void)
 			g_vox_pause_count_down--;
 	#endif
 
+	#ifdef ENABLE_VOX
+		if (g_eeprom.vox_switch)
+			APP_process_vox();
+	#endif
+
 	APP_process_transmit();
 	
+	#ifdef ENABLE_FMRADIO
+		if (g_schedule_fm                          &&
+			g_fm_scan_state    != FM_SCAN_OFF      &&
+			g_current_function != FUNCTION_MONITOR &&
+			g_current_function != FUNCTION_RECEIVE &&
+			g_current_function != FUNCTION_TRANSMIT)
+		{	// switch to FM radio mode
+			FM_Play();
+			g_schedule_fm = false;
+		}
+	#endif
+
+	APP_process_power_save();
+
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode && g_fm_restore_tick_10ms > 0)
 		{
@@ -2492,66 +2546,6 @@ void APP_time_slice_10ms(void)
 	APP_process_search();
 	
 	APP_check_keys();
-}
-
-void APP_process(void)
-{
-	if (g_reduced_service || g_serial_config_tick_500ms > 0)
-		return;
-
-	switch (g_current_function)
-	{
-		case FUNCTION_FOREGROUND:
-			APP_check_for_new_receive();
-			break;
-
-		case FUNCTION_TRANSMIT:
-			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
-				backlight_turn_on(backlight_tx_rx_time_500ms);
-			break;
-
-		case FUNCTION_NEW_RECEIVE:
-			APP_process_new_receive();
-
-		case FUNCTION_MONITOR:
-			break;
-
-		case FUNCTION_RECEIVE:
-			APP_process_rx();
-			break;
-
-		case FUNCTION_POWER_SAVE:
-			if (!g_rx_idle_mode)
-				APP_check_for_new_receive();
-			break;
-
-		case FUNCTION_PANADAPTER:
-			break;
-	}
-
-	#ifdef ENABLE_FMRADIO
-		if (g_fm_radio_mode && g_fm_radio_tick_500ms > 0)
-			return;
-	#endif
-
-	#ifdef ENABLE_VOX
-		if (g_eeprom.vox_switch)
-			APP_process_vox();
-	#endif
-
-#ifdef ENABLE_FMRADIO
-	if (g_schedule_fm                          &&
-		g_fm_scan_state    != FM_SCAN_OFF      &&
-		g_current_function != FUNCTION_MONITOR &&
-		g_current_function != FUNCTION_RECEIVE &&
-		g_current_function != FUNCTION_TRANSMIT)
-	{	// switch to FM radio mode
-		FM_Play();
-		g_schedule_fm = false;
-	}
-#endif
-
-	APP_process_power_save();
 }
 
 static void APP_process_key(const key_code_t Key, const bool key_pressed, const bool key_held)

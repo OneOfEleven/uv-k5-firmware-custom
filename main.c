@@ -242,7 +242,7 @@ void Main(void)
 
 	while (1)
 	{
-		#if 0
+		#if 1
 			// Mask interrupts
 			__asm volatile ("cpsid i");
 			if (!g_next_time_slice)
@@ -252,8 +252,6 @@ void Main(void)
 			// Unmask interrupts
 			__asm volatile ("cpsie i");
 		#endif
-
-		APP_process();
 
 		if (g_next_time_slice)
 		{
