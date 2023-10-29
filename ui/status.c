@@ -54,8 +54,8 @@ void UI_DisplayStatus(const bool test_display)
 	}
 	else
 	if (g_current_function == FUNCTION_RECEIVE ||
-	    g_current_function == FUNCTION_MONITOR ||
-	    g_current_function == FUNCTION_NEW_RECEIVE)
+	    g_current_function == FUNCTION_NEW_RECEIVE ||
+		g_monitor_enabled)
 	{
 		memcpy(line + x, BITMAP_RX, sizeof(BITMAP_RX));
 		x1 = x + sizeof(BITMAP_RX);
@@ -140,7 +140,7 @@ void UI_DisplayStatus(const bool test_display)
 	// DUAL-WATCH indicator
 	if (g_eeprom.dual_watch != DUAL_WATCH_OFF || test_display)
 	{
-		if (g_dual_watch_delay_10ms > dual_watch_delay_toggle_10ms ||
+		if (g_dual_watch_tick_10ms > dual_watch_delay_toggle_10ms ||
 	        g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
 		    g_scan_state_dir != SCAN_STATE_DIR_OFF  ||
 			g_css_scan_mode != CSS_SCAN_MODE_OFF    ||
@@ -157,7 +157,8 @@ void UI_DisplayStatus(const bool test_display)
 	}
 	x += sizeof(BITMAP_TDR_RUNNING);
 
-	if (g_current_function == FUNCTION_MONITOR)
+	// monitor
+	if (g_monitor_enabled)
 	{
 		memcpy(line + x, BITMAP_MONITOR, sizeof(BITMAP_MONITOR));
 		x1 = x + sizeof(BITMAP_MONITOR);

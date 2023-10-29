@@ -19,6 +19,7 @@
 #include "bk4819.h"
 #include "bsp/dp32g030/gpio.h"
 #include "bsp/dp32g030/portcon.h"
+#include "functions.h"
 #include "driver/gpio.h"
 #include "driver/system.h"
 #include "driver/systick.h"
@@ -556,6 +557,9 @@ void BK4819_SetTailDetection(const uint32_t freq_10Hz)
 	//                          freq(Hz) * 20.97152 for XTAL 12.8M/19.2M/25.6M/38.4M
 	//
 	BK4819_WriteRegister(0x07, BK4819_REG_07_MODE_CTC2 | ((253910 + (freq_10Hz / 2)) / freq_10Hz));  // with rounding
+
+#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
+#endif
 }
 
 void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
@@ -776,8 +780,7 @@ void BK4819_set_rf_frequency(const uint32_t frequency, const bool trigger_update
 		// trigger a PLL/VCO update
 		//
 		const uint16_t reg = BK4819_ReadRegister(0x30);
-//		BK4819_WriteRegister(0x30, reg & ~(1u << 15) & (15u << 4));
-		BK4819_WriteRegister(0x30, 0x0200);
+		BK4819_WriteRegister(0x30, 0);
 		BK4819_WriteRegister(0x30, reg);
 	}
 }
@@ -871,11 +874,9 @@ void BK4819_SetupSquelch(
 
 void BK4819_SetAF(BK4819_af_type_t AF)
 {
-	// AF Output Inverse Mode = Inverse
-	// Undocumented bits 0x2040
-	//
-//	BK4819_WriteRegister(0x47, 0x6040 | (AF << 8));
-	BK4819_WriteRegister(0x47, (6u << 12) | (AF << 8) | (1u << 6));
+	BK4819_WriteRegister(0x47, 0);
+//	BK4819_WriteRegister(0x47, 0x6040 | (AF << 8));   // 0110 0000 0100 0000
+	BK4819_WriteRegister(0x47, (1u << 14) | (1u << 13) | ((AF & 15u) << 8) | (1u << 6));
 }
 
 void BK4819_RX_TurnOn(void)
@@ -896,21 +897,19 @@ void BK4819_RX_TurnOn(void)
 	//
 	BK4819_WriteRegister(0x37, 0x1F0F);  // 0001 1111 0000 1111
 
-	// turn everything off
 	BK4819_WriteRegister(0x30, 0);
-
-	// and on again ..
-	//
-	// Enable  VCO Calibration
-	// Enable  RX Link
-	// Enable  AF DAC
-	// Enable  PLL/VCO
-	// Disable PA Gain
-	// Disable MIC ADC
-	// Disable TX DSP
-	// Enable  RX DSP
-	//
-	BK4819_WriteRegister(0x30, 0xBFF1); // 1 0 1111 1 1 1111 0 0 0 1
+	BK4819_WriteRegister(0x30, 
+		BK4819_REG_30_ENABLE_VCO_CALIB |
+//		BK4819_REG_30_ENABLE_UNKNOWN   |
+		BK4819_REG_30_ENABLE_RX_LINK   |
+		BK4819_REG_30_ENABLE_AF_DAC    |
+		BK4819_REG_30_ENABLE_DISC_MODE |
+		BK4819_REG_30_ENABLE_PLL_VCO   |
+//		BK4819_REG_30_ENABLE_PA_GAIN   |
+//		BK4819_REG_30_ENABLE_MIC_ADC   |
+//		BK4819_REG_30_ENABLE_TX_DSP    |
+		BK4819_REG_30_ENABLE_RX_DSP    |
+	0);
 }
 
 void BK4819_set_rf_filter_path(uint32_t Frequency)
@@ -1055,8 +1054,12 @@ void BK4819_EnableDTMF(void)
 
 void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool set_dac)
 {
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	SYSTEM_DelayMs(2);
+	
 //	BK4819_SetAF(BK4819_AF_MUTE);
 	BK4819_SetAF(BK4819_AF_BEEP);
+//	BK4819_SetAF(BK4819_AF_TONE);
 
 	BK4819_EnterTxMute();
 
@@ -1065,36 +1068,88 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 	if (set_dac)
 	{
 		BK4819_WriteRegister(0x30, 0);
-		//BK4819_WriteRegister(0x30, BK4819_REG_30_ENABLE_AF_DAC | BK4819_REG_30_ENABLE_DISC_MODE | BK4819_REG_30_ENABLE_TX_DSP);
-		BK4819_EnableTXLink();
+		BK4819_WriteRegister(0x30,  // all of the following must be enable to get an audio beep ! ???
+			BK4819_REG_30_ENABLE_VCO_CALIB |
+			BK4819_REG_30_ENABLE_UNKNOWN   |
+//			BK4819_REG_30_ENABLE_RX_LINK   |
+			BK4819_REG_30_ENABLE_AF_DAC    |
+			BK4819_REG_30_ENABLE_DISC_MODE |
+			BK4819_REG_30_ENABLE_PLL_VCO   |
+			BK4819_REG_30_ENABLE_PA_GAIN   |
+//			BK4819_REG_30_ENABLE_MIC_ADC   |
+			BK4819_REG_30_ENABLE_TX_DSP    |
+//			BK4819_REG_30_ENABLE_RX_DSP    |
+		0);
 	}
-
+	
 	BK4819_WriteRegister(0x71, scale_freq(frequency));
+
 	BK4819_ExitTxMute();
 
-//	SYSTEM_DelayMs(2);
-	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);	// enable speaker
+	// enable speaker
 	SYSTEM_DelayMs(2);
+	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 }
 
-void BK4819_StopTones(void)
+void BK4819_StopTones(const bool tx)
 {
-//	if (!g_speaker_enabled)
-		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	SYSTEM_DelayMs(2);
+
+	BK4819_SetAF(BK4819_AF_MUTE);
 
 	BK4819_EnterTxMute();
+
 	BK4819_WriteRegister(0x70, 0);
-	BK4819_WriteRegister(0x30, 0xC1FE);  // 1100 0001 1111 1110
+
+	BK4819_WriteRegister(0x30, 0);
+	if (tx)
+	{		
+		BK4819_WriteRegister(0x30, 
+			BK4819_REG_30_ENABLE_VCO_CALIB |
+			BK4819_REG_30_ENABLE_UNKNOWN   |
+//			BK4819_REG_30_ENABLE_RX_LINK   |
+			BK4819_REG_30_ENABLE_AF_DAC    |
+			BK4819_REG_30_ENABLE_DISC_MODE |
+			BK4819_REG_30_ENABLE_PLL_VCO   |
+			BK4819_REG_30_ENABLE_PA_GAIN   |
+			BK4819_REG_30_ENABLE_MIC_ADC   |
+			BK4819_REG_30_ENABLE_TX_DSP    |
+//			BK4819_REG_30_ENABLE_RX_DSP    |
+		0);
+	}
+	else
+	{		
+		BK4819_WriteRegister(0x30, 
+			BK4819_REG_30_ENABLE_VCO_CALIB |
+			BK4819_REG_30_ENABLE_UNKNOWN   |
+			BK4819_REG_30_ENABLE_RX_LINK   |
+			BK4819_REG_30_ENABLE_AF_DAC    |
+			BK4819_REG_30_ENABLE_DISC_MODE |
+			BK4819_REG_30_ENABLE_PLL_VCO   |
+//			BK4819_REG_30_ENABLE_PA_GAIN   |
+//			BK4819_REG_30_ENABLE_MIC_ADC   |
+//			BK4819_REG_30_ENABLE_TX_DSP    |
+			BK4819_REG_30_ENABLE_RX_DSP    |
+		0);
+	}
+
 	BK4819_ExitTxMute();
+
+//	if (g_speaker_enabled || g_monitor_enabled)
+//	{
+//		SYSTEM_DelayMs(2);
+//		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+//	}
 }
 
 void BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level)
 {
-	const uint16_t prev_af = BK4819_ReadRegister(0x47);
+//	const uint16_t prev_af = BK4819_ReadRegister(0x47);
 	BK4819_StartTone1(tone_Hz, level, true);
 	SYSTEM_DelayMs(delay - 2);
-	BK4819_StopTones();
-	BK4819_WriteRegister(0x47, prev_af);
+	BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
+//	BK4819_WriteRegister(0x47, prev_af);
 }
 
 void BK4819_PlayRoger(void)
@@ -1108,15 +1163,15 @@ void BK4819_PlayRoger(void)
 		const uint32_t tone2_Hz = 1310;
 	#endif
 
-	const uint16_t prev_af = BK4819_ReadRegister(0x47);
+//	const uint16_t prev_af = BK4819_ReadRegister(0x47);
 
 	BK4819_StartTone1(tone1_Hz, 96, true);
 	SYSTEM_DelayMs(80 - 2);
 	BK4819_StartTone1(tone2_Hz, 96, false);
 	SYSTEM_DelayMs(80);
-	BK4819_StopTones();
+	BK4819_StopTones(true);
 
-	BK4819_WriteRegister(0x47, prev_af);
+//	BK4819_WriteRegister(0x47, prev_af);
 }
 
 void BK4819_EnterTxMute(void)
@@ -1126,13 +1181,13 @@ void BK4819_EnterTxMute(void)
 
 void BK4819_ExitTxMute(void)
 {
-	BK4819_WriteRegister(0x50, 0x3B20);
+	BK4819_WriteRegister(0x50, 0x3B20);   // 0011 1011 0010 0000
 }
 
 void BK4819_Sleep(void)
 {
 	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x37, 0x1D00);
+	BK4819_WriteRegister(0x37, 0x1D00);  // 0 0 0111 0 1 0000 0 0 0 0
 }
 
 void BK4819_TurnsOffTones_TurnsOnRX(void)
@@ -1145,11 +1200,16 @@ void BK4819_TurnsOffTones_TurnsOnRX(void)
 	BK4819_WriteRegister(0x30, 0);
 	BK4819_WriteRegister(0x30,
 		BK4819_REG_30_ENABLE_VCO_CALIB |
+//		BK4819_REG_30_ENABLE_UNKNOWN   |
 		BK4819_REG_30_ENABLE_RX_LINK   |
 		BK4819_REG_30_ENABLE_AF_DAC    |
 		BK4819_REG_30_ENABLE_DISC_MODE |
 		BK4819_REG_30_ENABLE_PLL_VCO   |
-		BK4819_REG_30_ENABLE_RX_DSP);
+//		BK4819_REG_30_ENABLE_PA_GAIN   |
+//		BK4819_REG_30_ENABLE_MIC_ADC   |
+//		BK4819_REG_30_ENABLE_TX_DSP    |
+		BK4819_REG_30_ENABLE_RX_DSP    |
+	0);
 }
 
 void BK4819_Idle(void)
@@ -1203,11 +1263,27 @@ void BK4819_PrepareTransmit(void)
 
 void BK4819_TxOn_Beep(void)
 {
-	BK4819_WriteRegister(0x37, 0x1D0F);
-	BK4819_WriteRegister(0x52, 0x028F);
+	BK4819_WriteRegister(0x37, 0x1D0F);  // 0001110100001111
+
+#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
+	BK4819_WriteRegister(0x52, (1u << 15) | (2u << 13) | (0u << 12) | (10u << 6) | (15u << 0));
+#else
+	BK4819_WriteRegister(0x52, (0u << 15) | (0u << 13) | (0u << 12) | (10u << 6) | (15u << 0)); // 0x028F);  // 0 00 0 001010 001111
+#endif
 
 	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x30, 0xC1FE);
+	BK4819_WriteRegister(0x30, 
+		BK4819_REG_30_ENABLE_VCO_CALIB |
+		BK4819_REG_30_ENABLE_UNKNOWN   |
+//		BK4819_REG_30_ENABLE_RX_LINK   |
+//		BK4819_REG_30_ENABLE_AF_DAC    |
+		BK4819_REG_30_ENABLE_DISC_MODE |
+		BK4819_REG_30_ENABLE_PLL_VCO   |
+		BK4819_REG_30_ENABLE_PA_GAIN   |
+		BK4819_REG_30_ENABLE_MIC_ADC   |
+		BK4819_REG_30_ENABLE_TX_DSP    |
+//		BK4819_REG_30_ENABLE_RX_DSP    |
+	0);
 }
 
 void BK4819_ExitSubAu(void)
@@ -1252,7 +1328,7 @@ void BK4819_ExitSubAu(void)
 	BK4819_WriteRegister(0x51, 0);
 }
 
-void BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable(void)
+void BK4819_Conditional_RX_TurnOn(void)
 {
 	if (g_rx_idle_mode)
 	{
@@ -1282,57 +1358,42 @@ void BK4819_ExitDTMF_TX(bool bKeep)
 	BK4819_SetAF(BK4819_AF_MUTE);
 	BK4819_WriteRegister(0x70, 0);
 	BK4819_DisableDTMF();
-	BK4819_WriteRegister(0x30, 0xC1FE);
+
+	BK4819_WriteRegister(0x30, 
+		BK4819_REG_30_ENABLE_VCO_CALIB |
+		BK4819_REG_30_ENABLE_UNKNOWN   |
+//		BK4819_REG_30_ENABLE_RX_LINK   |
+//		BK4819_REG_30_ENABLE_AF_DAC    |
+		BK4819_REG_30_ENABLE_DISC_MODE |
+		BK4819_REG_30_ENABLE_PLL_VCO   |
+		BK4819_REG_30_ENABLE_PA_GAIN   |
+		BK4819_REG_30_ENABLE_MIC_ADC   |
+		BK4819_REG_30_ENABLE_TX_DSP    |
+//		BK4819_REG_30_ENABLE_RX_DSP    |
+	0);
+
 	if (!bKeep)
 		BK4819_ExitTxMute();
 }
 
 void BK4819_EnableTXLink(void)
 {
-	BK4819_WriteRegister(0x30,
+	BK4819_WriteRegister(0x30, 
 		BK4819_REG_30_ENABLE_VCO_CALIB |
 		BK4819_REG_30_ENABLE_UNKNOWN   |
-		BK4819_REG_30_DISABLE_RX_LINK  |
+//		BK4819_REG_30_ENABLE_RX_LINK   |
 		BK4819_REG_30_ENABLE_AF_DAC    |
 		BK4819_REG_30_ENABLE_DISC_MODE |
 		BK4819_REG_30_ENABLE_PLL_VCO   |
 		BK4819_REG_30_ENABLE_PA_GAIN   |
-		BK4819_REG_30_DISABLE_MIC_ADC  |
+//		BK4819_REG_30_ENABLE_MIC_ADC   |
 		BK4819_REG_30_ENABLE_TX_DSP    |
-		BK4819_REG_30_DISABLE_RX_DSP);
+//		BK4819_REG_30_ENABLE_RX_DSP    |
+	0);
 }
 
 void BK4819_PlayDTMF(char Code)
 {
-/*
-	uint16_t tone1 = 0;
-	uint16_t tone2 = 0;
-
-	switch (Code)
-	{
-		case '0': tone1 = 941; tone2 = 1336; break;
-		case '1': tone1 = 679; tone2 = 1209; break;
-		case '2': tone1 = 697; tone2 = 1336; break;
-		case '3': tone1 = 679; tone2 = 1477; break;
-		case '4': tone1 = 770; tone2 = 1209; break;
-		case '5': tone1 = 770; tone2 = 1336; break;
-		case '6': tone1 = 770; tone2 = 1477; break;
-		case '7': tone1 = 852; tone2 = 1209; break;
-		case '8': tone1 = 852; tone2 = 1336; break;
-		case '9': tone1 = 852; tone2 = 1477; break;
-		case 'A': tone1 = 679; tone2 = 1633; break;
-		case 'B': tone1 = 770; tone2 = 1633; break;
-		case 'C': tone1 = 852; tone2 = 1633; break;
-		case 'D': tone1 = 941; tone2 = 1633; break;
-		case '*': tone1 = 941; tone2 = 1209; break;
-		case '#': tone1 = 941; tone2 = 1477; break;
-	}
-
-	if (tone1 > 0)
-		BK4819_WriteRegister(0x71, (((uint32_t)tone1 * 103244) + 5000) / 10000);   // with rounding
-	if (tone2 > 0)
-		BK4819_WriteRegister(0x72, (((uint32_t)tone2 * 103244) + 5000) / 10000);   // with rounding
-*/
 
 	uint32_t index = ((Code >= 65) ? (Code - 55) : ((Code <= 35) ? 15 :((Code <= 42) ? 14 : (Code - '0'))));
 
@@ -1762,15 +1823,10 @@ void BK4819_SetScanFrequency(uint32_t Frequency)
 	BK4819_RX_TurnOn();
 }
 
-void BK4819_Disable(void)
-{
-	BK4819_WriteRegister(0x30, 0);
-}
-
 void BK4819_StopScan(void)
 {
 	BK4819_DisableFrequencyScan();
-	BK4819_Disable();
+	BK4819_WriteRegister(0x30, 0);
 }
 
 uint8_t BK4819_GetDTMF_5TONE_Code(void)
@@ -1811,7 +1867,7 @@ void BK4819_reset_fsk(void)
 	BK4819_WriteRegister(0x3F, 0);   // disable interrupts
 	BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59); // clear FIFO's
 	BK4819_WriteRegister(0x59, (0u << 15) | (0u << 14) | fsk_reg59);
-	BK4819_Idle();
+	BK4819_WriteRegister(0x30, 0);
 }
 
 #ifdef ENABLE_AIRCOPY
@@ -2201,10 +2257,10 @@ void BK4819_reset_fsk(void)
 			// clear interrupt flags
 			BK4819_WriteRegister(0x02, 0);
 
-			BK4819_RX_TurnOn();
+//			BK4819_RX_TurnOn();
 
 			// enable interrupts
-			BK4819_WriteRegister(0x3F, BK4819_ReadRegister(0x3F) | BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
+//			BK4819_WriteRegister(0x3F, BK4819_ReadRegister(0x3F) | BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
 		}
 		else
 		{
@@ -2224,17 +2280,18 @@ void BK4819_reset_fsk(void)
 		//BK4819_ExitTxMute();
 		BK4819_WriteRegister(0x50, 0x3B20);  // 0011 1011 0010 0000
 
-		BK4819_WriteRegister(0x30,
-			(1u  << 15) |    // enable  VCO calibration
-			(1u  << 14) |    // enable something or other
-			(0u  << 10) |    // diable  RX link
-			(1u  <<  9) |    // enable  AF DAC
-			(1u  <<  8) |    // enable  DISC mode, what's DISC mode ?
-			(15u <<  4) |    // enable  PLL/VCO
-			(1u  <<  3) |    // enable  PA gain
-			(0u  <<  2) |    // disable MIC ADC
-			(1u  <<  1) |    // enable  TX DSP
-			(0u  <<  0));    // disable RX DSP
+		BK4819_WriteRegister(0x30, 
+			BK4819_REG_30_ENABLE_VCO_CALIB |
+			BK4819_REG_30_ENABLE_UNKNOWN   |
+//			BK4819_REG_30_ENABLE_RX_LINK   |
+			BK4819_REG_30_ENABLE_AF_DAC    |
+			BK4819_REG_30_ENABLE_DISC_MODE |
+			BK4819_REG_30_ENABLE_PLL_VCO   |
+			BK4819_REG_30_ENABLE_PA_GAIN   |
+//			BK4819_REG_30_ENABLE_MIC_ADC   |
+			BK4819_REG_30_ENABLE_TX_DSP    |
+//			BK4819_REG_30_ENABLE_RX_DSP    |
+		0);
 
 		#if 1
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -2477,7 +2534,7 @@ void BK4819_reset_fsk(void)
 			}
 		}
 
-		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER); // don't need the speaker enabled during TX
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 		// disable FSK
 		BK4819_WriteRegister(0x59, fsk_reg59);
@@ -2499,19 +2556,20 @@ void BK4819_reset_fsk(void)
 		BK4819_WriteRegister(0x50, 0xBB20); // 1011 1011 0010 0000
 
 		//BK4819_SetAF(BK4819_AF_MUTE);
-		BK4819_WriteRegister(0x47, (6u << 12) | (BK4819_AF_MUTE << 8) | (1u << 6) | (0u << 0));
+		BK4819_WriteRegister(0x47, (1u << 14) | (1u << 13) | (BK4819_AF_MUTE << 8) | (1u << 6));
 
-		BK4819_WriteRegister(0x30,
-			(1u  << 15) |    // enable  VCO calibration
-			(1u  << 14) |    // enable something or other
-			(0u  << 10) |    // diable  RX link
-			(0u  <<  9) |    // disable AF DAC
-			(1u  <<  8) |    // enable  DISC mode, what's DISC mode ?
-			(15u <<  4) |    // enable  PLL/VCO
-			(1u  <<  3) |    // enable  PA gain
-			(1u  <<  2) |    // enable  MIC ADC
-			(1u  <<  1) |    // enable  TX DSP
-			(0u  <<  0));    // disable RX DSP
+		BK4819_WriteRegister(0x30, 
+			BK4819_REG_30_ENABLE_VCO_CALIB |
+			BK4819_REG_30_ENABLE_UNKNOWN   |
+//			BK4819_REG_30_ENABLE_RX_LINK   |
+//			BK4819_REG_30_ENABLE_AF_DAC    |
+			BK4819_REG_30_ENABLE_DISC_MODE |
+			BK4819_REG_30_ENABLE_PLL_VCO   |
+			BK4819_REG_30_ENABLE_PA_GAIN   |
+			BK4819_REG_30_ENABLE_MIC_ADC   |
+			BK4819_REG_30_ENABLE_TX_DSP    |
+//			BK4819_REG_30_ENABLE_RX_DSP    |
+		0);
 
 		//BK4819_ExitTxMute();
 		BK4819_WriteRegister(0x50, 0x3B20);  // 0011 1011 0010 0000
@@ -2521,7 +2579,18 @@ void BK4819_reset_fsk(void)
 void BK4819_Enable_AfDac_DiscMode_TxDsp(void)
 {
 	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x30, 0x0302);
+	BK4819_WriteRegister(0x30, 
+//		BK4819_REG_30_ENABLE_VCO_CALIB |
+//		BK4819_REG_30_ENABLE_UNKNOWN   |
+//		BK4819_REG_30_ENABLE_RX_LINK   |
+		BK4819_REG_30_ENABLE_AF_DAC    |
+		BK4819_REG_30_ENABLE_DISC_MODE |
+//		BK4819_REG_30_ENABLE_PLL_VCO   |
+//		BK4819_REG_30_ENABLE_PA_GAIN   |
+//		BK4819_REG_30_ENABLE_MIC_ADC   |
+		BK4819_REG_30_ENABLE_TX_DSP    |
+//		BK4819_REG_30_ENABLE_RX_DSP    |
+	0);
 }
 
 void BK4819_GetVoxAmp(uint16_t *pResult)

@@ -12,7 +12,7 @@ ENABLE_OVERLAY                   := 0
 ENABLE_LTO                       := 1
 # UART Programming 2.9 kB
 ENABLE_UART                      := 1
-ENABLE_UART_DEBUG                := 1
+ENABLE_UART_DEBUG                := 0
 # AirCopy 2.5 kB
 ENABLE_AIRCOPY                   := 0
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
@@ -32,13 +32,16 @@ ENABLE_VOX                       := 0
 ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
 # Tx Alarm 0.6 kB
 ENABLE_ALARM                     := 0
-ENABLE_TX1750                    := 0
+ENABLE_TX1750                    := 1
 # MDC1200 2.8 kB
 ENABLE_MDC1200                   := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
 ENABLE_BIG_FREQ                  := 0
-ENABLE_SMALL_BOLD                := 0
+# smaa bolf 580 B
+ENABLE_SMALL_BOLD                := 1
+# smallest font 2 kB
+ENABLE_SMALLEST_FONT             := 0
 # trim trailing 0.044 kB
 ENABLE_TRIM_TRAILING_ZEROS       := 1
 ENABLE_KEEP_MEM_NAME             := 1
@@ -51,6 +54,7 @@ ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1
 ENABLE_CONTRAST                  := 0
 ENABLE_BOOT_BEEPS                := 0
 ENABLE_DTMF_CALL_FLASH_LIGHT     := 1
+ENABLE_FLASH_LIGHT_SOS_TONE      := 1
 ENABLE_SHOW_CHARGE_LEVEL         := 0
 ENABLE_REVERSE_BAT_SYMBOL        := 1
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
@@ -322,6 +326,9 @@ endif
 ifeq ($(ENABLE_SMALL_BOLD),1)
 	CFLAGS  += -DENABLE_SMALL_BOLD
 endif
+ifeq ($(ENABLE_SMALLEST_FONT),1)
+	CFLAGS  += -DENABLE_SMALLEST_FONT
+endif
 ifeq ($(ENABLE_TRIM_TRAILING_ZEROS),1)
 	CFLAGS  += -DENABLE_TRIM_TRAILING_ZEROS
 endif
@@ -381,6 +388,9 @@ ifeq ($(ENABLE_BOOT_BEEPS),1)
 endif
 ifeq ($(ENABLE_DTMF_CALL_FLASH_LIGHT),1)
 	CFLAGS  += -DENABLE_DTMF_CALL_FLASH_LIGHT
+endif
+ifeq ($(ENABLE_FLASH_LIGHT_SOS_TONE),1)
+	CFLAGS  += -DENABLE_FLASH_LIGHT_SOS_TONE
 endif
 ifeq ($(ENABLE_SHOW_CHARGE_LEVEL),1)
 	CFLAGS  += -DENABLE_SHOW_CHARGE_LEVEL

@@ -41,7 +41,7 @@ const uint8_t         dtmf_rx_timeout_500ms            =  10000 / 500;  // 10 se
 const uint8_t         dtmf_decode_ring_500ms           =  15000 / 500;  // 15 seconds .. time we sound the ringing for
 const uint8_t         dtmf_txstop_500ms                =   3000 / 500;  // 6 seconds
 
-const uint8_t         serial_config_tick_500ms   =   3000 / 500;  // 3 seconds
+const uint8_t         serial_config_tick_500ms         =   3000 / 500;  // 3 seconds
 
 const uint8_t         key_input_timeout_500ms          =   6000 / 500; // 6 seconds
 #ifdef ENABLE_KEYLOCK
@@ -78,9 +78,9 @@ const uint16_t        power_save2_10ms                 =    200 / 10;   // 200ms
 	const uint16_t    vox_stop_10ms                    =   1000 / 10;   // 1 second
 #endif
 
-const uint16_t        noaa_tick_10ms             =   5000 / 10;   // 5 seconds
-const uint16_t        noaa_tick_2_10ms           =    500 / 10;   // 500ms
-const uint16_t        noaa_tick_3_10ms           =    200 / 10;   // 200ms
+const uint16_t        noaa_tick_10ms                   =   5000 / 10;   // 5 seconds
+const uint16_t        noaa_tick_2_10ms                 =    500 / 10;   // 500ms
+const uint16_t        noaa_tick_3_10ms                 =    200 / 10;   // 200ms
 
 // ***********************************************
 
@@ -126,7 +126,7 @@ uint8_t               g_setting_side1_long;
 uint8_t               g_setting_side2_short;
 uint8_t               g_setting_side2_long;
 
-bool                  g_monitor_enabled = false;           // true opens the squelch
+bool                  g_monitor_enabled;
 
 uint32_t              g_custom_aes_key[4];
 bool                  g_has_custom_aes_key;
@@ -139,12 +139,12 @@ uint16_t              g_eeprom_rssi_calib[7][4];
 
 uint8_t               g_user_channel_attributes[FREQ_CHANNEL_LAST + 1];
 
-volatile uint16_t     g_battery_save_tick_10ms = battery_save_count_10ms;
-
-volatile bool         g_power_save_expired;
+volatile uint16_t     g_schedule_power_save_tick_10ms = battery_save_count_10ms;
 volatile bool         g_schedule_power_save;
 
-volatile uint16_t     g_dual_watch_delay_10ms;
+volatile bool         g_power_save_expired;
+
+volatile uint16_t     g_dual_watch_tick_10ms;
 volatile bool         g_dual_watch_delay_down_expired = true;
 
 volatile uint8_t      g_serial_config_tick_500ms;
@@ -161,9 +161,9 @@ volatile uint16_t     g_tail_tone_elimination_tick_10ms;
 #endif
 
 bool                  g_speaker_enabled;
-uint8_t g_key_input_count_down;
+uint8_t               g_key_input_count_down;
 #ifdef ENABLE_KEYLOCK
-	uint8_t               g_key_lock_tick_500ms;
+	uint8_t           g_key_lock_tick_500ms;
 #endif
 uint8_t               g_rtte_count_down;
 bool                  g_password_locked;
@@ -182,7 +182,7 @@ bool                  g_update_rssi;
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 	alarm_state_t     g_alarm_state;
 #endif
-uint16_t              g_menu_count_down;
+uint16_t              g_menu_tick_10ms;
 bool                  g_flag_reconfigure_vfos;
 uint8_t               g_vfo_configure_mode;
 bool                  g_flag_reset_vfos;
@@ -210,16 +210,17 @@ bool                  g_cxcss_tail_found;
 #ifdef ENABLE_VOX
 	bool              g_vox_lost;
 	bool              g_vox_noise_detected;
-	uint16_t          g_vox_resume_count_down;
-	uint16_t          g_vox_pause_count_down;
+	uint16_t          g_vox_resume_tick_10ms;
+	uint16_t          g_vox_pause_tick_10ms;
 #endif
+
 bool                  g_squelch_open;
 
 uint8_t               g_flash_light_state;
 uint16_t              g_flash_light_blink_tick_10ms;
 
 bool                  g_flag_end_tx;
-uint16_t              g_low_batteryCountdown;
+uint16_t              g_low_battery_tick_10ms;
 
 reception_mode_t      g_rx_reception_mode;
 
@@ -228,7 +229,7 @@ scan_next_chan_t      g_scan_current_scan_list;
 uint8_t               g_scan_restore_channel;
 uint32_t              g_scan_restore_frequency;
 bool                  g_scan_pause_time_mode;      // set if we stopped in SCAN_RESUME_TIME mode
-volatile uint16_t     g_scan_pause_10ms;
+volatile uint16_t     g_scan_pause_tick_10ms;
 scan_state_dir_t      g_scan_state_dir;
 
 bool                  g_rx_vfo_is_active;
@@ -252,7 +253,7 @@ volatile bool         g_next_time_slice;
 volatile uint8_t      g_found_cdcss_tick_10ms;
 volatile uint8_t      g_found_ctcss_tick_10ms;
 #ifdef ENABLE_VOX
-	volatile uint16_t g_vox_stop_10ms;
+	volatile uint16_t g_vox_stop_tick_10ms;
 #endif
 volatile bool         g_next_time_slice_40ms;
 #ifdef ENABLE_NOAA
@@ -264,7 +265,7 @@ volatile bool         g_flag_tail_tone_elimination_complete;
 	volatile bool     g_schedule_fm;
 #endif
 
-volatile uint16_t     g_boot_counter_10ms = 4000 / 10;   // 4 seconds
+volatile uint16_t     g_boot_tick_10ms = 4000 / 10;   // 4 seconds
 
 int16_t               g_current_rssi[2] = {0, 0};  // now one per VFO
 

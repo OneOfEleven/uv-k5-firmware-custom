@@ -49,6 +49,7 @@ extern uint8_t    g_ptt_debounce;
 extern uint8_t    g_key_debounce_press;
 extern uint8_t    g_key_debounce_repeat;
 extern key_code_t g_key_prev;
+extern key_code_t g_key_pressed;
 extern bool       g_key_held;
 extern bool       g_fkey_pressed;
 extern bool       g_ptt_is_pressed;

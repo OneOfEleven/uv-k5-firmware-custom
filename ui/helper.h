@@ -27,8 +27,9 @@ void UI_PrintStringSmall(const char *str, const unsigned int start, const unsign
 #ifdef ENABLE_SMALL_BOLD
 	void UI_PrintStringSmallBold(const char *str, const unsigned int start, const unsigned int end, const unsigned int line);
 #endif
-//void UI_PrintStringSmall4x5(const char *str, const unsigned int start, const unsigned int end, const unsigned int line);
-void UI_PrintStringSmallest(const void *pString, unsigned int x, const unsigned int y, const bool statusbar, const bool fill);
+#ifdef ENABLE_SMALLEST_FONT
+	void UI_PrintStringSmallest(const void *pString, unsigned int x, const unsigned int y, const bool statusbar, const bool fill);
+#endif
 void UI_PrintStringSmallBuffer(const char *pString, uint8_t *buffer);
 void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero, bool flag);
 void UI_DisplayFrequencySmall(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero);

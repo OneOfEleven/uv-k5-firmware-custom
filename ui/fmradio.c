@@ -121,11 +121,11 @@ void UI_DisplayFM(void)
 		{	// frequency mode
 			const uint32_t freq = g_eeprom.fm_frequency_playing;
 			NUMBER_ToDigits(freq * 10000, str);
-#ifdef ENABLE_TRIM_TRAILING_ZEROS
-			UI_DisplayFrequency(str, 30, 4, false, true);
-#else
-			UI_DisplayFrequency(str, 23, 4, false, true);
-#endif
+			#ifdef ENABLE_TRIM_TRAILING_ZEROS
+				UI_DisplayFrequency(str, 30, 4, false, true);
+			#else
+				UI_DisplayFrequency(str, 23, 4, false, true);
+			#endif
 		}
 		else
 		{	// user is entering a frequency
@@ -143,6 +143,8 @@ void UI_DisplayFM(void)
 	
 	// *************************************
 
+	// can't do this during FM radio - audio clicks else
+	if (g_fm_scan_state != FM_SCAN_OFF)
 	{
 		const uint16_t val_07 = BK1080_ReadRegister(0x07);
 		const uint16_t val_0A = BK1080_ReadRegister(0x0A);
@@ -153,7 +155,7 @@ void UI_DisplayFM(void)
 			 (val_07 >> 0) & 0x000f);
 		UI_PrintStringSmall(str, 0, LCD_WIDTH, 6);
 	}
-	
+
 	// *************************************
 
 	ST7565_BlitFullScreen();

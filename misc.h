@@ -225,12 +225,12 @@ extern uint16_t              g_eeprom_rssi_calib[7][4];
 
 extern uint8_t               g_user_channel_attributes[207];
 
-extern volatile uint16_t     g_battery_save_tick_10ms;
-
-extern volatile bool         g_power_save_expired;
+extern volatile uint16_t     g_schedule_power_save_tick_10ms;
 extern volatile bool         g_schedule_power_save;
 
-extern volatile uint16_t     g_dual_watch_delay_10ms;
+extern volatile bool         g_power_save_expired;
+
+extern volatile uint16_t     g_dual_watch_tick_10ms;
 extern volatile bool         g_dual_watch_delay_down_expired;
 
 extern volatile uint8_t      g_serial_config_tick_500ms;
@@ -252,7 +252,7 @@ extern bool                  g_speaker_enabled;
 extern uint8_t               g_key_input_count_down;
 
 #ifdef ENABLE_KEYLOCK
-	extern uint8_t               g_key_lock_tick_500ms;
+	extern uint8_t           g_key_lock_tick_500ms;
 #endif
 
 extern uint8_t               g_rtte_count_down;
@@ -270,7 +270,7 @@ extern uint8_t               g_battery_voltage_index;
 extern css_scan_mode_t       g_css_scan_mode;
 extern bool                  g_update_rssi;
 extern alarm_state_t         g_alarm_state;
-extern uint16_t              g_menu_count_down;
+extern uint16_t              g_menu_tick_10ms;
 extern bool                  g_flag_reconfigure_vfos;
 extern uint8_t               g_vfo_configure_mode;
 extern bool                  g_flag_reset_vfos;
@@ -298,16 +298,17 @@ extern bool                  g_cxcss_tail_found;
 #ifdef ENABLE_VOX
 	extern bool              g_vox_lost;
 	extern bool              g_vox_noise_detected;
-	extern uint16_t          g_vox_resume_count_down;
-	extern uint16_t          g_vox_pause_count_down;
+	extern uint16_t          g_vox_resume_tick_10ms;
+	extern uint16_t          g_vox_pause_tick_10ms;
 #endif
+
 extern bool                  g_squelch_open;
 
 extern uint8_t               g_flash_light_state;
 extern uint16_t              g_flash_light_blink_tick_10ms;
 
 extern bool                  g_flag_end_tx;
-extern uint16_t              g_low_batteryCountdown;
+extern uint16_t              g_low_battery_tick_10ms;
 extern reception_mode_t      g_rx_reception_mode;
 
 extern uint8_t               g_scan_next_channel;      //
@@ -315,7 +316,7 @@ extern scan_next_chan_t      g_scan_current_scan_list; //
 extern uint8_t               g_scan_restore_channel;   // the channel   we were on before starting the RF scan
 extern uint32_t              g_scan_restore_frequency; // the frequency we were on before starting the RF scan
 extern bool                  g_scan_pause_time_mode;   // set if we stopped in SCAN_RESUME_TIME mode
-extern volatile uint16_t     g_scan_pause_10ms;        // ticks till we move to next channel/frequency
+extern volatile uint16_t     g_scan_pause_tick_10ms;        // ticks till we move to next channel/frequency
 extern scan_state_dir_t      g_scan_state_dir;         // the direction we're scanning in
 
 
@@ -337,7 +338,7 @@ extern bool                  g_unhide_hidden;
 extern volatile uint8_t      g_found_cdcss_tick_10ms;
 extern volatile uint8_t      g_found_ctcss_tick_10ms;
 #ifdef ENABLE_VOX
-	extern volatile uint16_t g_vox_stop_10ms;
+	extern volatile uint16_t g_vox_stop_tick_10ms;
 #endif
 extern volatile bool         g_next_time_slice_40ms;
 #ifdef ENABLE_NOAA
@@ -349,7 +350,7 @@ extern volatile bool         g_flag_tail_tone_elimination_complete;
 	extern volatile bool     g_schedule_fm;
 #endif
 extern int16_t               g_current_rssi[2];   // now one per VFO
-extern volatile uint16_t     g_boot_counter_10ms;
+extern volatile uint16_t     g_boot_tick_10ms;
 
 unsigned int get_TX_VFO(void);
 unsigned int get_RX_VFO(void);

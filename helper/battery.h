@@ -30,9 +30,9 @@ extern bool              g_charging_with_type_c;
 extern bool              g_low_battery;
 extern bool              g_low_battery_blink;
 extern uint16_t          g_battery_check_counter;
-extern volatile uint16_t g_power_save_10ms;
+extern volatile uint16_t g_power_save_tick_10ms;
 
 unsigned int BATTERY_VoltsToPercent(const unsigned int voltage_10mV);
-void BATTERY_GetReadings(const bool bDisplayBatteryLevel);
+void         BATTERY_GetReadings(const bool bDisplayBatteryLevel);
 
 #endif

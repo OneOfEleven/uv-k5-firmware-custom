@@ -345,9 +345,9 @@ uint32_t GetOffsetedF(uint32_t f) {
 bool IsTXAllowed() { return g_setting_ALL_TX != 2; }
 
 static void ToggleAudio(bool on) {
-  if (on) {
+  if (on)
     GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-  } else {
+ else {
     GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
   }
 }

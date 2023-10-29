@@ -86,7 +86,7 @@ void MENU_start_css_scan(int8_t Direction)
 
 	MENU_SelectNextCode();
 
-	g_scan_pause_10ms = scan_pause_css_10ms;
+	g_scan_pause_tick_10ms = scan_pause_css_10ms;
 }
 
 void MENU_stop_css_scan(void)
@@ -939,7 +939,7 @@ void MENU_SelectNextCode(void)
 
 	RADIO_setup_registers(true);
 
-	g_scan_pause_10ms = (g_selected_code_type == CODE_TYPE_CONTINUOUS_TONE) ? scan_pause_ctcss_10ms : scan_pause_cdcss_10ms;
+	g_scan_pause_tick_10ms = (g_selected_code_type == CODE_TYPE_CONTINUOUS_TONE) ? scan_pause_ctcss_10ms : scan_pause_cdcss_10ms;
 
 	g_update_display = true;
 }
@@ -2014,11 +2014,11 @@ void MENU_process_key(key_code_t Key, bool key_pressed, bool key_held)
 #endif
 			g_menu_cursor == MENU_BAT_CAL)
 		{
-			g_menu_count_down = menu_timeout_long_500ms;
+			g_menu_tick_10ms = menu_timeout_long_500ms;
 		}
 		else
 		{
-			g_menu_count_down = menu_timeout_500ms;
+			g_menu_tick_10ms = menu_timeout_500ms;
 		}
 	}
 }

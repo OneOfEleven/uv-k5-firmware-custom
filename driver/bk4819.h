@@ -26,7 +26,7 @@ enum BK4819_af_type_e
 {
 	BK4819_AF_MUTE      =  0u,  //
 	BK4819_AF_FM        =  1u,  // FM
-	BK4819_AF_ALAM      =  2u,  //
+	BK4819_AF_TONE      =  2u,  //
 	BK4819_AF_BEEP      =  3u,  //
 	BK4819_AF_BASEBAND1 =  4u,  // SSB
 	BK4819_AF_BASEBAND2 =  5u,  // SSB
@@ -104,7 +104,7 @@ void     BK4819_DisableVox(void);
 void     BK4819_DisableDTMF(void);
 void     BK4819_EnableDTMF(void);
 void     BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool set_dac);
-void     BK4819_StopTones(void);
+void     BK4819_StopTones(const bool tx);
 void     BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level);
 void     BK4819_EnterTxMute(void);
 void     BK4819_ExitTxMute(void);
@@ -118,12 +118,11 @@ void     BK4819_TurnsOffTones_TurnsOnRX(void);
 
 void     BK4819_reset_fsk(void);
 void     BK4819_Idle(void);
-//void     BK4819_ExitBypass(void);
 void     BK4819_PrepareTransmit(void);
 void     BK4819_TxOn_Beep(void);
 void     BK4819_ExitSubAu(void);
 
-void     BK4819_Conditional_RX_TurnOn_and_GPIO6_Enable(void);
+void     BK4819_Conditional_RX_TurnOn(void);
 
 void     BK4819_EnterDTMF_TX(bool bLocalLoopback);
 void     BK4819_ExitDTMF_TX(bool bKeep);
@@ -149,8 +148,6 @@ BK4819_CSS_scan_result_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_
 void     BK4819_DisableFrequencyScan(void);
 void     BK4819_EnableFrequencyScan(void);
 void     BK4819_SetScanFrequency(uint32_t Frequency);
-
-void     BK4819_Disable(void);
 
 void     BK4819_StopScan(void);
 

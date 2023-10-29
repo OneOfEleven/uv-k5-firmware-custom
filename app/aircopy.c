@@ -80,6 +80,8 @@ void AIRCOPY_init(void)
 	// turn the backlight ON
 	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
 	RADIO_setup_registers(true);
 
 	BK4819_SetupAircopy(AIRCOPY_DATA_PACKET_SIZE);

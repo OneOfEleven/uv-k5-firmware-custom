@@ -384,31 +384,32 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 	RADIO_ConfigureSquelchAndOutputPower(p_vfo);
 
-#ifdef ENABLE_AM_FIX
-	if (p_vfo->am_mode && g_setting_am_fix)
-	{
-		AM_fix_reset(VFO);
-		AM_fix_10ms(VFO);
-	}
-	else
-	{  // don't do agc in FM mode
-		BK4819_DisableAGC();
-		BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
-	}
-#else
-	if (p_vfo->am_mode)
-	{
-		BK4819_EnableAGC();
-	}
-	else
-	{  // don't do agc in FM mode
-		BK4819_DisableAGC();
-		BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
-	}
-#endif
+	#ifdef ENABLE_AM_FIX
+		if (p_vfo->am_mode && g_setting_am_fix)
+		{
+			AM_fix_reset(VFO);
+			AM_fix_10ms(VFO);
+		}
+		else
+		{  // don't do agc in FM mode
+			BK4819_DisableAGC();
+			BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
+		}
+	#else
+		if (p_vfo->am_mode)
+		{
+			BK4819_EnableAGC();
+		}
+		else
+		{  // don't do agc in FM mode
+			BK4819_DisableAGC();
+			BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
+		}
+	#endif
 
+//	if (configure == VFO_CONFIGURE_RELOAD || IS_FREQ_CHANNEL(Channel))
 	if (IS_FREQ_CHANNEL(Channel))
-		p_vfo->freq_in_channel = BOARD_find_channel(Frequency); // remember if a channel has this frequency
+		p_vfo->freq_in_channel = BOARD_find_channel(Frequency); // find channel that has this frequency
 }
 
 void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
@@ -633,9 +634,10 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	uint16_t                  interrupt_mask;
 	uint32_t                  Frequency;
 
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-	g_speaker_enabled = false;
+	if (!g_speaker_enabled && !g_monitor_enabled)
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
+	// turn green LED off
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
 	switch (Bandwidth)
@@ -661,19 +663,18 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);  // PA off
 
 	while (1)
-	{	// wait for the interrupt to clear ?
-		const uint16_t status_bits = BK4819_ReadRegister(0x0C);
-		if ((status_bits & (1u << 0)) == 0)
+	{	// wait for interrupts to clear
+		const uint16_t int_bits = BK4819_ReadRegister(0x0C);
+		if ((int_bits & (1u << 0)) == 0)
 			break;
 		BK4819_WriteRegister(0x02, 0);   // clear the interrupt bits
 		SYSTEM_DelayMs(1);
 	}
-
 	BK4819_WriteRegister(0x3F, 0);       // disable interrupts
 
 	// mic gain 0.5dB/step 0 to 31
 	BK4819_WriteRegister(0x7D, 0xE940 | (g_eeprom.mic_sensitivity_tuning & 0x1f));
-//	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
+//	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable  .. doesn't work
 
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_is_noaa_mode)
@@ -690,10 +691,23 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		g_rx_vfo->squelch_open_noise_thresh,   g_rx_vfo->squelch_close_noise_thresh,
 		g_rx_vfo->squelch_close_glitch_thresh, g_rx_vfo->squelch_open_glitch_thresh);
 
+	// enable the RX front end
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
 	// AF RX Gain and DAC
-	BK4819_WriteRegister(0x48, 0xB3A8);  // 1011 00 111010 1000
+//	BK4819_WriteRegister(0x48, 0xB3A8);  // 1011 00 111010 1000
+	if (g_rx_vfo->am_mode)
+	{
+		BK4819_WriteRegister(0x48, 0xB3A8);   // 1011 0011 1010 1000
+	}
+	else
+	{
+		BK4819_WriteRegister(0x48,
+			(11u << 12)                 |     // ??? .. 0 ~ 15, doesn't seem to make any difference
+			( 0u << 10)                 |     // AF Rx Gain-1
+			(g_eeprom.volume_gain << 4) |     // AF Rx Gain-2
+			(g_eeprom.dac_gain    << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
+	}
 
 	interrupt_mask = BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
 
@@ -722,7 +736,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 					//	BK4819_SetTailDetection(670);       // 67Hz
 					//#endif
 
-					interrupt_mask = BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
+					interrupt_mask |= BK4819_REG_3F_CxCSS_TAIL;
 					break;
 
 				case CODE_TYPE_CONTINUOUS_TONE:
@@ -734,24 +748,13 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 					//	BK4819_SetTailDetection(CTCSS_OPTIONS[Code]);
 					//#endif
 
-					interrupt_mask =
-						BK4819_REG_3F_CxCSS_TAIL    |
-						BK4819_REG_3F_CTCSS_FOUND   |
-						BK4819_REG_3F_CTCSS_LOST    |
-						BK4819_REG_3F_SQUELCH_FOUND |
-						BK4819_REG_3F_SQUELCH_LOST;
-
+					interrupt_mask |= BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
 					break;
 
 				case CODE_TYPE_DIGITAL:
 				case CODE_TYPE_REVERSE_DIGITAL:
 					BK4819_SetCDCSSCodeWord(DCS_GetGolayCodeWord(code_type, Code));
-					interrupt_mask =
-						BK4819_REG_3F_CxCSS_TAIL    |
-						BK4819_REG_3F_CDCSS_FOUND   |
-						BK4819_REG_3F_CDCSS_LOST    |
-						BK4819_REG_3F_SQUELCH_FOUND |
-						BK4819_REG_3F_SQUELCH_LOST;
+					interrupt_mask |= BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_CDCSS_FOUND | BK4819_REG_3F_CDCSS_LOST;
 					break;
 			}
 
@@ -765,11 +768,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		else
 		{
 			BK4819_SetCTCSSFrequency(2625);
-			interrupt_mask =
-				BK4819_REG_3F_CTCSS_FOUND   |
-				BK4819_REG_3F_CTCSS_LOST    |
-				BK4819_REG_3F_SQUELCH_FOUND |
-				BK4819_REG_3F_SQUELCH_LOST;
+			interrupt_mask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
 		}
 	#endif
 
@@ -792,50 +791,21 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	// RX expander
 	BK4819_SetCompander((g_rx_vfo->am_mode == 0 && g_rx_vfo->compand >= 2) ? g_rx_vfo->compand : 0);
 
-	#if 0
-		#ifdef ENABLE_KILL_REVIVE
-			if (!g_rx_vfo->dtmf_decoding_enable && !g_setting_radio_disabled)
-		#else
-			if (!g_rx_vfo->dtmf_decoding_enable)
-		#endif
-		{
-			BK4819_DisableDTMF();
-		}
-		else
-		{
-			BK4819_EnableDTMF();
-			interrupt_mask |= BK4819_REG_3F_DTMF_5TONE_FOUND;
-		}
-	#else
-		if (g_current_function != FUNCTION_TRANSMIT)
-		{
-			BK4819_DisableDTMF();
-			BK4819_EnableDTMF();
-			interrupt_mask |= BK4819_REG_3F_DTMF_5TONE_FOUND;
-		}
-		else
-		{
-			BK4819_DisableDTMF();
-		}
-	#endif
+	BK4819_EnableDTMF();
+	interrupt_mask |= BK4819_REG_3F_DTMF_5TONE_FOUND;
 
 	#ifdef ENABLE_MDC1200
 		BK4819_enable_mdc1200_rx(true);
-		interrupt_mask |= BK4819_ReadRegister(0x3F) | BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL;
+		interrupt_mask |= BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL;
 	#endif
 
-	// enable/disable BK4819 selected interrupts
+	// enable BK4819 interrupts
 	BK4819_WriteRegister(0x3F, interrupt_mask);
 
 	FUNCTION_Init();
 
 	if (switch_to_function_foreground)
-	{
-		if (g_monitor_enabled)
-			APP_start_listening(FUNCTION_MONITOR);
-		else
-			FUNCTION_Select(FUNCTION_FOREGROUND);
-	}
+		FUNCTION_Select(FUNCTION_FOREGROUND);
 }
 
 #ifdef ENABLE_NOAA
@@ -887,9 +857,8 @@ void RADIO_enableTX(const bool fsk_tx)
 {
 	BK4819_filter_bandwidth_t Bandwidth = g_current_vfo->channel_bandwidth;
 
-	// disable the speaker
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	g_speaker_enabled = false;
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
 
@@ -1119,6 +1088,8 @@ void RADIO_EnableCxCSS(void)
 
 void RADIO_PrepareCssTX(void)
 {
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
 	RADIO_PrepareTX();
 
 	SYSTEM_DelayMs(200);
@@ -1142,10 +1113,12 @@ void RADIO_tx_eot(void)
 	{	// end-of-tx
 		if (g_eeprom.dtmf_side_tone)
 		{
-			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 			g_speaker_enabled = true;
+			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
 			SYSTEM_DelayMs(60);
 		}
+
 		BK4819_EnterDTMF_TX(g_eeprom.dtmf_side_tone);
 		BK4819_PlayDTMFString(
 				g_eeprom.dtmf_key_down_code,
@@ -1155,8 +1128,8 @@ void RADIO_tx_eot(void)
 				g_eeprom.dtmf_code_persist_time,
 				g_eeprom.dtmf_code_interval_time);
 
-		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 		g_speaker_enabled = false;
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	}
 	else
 	if (g_eeprom.roger_mode == ROGER_MODE_ROGER)

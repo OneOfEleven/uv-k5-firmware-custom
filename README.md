@@ -70,6 +70,7 @@ ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 0       standard CTCSS tail phase shift rath
 ENABLE_CONTRAST                  := 0       add contrast menu
 ENABLE_BOOT_BEEPS                := 0       gives user audio feedback on volume knob position at boot-up
 ENABLE_DTMF_CALL_FLASH_LIGHT     := 1       flash the flash light LED when a DTMF call is received
+ENABLE_FLASH_LIGHT_SOS_TONE      := 1       also do SOS in morse
 ENABLE_SHOW_CHARGE_LEVEL         := 0       show the charge level when the radio is on charge
 ENABLE_REVERSE_BAT_SYMBOL        := 1       mirror the battery symbol on the status bar (+ pole on the right)
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0       timeout if FREQ not found when using F+4 search function

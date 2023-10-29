@@ -91,6 +91,7 @@ void GUI_SelectNextDisplay(gui_display_type_t Display)
 		g_scan_state_dir       = SCAN_STATE_DIR_OFF;
 		#ifdef ENABLE_FMRADIO
 			g_fm_scan_state    = FM_SCAN_OFF;
+			g_update_display   = true;
 		#endif
 		g_ask_for_confirmation = 0;
 		g_ask_to_save          = false;

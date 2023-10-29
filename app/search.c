@@ -19,7 +19,9 @@
 #include "app/search.h"
 #include "audio.h"
 #include "board.h"
+#include "bsp/dp32g030/gpio.h"
 #include "driver/bk4819.h"
+#include "driver/gpio.h"
 #if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	#include "driver/uart.h"
 #endif
@@ -399,6 +401,9 @@ void SEARCH_Start(void)
 
 	g_rx_vfo->step_setting = BackupStep;
 	g_rx_vfo->step_freq    = BackupStepFreq;
+
+	g_monitor_enabled = false;
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	RADIO_setup_registers(true);
 

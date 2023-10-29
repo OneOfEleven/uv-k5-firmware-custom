@@ -55,10 +55,17 @@ static void ACTION_FlashLight(void)
 		case FLASHLIGHT_BLINK:
 			g_flash_light_blink_tick_10ms = 0;
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
+
 			g_flash_light_state = FLASHLIGHT_SOS;
+
+			if (g_current_function == FUNCTION_POWER_SAVE)
+				FUNCTION_Select(FUNCTION_RECEIVE);
 			break;
 
 		case FLASHLIGHT_SOS:
+			#ifdef ENABLE_FLASH_LIGHT_SOS_TONE
+				BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
+			#endif
 
 		// Fallthrough
 
@@ -89,29 +96,39 @@ void ACTION_Power(void)
 
 void ACTION_Monitor(void)
 {
-	if (g_current_function != FUNCTION_MONITOR)
-	{	// enable the monitor
-		RADIO_select_vfos();
+	if (!g_monitor_enabled)  // (g_current_function != FUNCTION_MONITOR)
+	{	// enable monitor mode
+
+		g_beep_to_play = BEEP_NONE;
+
+		g_monitor_enabled = true;
+//		g_squelch_open    = true;
+
 		#ifdef ENABLE_NOAA
-			if (g_rx_vfo->channel_save >= NOAA_CHANNEL_FIRST && g_is_noaa_mode)
+//			if (g_rx_vfo->channel_save >= NOAA_CHANNEL_FIRST && g_is_noaa_mode)
+			if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_is_noaa_mode)
 				g_noaa_channel = g_rx_vfo->channel_save - NOAA_CHANNEL_FIRST;
 		#endif
-		g_monitor_enabled = true;
-		RADIO_setup_registers(true);
-		APP_start_listening(FUNCTION_MONITOR);
+
+		APP_start_listening();
 		return;
 	}
 
+	// disable monitor
+	
 	g_monitor_enabled = false;
+
+	if (!g_speaker_enabled)
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-		g_scan_pause_10ms = g_eeprom.scan_hold_time_500ms * 50;
+		g_scan_pause_tick_10ms = g_eeprom.scan_hold_time_500ms * 50;
 
 	#ifdef g_power_save_expired
 		if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_is_noaa_mode)
 		{
 			g_noaa_tick_10ms = noaa_tick_10ms;
-			g_schedule_noaa        = false;
+			g_schedule_noaa  = false;
 		}
 	#endif
 
@@ -134,12 +151,12 @@ void ACTION_Scan(bool bRestart)
 		if (g_fm_radio_mode)
 		{
 			if (g_current_function != FUNCTION_RECEIVE &&
-			    g_current_function != FUNCTION_MONITOR &&
-			    g_current_function != FUNCTION_TRANSMIT)
+			    g_current_function != FUNCTION_TRANSMIT &&
+			   !g_monitor_enabled)
 			{
 				GUI_SelectNextDisplay(DISPLAY_FM);
 
-				g_monitor_enabled = false;
+//				g_monitor_enabled = false;
 
 				if (g_fm_scan_state != FM_SCAN_OFF)
 				{	// already scanning
@@ -186,6 +203,7 @@ void ACTION_Scan(bool bRestart)
 	{	// not in freq/ctcss/cdcss search mode
 
 		g_monitor_enabled = false;
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 		DTMF_clear_RX();
 
@@ -213,7 +231,7 @@ void ACTION_Scan(bool bRestart)
 						// jump to the next channel
 						APP_channel_next(true, g_scan_state_dir);
 						
-						g_scan_pause_10ms      = 0;
+						g_scan_pause_tick_10ms      = 0;
 						g_scan_pause_time_mode = false;
 	
 						g_update_status = true;
@@ -233,13 +251,14 @@ void ACTION_Scan(bool bRestart)
 
 			// start scanning
 	
-			// disable monitor mode
 			g_monitor_enabled = false;
+			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
 			RADIO_setup_registers(true);
 
 			APP_channel_next(true, SCAN_STATE_DIR_FORWARD);
 
-			g_scan_pause_10ms      = 0;   // go NOW
+			g_scan_pause_tick_10ms      = 0;   // go NOW
 			g_scan_pause_time_mode = false;
 			
 			#ifdef ENABLE_VOICE
@@ -270,14 +289,13 @@ void ACTION_Scan(bool bRestart)
 		// jump to the next channel
 		APP_channel_next(true, g_scan_state_dir);
 
-		g_scan_pause_10ms      = 0;
+		g_scan_pause_tick_10ms      = 0;
 		g_scan_pause_time_mode = false;
 
 		g_update_status = true;
 	}
 	else
 	{	// stop scanning
-		g_monitor_enabled = false;
 		APP_stop_scan();
 		g_request_display_screen = DISPLAY_MAIN;
 	}
@@ -324,7 +342,9 @@ void ACTION_Scan(bool bRestart)
 #ifdef ENABLE_FMRADIO
 	void ACTION_FM(void)
 	{
-		if (g_current_function != FUNCTION_TRANSMIT && g_current_function != FUNCTION_MONITOR)
+		if (g_current_function != FUNCTION_TRANSMIT &&
+//		    g_current_function != FUNCTION_MONITOR
+		   !g_monitor_enabled)
 		{
 			if (g_fm_radio_mode)
 			{
@@ -332,7 +352,7 @@ void ACTION_Scan(bool bRestart)
 
 				g_input_box_index = 0;
 				#ifdef ENABLE_VOX
-					g_vox_resume_count_down = 80;
+					g_vox_resume_tick_10ms = 80;
 				#endif
 				g_flag_reconfigure_vfos  = true;
 
@@ -340,7 +360,7 @@ void ACTION_Scan(bool bRestart)
 				return;
 			}
 
-			g_monitor_enabled = false;
+//			g_monitor_enabled = false;
 
 			RADIO_select_vfos();
 			RADIO_setup_registers(true);
@@ -372,10 +392,7 @@ void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key
 	}
 
 	if (!key_held && key_pressed)
-	{
-		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
-	}
 
 	if (key_held || key_pressed)
 	{

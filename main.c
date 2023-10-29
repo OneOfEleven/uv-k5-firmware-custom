@@ -67,6 +67,9 @@ void Main(void)
 		| SYSCON_DEV_CLK_GATE_CRC_BITS_ENABLE
 		| SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE;
 
+	g_monitor_enabled = false;
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
 	SYSTICK_Init();
 
 #ifdef ENABLE_UART
@@ -183,15 +186,15 @@ void Main(void)
 
 		if (g_eeprom.pwr_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
 		{	// 3 second boot-up screen
-			while (g_boot_counter_10ms > 0)
+			while (g_boot_tick_10ms > 0)
 			{
 				if (KEYBOARD_Poll() != KEY_INVALID)
 				{	// halt boot beeps and cancel boot screen
-					g_boot_counter_10ms = 0;
+					g_boot_tick_10ms = 0;
 					break;
 				}
 				#ifdef ENABLE_BOOT_BEEPS
-					if ((g_boot_counter_10ms % 25) == 0)
+					if ((g_boot_tick_10ms % 25) == 0)
 						AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
 				#endif
 			}

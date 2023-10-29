@@ -73,42 +73,55 @@ void SystickHandler(void)
 	DECREMENT(g_found_ctcss_tick_10ms);
 
 	if (g_current_function == FUNCTION_FOREGROUND)
-		DECREMENT_AND_TRIGGER(g_battery_save_tick_10ms, g_schedule_power_save);
+		DECREMENT_AND_TRIGGER(g_schedule_power_save_tick_10ms, g_schedule_power_save);
 
 	if (g_current_function == FUNCTION_POWER_SAVE)
-		DECREMENT_AND_TRIGGER(g_power_save_10ms, g_power_save_expired);
+		DECREMENT_AND_TRIGGER(g_power_save_tick_10ms, g_power_save_expired);
 
-	if (g_eeprom.dual_watch != DUAL_WATCH_OFF)
-		if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
-			if (g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_POWER_SAVE)
-				DECREMENT(g_dual_watch_delay_10ms);
-
+	if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
+	    g_scan_state_dir == SCAN_STATE_DIR_OFF &&
+	    g_css_scan_mode == CSS_SCAN_MODE_OFF)
+	{
+		if (g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_POWER_SAVE)
+			DECREMENT(g_dual_watch_tick_10ms);
+	}
+		
 	#ifdef ENABLE_NOAA
-		if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF && g_eeprom.dual_watch == DUAL_WATCH_OFF)
-			if (g_is_noaa_mode && g_current_function != FUNCTION_MONITOR && g_current_function != FUNCTION_TRANSMIT)
-				if (g_current_function != FUNCTION_RECEIVE)
-					DECREMENT_AND_TRIGGER(g_noaa_tick_10ms, g_schedule_noaa);
+		if (g_scan_state_dir == SCAN_STATE_DIR_OFF &&
+		    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
+		    g_eeprom.dual_watch == DUAL_WATCH_OFF &&
+		    g_is_noaa_mode &&
+		   !g_monitor_enabled &&
+		    g_current_function != FUNCTION_TRANSMIT)
+		{
+			if (g_current_function != FUNCTION_RECEIVE)
+				DECREMENT_AND_TRIGGER(g_noaa_tick_10ms, g_schedule_noaa);
+		}
 	#endif
 
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_css_scan_mode == CSS_SCAN_MODE_SCANNING)
-		if (g_current_function != FUNCTION_MONITOR && g_current_function != FUNCTION_TRANSMIT)
-			DECREMENT(g_scan_pause_10ms);
+		if (!g_monitor_enabled && g_current_function != FUNCTION_TRANSMIT)
+			DECREMENT(g_scan_pause_tick_10ms);
 
 	DECREMENT_AND_TRIGGER(g_tail_tone_elimination_tick_10ms, g_flag_tail_tone_elimination_complete);
 
 	#ifdef ENABLE_VOICE
-		DECREMENT_AND_TRIGGER(g_tick_to_play_next_voice_10ms, g_flag_play_queued_voice);
+		DECREMENT_AND_TRIGGER(g_play_next_voice_tick_10ms, g_flag_play_queued_voice);
 	#endif
 	
 	#ifdef ENABLE_FMRADIO
-		if (g_fm_scan_state != FM_SCAN_OFF && g_current_function != FUNCTION_MONITOR)
-			if (g_current_function != FUNCTION_TRANSMIT && g_current_function != FUNCTION_RECEIVE)
-				DECREMENT_AND_TRIGGER(g_fm_play_tick_10ms, g_schedule_fm);
+		if (g_fm_scan_state != FM_SCAN_OFF &&
+		   !g_monitor_enabled &&
+		    g_current_function != FUNCTION_TRANSMIT &&
+		    g_current_function != FUNCTION_RECEIVE)
+		{
+			DECREMENT_AND_TRIGGER(g_fm_play_tick_10ms, g_schedule_fm);
+		}
 	#endif
 
 	#ifdef ENABLE_VOX
-		DECREMENT(g_vox_stop_10ms);
+		DECREMENT(g_vox_stop_tick_10ms);
 	#endif
 
-	DECREMENT(g_boot_counter_10ms);
+	DECREMENT(g_boot_tick_10ms);
 }

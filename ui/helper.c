@@ -136,12 +136,8 @@ void UI_PrintStringSmall(const char *str, const unsigned int start, const unsign
 		UI_print_string(str, start, end, line, (const uint8_t *)g_font_small_bold, ARRAY_SIZE(g_font_small_bold), ARRAY_SIZE(g_font_small_bold[0]));
 	}
 #endif
-/*
-void UI_PrintStringSmall4x5(const char *str, const unsigned int start, const unsigned int end, const unsigned int line)
-{
-	UI_print_string(str, start, end, line, (const uint8_t *)g_font_small_4x5, ARRAY_SIZE(g_font_small_4x5), ARRAY_SIZE(g_font_small_4x5[0]));
-}
-*/
+
+#ifdef ENABLE_SMALLEST_FONT
 
 void PutPixel(const unsigned int x, const unsigned int y, const bool fill)
 {
@@ -192,6 +188,8 @@ void UI_PrintStringSmallest(const void *pString, unsigned int x, const unsigned 
 		x += char_width + 1;
 	}
 }
+
+#endif
 
 void UI_PrintStringSmallBuffer(const char *pString, uint8_t *buffer)
 {

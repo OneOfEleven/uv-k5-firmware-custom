@@ -577,6 +577,8 @@ const uint8_t g_font_small_4x5[95][4] =
 	{0x02, 0x1C, 0x48, 0x00},   // '~'
 };
 */
+
+#ifdef ENABLE_SMALLEST_FONT
 const uint8_t g_font3x5[160][3] =
 {
 	{0x00, 0x00, 0x00}, //  32 - space
@@ -740,3 +742,4 @@ const uint8_t g_font3x5[160][3] =
 	{0x03, 0x0b, 0x18}, // 190 - threequarters
 	{0x18, 0x15, 0x10}, // 191 - questiondown
 };
+#endif
