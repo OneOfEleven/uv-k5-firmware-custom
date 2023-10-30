@@ -99,10 +99,11 @@ void ACTION_Monitor(void)
 	if (!g_monitor_enabled)  // (g_current_function != FUNCTION_MONITOR)
 	{	// enable monitor mode
 
-		g_beep_to_play = BEEP_NONE;
-
 		g_monitor_enabled = true;
-//		g_squelch_open    = true;
+		g_beep_to_play    = BEEP_NONE;
+
+		if (!g_squelch_open && GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER))
+			BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
 
 		#ifdef ENABLE_NOAA
 //			if (g_rx_vfo->channel_save >= NOAA_CHANNEL_FIRST && g_is_noaa_mode)

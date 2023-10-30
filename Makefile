@@ -30,7 +30,7 @@ ENABLE_MUTE_RADIO_FOR_VOICE      := 0
 # Tx on Voice 1.0 kB
 ENABLE_VOX                       := 0
 ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
-# Tx Alarm 0.6 kB
+# Tx Alarm 600 B
 ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 1
 # MDC1200 2.8 kB
@@ -42,12 +42,12 @@ ENABLE_BIG_FREQ                  := 0
 ENABLE_SMALL_BOLD                := 1
 # smallest font 2 kB
 ENABLE_SMALLEST_FONT             := 0
-# trim trailing 0.044 kB
+# trim trailing 44 B
 ENABLE_TRIM_TRAILING_ZEROS       := 1
 ENABLE_KEEP_MEM_NAME             := 1
 ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
-# Freq calibration 0.188 kB
+# Freq calibration 188 B
 ENABLE_F_CAL_MENU                := 0
 ENABLE_TX_UNLOCK                 := 0
 ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1
@@ -59,25 +59,25 @@ ENABLE_SHOW_CHARGE_LEVEL         := 0
 ENABLE_REVERSE_BAT_SYMBOL        := 1
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
-# Kill and Revive 0.4 kB
+# Kill and Revive 400 B
 ENABLE_KILL_REVIVE               := 0
-# AM Fix 0.8 kB
+# AM Fix 800 B
 ENABLE_AM_FIX                    := 1
 ENABLE_AM_FIX_SHOW_DATA          := 0
-# Squelch 0.012 kB .. can't be right ?
+# Squelch 12 B .. can't be right ?
 ENABLE_SQUELCH_MORE_SENSITIVE    := 1
 ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
 ENABLE_FASTER_CHANNEL_SCAN       := 1
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
-# Rx Signal Bar 0.4 kB
-ENABLE_RX_SIGNAL_BAR             := 0
-# Tx Timeout Bar 0.2 kB
+# Rx Signal Bar 400 B
+ENABLE_RX_SIGNAL_BAR             := 1
+# Tx Timeout Bar 200 B
 ENABLE_TX_TIMEOUT_BAR            := 0
-# Tx Audio Bar 0.3 kB
+# Tx Audio Bar 300 B
 ENABLE_TX_AUDIO_BAR              := 1
-# Side Button Menu 0.3 kB
+# Side Button Menu 300 B
 ENABLE_SIDE_BUTT_MENU            := 1
-# Key Lock 0.4 kB
+# Key Lock 400 B
 ENABLE_KEYLOCK                   := 0
 #ENABLE_PANADAPTER               := 0
 #ENABLE_SINGLE_VFO_CHAN          := 0

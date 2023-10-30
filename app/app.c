@@ -95,7 +95,8 @@ static void APP_update_rssi(const int vfo)
 
 	g_current_rssi[vfo] = rssi;
 
-	UI_update_rssi(rssi, vfo);
+	if (g_squelch_open)
+		UI_update_rssi(rssi, vfo);
 }
 
 static void APP_check_for_new_receive(void)
@@ -166,6 +167,7 @@ done:
 		#endif
 
 		APP_update_rssi(g_eeprom.rx_vfo);
+
 		g_update_rssi = true;
 	}
 }
@@ -404,7 +406,7 @@ Skip:
 		case END_OF_RX_MODE_END:
 			if (!g_monitor_enabled)
 				g_speaker_enabled = false;
-			
+
 			RADIO_setup_registers(true);
 
 			#ifdef ENABLE_NOAA
@@ -487,16 +489,18 @@ bool APP_start_listening(void)
 			case SCAN_RESUME_TIME:
 				if (!g_scan_pause_time_mode)
 				{
-					g_scan_pause_tick_10ms      = g_eeprom.scan_hold_time_500ms * 50;
+					g_scan_pause_tick_10ms = g_eeprom.scan_hold_time_500ms * 50;
 					g_scan_pause_time_mode = true;
 				}
 				break;
+
 			case SCAN_RESUME_CARRIER:
-				g_scan_pause_tick_10ms      = g_eeprom.scan_hold_time_500ms * 50;
+				g_scan_pause_tick_10ms = g_eeprom.scan_hold_time_500ms * 50;
 				g_scan_pause_time_mode = false;
 				break;
+
 			case SCAN_RESUME_STOP:
-				g_scan_pause_tick_10ms      = 0;
+				g_scan_pause_tick_10ms = 0;
 				g_scan_pause_time_mode = false;
 				break;
 		}
@@ -509,7 +513,7 @@ bool APP_start_listening(void)
 			g_rx_vfo->p_rx->frequency     = NOAA_FREQUENCY_TABLE[g_noaa_channel];
 			g_rx_vfo->p_tx->frequency     = NOAA_FREQUENCY_TABLE[g_noaa_channel];
 			g_eeprom.screen_channel[chan] = g_rx_vfo->channel_save;
-			g_noaa_tick_10ms        = 5000 / 10;   // 5 sec
+			g_noaa_tick_10ms              = 5000 / 10;   // 5 sec
 			g_schedule_noaa               = false;
 		}
 	#endif
@@ -523,17 +527,16 @@ bool APP_start_listening(void)
 	{	// dual watch is active
 
 		g_dual_watch_tick_10ms = g_eeprom.scan_hold_time_500ms * 50;
-		g_rx_vfo_is_active      = true;
-
-		g_update_status = true;
+		g_rx_vfo_is_active     = true;
+		g_update_status        = true;
 	}
 
 	// AF gain - original QS values
-	if (g_rx_vfo->am_mode)
-	{
-		BK4819_WriteRegister(0x48, 0xB3A8);   // 1011 0011 1010 1000
-	}
-	else
+//	if (g_rx_vfo->am_mode)
+//	{
+//		BK4819_WriteRegister(0x48, 0xB3A8);   // 1011 0011 1010 1000
+//	}
+//	else
 	{
 		BK4819_WriteRegister(0x48,
 			(11u << 12)                 |     // ??? .. 0 ~ 15, doesn't seem to make any difference
@@ -562,7 +565,7 @@ bool APP_start_listening(void)
 	if (g_current_display_screen != DISPLAY_MENU)
 		GUI_SelectNextDisplay(DISPLAY_MAIN);
 
-	g_update_status = true;
+	g_update_status  = true;
 	g_update_display = true;
 
 	return true;
@@ -927,7 +930,7 @@ void APP_process_radio_interrupts(void)
 
 		if (interrupt_bits & BK4819_REG_02_CDCSS_LOST)
 		{
-			g_cdcss_lost = true;
+			g_cdcss_lost      = true;
 			g_cdcss_code_type = BK4819_get_CDCSS_code_type();
 		}
 
@@ -947,29 +950,29 @@ void APP_process_radio_interrupts(void)
 		#ifdef ENABLE_VOX
 			if (interrupt_bits & BK4819_REG_02_VOX_LOST)
 			{
-				g_vox_lost = true;
+				g_vox_lost            = true;
 				g_vox_pause_tick_10ms = 10;
 
 				if (g_eeprom.vox_switch)
 				{
 					if (g_current_function == FUNCTION_POWER_SAVE && !g_rx_idle_mode)
 					{
-						g_power_save_tick_10ms    = power_save2_10ms;
-						g_power_save_expired = false;
+						g_power_save_tick_10ms = power_save2_10ms;
+						g_power_save_expired   = false;
 					}
 
 					if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
 					   (g_dual_watch_tick_10ms == 0 || g_dual_watch_tick_10ms < dual_watch_delay_after_vox_10ms))
 					{
 						g_dual_watch_tick_10ms = dual_watch_delay_after_vox_10ms;
-						g_update_status = true;
+						g_update_status        = true;
 					}
 				}
 			}
 
 			if (interrupt_bits & BK4819_REG_02_VOX_FOUND)
 			{
-				g_vox_lost = false;
+				g_vox_lost            = false;
 				g_vox_pause_tick_10ms = 0;
 			}
 		#endif
@@ -977,13 +980,14 @@ void APP_process_radio_interrupts(void)
 		if (interrupt_bits & BK4819_REG_02_SQUELCH_CLOSED)
 		{
 			g_squelch_open = false;
-//			g_squelch_open = g_monitor_enabled;
 
 			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_SendText("sq close\r\n");
 			#endif
+
+			g_update_display = true;
 		}
 
 		if (interrupt_bits & BK4819_REG_02_SQUELCH_OPENED)
@@ -993,6 +997,11 @@ void APP_process_radio_interrupts(void)
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_SendText("sq open\r\n");
 			#endif
+
+			if (g_monitor_enabled)
+				BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);  // LED on
+				
+			g_update_display = true;
 		}
 	}
 }
@@ -1003,28 +1012,28 @@ void APP_end_tx(void)
 	RADIO_tx_eot();
 
 	if (g_current_vfo->p_tx->code_type != CODE_TYPE_NONE)
-	{	// CTCSS/DCS is enabled
+	{	// CTCSS/CDCSS is enabled
 
 		//if (g_eeprom.tail_note_elimination && g_eeprom.repeater_tail_tone_elimination > 0)
 		if (g_eeprom.tail_note_elimination)
 		{	// send the CTCSS/DCS tail tone - allows the receivers to mute the usual FM squelch tail/crash
 			RADIO_EnableCxCSS();
 		}
-		#if 0
+		#if 1
 			else
-			{	// TX a short blank carrier
-				// this gives the receivers time to mute RX audio before we drop carrier
+			{	// TX a short blank carrier after disabling the CTCSS/CDCSS
+				// this gives the receivers time to mute their RX audio before we drop carrier
 				BK4819_ExitSubAu();
 				SYSTEM_DelayMs(200);
 			}
 		#endif
 	}
 
+	g_speaker_enabled = false;
+
 	RADIO_setup_registers(false);
 
-	if (!g_speaker_enabled && !g_monitor_enabled)
-		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-	else
+	if (g_monitor_enabled)
 		APP_start_listening();
 }
 
@@ -1381,7 +1390,7 @@ void APP_cancel_user_input_modes(void)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 		else
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-		
+
 		if (g_current_display_screen != DISPLAY_MENU)     // 1of11 .. don't close the menu
 			g_request_display_screen = DISPLAY_MAIN;
 	}
@@ -1458,7 +1467,7 @@ void APP_process_flash_light_10ms(void)
 						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
 						#ifdef ENABLE_FLASH_LIGHT_SOS_TONE
 							if (!g_squelch_open && !g_monitor_enabled && !GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER))
-								BK4819_StartTone1(880, 127, true);
+								BK4819_StartTone1(880, 50, true);
 						#endif
 					}
 				}
@@ -1468,7 +1477,7 @@ void APP_process_flash_light_10ms(void)
 					{	// LED off
 						GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT); // OFF
 						#ifdef ENABLE_FLASH_LIGHT_SOS_TONE
-							if (GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER))
+							if (!g_squelch_open && !g_monitor_enabled && GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER))
 								BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
 						#endif
 					}
@@ -1885,7 +1894,7 @@ void APP_process_functions(void)
 		case FUNCTION_NEW_RECEIVE:
 			APP_process_new_receive();
 			break;
-			
+
 		case FUNCTION_RECEIVE:
 			APP_process_rx();
 			break;
@@ -1897,7 +1906,7 @@ void APP_process_functions(void)
 
 		case FUNCTION_PANADAPTER:
 			break;
-			
+
 		default:
 			break;
 	}
@@ -1906,7 +1915,7 @@ void APP_process_functions(void)
 void APP_process_power_save(void)
 {
 	bool power_save = true;
-		
+
 	if (g_monitor_enabled ||
 		#ifdef ENABLE_FMRADIO
 			g_fm_radio_mode ||
@@ -1924,7 +1933,7 @@ void APP_process_power_save(void)
 	{
 		power_save = false;
 	}
-		
+
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_eeprom.screen_channel[0]) ||
 		    IS_NOAA_CHANNEL(g_eeprom.screen_channel[1]) ||
@@ -1948,7 +1957,7 @@ void APP_process_power_save(void)
 	{	// enter power save
 		FUNCTION_Select(FUNCTION_POWER_SAVE);
 	}
-		
+
 	g_schedule_power_save = false;
 
 	#ifdef ENABLE_VOICE
@@ -2295,7 +2304,7 @@ void APP_time_slice_500ms(void)
 				if (--g_fm_resume_tick_500ms == 0)
 				{
 					RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
-	
+
 					if (g_current_function != FUNCTION_RECEIVE &&
 						!g_monitor_enabled &&
 						g_fm_radio_mode)
@@ -2306,7 +2315,7 @@ void APP_time_slice_500ms(void)
 				}
 			}
 		}
-		
+
 		if (g_fm_radio_mode && g_fm_radio_tick_500ms == 0)
 			return;
 	#endif
@@ -2465,7 +2474,7 @@ void APP_time_slice_10ms(void)
 
 		if (g_monitor_enabled)
 			APP_start_listening();
-		
+
 		GUI_SelectNextDisplay(DISPLAY_MAIN);
 	}
 
@@ -2530,9 +2539,7 @@ void APP_time_slice_10ms(void)
 
 		if (g_vox_pause_tick_10ms > 0)
 			g_vox_pause_tick_10ms--;
-	#endif
 
-	#ifdef ENABLE_VOX
 		if (g_eeprom.vox_switch)
 			APP_process_vox();
 	#endif
@@ -3011,7 +3018,7 @@ Skip:
 
 		if (g_speaker_enabled || g_monitor_enabled)
 			APP_start_listening();
-		
+
 		g_flag_reconfigure_vfos = false;
 	}
 

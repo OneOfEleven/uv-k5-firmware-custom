@@ -587,8 +587,7 @@ void UI_DisplayMain(void)
 		else
 		{	// receiving .. show the RX symbol
 			mode = 2;
-			if ((g_current_function == FUNCTION_RECEIVE || g_current_function == FUNCTION_NEW_RECEIVE) &&
-			     g_eeprom.rx_vfo == vfo_num)
+			if ((g_current_function == FUNCTION_RECEIVE && g_squelch_open) && g_eeprom.rx_vfo == vfo_num)
 			{
 				#ifdef ENABLE_SMALL_BOLD
 					UI_PrintStringSmallBold("RX", 14, 0, line);
@@ -829,11 +828,8 @@ void UI_DisplayMain(void)
 			else
 			if (mode == 2)
 			{	// RX signal level
-				//#ifndef ENABLE_RX_SIGNAL_BAR
-					// antenna bar graph
-					if (g_vfo_rssi_bar_level[vfo_num] > 0)
-						Level = g_vfo_rssi_bar_level[vfo_num];
-				//#endif
+				if (g_vfo_rssi_bar_level[vfo_num] > 0)
+					Level = g_vfo_rssi_bar_level[vfo_num];
 			}
 
 			UI_drawBars(p_line1 + LCD_WIDTH, Level);
@@ -917,7 +913,7 @@ void UI_DisplayMain(void)
 		g_dtmf_call_state == DTMF_CALL_STATE_NONE)
 	{	// we're free to use the middle line
 
-		const bool rx = (g_current_function == FUNCTION_RECEIVE);
+		const bool rx = (g_current_function == FUNCTION_RECEIVE && g_squelch_open) ? true : false;
 
 		#ifdef ENABLE_TX_TIMEOUT_BAR
 			// show the TX timeout count down

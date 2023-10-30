@@ -695,12 +695,11 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
 	// AF RX Gain and DAC
-//	BK4819_WriteRegister(0x48, 0xB3A8);  // 1011 00 111010 1000
-	if (g_rx_vfo->am_mode)
-	{
-		BK4819_WriteRegister(0x48, 0xB3A8);   // 1011 0011 1010 1000
-	}
-	else
+//	if (g_rx_vfo->am_mode)
+//	{
+//		BK4819_WriteRegister(0x48, 0xB3A8);   // 1011 0011 1010 1000
+//	}
+//	else
 	{
 		BK4819_WriteRegister(0x48,
 			(11u << 12)                 |     // ??? .. 0 ~ 15, doesn't seem to make any difference
