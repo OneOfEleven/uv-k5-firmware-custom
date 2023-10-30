@@ -343,9 +343,7 @@ void ACTION_Scan(bool bRestart)
 #ifdef ENABLE_FMRADIO
 	void ACTION_FM(void)
 	{
-		if (g_current_function != FUNCTION_TRANSMIT &&
-//		    g_current_function != FUNCTION_MONITOR
-		   !g_monitor_enabled)
+		if (g_current_function != FUNCTION_TRANSMIT)
 		{
 			if (g_fm_radio_mode)
 			{
@@ -361,7 +359,7 @@ void ACTION_Scan(bool bRestart)
 				return;
 			}
 
-//			g_monitor_enabled = false;
+			g_monitor_enabled = false;
 
 			RADIO_select_vfos();
 			RADIO_setup_registers(true);
