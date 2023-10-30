@@ -174,6 +174,14 @@ const unsigned int g_hidden_menu_count = 9;
 
 // ***************************************************************************************
 
+const char g_sub_menu_mod_mode[4][4] =
+{
+	"FM",
+	"AM",
+	"LSB",
+	"USB"
+};
+
 const char g_sub_menu_tx_power[3][7] =
 {
 	"LOW",
@@ -722,7 +730,8 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_MOD_MODE:
-			strcpy(str, (g_sub_menu_selection == 0) ? "FM" : "AM");
+//			strcpy(str, (g_sub_menu_selection == 0) ? "FM" : "AM");
+			strcpy(str, g_sub_menu_mod_mode[g_sub_menu_selection]);
 			break;
 
 		#ifdef ENABLE_AM_FIX_TEST1

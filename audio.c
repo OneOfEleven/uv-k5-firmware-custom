@@ -76,6 +76,20 @@
 
 beep_type_t g_beep_to_play = BEEP_NONE;
 
+void AUDIO_set_mod_mode(const unsigned int mode)
+{
+	BK4819_af_type_t af_mode;
+	switch (mode)
+	{			
+		default:
+		case 0: af_mode = BK4819_AF_FM; break;
+		case 1: af_mode = BK4819_AF_AM; break;
+		case 2: af_mode = BK4819_AF_BASEBAND1; break;
+		case 3: af_mode = BK4819_AF_BASEBAND2; break;
+	}
+	BK4819_SetAF(af_mode);
+}
+
 void AUDIO_PlayBeep(beep_type_t Beep)
 {
 	const uint16_t tone_val = BK4819_ReadRegister(0x71);
@@ -224,10 +238,6 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 
 	BK4819_WriteRegister(0x71, tone_val);
 
-//	BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
-//	BK4819_SetAF(BK4819_AF_MUTE);
-//	BK4819_WriteRegister(0x47, af_val);
-
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)
 			BK1080_Mute(false);
@@ -327,8 +337,8 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			SYSTEM_DelayMs(Delay * 10);
 
 			if (g_current_function == FUNCTION_RECEIVE)
-				BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
-
+				AUDIO_set_mod_mode(g_rx_vfo->am_mode);
+			
 			#ifdef ENABLE_FMRADIO
 				if (g_fm_radio_mode)
 					BK1080_Mute(false);
@@ -347,9 +357,9 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			return;
 		}
 
-		g_voice_read_index                   = 1;
+		g_voice_read_index          = 1;
 		g_play_next_voice_tick_10ms = Delay;
-		g_flag_play_queued_voice             = false;
+		g_flag_play_queued_voice    = false;
 
 		return;
 
@@ -475,8 +485,8 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		// unmute the radios audio
 
 		if (g_current_function == FUNCTION_RECEIVE)
-			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
-
+			AUDIO_set_mod_mode(g_rx_vfo->am_mode);
+		
 		#ifdef ENABLE_FMRADIO
 			if (g_fm_radio_mode)
 				BK1080_Mute(false);

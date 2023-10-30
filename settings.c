@@ -277,7 +277,7 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, c
 		#endif
 		m_channel.tx_offset_dir        = p_vfo->tx_offset_freq_dir;
 //		m_channel.unused3:2
-		m_channel.am_mode              = p_vfo->am_mode & 1u;
+		m_channel.am_mode              = p_vfo->am_mode;
 //		m_channel.unused4:3
 		m_channel.frequency_reverse    = p_vfo->frequency_reverse;
 		m_channel.channel_bandwidth    = p_vfo->channel_bandwidth;

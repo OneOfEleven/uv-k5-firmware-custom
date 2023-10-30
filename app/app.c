@@ -86,7 +86,7 @@ static void APP_update_rssi(const int vfo)
 
 	#ifdef ENABLE_AM_FIX
 		// add RF gain adjust compensation
-		if (g_eeprom.vfo_info[vfo].am_mode && g_setting_am_fix)
+		if (g_eeprom.vfo_info[vfo].am_mode > 0 && g_setting_am_fix)
 			rssi -= rssi_gain_diff[vfo];
 	#endif
 
@@ -532,7 +532,7 @@ bool APP_start_listening(void)
 	}
 
 	// AF gain - original QS values
-//	if (g_rx_vfo->am_mode)
+//	if (g_rx_vfo->am_mode > 0)
 //	{
 //		BK4819_WriteRegister(0x48, 0xB3A8);   // 1011 0011 1010 1000
 //	}
@@ -550,12 +550,12 @@ bool APP_start_listening(void)
 	#ifdef ENABLE_VOICE
 		#ifdef MUTE_AUDIO_FOR_VOICE
 			if (g_voice_write_index == 0)
-				BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
+				AUDIO_set_mod_mode(g_rx_vfo->am_mode);
 		#else
-			BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
+			AUDIO_set_mod_mode(g_rx_vfo->am_mode);
 		#endif
 	#else
-		BK4819_SetAF(g_rx_vfo->am_mode ? BK4819_AF_AM : BK4819_AF_FM);
+		AUDIO_set_mod_mode(g_rx_vfo->am_mode);
 	#endif
 
 	// enable the speaker
@@ -2439,7 +2439,7 @@ void APP_time_slice_10ms(void)
 	#endif
 
 	#ifdef ENABLE_AM_FIX
-		if (g_rx_vfo->am_mode && g_setting_am_fix)
+		if (g_rx_vfo->am_mode > 0 && g_setting_am_fix)
 			AM_fix_10ms(g_eeprom.rx_vfo);
 	#endif
 

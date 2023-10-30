@@ -36,6 +36,7 @@ typedef enum beep_type_e beep_type_t;
 
 extern beep_type_t g_beep_to_play;
 
+void AUDIO_set_mod_mode(const unsigned int mode);
 void AUDIO_PlayBeep(beep_type_t Beep);
 
 enum {

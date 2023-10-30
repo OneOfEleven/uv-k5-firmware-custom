@@ -373,7 +373,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	if (Channel <= USER_CHANNEL_LAST)
 		EEPROM_ReadBuffer(0x0F50 + (Channel * 16), p_vfo->name, 10);	// only 10 bytes used
 
-	if (p_vfo->am_mode)
+	if (p_vfo->am_mode > 0)
 	{	// freq/chan is in AM mode
 		// disable stuff, even though it can all still be used with AM ???
 		p_vfo->scrambling_type          = 0;
@@ -385,7 +385,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	RADIO_ConfigureSquelchAndOutputPower(p_vfo);
 
 	#ifdef ENABLE_AM_FIX
-		if (p_vfo->am_mode && g_setting_am_fix)
+		if (p_vfo->am_mode > 0 && g_setting_am_fix)
 		{
 			AM_fix_reset(VFO);
 			AM_fix_10ms(VFO);
@@ -396,7 +396,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 			BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
 		}
 	#else
-		if (p_vfo->am_mode)
+		if (p_vfo->am_mode > 0)
 		{
 			BK4819_EnableAGC();
 		}
@@ -650,8 +650,15 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		case BK4819_FILTER_BW_WIDE:
 		case BK4819_FILTER_BW_NARROW:
 			#ifdef ENABLE_AM_FIX
-//				BK4819_SetFilterBandwidth(Bandwidth, g_rx_vfo->am_mode && g_setting_am_fix);
-				BK4819_SetFilterBandwidth(Bandwidth, true);
+				#if 0
+//					BK4819_SetFilterBandwidth(Bandwidth, g_rx_vfo->am_mode > 0 && g_setting_am_fix);
+					BK4819_SetFilterBandwidth(Bandwidth, true);
+				#else
+					if (g_rx_vfo->am_mode > 1)
+						BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER, false);
+					else
+						BK4819_SetFilterBandwidth(Bandwidth, true);
+				#endif
 			#else
 				BK4819_SetFilterBandwidth(Bandwidth, false);
 			#endif
@@ -695,7 +702,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
 	// AF RX Gain and DAC
-//	if (g_rx_vfo->am_mode)
+//	if (g_rx_vfo->am_mode > 0)
 //	{
 //		BK4819_WriteRegister(0x48, 0xB3A8);   // 1011 0011 1010 1000
 //	}
@@ -871,8 +878,15 @@ void RADIO_enableTX(const bool fsk_tx)
 		case BK4819_FILTER_BW_WIDE:
 		case BK4819_FILTER_BW_NARROW:
 			#ifdef ENABLE_AM_FIX
-//				BK4819_SetFilterBandwidth(Bandwidth, g_current_vfo->am_mode && g_setting_am_fix);
-				BK4819_SetFilterBandwidth(Bandwidth, true);
+				#if 0
+//					BK4819_SetFilterBandwidth(Bandwidth, g_current_vfo->am_mode > 0 && g_setting_am_fix);
+					BK4819_SetFilterBandwidth(Bandwidth, true);
+				#else
+					if (g_current_vfo->am_mode > 1)
+						BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER, false);
+					else
+						BK4819_SetFilterBandwidth(Bandwidth, true);
+				#endif
 			#else
 				BK4819_SetFilterBandwidth(Bandwidth, false);
 			#endif
@@ -984,8 +998,8 @@ void RADIO_PrepareTX(void)
 	RADIO_SelectCurrentVfo();
 
 	#ifndef ENABLE_TX_WHEN_AM
-		if (g_current_vfo->am_mode)
-		{	// not allowed to TX if in AM mode
+		if (g_current_vfo->am_mode > 0)
+		{	// not allowed to TX if not in FM mode
 			State = VFO_STATE_TX_DISABLE;
 		}
 		else

@@ -156,8 +156,13 @@ typedef struct {
 	#else
 		uint8_t unused3:2;                   //
 	#endif
-	uint8_t  am_mode:1;                      //
-	uint8_t  unused4:3;                      //
+	#if 0
+		uint8_t  am_mode:1;                  //
+		uint8_t  unused4:3;                  //
+	#else
+		uint8_t  am_mode:2;                  //
+		uint8_t  unused4:2;                  //
+	#endif
 	// [12]
 	uint8_t  frequency_reverse:1;            // reverse repeater
 	uint8_t  channel_bandwidth:1;            // wide/narrow

@@ -257,9 +257,13 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		case MENU_DTMF_ST:
 		case MENU_DTMF_DCD:
 		case MENU_DTMF_LIVE_DEC:
-		case MENU_MOD_MODE:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_off_on) - 1;
+			break;
+
+		case MENU_MOD_MODE:
+			*pMin = 0;
+			*pMax = ARRAY_SIZE(g_sub_menu_mod_mode) - 1;
 			break;
 
 		#ifdef ENABLE_NOAA
