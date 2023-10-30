@@ -95,7 +95,7 @@ static void APP_update_rssi(const int vfo)
 
 	g_current_rssi[vfo] = rssi;
 
-	if (g_squelch_open || g_monitor_enabled)
+//	if (g_squelch_open || g_monitor_enabled)
 		UI_update_rssi(rssi, vfo);
 }
 
@@ -987,6 +987,9 @@ void APP_process_radio_interrupts(void)
 				UART_SendText("sq close\r\n");
 			#endif
 
+			//APP_update_rssi(g_eeprom.rx_vfo);
+			g_update_rssi = true;
+
 			g_update_display = true;
 		}
 
@@ -997,6 +1000,9 @@ void APP_process_radio_interrupts(void)
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_SendText("sq open\r\n");
 			#endif
+
+			//APP_update_rssi(g_eeprom.rx_vfo);
+			g_update_rssi = true;
 
 			if (g_monitor_enabled)
 				BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);  // LED on
@@ -2360,14 +2366,14 @@ void APP_time_slice_10ms(void)
 	APP_process_transmit();
 
 	#ifdef ENABLE_FMRADIO
-		if (g_schedule_fm                            &&
+		if (g_fm_schedule                            &&
 			g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF &&
 		   !g_monitor_enabled                        &&
 			g_current_function != FUNCTION_RECEIVE   &&
 			g_current_function != FUNCTION_TRANSMIT)
 		{	// switch to FM radio mode
 			FM_scan();
-			g_schedule_fm = false;
+			g_fm_schedule = false;
 		}
 	#endif
 

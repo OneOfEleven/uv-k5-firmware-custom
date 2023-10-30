@@ -115,6 +115,8 @@ void Main(void)
 
 	BOARD_eeprom_loadCalibration();
 
+	BK4819_set_mic_gain(g_eeprom.mic_sensitivity_tuning);
+
 	RADIO_configure_channel(0, VFO_CONFIGURE_RELOAD);
 	RADIO_configure_channel(1, VFO_CONFIGURE_RELOAD);
 

@@ -113,29 +113,35 @@ void BK1080_Init(const uint16_t frequency, const bool initialise)
 
 		// determine the lower and upper frequency limits when multiple bands are used
 
-		BK1080_freq_lower = 0xffff;
-		BK1080_freq_upper = 0;
-
-		for (i = 0; i < ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE); i++)
+		if (!is_init)
 		{
-			const uint16_t lower = FM_RADIO_FREQ_BAND_TABLE[i].lower;
-			const uint16_t upper = FM_RADIO_FREQ_BAND_TABLE[i].upper;
+			BK1080_freq_lower = 0xffff;
+			BK1080_freq_upper = 0;
 	
-			if (BK1080_freq_lower > lower)
-				BK1080_freq_lower = lower;
-//			if (BK1080_freq_lower > upper)
-//				BK1080_freq_lower = upper;
-	
-//			if (BK1080_freq_upper < lower)
-//				BK1080_freq_upper = lower;
-			if (BK1080_freq_upper < upper)
-				BK1080_freq_upper = upper;
+			for (i = 0; i < ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE); i++)
+			{
+				const uint16_t lower = FM_RADIO_FREQ_BAND_TABLE[i].lower;
+				const uint16_t upper = FM_RADIO_FREQ_BAND_TABLE[i].upper;
+		
+				if (BK1080_freq_lower > lower)
+					BK1080_freq_lower = lower;
+//				if (BK1080_freq_lower > upper)
+//					BK1080_freq_lower = upper;
+		
+//				if (BK1080_freq_upper < lower)
+//					BK1080_freq_upper = lower;
+				if (BK1080_freq_upper < upper)
+					BK1080_freq_upper = upper;
+			}
 		}
-
+		
 	#else
 		// only 1 band is used
-		BK1080_freq_lower = FM_RADIO_FREQ_BAND_TABLE[0].lower;
-		BK1080_freq_upper = FM_RADIO_FREQ_BAND_TABLE[0].upper;
+		if (!is_init)
+		{
+			BK1080_freq_lower = FM_RADIO_FREQ_BAND_TABLE[0].lower;
+			BK1080_freq_upper = FM_RADIO_FREQ_BAND_TABLE[0].upper;
+		}
 	#endif
 
 	if (initialise)
@@ -161,6 +167,8 @@ void BK1080_Init(const uint16_t frequency, const bool initialise)
 		{
 			BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, (1u << 9) | (1u << 0));
 		}
+		
+		BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, 0x0A5F);  // 0000 1010 0101 1111
 
 		BK1080_SetFrequency(frequency);
 	}
@@ -218,14 +226,15 @@ void BK1080_SetFrequency(uint16_t Frequency)
 			Frequency = BK1080_freq_lower;
 	//		return;
 		}
-
-		BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, (SEEK_THRESHOLD << 8) | (band << 6) | (CHAN_SPACING << 4) | (VOLUME << 0));
-		
+	
 	#endif
 
 	channel = Frequency - FM_RADIO_FREQ_BAND_TABLE[band].lower;  // 100kHz channel spacing
 
+	BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, (SEEK_THRESHOLD << 8) | (band << 6) | (CHAN_SPACING << 4) | (VOLUME << 0));
+
 	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel);
+	SYSTEM_DelayMs(1);
 	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel | (1u << 15));
 }
 

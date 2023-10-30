@@ -31,8 +31,6 @@ typedef enum fm_scan_state_dir_e fm_scan_state_dir_t;
 
 extern uint16_t            g_fm_channels[20];
 extern bool                g_fm_radio_mode;
-extern uint8_t             g_fm_radio_tick_500ms;
-extern volatile uint16_t   g_fm_play_tick_10ms;
 extern fm_scan_state_dir_t g_fm_scan_state_dir;
 extern bool                g_fm_auto_scan;
 extern uint8_t             g_fm_channel_position;
@@ -42,6 +40,9 @@ extern bool                g_fm_found_frequency;
 extern bool                g_fm_auto_scan;
 extern uint8_t             g_fm_resume_tick_500ms;
 extern uint16_t            g_fm_restore_tick_10ms;
+extern uint8_t             g_fm_radio_tick_500ms;
+extern volatile uint16_t   g_fm_play_tick_10ms;
+extern volatile bool       g_fm_schedule;
 
 bool         FM_check_valid_channel(const unsigned int Channel);
 unsigned int FM_find_next_channel(unsigned int Channel, const fm_scan_state_dir_t scan_state_dir);

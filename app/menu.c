@@ -660,7 +660,9 @@ void MENU_AcceptSetting(void)
 
 		case MENU_MIC_GAIN:
 			g_eeprom.mic_sensitivity = g_sub_menu_selection;
-			BOARD_eeprom_loadCalibration();
+//			BOARD_eeprom_loadCalibration();
+			g_eeprom.mic_sensitivity_tuning = g_mic_gain_dB_2[g_eeprom.mic_sensitivity];
+			BK4819_set_mic_gain(g_eeprom.mic_sensitivity_tuning);
 			g_flag_reconfigure_vfos = true;
 			break;
 

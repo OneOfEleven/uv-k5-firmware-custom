@@ -665,6 +665,20 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			break;
 	}
 
+	BK4819_WriteRegister(0x30, 0);
+	BK4819_WriteRegister(0x30, 
+		BK4819_REG_30_ENABLE_VCO_CALIB |
+//		BK4819_REG_30_ENABLE_UNKNOWN   |
+		BK4819_REG_30_ENABLE_RX_LINK   |
+		BK4819_REG_30_ENABLE_AF_DAC    |
+		BK4819_REG_30_ENABLE_DISC_MODE |
+		BK4819_REG_30_ENABLE_PLL_VCO   |
+//		BK4819_REG_30_ENABLE_PA_GAIN   |
+//		BK4819_REG_30_ENABLE_MIC_ADC   |
+//		BK4819_REG_30_ENABLE_TX_DSP    |
+		BK4819_REG_30_ENABLE_RX_DSP    |
+	0);
+
 	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);         // LED off
 	BK4819_SetupPowerAmplifier(0, 0);
 	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);  // PA off
@@ -678,10 +692,6 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		SYSTEM_DelayMs(1);
 	}
 	BK4819_WriteRegister(0x3F, 0);       // disable interrupts
-
-	// mic gain 0.5dB/step 0 to 31
-	BK4819_WriteRegister(0x7D, 0xE940 | (g_eeprom.mic_sensitivity_tuning & 0x1f));
-//	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable  .. doesn't work
 
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_is_noaa_mode)

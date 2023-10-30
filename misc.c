@@ -261,9 +261,6 @@ volatile bool         g_next_time_slice_40ms;
 	volatile bool     g_schedule_noaa       = true;
 #endif
 volatile bool         g_flag_tail_tone_elimination_complete;
-#ifdef ENABLE_FMRADIO
-	volatile bool     g_schedule_fm;
-#endif
 
 volatile uint16_t     g_boot_tick_10ms = 4000 / 10;   // 4 seconds
 

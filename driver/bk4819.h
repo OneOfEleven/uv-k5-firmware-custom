@@ -108,6 +108,7 @@ void     BK4819_StopTones(const bool tx);
 void     BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level);
 void     BK4819_EnterTxMute(void);
 void     BK4819_ExitTxMute(void);
+void     BK4819_set_mic_gain(unsigned int level);
 void     BK4819_Sleep(void);
 void     BK4819_TurnsOffTones_TurnsOnRX(void);
 

@@ -280,8 +280,9 @@ void BK4819_DisableAGC(void)
 	// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
 	// 000=Bypass DC filter;
 	//
-	BK4819_WriteRegister(0x7E,
-		(1u << 15) |      // 0  AGC fix mode
+	BK4819_WriteRegister(0x7E,  // 0x302E   0 011 000000 101 110
+//		(1u << 15) |      // 0  AGC fix mode
+		(0u << 15) |      // 0  AGC fix mode
 		(3u << 12) |      // 3  AGC fix index
 		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
 		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
@@ -330,63 +331,61 @@ void BK4819_DisableAGC(void)
 	BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
 	BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
 
-	// ??
+	// ???
 	BK4819_WriteRegister(0x49, 0x2A38);
 	BK4819_WriteRegister(0x7B, 0x8420);
 }
 
-#ifndef ENABLE_AM_FIX
-	void BK4819_EnableAGC(void)
-	{
-		// TODO: See if this attenuates overloading
-		// signals as well as boosting weak ones
-		//
-		// REG_7E
-		//
-		// <15> 0 AGC Fix Mode.
-		// 1=Fix; 0=Auto.
-		//
-		// <14:12> 0b011 AGC Fix Index.
-		// 011=Max, then 010,001,000,111,110,101,100(min).
-		//
-		// <5:3> 0b101 DC Filter Band Width for Tx (MIC In).
-		// 000=Bypass DC filter;
-		//
-		// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
-		// 000=Bypass DC filter;
-	
-		BK4819_WriteRegister(0x7E,
-			(0u << 15) |      // 0  AGC fix mode
-			(3u << 12) |      // 3  AGC fix index
-			(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
-			(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
-	
-		// TBR: fagci has this listed as two values, agc_rssi and lna_peak_rssi
-		// This is why AGC appeared to do nothing as-is for Rx
-		//
-		// REG_62
-		//
-		// <15:8> 0xFF AGC RSSI
-		//
-		// <7:0> 0xFF LNA Peak RSSI
-		//
-		// TBR: Using S9+30 (173) and S9 (143) as suggested values
-		BK4819_WriteRegister(0x62, (173u << 8) | (143u << 0));
-	
-		// AGC auto-adjusts the following LNA values, no need to set them ourselves
-		//BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
-		//BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
-		//BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
-		//BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
-		//BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
-	
-		BK4819_WriteRegister(0x49, 0x2A38);
-		BK4819_WriteRegister(0x7B, 0x8420);
-	
-		for (unsigned int i = 0; i < 8; i++)
-			BK4819_WriteRegister(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));
-	}
-#endif
+void BK4819_EnableAGC(void)
+{
+	// TODO: See if this attenuates overloading
+	// signals as well as boosting weak ones
+	//
+	// REG_7E
+	//
+	// <15> 0 AGC Fix Mode.
+	// 1=Fix; 0=Auto.
+	//
+	// <14:12> 0b011 AGC Fix Index.
+	// 011=Max, then 010,001,000,111,110,101,100(min).
+	//
+	// <5:3> 0b101 DC Filter Band Width for Tx (MIC In).
+	// 000=Bypass DC filter;
+	//
+	// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
+	// 000=Bypass DC filter;
+
+	BK4819_WriteRegister(0x7E,
+		(0u << 15) |      // 0  AGC fix mode
+		(3u << 12) |      // 3  AGC fix index
+		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
+		(6u <<  0));      // 6  DC Filter band width for Rx (I.F In)
+
+	// TBR: fagci has this listed as two values, agc_rssi and lna_peak_rssi
+	// This is why AGC appeared to do nothing as-is for Rx
+	//
+	// REG_62
+	//
+	// <15:8> 0xFF AGC RSSI
+	//
+	// <7:0> 0xFF LNA Peak RSSI
+	//
+	// TBR: Using S9+30 (173) and S9 (143) as suggested values
+	BK4819_WriteRegister(0x62, (173u << 8) | (143u << 0));
+
+	// AGC auto-adjusts the following LNA values, no need to set them ourselves
+	//BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
+	//BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
+	//BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
+	//BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
+	//BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
+
+	BK4819_WriteRegister(0x49, 0x2A38);
+	BK4819_WriteRegister(0x7B, 0x8420);
+
+	for (unsigned int i = 0; i < 8; i++)
+		BK4819_WriteRegister(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));
+}
 
 void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
 {
@@ -1074,12 +1073,12 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 			BK4819_REG_30_ENABLE_VCO_CALIB |
 			BK4819_REG_30_ENABLE_UNKNOWN   |
 //			BK4819_REG_30_ENABLE_RX_LINK   |
-			BK4819_REG_30_ENABLE_AF_DAC    |
-			BK4819_REG_30_ENABLE_DISC_MODE |
+			BK4819_REG_30_ENABLE_AF_DAC    |  //
+			BK4819_REG_30_ENABLE_DISC_MODE |  //
 			BK4819_REG_30_ENABLE_PLL_VCO   |
 			BK4819_REG_30_ENABLE_PA_GAIN   |
 //			BK4819_REG_30_ENABLE_MIC_ADC   |
-			BK4819_REG_30_ENABLE_TX_DSP    |
+			BK4819_REG_30_ENABLE_TX_DSP    |  //
 //			BK4819_REG_30_ENABLE_RX_DSP    |
 		0);
 	}
@@ -1124,7 +1123,7 @@ void BK4819_StopTones(const bool tx)
 	{		
 		BK4819_WriteRegister(0x30, 
 			BK4819_REG_30_ENABLE_VCO_CALIB |
-			BK4819_REG_30_ENABLE_UNKNOWN   |
+//			BK4819_REG_30_ENABLE_UNKNOWN   |
 			BK4819_REG_30_ENABLE_RX_LINK   |
 			BK4819_REG_30_ENABLE_AF_DAC    |
 			BK4819_REG_30_ENABLE_DISC_MODE |
@@ -1190,6 +1189,16 @@ void BK4819_Sleep(void)
 {
 	BK4819_WriteRegister(0x30, 0);
 	BK4819_WriteRegister(0x37, 0x1D00);  // 0 0 0111 0 1 0000 0 0 0 0
+}
+
+void BK4819_set_mic_gain(unsigned int level)
+{
+	if (level > 31)
+		level = 31;
+	
+	// mic gain 0.5dB/step 0 to 31
+	BK4819_WriteRegister(0x7D, 0xE940 | level);
+//	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable  .. doesn't work
 }
 
 void BK4819_TurnsOffTones_TurnsOnRX(void)

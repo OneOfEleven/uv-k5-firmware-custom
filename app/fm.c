@@ -40,8 +40,6 @@
 
 uint16_t            g_fm_channels[20];
 bool                g_fm_radio_mode;
-uint8_t             g_fm_radio_tick_500ms;
-volatile uint16_t   g_fm_play_tick_10ms;
 fm_scan_state_dir_t g_fm_scan_state_dir;
 bool                g_fm_auto_scan;
 uint8_t             g_fm_channel_position;
@@ -49,6 +47,9 @@ bool                g_fm_found_frequency;
 bool                g_fm_auto_scan;
 uint8_t             g_fm_resume_tick_500ms;
 uint16_t            g_fm_restore_tick_10ms;
+uint8_t             g_fm_radio_tick_500ms;
+volatile uint16_t   g_fm_play_tick_10ms;
+volatile bool       g_fm_schedule;
 
 bool FM_check_valid_channel(const unsigned int Channel)
 {
@@ -115,7 +116,7 @@ void FM_tune(uint16_t frequency, const fm_scan_state_dir_t scan_state_dir, const
 
 	g_fm_play_tick_10ms = (g_fm_scan_state_dir == FM_SCAN_STATE_DIR_OFF) ? fm_play_noscan_10ms : fm_play_scan_10ms;
 
-	g_schedule_fm                 = false;
+	g_fm_schedule                 = false;
 	g_fm_found_frequency          = false;
 	g_ask_to_save                 = false;
 	g_ask_to_delete               = false;
@@ -157,7 +158,7 @@ void FM_stop_scan(void)
 	SETTINGS_save_fm();
 
 	g_fm_play_tick_10ms = 0;
-	g_schedule_fm       = false;
+	g_fm_schedule       = false;
 	g_ask_to_save       = false;
 
 	g_speaker_enabled = true;

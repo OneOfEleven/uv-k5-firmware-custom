@@ -346,9 +346,6 @@ extern volatile bool         g_next_time_slice_40ms;
 	extern volatile bool     g_schedule_noaa;
 #endif
 extern volatile bool         g_flag_tail_tone_elimination_complete;
-#ifdef ENABLE_FMRADIO
-	extern volatile bool     g_schedule_fm;
-#endif
 extern int16_t               g_current_rssi[2];   // now one per VFO
 extern volatile uint16_t     g_boot_tick_10ms;
 

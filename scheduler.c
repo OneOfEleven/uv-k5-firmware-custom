@@ -115,7 +115,7 @@ void SystickHandler(void)
 		    g_current_function != FUNCTION_TRANSMIT &&
 		    g_current_function != FUNCTION_RECEIVE)
 		{
-			DECREMENT_AND_TRIGGER(g_fm_play_tick_10ms, g_schedule_fm);
+			DECREMENT_AND_TRIGGER(g_fm_play_tick_10ms, g_fm_schedule);
 		}
 	#endif
 
