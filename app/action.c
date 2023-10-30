@@ -119,7 +119,7 @@ void ACTION_Monitor(void)
 	
 	g_monitor_enabled = false;
 
-	if (!g_speaker_enabled)
+	if (!g_squelch_open)
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)

@@ -112,6 +112,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	if (g_flash_light_state == FLASHLIGHT_SOS ||
 	    g_current_function == FUNCTION_RECEIVE ||
 	    g_monitor_enabled ||
+	    g_squelch_open ||
 	    GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER))
 	{
 		return;
@@ -119,7 +120,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	
 	#ifdef ENABLE_AIRCOPY
 //		if (g_current_display_screen == DISPLAY_AIRCOPY || g_aircopy_state != AIRCOPY_READY)
-//				return;
+//			return;
 	#endif
 		
 //	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -248,7 +249,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		BK4819_Sleep();
 	}
 	else
-	if (g_speaker_enabled || g_monitor_enabled)
+	if (g_squelch_open || g_monitor_enabled)
 	{
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	}
@@ -344,7 +345,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 					BK1080_Mute(false);
 			#endif
 
-			if (!g_speaker_enabled)
+			if (!g_squelch_open && !g_monitor_enabled)
 				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 			g_voice_write_index    = 0;
@@ -492,7 +493,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 				BK1080_Mute(false);
 		#endif
 
-		if (!g_speaker_enabled)
+		if (!g_squelch_open && !g_monitor_enabled)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 		// **********************

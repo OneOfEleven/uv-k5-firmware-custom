@@ -404,9 +404,6 @@ Skip:
 			break;
 
 		case END_OF_RX_MODE_END:
-			if (!g_monitor_enabled)
-				g_speaker_enabled = false;
-
 			RADIO_setup_registers(true);
 
 			#ifdef ENABLE_NOAA
@@ -421,10 +418,7 @@ Skip:
 
 			if (g_eeprom.tail_note_elimination)
 			{
-				if (!g_monitor_enabled)
-					g_speaker_enabled = false;
-
-				if (!g_speaker_enabled && !g_monitor_enabled)
+				if (!g_squelch_open && !g_monitor_enabled)
 					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 				g_tail_tone_elimination_tick_10ms     = 20;   // 200ms
@@ -542,6 +536,8 @@ bool APP_start_listening(void)
 
 	FUNCTION_Select(FUNCTION_RECEIVE);
 
+	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
 	#ifdef ENABLE_VOICE
 		#ifdef MUTE_AUDIO_FOR_VOICE
 			if (g_voice_write_index == 0)
@@ -557,10 +553,6 @@ bool APP_start_listening(void)
 		if (g_fm_radio_mode)
 			BK1080_Init(0, false);		// disable the FM radio audio
 	#endif
-
-	// enable the speaker
-	g_speaker_enabled = true;
-	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	if (g_current_display_screen != DISPLAY_MENU)
 		GUI_SelectNextDisplay(DISPLAY_MAIN);
@@ -706,7 +698,8 @@ static void APP_next_freq(void)
 		BK4819_set_rf_filter_path(frequency);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
-			g_scan_pause_tick_10ms = 10;   // 100ms
+//			g_scan_pause_tick_10ms = 10;   // 100ms
+			g_scan_pause_tick_10ms = 6;    // 60ms
 		#else
 			g_scan_pause_tick_10ms = scan_pause_freq_10ms;
 		#endif
@@ -983,6 +976,9 @@ void APP_process_radio_interrupts(void)
 
 			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 
+			if (!g_monitor_enabled)
+				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_SendText("sq close\r\n");
 			#endif
@@ -1035,12 +1031,13 @@ void APP_end_tx(void)
 		#endif
 	}
 
-	g_speaker_enabled = false;
-
 	RADIO_setup_registers(false);
 
 	if (g_monitor_enabled)
 		APP_start_listening();
+
+	if (g_squelch_open || g_monitor_enabled)
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 }
 
 #ifdef ENABLE_VOX
@@ -1373,7 +1370,7 @@ void APP_cancel_user_input_modes(void)
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 	static void APP_alarm_off(void)
 	{
-		if (!g_speaker_enabled && !g_monitor_enabled)
+		if (!g_squelch_open && !g_monitor_enabled)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 		if (g_eeprom.alarm_mode == ALARM_MODE_TONE)
@@ -1392,7 +1389,7 @@ void APP_cancel_user_input_modes(void)
 
 		RADIO_setup_registers(true);
 
-		if (!g_monitor_enabled && !g_speaker_enabled)
+		if (!g_squelch_open && !g_monitor_enabled)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 		else
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -1676,7 +1673,6 @@ void APP_process_transmit(void)
 					BK4819_TransmitTone(true, 500);
 					SYSTEM_DelayMs(2);
 
-					g_speaker_enabled = true;
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 					g_alarm_tone_counter_10ms = 0;
@@ -2122,7 +2118,7 @@ void APP_time_slice_500ms(void)
 			{
 				if (--g_fm_resume_tick_500ms == 0)
 				{
-					RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
+					RADIO_set_vfo_state(VFO_STATE_NORMAL);
 
 					if (g_current_function != FUNCTION_RECEIVE &&
 						!g_monitor_enabled &&
@@ -2241,7 +2237,7 @@ void APP_time_slice_10ms(void)
 
 		AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 
-		RADIO_Setg_vfo_state(VFO_STATE_TIMEOUT);
+		RADIO_set_vfo_state(VFO_STATE_TIMEOUT);
 
 		GUI_DisplayScreen();
 	}
@@ -2406,7 +2402,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 
 	// reset the state so as to remove it from the screen
 	if (Key != KEY_INVALID && Key != KEY_PTT)
-		RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
+		RADIO_set_vfo_state(VFO_STATE_NORMAL);
 #if 0
 	// remember the current backlight state (on / off)
 	const bool backlight_was_on = GPIO_CheckBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
@@ -2619,7 +2615,6 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 				{
 					if (!key_pressed)
 					{
-//						g_speaker_enabled = false;
 						GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 						BK4819_ExitDTMF_TX(false);
@@ -2634,7 +2629,6 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 				{
 					if (g_eeprom.dtmf_side_tone)
 					{	// user will here the DTMF tones in speaker
-//						g_speaker_enabled = true;
 						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 					}
 
@@ -2835,7 +2829,7 @@ Skip:
 		g_vfo_rssi_bar_level[0] = 0;
 		g_vfo_rssi_bar_level[1] = 0;
 
-		if (g_speaker_enabled || g_monitor_enabled)
+		if (g_squelch_open || g_monitor_enabled)
 			APP_start_listening();
 
 		g_flag_reconfigure_vfos = false;

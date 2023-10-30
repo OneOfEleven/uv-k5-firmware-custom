@@ -121,7 +121,7 @@ void FUNCTION_Select(function_type_t Function)
 
 			#ifdef ENABLE_FMRADIO
 				if (g_fm_radio_mode)
-					g_fm_restore_tick_10ms = fm_restore_10ms;
+					g_fm_restore_tick_10ms = g_eeprom.scan_hold_time_500ms * 50;
 			#endif
 
 			if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT ||
@@ -152,7 +152,6 @@ void FUNCTION_Select(function_type_t Function)
 
 			if (g_flash_light_state != FLASHLIGHT_SOS)
 			{
-				g_speaker_enabled = false;
 				g_monitor_enabled = false;
 				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 			}
@@ -226,7 +225,6 @@ void FUNCTION_Select(function_type_t Function)
 					BK4819_StartTone1(500, 28, true);
 					SYSTEM_DelayMs(2);
 
-					g_speaker_enabled = true;
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 					SYSTEM_DelayMs(60);
@@ -256,7 +254,6 @@ void FUNCTION_Select(function_type_t Function)
 
 					SYSTEM_DelayMs(2);
 
-					g_speaker_enabled = true;
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 					#ifdef ENABLE_ALARM

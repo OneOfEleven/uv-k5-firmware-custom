@@ -155,7 +155,7 @@ void     RADIO_setup_registers(bool switch_to_function_foreground);
 #endif
 void     RADIO_enableTX(const bool fsk_tx);
 
-void     RADIO_Setg_vfo_state(vfo_state_t State);
+void     RADIO_set_vfo_state(vfo_state_t State);
 void     RADIO_PrepareTX(void);
 void     RADIO_EnableCxCSS(void);
 void     RADIO_PrepareCssTX(void);

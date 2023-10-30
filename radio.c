@@ -634,7 +634,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	uint16_t                  interrupt_mask;
 	uint32_t                  Frequency;
 
-	if (!g_speaker_enabled && !g_monitor_enabled)
+	if (!g_monitor_enabled)
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	// turn green LED off
@@ -833,6 +833,9 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 	if (switch_to_function_foreground)
 		FUNCTION_Select(FUNCTION_FOREGROUND);
+
+//	if (g_monitor_enabled)
+//		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 }
 
 #ifdef ENABLE_NOAA
@@ -884,7 +887,6 @@ void RADIO_enableTX(const bool fsk_tx)
 {
 	BK4819_filter_bandwidth_t Bandwidth = g_current_vfo->channel_bandwidth;
 
-	g_speaker_enabled = false;
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
@@ -957,7 +959,7 @@ void RADIO_enableTX(const bool fsk_tx)
 	}
 }
 
-void RADIO_Setg_vfo_state(vfo_state_t State)
+void RADIO_set_vfo_state(vfo_state_t State)
 {
 	if (State == VFO_STATE_NORMAL)
 	{
@@ -1047,7 +1049,7 @@ void RADIO_PrepareTX(void)
 	if (State != VFO_STATE_NORMAL)
 	{	// TX not allowed
 
-		RADIO_Setg_vfo_state(State);
+		RADIO_set_vfo_state(State);
 
 		#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 			g_alarm_state = ALARM_STATE_OFF;
@@ -1147,7 +1149,6 @@ void RADIO_tx_eot(void)
 	{	// end-of-tx
 		if (g_eeprom.dtmf_side_tone)
 		{
-			g_speaker_enabled = true;
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 			SYSTEM_DelayMs(60);
@@ -1162,7 +1163,6 @@ void RADIO_tx_eot(void)
 				g_eeprom.dtmf_code_persist_time,
 				g_eeprom.dtmf_code_interval_time);
 
-		g_speaker_enabled = false;
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	}
 	else

@@ -127,7 +127,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 				g_vox_noise_detected = false;
 			#endif
 
-			RADIO_Setg_vfo_state(VFO_STATE_NORMAL);
+			RADIO_set_vfo_state(VFO_STATE_NORMAL);
 
 			if (g_current_display_screen != DISPLAY_MENU)     // 1of11 .. don't close the menu
 				g_request_display_screen = DISPLAY_MAIN;

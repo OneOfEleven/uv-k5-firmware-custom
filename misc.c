@@ -27,9 +27,8 @@ const uint8_t obfuscate_array[16] = {
 
 const uint8_t         fm_resume_500ms                  =  2500 / 500;   // 2.5 seconds
 const uint8_t         fm_radio_500ms                   =  2000 / 500;   // 2 seconds
-const uint16_t        fm_play_scan_10ms                =    40 / 10;    // 40ms
+const uint16_t        fm_play_scan_10ms                =    60 / 10;    // 60ms
 const uint16_t        fm_play_noscan_10ms              =  1200 / 10;    // 1.2 seconds
-const uint16_t        fm_restore_10ms                  =  5000 / 10;    // 5 seconds
 
 const uint8_t         menu_timeout_500ms               =  30000 / 500;  // 30 seconds
 const uint16_t        menu_timeout_long_500ms          = 120000 / 500;  // 2 minutes
@@ -43,7 +42,7 @@ const uint8_t         dtmf_txstop_500ms                =   3000 / 500;  // 6 sec
 
 const uint8_t         serial_config_tick_500ms         =   3000 / 500;  // 3 seconds
 
-const uint8_t         key_input_timeout_500ms          =   6000 / 500; // 6 seconds
+const uint8_t         key_input_timeout_500ms          =   6000 / 500;  // 6 seconds
 #ifdef ENABLE_KEYLOCK
 	const uint8_t     key_lock_timeout_500ms           =  30000 / 500;  // 30 seconds
 #endif
@@ -160,7 +159,6 @@ volatile uint16_t     g_tail_tone_elimination_tick_10ms;
 	volatile uint16_t g_noaa_tick_10ms;
 #endif
 
-bool                  g_speaker_enabled;
 uint8_t               g_key_input_count_down;
 #ifdef ENABLE_KEYLOCK
 	uint8_t           g_key_lock_tick_500ms;

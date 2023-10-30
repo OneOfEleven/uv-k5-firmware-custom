@@ -116,7 +116,6 @@ extern const uint8_t         fm_resume_500ms;
 extern const uint8_t         fm_radio_500ms;
 extern const uint16_t        fm_play_scan_10ms;
 extern const uint16_t        fm_play_noscan_10ms;
-extern const uint16_t        fm_restore_10ms;
 
 extern const uint8_t         menu_timeout_500ms;
 extern const uint16_t        menu_timeout_long_500ms;
@@ -248,7 +247,7 @@ extern volatile uint16_t     g_tail_tone_elimination_tick_10ms;
 #ifdef ENABLE_NOAA
 	extern volatile uint16_t g_noaa_tick_10ms;
 #endif
-extern bool                  g_speaker_enabled;
+
 extern uint8_t               g_key_input_count_down;
 
 #ifdef ENABLE_KEYLOCK

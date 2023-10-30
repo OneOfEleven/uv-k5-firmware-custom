@@ -766,22 +766,9 @@ void BK4819_set_rf_frequency(const uint32_t frequency, const bool trigger_update
 	BK4819_WriteRegister(0x39, (frequency >> 16) & 0xFFFF);
 
 	if (trigger_update)
-	{
-		// <15>    0 VCO Calibration    1 = enable   0 = disable
-		// <14>    ???
-		// <13:10> 0 RX Link           15 = enable   0 = disable
-		// <9>     0 AF DAC             1 = enable   0 = disable
-		// <8>     0 DISC Mode          1 = enable   0 = disable
-		// <7:4>   0 PLL/VCO           15 = enable   0 = disable
-		// <3>     0 PA Gain            1 = enable   0 = disable
-		// <2>     0 MIC ADC            1 = enable   0 = disable
-		// <1>     0 TX DSP             1 = enable   0 = disable
-		// <0>     0 RX DSP             1 = enable   0 = disable
-		//
-		// trigger a PLL/VCO update
-		//
+	{	// trigger a PLL/VCO update
 		const uint16_t reg = BK4819_ReadRegister(0x30);
-		BK4819_WriteRegister(0x30, 0);
+		BK4819_WriteRegister(0x30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
 		BK4819_WriteRegister(0x30, reg);
 	}
 }
@@ -1087,7 +1074,6 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 
 	BK4819_ExitTxMute();
 
-	// enable speaker
 	SYSTEM_DelayMs(2);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 }
@@ -1137,7 +1123,7 @@ void BK4819_StopTones(const bool tx)
 
 	BK4819_ExitTxMute();
 
-//	if (g_speaker_enabled || g_monitor_enabled)
+//	if (g_squelch_open || g_monitor_enabled)
 //	{
 //		SYSTEM_DelayMs(2);
 //		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -1146,11 +1132,11 @@ void BK4819_StopTones(const bool tx)
 
 void BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level)
 {
-//	const uint16_t prev_af = BK4819_ReadRegister(0x47);
+	const uint16_t prev_af = BK4819_ReadRegister(0x47);
 	BK4819_StartTone1(tone_Hz, level, true);
 	SYSTEM_DelayMs(delay - 2);
 	BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
-//	BK4819_WriteRegister(0x47, prev_af);
+	BK4819_WriteRegister(0x47, prev_af);
 }
 
 void BK4819_PlayRoger(void)
@@ -1164,15 +1150,13 @@ void BK4819_PlayRoger(void)
 		const uint32_t tone2_Hz = 1310;
 	#endif
 
-//	const uint16_t prev_af = BK4819_ReadRegister(0x47);
-
+	const uint16_t prev_af = BK4819_ReadRegister(0x47);
 	BK4819_StartTone1(tone1_Hz, 96, true);
 	SYSTEM_DelayMs(80 - 2);
 	BK4819_StartTone1(tone2_Hz, 96, false);
 	SYSTEM_DelayMs(80);
 	BK4819_StopTones(true);
-
-//	BK4819_WriteRegister(0x47, prev_af);
+	BK4819_WriteRegister(0x47, prev_af);
 }
 
 void BK4819_EnterTxMute(void)
