@@ -22,6 +22,7 @@
 #include "audio.h"
 #include "bsp/dp32g030/gpio.h"
 #include "driver/bk1080.h"
+#include "driver/bk4819.h"
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
 #if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
@@ -257,6 +258,8 @@ void FM_scan(void)
 
 void FM_turn_on(void)
 {
+	BK4819_SetAF(BK4819_AF_MUTE);
+
 	g_fm_radio_mode        = true;
 	g_fm_scan_state_dir    = FM_SCAN_STATE_DIR_OFF;
 	g_fm_restore_tick_10ms = 0;

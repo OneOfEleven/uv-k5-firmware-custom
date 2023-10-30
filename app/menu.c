@@ -562,7 +562,6 @@ void MENU_AcceptSetting(void)
 				g_eeprom.vox_switch = g_sub_menu_selection != 0;
 				if (g_eeprom.vox_switch)
 					g_eeprom.vox_level = g_sub_menu_selection - 1;
-				BOARD_eeprom_loadCalibration();
 				g_flag_reconfigure_vfos = true;
 				g_update_status         = true;
 				break;
@@ -659,8 +658,7 @@ void MENU_AcceptSetting(void)
 			break;
 
 		case MENU_MIC_GAIN:
-			g_eeprom.mic_sensitivity = g_sub_menu_selection;
-//			BOARD_eeprom_loadCalibration();
+			g_eeprom.mic_sensitivity        = g_sub_menu_selection;
 			g_eeprom.mic_sensitivity_tuning = g_mic_gain_dB_2[g_eeprom.mic_sensitivity];
 			BK4819_set_mic_gain(g_eeprom.mic_sensitivity_tuning);
 			g_flag_reconfigure_vfos = true;
