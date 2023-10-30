@@ -138,7 +138,7 @@ void ACTION_Monitor(void)
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)
 		{
-			FM_Start();
+			FM_turn_on();
 			g_request_display_screen = DISPLAY_FM;
 		}
 		else
@@ -157,12 +157,10 @@ void ACTION_Scan(bool bRestart)
 			{
 				GUI_SelectNextDisplay(DISPLAY_FM);
 
-//				g_monitor_enabled = false;
+				if (g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF)
+				{	// already scanning - stop
 
-				if (g_fm_scan_state != FM_SCAN_OFF)
-				{	// already scanning
-
-					FM_PlayAndUpdate();
+					FM_stop_scan();
 
 					#ifdef ENABLE_VOICE
 						g_another_voice_id = VOICE_ID_SCANNING_STOP;
@@ -174,21 +172,20 @@ void ACTION_Scan(bool bRestart)
 
 					if (bRestart)
 					{	// scan with auto store
-						FM_EraseChannels();
-						g_fm_auto_scan        = true;
-						g_fm_channel_position = 0;
-						Frequency             = BK1080_freq_lower;
+						FM_erase_channels();
+						g_fm_auto_scan = true;
+						Frequency      = BK1080_freq_lower;
 					}
 					else
 					{	// scan without auto store
-						g_fm_auto_scan        = false;
-						g_fm_channel_position = 0;
-						Frequency             = g_eeprom.fm_frequency_playing;
+						g_fm_auto_scan = false;
+						Frequency      = g_eeprom.fm_frequency_playing;
 					}
+					g_fm_channel_position = 0;
 
 					BK1080_GetFrequencyDeviation(Frequency);
 
-					FM_Tune(Frequency, 1, bRestart);
+					FM_tune(Frequency, FM_SCAN_STATE_DIR_UP, bRestart);
 
 					#ifdef ENABLE_VOICE
 						g_another_voice_id = VOICE_ID_SCANNING_BEGIN;
@@ -348,7 +345,7 @@ void ACTION_Scan(bool bRestart)
 			if (g_fm_radio_mode)
 			{	// return normal service
 		
-				FM_TurnOff();
+				FM_turn_off();
 
 				g_input_box_index = 0;
 				#ifdef ENABLE_VOX
@@ -367,7 +364,7 @@ void ACTION_Scan(bool bRestart)
 			RADIO_select_vfos();
 			RADIO_setup_registers(true);
 
-			FM_Start();
+			FM_turn_on();
 
 			g_input_box_index = 0;
 

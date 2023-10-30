@@ -584,7 +584,7 @@ void BOARD_eeprom_load(void)
 
 	// 0E40..0E67
 	EEPROM_ReadBuffer(0x0E40, g_fm_channels, sizeof(g_fm_channels));
-	FM_ConfigureChannelState();
+	FM_configure_channel_state();
 #endif
 
 	// 0E90..0E97

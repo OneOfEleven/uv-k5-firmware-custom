@@ -251,7 +251,7 @@ void DTMF_HandleRequest(void)
 					#ifdef ENABLE_FMRADIO
 						if (g_fm_radio_mode)
 						{
-							FM_TurnOff();
+							FM_turn_off();
 							GUI_SelectNextDisplay(DISPLAY_MAIN);
 						}
 					#endif

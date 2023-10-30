@@ -68,7 +68,7 @@ void UI_DisplayFM(void)
 	{
 		memset(str, 0, sizeof(str));
 
-		if (g_fm_scan_state == FM_SCAN_OFF)
+		if (g_fm_scan_state_dir == FM_SCAN_STATE_DIR_OFF)
 		{
 			if (!g_eeprom.fm_channel_mode)
 			{
@@ -106,7 +106,7 @@ void UI_DisplayFM(void)
 		const unsigned int chan = g_fm_channel_position;
 		const uint32_t     freq = g_fm_channels[chan];
 		UI_GenerateChannelString(str, chan, ' ');
-		if (FM_CheckValidChannel(chan))
+		if (FM_check_valid_channel(chan))
 			sprintf(str + strlen(str), " (%u.%u)", freq / 10, freq % 10);
 	}
 	else
@@ -144,7 +144,7 @@ void UI_DisplayFM(void)
 	// *************************************
 
 	// can't do this during FM radio - audio clicks else
-	if (g_fm_scan_state != FM_SCAN_OFF)
+	if (g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF)
 	{
 		const uint16_t val_07 = BK1080_ReadRegister(0x07);
 		const uint16_t val_0A = BK1080_ReadRegister(0x0A);

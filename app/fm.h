@@ -22,38 +22,38 @@
 #define FM_CHANNEL_UP	0x01
 #define FM_CHANNEL_DOWN	0xFF
 
-enum {
-	FM_SCAN_OFF = 0,
+enum fm_scan_state_dir_e {
+	FM_SCAN_STATE_DIR_DOWN = -1,
+	FM_SCAN_STATE_DIR_OFF  = 0,
+	FM_SCAN_STATE_DIR_UP,
 };
+typedef enum fm_scan_state_dir_e fm_scan_state_dir_t;
 
-extern uint16_t          g_fm_channels[20];
-extern bool              g_fm_radio_mode;
-extern uint8_t           g_fm_radio_tick_500ms;
-extern volatile uint16_t g_fm_play_tick_10ms;
-extern volatile int8_t   g_fm_scan_state;
-extern bool              g_fm_auto_scan;
-extern uint8_t           g_fm_channel_position;
-// Doubts about          whether this should be signed or not
-extern uint16_t          g_fm_frequency_deviation;
-extern bool              g_fm_found_frequency;
-extern bool              g_fm_auto_scan;
-extern uint8_t           g_fm_resume_tick_500ms;
-extern uint16_t          g_fm_restore_tick_10ms;
+extern uint16_t            g_fm_channels[20];
+extern bool                g_fm_radio_mode;
+extern uint8_t             g_fm_radio_tick_500ms;
+extern volatile uint16_t   g_fm_play_tick_10ms;
+extern fm_scan_state_dir_t g_fm_scan_state_dir;
+extern bool                g_fm_auto_scan;
+extern uint8_t             g_fm_channel_position;
+// Doubts about whether this should be signed or not
+extern uint16_t            g_fm_frequency_deviation;
+extern bool                g_fm_found_frequency;
+extern bool                g_fm_auto_scan;
+extern uint8_t             g_fm_resume_tick_500ms;
+extern uint16_t            g_fm_restore_tick_10ms;
 
-bool    FM_CheckValidChannel(uint8_t Channel);
-uint8_t FM_FindNextChannel(uint8_t Channel, uint8_t Direction);
-int     FM_ConfigureChannelState(void);
-void    FM_TurnOff(void);
-void    FM_EraseChannels(void);
-
-void    FM_Tune(uint16_t Frequency, int8_t Step, bool bFlag);
-void    FM_PlayAndUpdate(void);
-int     FM_CheckFrequencyLock(uint16_t Frequency, uint16_t LowerLimit);
-
-void    FM_process_key(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
-
-void    FM_Play(void);
-void    FM_Start(void);
+bool         FM_check_valid_channel(const unsigned int Channel);
+unsigned int FM_find_next_channel(unsigned int Channel, const fm_scan_state_dir_t scan_state_dir);
+int          FM_configure_channel_state(void);
+void         FM_erase_channels(void);
+void         FM_tune(uint16_t frequency, const fm_scan_state_dir_t scan_state_dir, const bool flag);
+void         FM_stop_scan(void);
+int          FM_check_frequency_lock(uint16_t Frequency, uint16_t LowerLimit);
+void         FM_scan(void);
+void         FM_turn_on(void);
+void         FM_turn_off(void);
+void         FM_process_key(key_code_t Key, bool bKeyPressed, bool bKeyHeld);
 
 #endif
 

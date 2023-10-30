@@ -1909,7 +1909,7 @@ void APP_time_slice_500ms(void)
 		if (g_fm_radio_tick_500ms > 0)
 			g_fm_radio_tick_500ms--;
 
-		if (g_fm_radio_mode && g_current_display_screen == DISPLAY_FM && g_fm_scan_state != FM_SCAN_OFF)
+		if (g_fm_radio_mode && g_current_display_screen == DISPLAY_FM && g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF)
 			g_update_display = true;  // can't do this if not FM scanning, it causes audio clicks
 	#endif
 
@@ -1962,7 +1962,7 @@ void APP_time_slice_500ms(void)
 	}
 
 #ifdef ENABLE_FMRADIO
-	if (g_fm_scan_state == FM_SCAN_OFF || g_ask_to_save)
+	if (g_fm_scan_state_dir == FM_SCAN_STATE_DIR_OFF || g_ask_to_save)
 #endif
 	{
 	#ifdef ENABLE_AIRCOPY
@@ -2122,7 +2122,7 @@ void APP_time_slice_500ms(void)
 						!g_monitor_enabled &&
 						g_fm_radio_mode)
 					{	// switch back to FM radio mode
-						FM_Start();
+						FM_turn_on();
 						GUI_SelectNextDisplay(DISPLAY_FM);
 					}
 				}
@@ -2360,13 +2360,13 @@ void APP_time_slice_10ms(void)
 	APP_process_transmit();
 
 	#ifdef ENABLE_FMRADIO
-		if (g_schedule_fm                          &&
-			g_fm_scan_state    != FM_SCAN_OFF      &&
-			!g_monitor_enabled                     &&
-			g_current_function != FUNCTION_RECEIVE &&
+		if (g_schedule_fm                            &&
+			g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF &&
+		   !g_monitor_enabled                        &&
+			g_current_function != FUNCTION_RECEIVE   &&
 			g_current_function != FUNCTION_TRANSMIT)
 		{	// switch to FM radio mode
-			FM_Play();
+			FM_scan();
 			g_schedule_fm = false;
 		}
 	#endif
@@ -2378,7 +2378,7 @@ void APP_time_slice_10ms(void)
 		{
 			if (--g_fm_restore_tick_10ms == 0)
 			{	// switch back to FM radio mode
-				FM_Start();
+				FM_turn_on();
 				GUI_SelectNextDisplay(DISPLAY_FM);
 			}
 		}

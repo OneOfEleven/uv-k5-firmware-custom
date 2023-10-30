@@ -142,9 +142,9 @@ void GENERIC_Key_PTT(bool key_pressed)
 //		UART_printf("gene key 1 %u\r\n", key_pressed);
 	#endif
 
-	if (g_scan_state_dir != SCAN_STATE_DIR_OFF ||   // freq/chan scanning
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF      ||   // freq/chan scanning
 	    g_current_display_screen == DISPLAY_SEARCH  ||   // CTCSS/CDCSS scanning
-	    g_css_scan_mode != CSS_SCAN_MODE_OFF)       //   "     "
+	    g_css_scan_mode != CSS_SCAN_MODE_OFF)            //   "     "
 	{	// we're scanning .. stop
 
 		if (g_current_display_screen == DISPLAY_SEARCH)
@@ -174,9 +174,9 @@ void GENERIC_Key_PTT(bool key_pressed)
 	}
 
 	#ifdef ENABLE_FMRADIO
-		if (g_fm_scan_state != FM_SCAN_OFF)
+		if (g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF)
 		{	// FM radio is scanning .. stop
-			FM_PlayAndUpdate();
+			FM_stop_scan();
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = VOICE_ID_SCANNING_STOP;
 			#endif
