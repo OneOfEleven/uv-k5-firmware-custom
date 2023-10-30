@@ -212,7 +212,7 @@ void processFKeyFunction(const key_code_t Key)
 				#if 0
 					g_tx_vfo->am_mode = (g_tx_vfo->am_mode + 1) & 1u;
 				#else
-					if (++g_tx_vfo->am_mode >= 4)
+					if (++g_tx_vfo->am_mode >= 3)
 						g_tx_vfo->am_mode = 0;
 				#endif
 				g_request_save_channel = 1;

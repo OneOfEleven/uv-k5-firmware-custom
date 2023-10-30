@@ -715,6 +715,17 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			(g_eeprom.dac_gain    << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
 	}
 
+	#ifdef ENABLE_VOICE
+		#ifdef MUTE_AUDIO_FOR_VOICE
+			if (g_voice_write_index == 0)
+				AUDIO_set_mod_mode(g_rx_vfo->am_mode);
+		#else
+			AUDIO_set_mod_mode(g_rx_vfo->am_mode);
+		#endif
+	#else
+		AUDIO_set_mod_mode(g_rx_vfo->am_mode);
+	#endif
+
 	interrupt_mask = BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
 
 	if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))

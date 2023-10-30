@@ -174,12 +174,11 @@ const unsigned int g_hidden_menu_count = 9;
 
 // ***************************************************************************************
 
-const char g_sub_menu_mod_mode[4][4] =
+const char g_sub_menu_mod_mode[3][4] =
 {
 	"FM",
 	"AM",
-	"LSB",
-	"USB"
+	"DSB"
 };
 
 const char g_sub_menu_tx_power[3][7] =

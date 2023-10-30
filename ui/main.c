@@ -846,8 +846,7 @@ void UI_DisplayMain(void)
 				default:
 				case 0: strcpy(str, "FM"); break;
 				case 1: strcpy(str, "AM"); break;
-				case 2: strcpy(str, "LS"); break;
-				case 3: strcpy(str, "US"); break;
+				case 2: strcpy(str, "DS"); break;
 			}
 		}
 		else
