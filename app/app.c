@@ -95,7 +95,7 @@ static void APP_update_rssi(const int vfo)
 
 	g_current_rssi[vfo] = rssi;
 
-	if (g_squelch_open)
+	if (g_squelch_open || g_monitor_enabled)
 		UI_update_rssi(rssi, vfo);
 }
 

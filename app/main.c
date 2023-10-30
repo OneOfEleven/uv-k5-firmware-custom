@@ -207,16 +207,24 @@ void processFKeyFunction(const key_code_t Key)
 			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 				APP_stop_scan();
 
-			#ifdef ENABLE_FMRADIO
-				ACTION_FM();
-			#else
+			if (g_fkey_pressed)
+			{
+				g_tx_vfo->am_mode = (g_tx_vfo->am_mode + 1) & 1u;
+				g_request_save_channel = 1;
+			}
+			else
+			{
+				#ifdef ENABLE_FMRADIO
+					ACTION_FM();
+				#else
 
 
-				// TODO: make use of this function key
+					// TODO: make use of this function key
 
 
-			#endif
-
+				#endif
+			}
+			
 			break;
 
 		case KEY_1:   // BAND
@@ -238,7 +246,7 @@ void processFKeyFunction(const key_code_t Key)
 			else
 				Band = BAND6_400MHz;      // jump to next band
 			g_tx_vfo->band = Band;
-
+	
 			g_eeprom.screen_channel[Vfo] = FREQ_CHANNEL_FIRST + Band;
 			g_eeprom.freq_channel[Vfo]   = FREQ_CHANNEL_FIRST + Band;
 
@@ -438,10 +446,10 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 					g_request_display_screen = DISPLAY_MAIN;
 				}
 
+				processFKeyFunction(Key);
+
 				g_fkey_pressed  = false;
 				g_update_status = true;
-
-				processFKeyFunction(Key);
 			}
 		}
 
@@ -456,6 +464,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 	if (g_fkey_pressed)
 	{	// F-key was first pressed
+
 		processFKeyFunction(Key);
 
 		g_fkey_pressed  = false;
@@ -798,7 +807,6 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_current_function == FUNCTION_TRANSMIT)
 	{	// RF scanning or TX'ing
-//		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
 	}
 

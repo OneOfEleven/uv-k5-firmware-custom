@@ -302,7 +302,7 @@ void UI_update_rssi(const int16_t rssi, const int vfo)
 #ifdef ENABLE_RX_SIGNAL_BAR
 	if (g_center_line == CENTER_LINE_RSSI)
 	{	// optional larger RSSI dBm, S-point and bar level
-		if (g_current_function == FUNCTION_RECEIVE)
+		if (g_current_function == FUNCTION_RECEIVE && g_squelch_open)
 		{
 			UI_DisplayRSSIBar(rssi, true);
 		}
