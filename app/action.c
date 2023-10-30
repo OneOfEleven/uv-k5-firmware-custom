@@ -346,7 +346,8 @@ void ACTION_Scan(bool bRestart)
 		if (g_current_function != FUNCTION_TRANSMIT)
 		{
 			if (g_fm_radio_mode)
-			{
+			{	// return normal service
+		
 				FM_TurnOff();
 
 				g_input_box_index = 0;
@@ -358,6 +359,8 @@ void ACTION_Scan(bool bRestart)
 				g_request_display_screen = DISPLAY_MAIN;
 				return;
 			}
+
+			// switch to FM radio mode
 
 			g_monitor_enabled = false;
 

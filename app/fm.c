@@ -706,6 +706,7 @@ void FM_Start(void)
 	g_fm_scan_state        = FM_SCAN_OFF;
 	g_fm_restore_tick_10ms = 0;
 
+	// enable the FM radio chip and audio
 	BK1080_Init(g_eeprom.fm_frequency_playing, true);
 
 	g_speaker_enabled = true;

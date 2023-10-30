@@ -104,30 +104,37 @@ uint16_t BK1080_freq_upper;
 uint16_t BK1080_BaseFrequency;
 uint16_t BK1080_FrequencyDeviation;
 
-void BK1080_Init(uint16_t Frequency, bool bDoScan)
+void BK1080_Init(const uint16_t frequency, const bool initialise)
 {
 	unsigned int i;
 
-	BK1080_freq_lower = 0xffff;
-	BK1080_freq_upper = 0;
-	for (i = 0; i < ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE); i++)
-	{
-		const unsigned int lower = FM_RADIO_FREQ_BAND_TABLE[i].lower;
-		const unsigned int upper = FM_RADIO_FREQ_BAND_TABLE[i].upper;
-
-		if (BK1080_freq_lower > lower)
-		    BK1080_freq_lower = lower;
-		if (BK1080_freq_lower > upper)
-		    BK1080_freq_lower = upper;
-
-		if (BK1080_freq_upper < lower)
-		    BK1080_freq_upper = lower;
-		if (BK1080_freq_upper < upper)
-		    BK1080_freq_upper = upper;
-	}
+	#if defined(ENABLE_FMRADIO_64_108)
+		// determine the lower and upper frequency limits
+		BK1080_freq_lower = 0xffff;
+		BK1080_freq_upper = 0;
+		for (i = 0; i < ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE); i++)
+		{
+			const unsigned int lower = FM_RADIO_FREQ_BAND_TABLE[i].lower;
+			const unsigned int upper = FM_RADIO_FREQ_BAND_TABLE[i].upper;
 	
-	if (bDoScan)
-	{
+			if (BK1080_freq_lower > lower)
+				BK1080_freq_lower = lower;
+			if (BK1080_freq_lower > upper)
+				BK1080_freq_lower = upper;
+	
+			if (BK1080_freq_upper < lower)
+				BK1080_freq_upper = lower;
+			if (BK1080_freq_upper < upper)
+				BK1080_freq_upper = upper;
+		}
+	#else
+		BK1080_freq_lower = FM_RADIO_FREQ_BAND_TABLE[0].lower;
+		BK1080_freq_upper = FM_RADIO_FREQ_BAND_TABLE[0].upper;
+	#endif
+
+	if (initialise)
+	{	// init and enable the chip
+
 		GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BK1080);
 
 		if (!is_init)
@@ -149,10 +156,11 @@ void BK1080_Init(uint16_t Frequency, bool bDoScan)
 			BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, (1u << 9) | (1u << 0));
 		}
 
-		BK1080_SetFrequency(Frequency);
+		BK1080_SetFrequency(frequency);
 	}
 	else
-	{
+	{	// disable the chip
+
 		BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, (1u << 9) | (1u << 6) | (1u << 0)); // 0x0241); // 0000 0010 0100 0001
 		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BK1080);
 	}
@@ -181,29 +189,31 @@ void BK1080_WriteRegister(BK1080_Register_t Register, uint16_t Value)
 
 void BK1080_Mute(bool Mute)
 {
-	uint16_t val = (1u << 9) | (1u << 0);
-	if (Mute)
-		val |= 1u << 14;
-	BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, val);
-	
+	BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, (1u << 9) | (1u << 0) | (Mute ? 1u << 14 : 0u));
 }
 
 void BK1080_SetFrequency(uint16_t Frequency)
 {
-	uint16_t band;
 	uint16_t channel;
+	uint16_t band = 0;
 
-	// determine which band to use
-	for (band = 0; band < ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE); band++)
-		if (Frequency >= FM_RADIO_FREQ_BAND_TABLE[band].lower && Frequency < FM_RADIO_FREQ_BAND_TABLE[band].upper)
-			break;
+//	#if (ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE) > 1)   // compiler doesn't like this :(
+	#if defined(ENABLE_FMRADIO_64_108)
+		// determine which band to use
+		for (band = 0; band < ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE); band++)
+			if (Frequency >= FM_RADIO_FREQ_BAND_TABLE[band].lower && Frequency < FM_RADIO_FREQ_BAND_TABLE[band].upper)
+				break;
 
-	if (band >= ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE))
-		return;
-	
+		if (band >= ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE))
+		{
+			Frequency = BK1080_freq_lower;
+	//		return;
+		}
+
+		BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, (SEEK_THRESHOLD << 8) | (band << 6) | (CHAN_SPACING << 4) | (VOLUME << 0));
+	#endif
+
 	channel = Frequency - FM_RADIO_FREQ_BAND_TABLE[band].lower;  // 100kHz channel spacing
-
-	BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, (SEEK_THRESHOLD << 8) | (band << 6) | (CHAN_SPACING << 4) | (VOLUME << 0));
 
 	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel);
 	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel | (1u << 15));

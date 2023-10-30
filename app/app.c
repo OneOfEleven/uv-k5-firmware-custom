@@ -469,11 +469,6 @@ bool APP_start_listening(void)
 	if (g_setting_backlight_on_tx_rx >= 2)
 		backlight_turn_on(backlight_tx_rx_time_500ms);
 
-	#ifdef ENABLE_FMRADIO
-		if (g_fm_radio_mode)
-			BK1080_Init(0, false);
-	#endif
-
 	#ifdef ENABLE_MDC1200
 //		MDC1200_reset_rx();
 	#endif
@@ -556,6 +551,11 @@ bool APP_start_listening(void)
 		#endif
 	#else
 		AUDIO_set_mod_mode(g_rx_vfo->am_mode);
+	#endif
+
+	#ifdef ENABLE_FMRADIO
+		if (g_fm_radio_mode)
+			BK1080_Init(0, false);		// disable the FM radio audio
 	#endif
 
 	// enable the speaker
