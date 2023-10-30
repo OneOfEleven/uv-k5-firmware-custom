@@ -177,7 +177,7 @@ void ACTION_Scan(bool bRestart)
 						FM_EraseChannels();
 						g_fm_auto_scan        = true;
 						g_fm_channel_position = 0;
-						Frequency             = FM_RADIO_BAND.lower;
+						Frequency             = BK1080_freq_lower;
 					}
 					else
 					{	// scan without auto store

@@ -133,7 +133,7 @@ void UI_DisplaySearch(void)
 				case SEARCH_CSS_STATE_SCANNING:	// rolling indicator
 					memset(String, 0, sizeof(String));
 					memset(String, '.', 15);
-					String[(g_search_freq_css_timer_10ms / 32) % 15] = '#';
+					String[(g_search_freq_css_tick_10ms / 32) % 15] = '#';
 					break;
 
 				case SEARCH_CSS_STATE_FOUND:

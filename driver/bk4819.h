@@ -119,7 +119,7 @@ void     BK4819_TurnsOffTones_TurnsOnRX(void);
 void     BK4819_reset_fsk(void);
 void     BK4819_Idle(void);
 void     BK4819_PrepareTransmit(void);
-void     BK4819_TxOn_Beep(void);
+void     BK4819_sub_audible(void);
 void     BK4819_ExitSubAu(void);
 
 void     BK4819_Conditional_RX_TurnOn(void);
@@ -133,7 +133,7 @@ void     BK4819_PlayDTMFString(const char *pString, bool bDelayFirst, uint16_t F
 
 void     BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency);
 
-void     BK4819_GenTail(uint8_t Tail);
+void     BK4819_GenTail(const unsigned int tail);
 void     BK4819_EnableCDCSS(void);
 void     BK4819_EnableCTCSS(void);
 

@@ -94,6 +94,8 @@ void BK4819_Init(void)
 		(58u <<  4) |     // AF Rx Gain-2
 		( 8u <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
 
+	BK4819_sub_audible();
+	
 #if 1
 	const uint8_t dtmf_coeffs[] = {111, 107, 103, 98, 80, 71, 58, 44, 65, 55, 37, 23, 228, 203, 181, 159};
 	for (unsigned int i = 0; i < ARRAY_SIZE(dtmf_coeffs); i++)
@@ -1258,18 +1260,19 @@ void BK4819_PrepareTransmit(void)
 {
 //	BK4819_ExitBypass();
 	BK4819_ExitTxMute();
-	BK4819_TxOn_Beep();
+	BK4819_sub_audible();
 }
 
-void BK4819_TxOn_Beep(void)
+void BK4819_sub_audible(void)
 {
 	BK4819_WriteRegister(0x37, 0x1D0F);  // 0001110100001111
 
-#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
-	BK4819_WriteRegister(0x52, (1u << 15) | (2u << 13) | (0u << 12) | (10u << 6) | (15u << 0));
-#else
-	BK4819_WriteRegister(0x52, (0u << 15) | (0u << 13) | (0u << 12) | (10u << 6) | (15u << 0)); // 0x028F);  // 0 00 0 001010 001111
-#endif
+	#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
+		BK4819_GenTail(2);    // 180 deg
+	#else
+//		BK4819_GenTail(4);
+		BK4819_WriteRegister(0x52, (0u << 15) | (0u << 13) | (0u << 12) | (10u << 6) | (15u << 0)); // 0x028F);  // 0 00 0 001010 001111
+	#endif
 
 	BK4819_WriteRegister(0x30, 0);
 	BK4819_WriteRegister(0x30, 
@@ -1505,11 +1508,11 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency)
 	BK4819_ExitTxMute();
 }
 
-void BK4819_GenTail(uint8_t Tail)
+void BK4819_GenTail(const unsigned int tail)
 {
 	// REG_52
 	//
-	// <15>    0 Enable 120/180/240 degree shift CTCSS or 134.4Hz Tail when CDCSS mode
+	// <15>    0 120/180/240 degree shift CTCSS or 134.4Hz Tail when CDCSS mode
 	//         0 = Normal
 	//         1 = Enable
 	//
@@ -1519,49 +1522,49 @@ void BK4819_GenTail(uint8_t Tail)
 	//         10 = CTCSS0 180° phase shift
 	//         11 = CTCSS0 240° phase shift
 	//
-	// <12>    0 CTCSSDetectionThreshold Mode
+	// <12>    0 CTCSS Detection Threshold Mode
 	//         1 = ~0.1%
 	//         0 =  0.1 Hz
 	//
-	// <11:6>  0x0A CTCSS found detect threshold
+	// <11:6>  10 CTCSS found detect threshold 0 ~ 63
 	//
-	// <5:0>   0x0F CTCSS lost  detect threshold
+	// <5:0>   15 CTCSS lost detect threshold 0 ~ 63
 
-	// REG_07 <15:0>
-	//
-	// When <13> = 0 for CTC1
-	// <12:0> = CTC1 frequency control word =
-	//                          freq(Hz) * 20.64888 for XTAL 13M/26M or
-	//                          freq(Hz) * 20.97152 for XTAL 12.8M/19.2M/25.6M/38.4M
-	//
-	// When <13> = 1 for CTC2 (Tail 55Hz Rx detection)
-	// <12:0> = CTC2 (should below 100Hz) frequency control word =
-	//                          25391 / freq(Hz) for XTAL 13M/26M or
-	//                          25000 / freq(Hz) for XTAL 12.8M/19.2M/25.6M/38.4M
-	//
-	// When <13> = 2 for CDCSS 134.4Hz
-	// <12:0> = CDCSS baud rate frequency (134.4Hz) control word =
-	//                          freq(Hz) * 20.64888 for XTAL 13M/26M or
-	//                          freq(Hz)*20.97152 for XTAL 12.8M/19.2M/25.6M/38.4M
-
-	switch (Tail)
+	uint16_t tail_phase_shift            = 1;
+	uint16_t ctcss_tail_mode_selection   = 0;
+	uint16_t ctcss_detect_threshold_mode = 0;
+//	uint16_t ctcss_found_threshold       = 10;
+//	uint16_t ctcss_lost_threshold        = 15;
+	uint16_t ctcss_found_threshold       = 20;
+	uint16_t ctcss_lost_threshold        = 30;
+	
+	switch (tail)
 	{
 		case 0: // 134.4Hz CTCSS Tail
-			BK4819_WriteRegister(0x52, 0x828F);   // 1 00 0 001010 001111
 			break;
 		case 1: // 120° phase shift
-			BK4819_WriteRegister(0x52, 0xA28F);   // 1 01 0 001010 001111
+			ctcss_tail_mode_selection = 1;
 			break;
 		case 2: // 180° phase shift
-			BK4819_WriteRegister(0x52, 0xC28F);   // 1 10 0 001010 001111
+			ctcss_tail_mode_selection = 2;
 			break;
 		case 3: // 240° phase shift
-			BK4819_WriteRegister(0x52, 0xE28F);   // 1 11 0 001010 001111
+			ctcss_tail_mode_selection = 3;
 			break;
+		default:
 		case 4: // 55Hz tone freq
-			BK4819_WriteRegister(0x07, 0x046f);   // 0 00 0 010001 101111
+			tail_phase_shift      = 0;
+			ctcss_found_threshold = 17;
+			ctcss_lost_threshold  = 47;
 			break;
 	}
+
+	BK4819_WriteRegister(0x52,
+		(tail_phase_shift            << 15) |
+		(ctcss_tail_mode_selection   << 13) |
+		(ctcss_detect_threshold_mode << 12) |
+		(ctcss_found_threshold       <<  6) |
+		(ctcss_lost_threshold        <<  0));
 }
 
 void BK4819_EnableCDCSS(void)

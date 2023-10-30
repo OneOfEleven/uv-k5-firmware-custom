@@ -49,6 +49,7 @@ ENABLE_FMRADIO_64_76             := 0       enable FM radio   64MHz ~ 76MHz
 ENABLE_FMRADIO_76_90             := 0       enable FM radio   76MHz ~ 90MHz
 ENABLE_FMRADIO_76_108            := 0       enable FM radio   76MHz ~ 108MHz
 ENABLE_FMRADIO_875_108           := 1       enable FM radio 87.5MHz ~ 108MHz
+ENABLE_FMRADIO_64_108            := 0       enable the FM radios full frequency range
 ENABLE_NOAA                      := 0       everything NOAA (only of any use in the USA)
 ENABLE_VOICE                     := 0       want to hear voices ?
 ENABLE_MUTE_RADIO_FOR_VOICE      := 1       mute the radios audio when a voice is playing

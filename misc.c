@@ -52,8 +52,8 @@ const uint8_t         key_debounce_10ms                =     30 / 10;   // 30ms
 const uint8_t         key_long_press_10ms              =    300 / 10;   // 300ms
 const uint8_t         key_repeat_10ms                  =     50 / 10;   // 50ms
 
-const uint16_t        scan_freq_css_timeout_10ms       =  10000 / 10;   // 10 seconds
-const uint8_t         scan_freq_css_delay_10ms         =    210 / 10;   // 210ms .. don't reduce this
+const uint16_t        search_freq_css_10ms             =  10000 / 10;   // 10 seconds
+const uint16_t        search_10ms                      =    210 / 10;   // 210ms .. don't reduce this
 
 #ifdef ENABLE_VOX
 	const uint16_t    dual_watch_delay_after_vox_10ms  =    200 / 10;   // 200ms

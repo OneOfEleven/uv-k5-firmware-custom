@@ -26,17 +26,6 @@ uint32_t g_aircopy_freq = 41002500;
 
 const freq_band_table_t AIR_BAND = {10800000, 13700000};
 
-// FM broadcast band lower/upper limit
-#if   defined(ENABLE_FMRADIO_64_76)
-	const freq_band_table_t FM_RADIO_BAND = {640,  760};
-#elif defined(ENABLE_FMRADIO_76_90)
-	const freq_band_table_t FM_RADIO_BAND = {760,  900};
-#elif defined(ENABLE_FMRADIO_76_108)
-	const freq_band_table_t FM_RADIO_BAND = {760, 1080};
-#elif defined(ENABLE_FMRADIO_875_108)
-	const freq_band_table_t FM_RADIO_BAND = {875, 1080};
-#endif
-
 // the BK4819 has 2 bands it covers, 18MHz ~ 630MHz and 760MHz ~ 1300MHz
 const freq_band_table_t BX4819_BAND1 = { 1800000,  63000000};
 const freq_band_table_t BX4819_BAND2 = {84000000, 130000000};

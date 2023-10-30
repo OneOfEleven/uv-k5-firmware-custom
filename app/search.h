@@ -50,12 +50,13 @@ extern search_edit_state_t g_search_edit_state;
 extern uint8_t             g_search_channel;
 extern uint32_t            g_search_frequency;
 extern step_setting_t      g_search_step_setting;
-extern uint16_t            g_search_freq_css_timer_10ms;
-extern uint8_t             g_search_delay_10ms;
+extern uint16_t            g_search_freq_css_tick_10ms;
+extern uint16_t            g_search_tick_10ms;
 extern uint8_t             g_search_hit_count;
 extern bool                g_search_use_css_result;
 
 void SEARCH_process_key(key_code_t Key, bool key_pressed, bool key_held);
+void SEARCH_process(void);
 void SEARCH_Start(void);
 
 #endif

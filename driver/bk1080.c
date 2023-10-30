@@ -19,17 +19,8 @@
 #include "driver/gpio.h"
 #include "driver/i2c.h"
 #include "driver/system.h"
+#include "frequencies.h"
 #include "misc.h"
-
-#if   defined(ENABLE_FMRADIO_64_76)
-	#define BAND           3u
-#elif defined(ENABLE_FMRADIO_76_90)
-	#define BAND           2u
-#elif defined(ENABLE_FMRADIO_76_108)
-	#define BAND           1u
-#elif defined(ENABLE_FMRADIO_875_108)
-	#define BAND           0u
-#endif
 
 //#define CHAN_SPACING     0u  // 200kHz
   #define CHAN_SPACING     1u  // 100kHz
@@ -39,6 +30,36 @@
 
 #define SEEK_THRESHOLD     10u
 
+#if defined(ENABLE_FMRADIO_64_108)
+	const freq_band_table_t FM_RADIO_FREQ_BAND_TABLE[] =
+	{
+		{875, 1080},
+		{760, 1080},
+		{760,  900},
+		{640,  760}
+	};
+#elif defined(ENABLE_FMRADIO_875_108)
+	const freq_band_table_t FM_RADIO_FREQ_BAND_TABLE[] =
+	{
+		{875, 1080}
+	};
+#elif defined(ENABLE_FMRADIO_76_108)
+	const freq_band_table_t FM_RADIO_FREQ_BAND_TABLE[] =
+	{
+		{760, 1080}
+	};
+#elif defined(ENABLE_FMRADIO_76_90)
+	const freq_band_table_t FM_RADIO_FREQ_BAND_TABLE[] =
+	{
+		{760,  900}
+	};
+#elif defined(ENABLE_FMRADIO_64_76)
+	const freq_band_table_t FM_RADIO_FREQ_BAND_TABLE[] =
+	{
+		{640,  760}
+	};
+#endif
+
 static const uint16_t BK1080_RegisterTable[] =
 {
 	0x0008,                 // 0x00
@@ -46,7 +67,7 @@ static const uint16_t BK1080_RegisterTable[] =
 	(1u << 9) | (1u << 0),  // 0x02   0x0201  0000001000000001
 	0x0000,                 // 0x03
 	0x40C0,                 // 0x04   0100000011000000
-	(SEEK_THRESHOLD << 8) | (BAND << 6) | (CHAN_SPACING << 4) | (VOLUME << 0), // 0x0A1F,  // 0x05  00001010 00 01 1111
+	(SEEK_THRESHOLD << 8) | (0u << 6) | (CHAN_SPACING << 4) | (VOLUME << 0), // 0x0A1F,  // 0x05  00001010 00 01 1111
 	0x002E,                 // 0x06   0000000000101110
 	0x02FF,                 // 0x07   0000001011111111
 	0x5B11,                 // 0x08   0101101100010001
@@ -78,6 +99,8 @@ static const uint16_t BK1080_RegisterTable[] =
 };
 
 bool     is_init;
+uint16_t BK1080_freq_lower;
+uint16_t BK1080_freq_upper;
 uint16_t BK1080_BaseFrequency;
 uint16_t BK1080_FrequencyDeviation;
 
@@ -85,6 +108,24 @@ void BK1080_Init(uint16_t Frequency, bool bDoScan)
 {
 	unsigned int i;
 
+	BK1080_freq_lower = 0xffff;
+	BK1080_freq_upper = 0;
+	for (i = 0; i < ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE); i++)
+	{
+		const unsigned int lower = FM_RADIO_FREQ_BAND_TABLE[i].lower;
+		const unsigned int upper = FM_RADIO_FREQ_BAND_TABLE[i].upper;
+
+		if (BK1080_freq_lower > lower)
+		    BK1080_freq_lower = lower;
+		if (BK1080_freq_lower > upper)
+		    BK1080_freq_lower = upper;
+
+		if (BK1080_freq_upper < lower)
+		    BK1080_freq_upper = lower;
+		if (BK1080_freq_upper < upper)
+		    BK1080_freq_upper = upper;
+	}
+	
 	if (bDoScan)
 	{
 		GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BK1080);
@@ -108,9 +149,6 @@ void BK1080_Init(uint16_t Frequency, bool bDoScan)
 			BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, (1u << 9) | (1u << 0));
 		}
 
-//		BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, 0x0A5F);
-		BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, (SEEK_THRESHOLD << 8) | (BAND << 6) | (CHAN_SPACING << 4) | (VOLUME << 0));
-
 		BK1080_SetFrequency(Frequency);
 	}
 	else
@@ -128,7 +166,6 @@ uint16_t BK1080_ReadRegister(BK1080_Register_t Register)
 	I2C_Write((Register << 1) | I2C_READ);
 	I2C_ReadBuffer(Value, sizeof(Value));
 	I2C_Stop();
-
 	return (Value[0] << 8) | Value[1];
 }
 
@@ -153,27 +190,22 @@ void BK1080_Mute(bool Mute)
 
 void BK1080_SetFrequency(uint16_t Frequency)
 {
-#if   defined(ENABLE_FMRADIO_64_76)
+	uint16_t band;
+	uint16_t channel;
 
-	const uint16_t channel = Frequency - 640;  // 100kHz channel spacing
+	// determine which band to use
+	for (band = 0; band < ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE); band++)
+		if (Frequency >= FM_RADIO_FREQ_BAND_TABLE[band].lower && Frequency < FM_RADIO_FREQ_BAND_TABLE[band].upper)
+			break;
 
-#elif defined(ENABLE_FMRADIO_76_90)
+	if (band >= ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE))
+		return;
+	
+	channel = Frequency - FM_RADIO_FREQ_BAND_TABLE[band].lower;  // 100kHz channel spacing
 
-	const uint16_t channel = Frequency - 760;  // 100kHz channel spacing
-
-#elif defined(ENABLE_FMRADIO_76_108)
-
-	const uint16_t channel = Frequency - 760;  // 100kHz channel spacing
-
-#elif defined(ENABLE_FMRADIO_875_108)
-
-//	const uint16_t channel = Frequency - 760;
-	const uint16_t channel = Frequency - 875;  // 100kHz channel spacing
-
-#endif
+	BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, (SEEK_THRESHOLD << 8) | (band << 6) | (CHAN_SPACING << 4) | (VOLUME << 0));
 
 	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel);
-//	SYSTEM_DelayMs(10);
 	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel | (1u << 15));
 }
 

@@ -140,8 +140,8 @@ extern const uint8_t         key_debounce_10ms;
 extern const uint8_t         key_long_press_10ms;
 extern const uint8_t         key_repeat_10ms;
 
-extern const uint16_t        scan_freq_css_timeout_10ms;
-extern const uint8_t         scan_freq_css_delay_10ms;
+extern const uint16_t        search_freq_css_10ms;
+extern const uint16_t        search_10ms;
 
 extern const uint16_t        battery_save_count_10ms;
 

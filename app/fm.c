@@ -52,7 +52,7 @@ uint16_t          g_fm_restore_tick_10ms;
 
 bool FM_CheckValidChannel(uint8_t Channel)
 {
-	return (Channel < ARRAY_SIZE(g_fm_channels) && (g_fm_channels[Channel] >= FM_RADIO_BAND.lower && g_fm_channels[Channel] < FM_RADIO_BAND.upper)) ? true : false;
+	return (Channel < ARRAY_SIZE(g_fm_channels) && (g_fm_channels[Channel] >= BK1080_freq_lower && g_fm_channels[Channel] < BK1080_freq_upper)) ? true : false;
 }
 
 uint8_t FM_FindNextChannel(uint8_t Channel, uint8_t Direction)
@@ -142,11 +142,11 @@ void FM_Tune(uint16_t Frequency, int8_t Step, bool flag)
 	if (!flag)
 	{
 		Frequency += Step;
-		if (Frequency < FM_RADIO_BAND.lower)
-			Frequency = FM_RADIO_BAND.upper;
+		if (Frequency < BK1080_freq_lower)
+			Frequency = BK1080_freq_upper - 1u;
 		else
-		if (Frequency > FM_RADIO_BAND.upper)
-			Frequency = FM_RADIO_BAND.lower;
+		if (Frequency > (BK1080_freq_upper - 1u))
+			Frequency =  BK1080_freq_lower;
 
 		g_eeprom.fm_frequency_playing = Frequency;
 	}
@@ -294,11 +294,10 @@ static void FM_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 				Frequency /= 10000;
 
-				if (Frequency < FM_RADIO_BAND.lower || Frequency > FM_RADIO_BAND.upper)
-				{
-					g_request_display_screen = DISPLAY_FM;
-					return;
-				}
+				if (Frequency <  BK1080_freq_lower)
+					Frequency =  BK1080_freq_lower;
+				if (Frequency > (BK1080_freq_upper - 1u))
+					Frequency =  BK1080_freq_upper - 1u;
 
 				g_eeprom.fm_selected_frequency = (uint16_t)Frequency;
 
@@ -603,11 +602,11 @@ static void FM_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Step)
 	else
 	{	// no, frequency mode
 		uint16_t Frequency = g_eeprom.fm_selected_frequency + Step;
-		if (Frequency < FM_RADIO_BAND.lower)
-			Frequency = FM_RADIO_BAND.upper;
+		if (Frequency < BK1080_freq_lower)
+			Frequency = BK1080_freq_upper - 1u;
 		else
-		if (Frequency > FM_RADIO_BAND.upper)
-			Frequency = FM_RADIO_BAND.lower;
+		if (Frequency > (BK1080_freq_upper - 1u))
+			Frequency =  BK1080_freq_lower;
 
 		g_eeprom.fm_frequency_playing  = Frequency;
 		g_eeprom.fm_selected_frequency = g_eeprom.fm_frequency_playing;
@@ -665,12 +664,12 @@ void FM_process_key(key_code_t Key, bool key_pressed, bool key_held)
 
 void FM_Play(void)
 {
-	if (!FM_CheckFrequencyLock(g_eeprom.fm_frequency_playing, FM_RADIO_BAND.lower))
+	if (!FM_CheckFrequencyLock(g_eeprom.fm_frequency_playing, BK1080_freq_lower))
 	{
 		if (!g_fm_auto_scan)
 		{
-			g_fm_play_tick_10ms = 0;
-			g_fm_found_frequency      = true;
+			g_fm_play_tick_10ms  = 0;
+			g_fm_found_frequency = true;
 
 			if (!g_eeprom.fm_channel_mode)
 				g_eeprom.fm_selected_frequency = g_eeprom.fm_frequency_playing;
@@ -693,7 +692,7 @@ void FM_Play(void)
 		}
 	}
 
-	if (g_fm_auto_scan && g_eeprom.fm_frequency_playing >= FM_RADIO_BAND.upper)
+	if (g_fm_auto_scan && g_eeprom.fm_frequency_playing > (BK1080_freq_upper - 1))
 		FM_PlayAndUpdate();
 	else
 		FM_Tune(g_eeprom.fm_frequency_playing, g_fm_scan_state, false);

@@ -22,6 +22,8 @@
 
 #include "driver/bk1080-regs.h"
 
+extern uint16_t BK1080_freq_lower;
+extern uint16_t BK1080_freq_upper;
 extern uint16_t BK1080_BaseFrequency;
 extern uint16_t BK1080_FrequencyDeviation;
 

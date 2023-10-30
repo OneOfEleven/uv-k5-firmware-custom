@@ -14,6 +14,8 @@
  *     limitations under the License.
  */
 
+#include <stdlib.h>  // abs()
+
 #include "app/dtmf.h"
 #include "app/generic.h"
 #include "app/search.h"
@@ -43,9 +45,10 @@ bool                g_search_flag_stop_scan;
 uint8_t             g_search_show_chan_prefix;
 
 bool                g_search_single_frequency;
-uint16_t            g_search_freq_css_timer_10ms;
-uint8_t             g_search_delay_10ms;
 uint8_t             g_search_hit_count;
+
+uint16_t            g_search_freq_css_tick_10ms;
+uint16_t            g_search_tick_10ms;
 
 search_edit_state_t g_search_edit_state;
 
@@ -55,8 +58,12 @@ step_setting_t      g_search_step_setting;
 
 static void SEARCH_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 {
-	if (key_held || key_pressed)
+	if (key_pressed)
+	{
+		if (!key_held)
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
+	}
 
 	if (g_search_edit_state == SEARCH_EDIT_STATE_SAVE_CHAN)
 	{
@@ -90,15 +97,17 @@ static void SEARCH_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		}
 	}
 
-	g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//	g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 }
 
 static void SEARCH_Key_EXIT(bool key_pressed, bool key_held)
 {
-	if (key_held || key_pressed)
+	if (key_pressed)
+	{
+		if (!key_held)
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
-
-	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
+	}
 
 	switch (g_search_edit_state)
 	{
@@ -146,29 +155,23 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 {
 	uint8_t Channel;
 
-	if (key_held || key_pressed)
+	if (key_pressed)
+	{
+		if (!key_held)
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
+	}
 
+	// key released
+	
 	if (g_search_css_state == SEARCH_CSS_STATE_OFF && !g_search_single_frequency)
-	{
-		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
-	}
 
-	if (g_search_css_state == SEARCH_CSS_STATE_SCANNING)
-	{
-		if (g_search_single_frequency)
-		{
-			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
-			return;
-		}
-	}
-
+	if (g_search_css_state == SEARCH_CSS_STATE_SCANNING && g_search_single_frequency)
+		return;
+	
 	if (g_search_css_state == SEARCH_CSS_STATE_FAILED && g_search_single_frequency)
-	{
-		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
-	}
 
 	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
@@ -210,7 +213,7 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 			#endif
 
 			g_request_display_screen = DISPLAY_SEARCH;
-			g_update_status = true;
+			g_update_status          = true;
 			break;
 
 		case SEARCH_EDIT_STATE_SAVE_CHAN:
@@ -220,16 +223,16 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 
 			if (g_input_box_index > 0)
 				break;
-			
+
 			if (g_input_box_index == 0)
 			{
 				g_search_edit_state      = SEARCH_EDIT_STATE_SAVE_CONFIRM;
 				g_beep_to_play           = BEEP_1KHZ_60MS_OPTIONAL;
 				g_request_display_screen = DISPLAY_SEARCH;
 			}
-			
+
 			// Fallthrough
-			
+
 //			break;
 
 		case SEARCH_EDIT_STATE_SAVE_CONFIRM:
@@ -295,21 +298,22 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 			}
 
 			g_update_display = true;
-			
 			break;
 
 		default:
-			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 			break;
 	}
 }
 
 static void SEARCH_Key_STAR(bool key_pressed, bool key_held)
 {
-	if (key_held || key_pressed)
+	if (key_pressed)
+	{
+		if (!key_held)
+			g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 		return;
+	}
 
-	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 	g_search_flag_start_scan = true;
 }
 
@@ -374,8 +378,215 @@ void SEARCH_process_key(key_code_t Key, bool key_pressed, bool key_held)
 			GENERIC_Key_PTT(key_pressed);
 			break;
 		default:
-			if (!key_held && key_pressed)
-				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+//			if (!key_held && key_pressed)
+//				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+			break;
+	}
+}
+
+void SEARCH_process(void)
+{
+	uint32_t                 result;
+	int32_t                  delta;
+	uint16_t                 ctcss_freq;
+	BK4819_CSS_scan_result_t scan_result;
+
+	switch (g_search_css_state)
+	{
+		case SEARCH_CSS_STATE_OFF:
+
+			if (g_search_freq_css_tick_10ms >= search_freq_css_10ms)
+			{	// FREQ/CTCSS/CDCSS search timeout
+
+				if (!g_search_single_frequency)
+				{	// FREQ search timeout
+
+					#ifdef ENABLE_FREQ_SEARCH_TIMEOUT
+						BK4819_DisableFrequencyScan();
+
+						g_search_css_state = SEARCH_CSS_STATE_FREQ_FAILED;
+
+						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+						g_update_status  = true;
+						g_update_display = true;
+						break;
+					#endif
+				}
+				else
+				{	// CTCSS/CDCSS search timeout
+
+					#ifdef ENABLE_CODE_SEARCH_TIMEOUT
+						BK4819_DisableFrequencyScan();
+
+						g_search_css_state = SEARCH_CSS_STATE_FREQ_FAILED;
+
+						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+						g_update_status  = true;
+						g_update_display = true;
+						break;
+					#endif
+				}
+			}
+
+			if (!BK4819_GetFrequencyScanResult(&result))
+				break;   // still scanning
+
+			// accept only within 1kHz
+			delta = result - g_search_frequency;
+			g_search_hit_count = (abs(delta) < 100) ? g_search_hit_count + 1 : 0;
+
+			BK4819_DisableFrequencyScan();
+
+			g_search_frequency = result;
+
+			if (g_search_hit_count < 3)
+			{	// keep scanning for an RF carrier
+				BK4819_EnableFrequencyScan();
+			}
+			else
+			{	// 3 matching consecutive results
+				//
+				// RF carrier found, move on to CTCSS/CDCSS search
+
+				BK4819_SetScanFrequency(g_search_frequency);
+
+				g_search_css_result_type    = CODE_TYPE_NONE;
+				g_search_css_result_code    = 0xff;
+				g_search_hit_count          = 0;
+				g_search_use_css_result     = false;
+				g_search_freq_css_tick_10ms = 0;
+				g_search_css_state          = SEARCH_CSS_STATE_SCANNING;
+
+				g_update_status  = true;
+				g_update_display = true;
+				GUI_SelectNextDisplay(DISPLAY_SEARCH);
+			}
+
+			g_search_tick_10ms = search_10ms;
+			break;
+
+		case SEARCH_CSS_STATE_SCANNING:
+
+			if (g_search_freq_css_tick_10ms >= search_freq_css_10ms)
+			{	// CTCSS/CDCSS search timeout
+
+				#if defined(ENABLE_CODE_SEARCH_TIMEOUT)
+					g_search_css_state       = SEARCH_CSS_STATE_FAILED;
+//					g_search_hit_count       = 0;
+//					g_search_css_result_type = CODE_TYPE_NONE;
+//					g_search_css_result_code = 0xff;
+//					g_search_use_css_result  = false;
+
+					BK4819_Idle();
+
+					AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+					g_update_status  = true;
+					g_update_display = true;
+					break;
+
+				#else
+					if (!g_search_single_frequency)
+					{
+						g_search_css_state = SEARCH_CSS_STATE_FAILED;
+
+						BK4819_Idle();
+
+						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+						g_update_status  = true;
+						g_update_display = true;
+						break;
+					}
+				#endif
+			}
+
+			scan_result = BK4819_GetCxCSSScanResult(&result, &ctcss_freq);
+			if (scan_result == BK4819_CSS_RESULT_NOT_FOUND)
+				break;
+
+			BK4819_Idle();
+
+			if (scan_result == BK4819_CSS_RESULT_CDCSS)
+			{	// found a CDCSS code
+
+				const uint8_t code = DCS_GetCdcssCode(result);
+				if (code != 0xFF)
+				{
+					g_search_hit_count       = 0;
+					g_search_css_result_type = CODE_TYPE_DIGITAL;
+					g_search_css_result_code = code;
+					g_search_css_state       = SEARCH_CSS_STATE_FOUND;
+					g_search_use_css_result  = true;
+
+					AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+					g_update_status  = true;
+					g_update_display = true;
+				}
+				else
+				{
+					g_search_hit_count       = 0;
+					g_search_css_result_type = CODE_TYPE_NONE;
+					g_search_css_result_code = 0xff;
+					g_search_use_css_result  = false;
+				}
+			}
+			else
+			if (scan_result == BK4819_CSS_RESULT_CTCSS)
+			{	// found a CTCSS tone
+
+				const uint8_t code = DCS_GetCtcssCode(ctcss_freq);
+				if (code != 0xFF)
+				{
+					if (code == g_search_css_result_code && g_search_css_result_type == CODE_TYPE_CONTINUOUS_TONE)
+					{	// same code
+
+						if (++g_search_hit_count >= 3)
+						{	// 3 matching consecutive results
+
+							g_search_css_state      = SEARCH_CSS_STATE_FOUND;
+							g_search_use_css_result = true;
+
+							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+							g_update_status  = true;
+							g_update_display = true;
+						}
+					}
+					else
+					{	// reset
+						g_search_hit_count       = 1;
+						g_search_css_result_type = CODE_TYPE_CONTINUOUS_TONE;
+						g_search_css_result_code = code;
+						g_search_use_css_result  = false;
+					}
+				}
+				else
+				{	// reset
+					g_search_hit_count       = 0;
+					g_search_css_result_type = CODE_TYPE_NONE;
+					g_search_css_result_code = 0xff;
+					g_search_use_css_result  = false;
+				}
+			}
+
+			if (g_search_css_state == SEARCH_CSS_STATE_OFF || g_search_css_state == SEARCH_CSS_STATE_SCANNING)
+			{	// re-start scan
+
+				BK4819_SetScanFrequency(g_search_frequency);
+				g_search_tick_10ms = search_10ms;
+			}
+
+			GUI_SelectNextDisplay(DISPLAY_SEARCH);
+			break;
+
+		//case SEARCH_CSS_STATE_FOUND:
+		//case SEARCH_CSS_STATE_FAILED:
+		//case SEARCH_CSS_STATE_REPEAT:
+		default:
 			break;
 	}
 }
@@ -438,24 +649,24 @@ void SEARCH_Start(void)
 
 	DTMF_clear_RX();
 
-	#ifdef ENABLE_VOX            
-		g_vox_lost               = false;
-	#endif                       
+	#ifdef ENABLE_VOX
+		g_vox_lost              = false;
+	#endif
 
-	g_cxcss_tail_found           = false;
-	g_cdcss_lost                 = false;
-	g_cdcss_code_type            = 0;
-	g_ctcss_lost                 = false;
+	g_cxcss_tail_found          = false;
+	g_cdcss_lost                = false;
+	g_cdcss_code_type           = 0;
+	g_ctcss_lost                = false;
 
-	g_squelch_open               = false;
-	g_search_delay_10ms          = scan_freq_css_delay_10ms;
-	g_search_css_result_type     = CODE_TYPE_NONE;
-	g_search_css_result_code     = 0xff;
-	g_search_hit_count           = 0;
-	g_search_use_css_result      = false;
-	g_search_edit_state          = SEARCH_EDIT_STATE_NONE;
-	g_search_freq_css_timer_10ms = 0;
-//	g_search_flag_start_scan     = false;
+	g_squelch_open              = false;
+	g_search_css_result_type    = CODE_TYPE_NONE;
+	g_search_css_result_code    = 0xff;
+	g_search_hit_count          = 0;
+	g_search_use_css_result     = false;
+	g_search_edit_state         = SEARCH_EDIT_STATE_NONE;
+	g_search_freq_css_tick_10ms = 0;
+	g_search_tick_10ms          = search_10ms;
+//	g_search_flag_start_scan    = false;
 
 	g_request_display_screen = DISPLAY_SEARCH;
 	g_update_status          = true;

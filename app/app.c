@@ -1595,19 +1595,14 @@ void APP_process_scan(void)
 
 void APP_process_search(void)
 {
-	uint32_t                 Result;
-	int32_t                  Delta;
-	uint16_t                 CtcssFreq;
-	BK4819_CSS_scan_result_t ScanResult;
-
 	if (g_current_display_screen != DISPLAY_SEARCH)
 		return;
 
-	g_search_freq_css_timer_10ms++;
+	g_search_freq_css_tick_10ms++;
 
-	if (g_search_delay_10ms > 0)
+	if (g_search_tick_10ms > 0)
 	{
-		if (--g_search_delay_10ms > 0)
+		if (--g_search_tick_10ms > 0)
 		{
 			APP_check_keys();
 			return;
@@ -1623,189 +1618,7 @@ void APP_process_search(void)
 	g_update_display = true;
 	GUI_SelectNextDisplay(DISPLAY_SEARCH);
 
-	switch (g_search_css_state)
-	{
-		case SEARCH_CSS_STATE_OFF:
-
-			if (g_search_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
-			{	// FREQ/CTCSS/CDCSS search timeout
-
-				if (!g_search_single_frequency)
-				{	// FREQ search timeout
-					#ifdef ENABLE_FREQ_SEARCH_TIMEOUT
-						BK4819_DisableFrequencyScan();
-
-						g_search_css_state = SEARCH_CSS_STATE_FREQ_FAILED;
-
-						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-						g_update_status  = true;
-						g_update_display = true;
-						break;
-					#endif
-				}
-				else
-				{	// CTCSS/CDCSS search timeout
-					#ifdef ENABLE_CODE_SEARCH_TIMEOUT
-						BK4819_DisableFrequencyScan();
-
-						g_search_css_state = SEARCH_CSS_STATE_FREQ_FAILED;
-
-						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-						g_update_status  = true;
-						g_update_display = true;
-						break;
-					#endif
-				}
-			}
-
-			if (!BK4819_GetFrequencyScanResult(&Result))
-				break;   // still scanning
-
-			// accept only within 1kHz
-			Delta = Result - g_search_frequency;
-			g_search_hit_count = (abs(Delta) < 100) ? g_search_hit_count + 1 : 0;
-
-			BK4819_DisableFrequencyScan();
-
-			g_search_frequency = Result;
-
-			if (g_search_hit_count < 3)
-			{	// keep scanning for an RF carrier
-				BK4819_EnableFrequencyScan();
-			}
-			else
-			{	// RF carrier found
-				//
-				// stop RF search and start CTCSS/CDCSS search
-
-				BK4819_SetScanFrequency(g_search_frequency);
-
-				g_search_css_result_type     = CODE_TYPE_NONE;
-				g_search_css_result_code     = 0xff;
-				g_search_hit_count           = 0;
-				g_search_use_css_result      = false;
-				g_search_freq_css_timer_10ms = 0;
-				g_search_css_state           = SEARCH_CSS_STATE_SCANNING;
-
-				g_update_status  = true;
-				g_update_display = true;
-				GUI_SelectNextDisplay(DISPLAY_SEARCH);
-			}
-
-			g_search_delay_10ms = scan_freq_css_delay_10ms;
-			break;
-
-		case SEARCH_CSS_STATE_SCANNING:
-
-			if (g_search_freq_css_timer_10ms >= scan_freq_css_timeout_10ms)
-			{	// CTCSS/CDCSS search timeout
-
-				#if defined(ENABLE_CODE_SEARCH_TIMEOUT)
-					g_search_css_state = SEARCH_CSS_STATE_FAILED;
-
-					BK4819_Idle();
-
-					AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-					g_update_status  = true;
-					g_update_display = true;
-					break;
-
-				#else
-					if (!g_search_single_frequency)
-					{
-						g_search_css_state = SEARCH_CSS_STATE_FAILED;
-
-						BK4819_Idle();
-
-						AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-						g_update_status  = true;
-						g_update_display = true;
-						break;
-					}
-				#endif
-			}
-
-			ScanResult = BK4819_GetCxCSSScanResult(&Result, &CtcssFreq);
-			if (ScanResult == BK4819_CSS_RESULT_NOT_FOUND)
-				break;
-
-			BK4819_Idle();
-
-			if (ScanResult == BK4819_CSS_RESULT_CDCSS)
-			{	// found a CDCSS code
-				const uint8_t code = DCS_GetCdcssCode(Result);
-				if (code != 0xFF)
-				{
-					g_search_hit_count       = 0;
-					g_search_css_result_type = CODE_TYPE_DIGITAL;
-					g_search_css_result_code = code;
-					g_search_css_state       = SEARCH_CSS_STATE_FOUND;
-					g_search_use_css_result  = true;
-
-					AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-					g_update_status  = true;
-					g_update_display = true;
-				}
-				else
-				{
-					g_search_hit_count       = 0;
-					g_search_css_result_type = CODE_TYPE_NONE;
-					g_search_css_result_code = code;
-					g_search_use_css_result  = false;
-				}
-			}
-			else
-			if (ScanResult == BK4819_CSS_RESULT_CTCSS)
-			{	// found a CTCSS tone
-				const uint8_t code = DCS_GetCtcssCode(CtcssFreq);
-				if (code != 0xFF)
-				{
-					if (code == g_search_css_result_code &&
-					    g_search_css_result_type == CODE_TYPE_CONTINUOUS_TONE)
-					{
-						if (++g_search_hit_count >= 3)
-						{
-							g_search_css_state      = SEARCH_CSS_STATE_FOUND;
-							g_search_use_css_result = true;
-
-							AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-							g_update_status  = true;
-							g_update_display = true;
-						}
-					}
-					else
-					{
-						g_search_hit_count       = 1;
-						g_search_css_result_type = CODE_TYPE_CONTINUOUS_TONE;
-						g_search_css_result_code = code;
-						g_search_use_css_result  = false;
-					}
-				}
-				else
-				{
-					g_search_hit_count       = 0;
-					g_search_css_result_type = CODE_TYPE_NONE;
-					g_search_css_result_code = 0xff;
-					g_search_use_css_result  = false;
-				}
-			}
-
-			if (g_search_css_state == SEARCH_CSS_STATE_OFF ||
-			    g_search_css_state == SEARCH_CSS_STATE_SCANNING)
-			{	// re-start scan
-				BK4819_SetScanFrequency(g_search_frequency);
-				g_search_delay_10ms = scan_freq_css_delay_10ms;
-			}
-
-			GUI_SelectNextDisplay(DISPLAY_SEARCH);
-			break;
-
-		//case SEARCH_CSS_STATE_FOUND:
-		//case SEARCH_CSS_STATE_FAILED:
-		//case SEARCH_CSS_STATE_REPEAT:
-		default:
-			break;
-	}
+	SEARCH_process();
 }
 
 void APP_process_transmit(void)
