@@ -1703,7 +1703,7 @@ void APP_process_search(void)
 				#if defined(ENABLE_CODE_SEARCH_TIMEOUT)
 					g_search_css_state = SEARCH_CSS_STATE_FAILED;
 
-					BK4819_Disable();
+					BK4819_Idle();
 
 					AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 					g_update_status  = true;
