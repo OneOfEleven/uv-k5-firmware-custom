@@ -201,10 +201,14 @@ bool                  g_flag_save_channel;
 #ifdef ENABLE_FMRADIO
 	bool              g_flag_save_fm;
 #endif
+
 bool                  g_cdcss_lost;
 uint8_t               g_cdcss_code_type;
 bool                  g_ctcss_lost;
 bool                  g_cxcss_tail_found;
+uint8_t               g_ctcss_tail_phase_shift_rx;
+
+
 #ifdef ENABLE_VOX
 	bool              g_vox_lost;
 	bool              g_vox_noise_detected;

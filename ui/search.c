@@ -96,11 +96,11 @@ void UI_DisplaySearch(void)
 					case CODE_TYPE_NONE:
 						break;
 					case CODE_TYPE_CONTINUOUS_TONE:
-						sprintf(String, "CTCSS %u.%uHz", CTCSS_OPTIONS[g_search_css_result_code] / 10, CTCSS_OPTIONS[g_search_css_result_code] % 10);
+						sprintf(String, "CTCSS %u.%uHz", CTCSS_TONE_LIST[g_search_css_result_code] / 10, CTCSS_TONE_LIST[g_search_css_result_code] % 10);
 						break;
 					case CODE_TYPE_DIGITAL:
 					case CODE_TYPE_REVERSE_DIGITAL:
-						sprintf(String, "CDCSS D%03oN", DCS_OPTIONS[g_search_css_result_code]);
+						sprintf(String, "CDCSS D%03oN", DCS_CODE_LIST[g_search_css_result_code]);
 						break;
 				}
 			}				

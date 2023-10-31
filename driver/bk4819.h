@@ -72,9 +72,9 @@ void     BK4819_EnableAGC(void);
 
 void     BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet);
 
-void     BK4819_SetCDCSSCodeWord(uint32_t CodeWord);
-void     BK4819_SetCTCSSFrequency(uint32_t BaudRate);
-void     BK4819_SetTailDetection(const uint32_t freq_10Hz);
+void     BK4819_set_CDCSS_code(const uint32_t control_word);
+void     BK4819_set_CTCSS_freq(const uint32_t control_word);
+void     BK4819_set_tail_detection(const uint32_t freq_10Hz);
 void     BK4819_EnableVox(uint16_t Vox1Threshold, uint16_t Vox0Threshold);
 
 void     BK4819_set_TX_deviation(const bool narrow);
@@ -120,8 +120,12 @@ void     BK4819_TurnsOffTones_TurnsOnRX(void);
 void     BK4819_reset_fsk(void);
 void     BK4819_Idle(void);
 void     BK4819_PrepareTransmit(void);
-void     BK4819_sub_audible(void);
-void     BK4819_ExitSubAu(void);
+
+void     BK4819_config_sub_audible(void);
+void     BK4819_gen_tail(const unsigned int tail);
+void     BK4819_enable_CDCSS_tail(void);
+void     BK4819_enable_CTCSS_tail(void);
+void     BK4819_disable_sub_audible(void);
 
 void     BK4819_Conditional_RX_TurnOn(void);
 
@@ -134,10 +138,6 @@ void     BK4819_PlayDTMFString(const char *pString, bool bDelayFirst, uint16_t F
 
 void     BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency);
 
-void     BK4819_GenTail(const unsigned int tail);
-void     BK4819_EnableCDCSS(void);
-void     BK4819_EnableCTCSS(void);
-
 uint16_t BK4819_GetRSSI(void);
 uint8_t  BK4819_GetGlitchIndicator(void);
 uint8_t  BK4819_GetExNoiceIndicator(void);
@@ -148,7 +148,7 @@ bool     BK4819_GetFrequencyScanResult(uint32_t *pFrequency);
 BK4819_CSS_scan_result_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_t *pCtcssFreq);
 void     BK4819_DisableFrequencyScan(void);
 void     BK4819_EnableFrequencyScan(void);
-void     BK4819_SetScanFrequency(uint32_t Frequency);
+void     BK4819_set_scan_frequency(uint32_t Frequency);
 
 void     BK4819_StopScan(void);
 

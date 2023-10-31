@@ -450,7 +450,7 @@ void SEARCH_process(void)
 				//
 				// RF carrier found, move on to CTCSS/CDCSS search
 
-				BK4819_SetScanFrequency(g_search_frequency);
+				BK4819_set_scan_frequency(g_search_frequency);
 
 				g_search_css_result_type    = CODE_TYPE_NONE;
 				g_search_css_result_code    = 0xff;
@@ -576,7 +576,7 @@ void SEARCH_process(void)
 			if (g_search_css_state == SEARCH_CSS_STATE_OFF || g_search_css_state == SEARCH_CSS_STATE_SCANNING)
 			{	// re-start scan
 
-				BK4819_SetScanFrequency(g_search_frequency);
+				BK4819_set_scan_frequency(g_search_frequency);
 				g_search_tick_10ms = search_10ms;
 			}
 
@@ -630,7 +630,7 @@ void SEARCH_Start(void)
 
 		BK4819_set_rf_filter_path(g_search_frequency);
 
-		BK4819_SetScanFrequency(g_search_frequency);
+		BK4819_set_scan_frequency(g_search_frequency);
 	}
 	else
 	{

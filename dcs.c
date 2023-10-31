@@ -21,7 +21,7 @@
 #endif
 
 // CTCSS Hz * 10
-const uint16_t CTCSS_OPTIONS[50] = {
+const uint16_t CTCSS_TONE_LIST[50] = {
 	 670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
 	 948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,
 	1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
@@ -29,7 +29,7 @@ const uint16_t CTCSS_OPTIONS[50] = {
 	2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541
 };
 
-const uint16_t DCS_OPTIONS[104] = {
+const uint16_t DCS_CODE_LIST[104] = {
 	0x0013, 0x0015, 0x0016, 0x0019, 0x001A, 0x001E, 0x0023, 0x0027,
 	0x0029, 0x002B, 0x002C, 0x0035, 0x0039, 0x003A, 0x003B, 0x003C,
 	0x004C, 0x004D, 0x004E, 0x0052, 0x0055, 0x0059, 0x005A, 0x005C,
@@ -60,7 +60,7 @@ static uint32_t DCS_CalculateGolay(uint32_t CodeWord)
 
 uint32_t DCS_GetGolayCodeWord(dcs_code_type_t code_type, uint8_t Option)
 {
-	uint32_t code = DCS_CalculateGolay(DCS_OPTIONS[Option] + 0x800U);
+	uint32_t code = DCS_CalculateGolay(DCS_CODE_LIST[Option] + 0x800U);
 	if (code_type == CODE_TYPE_REVERSE_DIGITAL)
 		code ^= 0x7FFFFF;
 	return code;
@@ -76,8 +76,8 @@ uint8_t DCS_GetCdcssCode(uint32_t Code)
 		if (((Code >> 9) & 0x7U) == 4)
 		{
 			unsigned int j;
-			for (j = 0; j < ARRAY_SIZE(DCS_OPTIONS); j++)
-				if (DCS_OPTIONS[j] == (Code & 0x1FF))
+			for (j = 0; j < ARRAY_SIZE(DCS_CODE_LIST); j++)
+				if (DCS_CODE_LIST[j] == (Code & 0x1FF))
 					if (DCS_GetGolayCodeWord(2, j) == Code)
 						return j;
 		}
@@ -95,13 +95,13 @@ uint8_t DCS_GetCtcssCode(int Code)
 {
 	unsigned int i;
 	uint8_t      Result = 0xFF;
-	int          Smallest = ARRAY_SIZE(CTCSS_OPTIONS);
+	int          Smallest = ARRAY_SIZE(CTCSS_TONE_LIST);
 
-	for (i = 0; i < ARRAY_SIZE(CTCSS_OPTIONS); i++)
+	for (i = 0; i < ARRAY_SIZE(CTCSS_TONE_LIST); i++)
 	{
-		int Delta = Code - CTCSS_OPTIONS[i];
+		int Delta = Code - CTCSS_TONE_LIST[i];
 		if (Delta < 0)
-			Delta = -(Code - CTCSS_OPTIONS[i]);
+			Delta = -(Code - CTCSS_TONE_LIST[i]);
 		if (Smallest > Delta)
 		{
 			Smallest = Delta;

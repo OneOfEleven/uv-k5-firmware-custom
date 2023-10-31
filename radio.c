@@ -280,11 +280,11 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 				p_vfo->freq_config_rx.code      = 0;
 				break;
 			case CODE_TYPE_CONTINUOUS_TONE:
-				p_vfo->freq_config_rx.code      = (m_channel.rx_ctcss_cdcss_code < ARRAY_SIZE(CTCSS_OPTIONS)) ? m_channel.rx_ctcss_cdcss_code : 0;
+				p_vfo->freq_config_rx.code      = (m_channel.rx_ctcss_cdcss_code < ARRAY_SIZE(CTCSS_TONE_LIST)) ? m_channel.rx_ctcss_cdcss_code : 0;
 				break;
 			case CODE_TYPE_DIGITAL:
 			case CODE_TYPE_REVERSE_DIGITAL:
-				p_vfo->freq_config_rx.code      = (m_channel.rx_ctcss_cdcss_code < ARRAY_SIZE(DCS_OPTIONS)) ? m_channel.rx_ctcss_cdcss_code : 0;
+				p_vfo->freq_config_rx.code      = (m_channel.rx_ctcss_cdcss_code < ARRAY_SIZE(DCS_CODE_LIST)) ? m_channel.rx_ctcss_cdcss_code : 0;
 				break;
 		}
 
@@ -297,11 +297,11 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 				p_vfo->freq_config_tx.code      = 0;
 				break;
 			case CODE_TYPE_CONTINUOUS_TONE:
-				p_vfo->freq_config_tx.code      = (m_channel.tx_ctcss_cdcss_code < ARRAY_SIZE(CTCSS_OPTIONS)) ? m_channel.tx_ctcss_cdcss_code : 0;
+				p_vfo->freq_config_tx.code      = (m_channel.tx_ctcss_cdcss_code < ARRAY_SIZE(CTCSS_TONE_LIST)) ? m_channel.tx_ctcss_cdcss_code : 0;
 				break;
 			case CODE_TYPE_DIGITAL:
 			case CODE_TYPE_REVERSE_DIGITAL:
-				p_vfo->freq_config_tx.code      = (m_channel.tx_ctcss_cdcss_code < ARRAY_SIZE(DCS_OPTIONS)) ? m_channel.tx_ctcss_cdcss_code : 0;
+				p_vfo->freq_config_tx.code      = (m_channel.tx_ctcss_cdcss_code < ARRAY_SIZE(DCS_CODE_LIST)) ? m_channel.tx_ctcss_cdcss_code : 0;
 				break;
 		}
 
@@ -741,45 +741,49 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		if (g_rx_vfo->am_mode == 0)
 		{	// FM
 			uint8_t code_type = g_selected_code_type;
-			uint8_t Code      = g_selected_code;
+			uint8_t code      = g_selected_code;
 
 			if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
 			{
 				code_type = g_rx_vfo->p_rx->code_type;
-				Code      = g_rx_vfo->p_rx->code;
+				code      = g_rx_vfo->p_rx->code;
 			}
 
 			switch (code_type)
 			{
 				default:
 				case CODE_TYPE_NONE:
-					BK4819_SetCTCSSFrequency(670);
-
-					//#ifndef ENABLE_CTCSS_TAIL_PHASE_SHIFT
-						BK4819_SetTailDetection(550);		// QS's 55Hz tone method
-					//#else
-					//	BK4819_SetTailDetection(670);       // 67Hz
-					//#endif
+					BK4819_set_CTCSS_freq(670);
+					BK4819_set_tail_detection(550);		// QS's 55Hz tone method
 
 					interrupt_mask |= BK4819_REG_3F_CxCSS_TAIL;
 					break;
 
 				case CODE_TYPE_CONTINUOUS_TONE:
-					BK4819_SetCTCSSFrequency(CTCSS_OPTIONS[Code]);
+					BK4819_set_CTCSS_freq(CTCSS_TONE_LIST[code]);
 
-					//#ifndef ENABLE_CTCSS_TAIL_PHASE_SHIFT
-						BK4819_SetTailDetection(550);		// QS's 55Hz tone method
-					//#else
-					//	BK4819_SetTailDetection(CTCSS_OPTIONS[Code]);
-					//#endif
+//					#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
+//						BK4819_set_tail_detection(CTCSS_TONE_LIST[code]); // doesn't work in RX mode
+//					#else
+//						BK4819_set_tail_detection(550);		// QS's 55Hz tone method
+//					#endif
 
-					interrupt_mask |= BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
+					interrupt_mask |=
+						BK4819_REG_3F_CxCSS_TAIL |
+						BK4819_REG_3F_CTCSS_FOUND |
+						BK4819_REG_3F_CTCSS_LOST;
+
 					break;
 
 				case CODE_TYPE_DIGITAL:
 				case CODE_TYPE_REVERSE_DIGITAL:
-					BK4819_SetCDCSSCodeWord(DCS_GetGolayCodeWord(code_type, Code));
-					interrupt_mask |= BK4819_REG_3F_CxCSS_TAIL | BK4819_REG_3F_CDCSS_FOUND | BK4819_REG_3F_CDCSS_LOST;
+					BK4819_set_CDCSS_code(DCS_GetGolayCodeWord(code_type, code));
+
+					interrupt_mask |=
+						BK4819_REG_3F_CxCSS_TAIL |
+						BK4819_REG_3F_CDCSS_FOUND |
+						BK4819_REG_3F_CDCSS_LOST;
+
 					break;
 			}
 
@@ -792,7 +796,8 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	#ifdef ENABLE_NOAA
 		else
 		{
-			BK4819_SetCTCSSFrequency(2625);
+			BK4819_set_CTCSS_freq(0);      // NOAA 1050Hz stuff
+
 			interrupt_mask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
 		}
 	#endif
@@ -934,7 +939,7 @@ void RADIO_enableTX(const bool fsk_tx)
 
 	if (fsk_tx)
 	{
-		BK4819_ExitSubAu();
+		BK4819_disable_sub_audible();
 	}
 	else
 	{
@@ -942,16 +947,18 @@ void RADIO_enableTX(const bool fsk_tx)
 		{
 			default:
 			case CODE_TYPE_NONE:
-				BK4819_ExitSubAu();
+				BK4819_disable_sub_audible();
 				break;
 
 			case CODE_TYPE_CONTINUOUS_TONE:
-				BK4819_SetCTCSSFrequency(CTCSS_OPTIONS[g_current_vfo->p_tx->code]);
+				BK4819_gen_tail(4);
+				BK4819_set_CTCSS_freq(CTCSS_TONE_LIST[g_current_vfo->p_tx->code]);
 				break;
 
 			case CODE_TYPE_DIGITAL:
 			case CODE_TYPE_REVERSE_DIGITAL:
-				BK4819_SetCDCSSCodeWord(DCS_GetGolayCodeWord(g_current_vfo->p_tx->code_type, g_current_vfo->p_tx->code));
+				BK4819_gen_tail(4);
+				BK4819_set_CDCSS_code(DCS_GetGolayCodeWord(g_current_vfo->p_tx->code_type, g_current_vfo->p_tx->code));
 				break;
 		}
 	}
@@ -1094,7 +1101,7 @@ void RADIO_PrepareTX(void)
 	g_dtmf_reply_state   = DTMF_REPLY_NONE;
 }
 
-void RADIO_EnableCxCSS(void)
+void RADIO_enable_CxCSS_tail(void)
 {
 	switch (g_current_vfo->p_tx->code_type)
 	{
@@ -1103,13 +1110,13 @@ void RADIO_EnableCxCSS(void)
 			break;
 
 		case CODE_TYPE_CONTINUOUS_TONE:
-			BK4819_EnableCTCSS();
+			BK4819_enable_CTCSS_tail();
 			SYSTEM_DelayMs(200);
 			break;
 
 		case CODE_TYPE_DIGITAL:
 		case CODE_TYPE_REVERSE_DIGITAL:
-			BK4819_EnableCDCSS();
+			BK4819_enable_CDCSS_tail();
 			SYSTEM_DelayMs(200);
 			break;
 	}
@@ -1123,7 +1130,8 @@ void RADIO_PrepareCssTX(void)
 
 	SYSTEM_DelayMs(200);
 
-	RADIO_EnableCxCSS();
+	RADIO_enable_CxCSS_tail();
+
 	RADIO_setup_registers(true);
 }
 

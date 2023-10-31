@@ -36,6 +36,7 @@ ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 0
 # MDC1200 2.8 kB
 ENABLE_MDC1200                   := 1
+ENABLE_MDC1200_SHOW_OP_ARG       := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 1
 ENABLE_BIG_FREQ                  := 0
@@ -359,6 +360,9 @@ ifeq ($(ENABLE_TX1750),1)
 endif
 ifeq ($(ENABLE_MDC1200),1)
 	CFLAGS  += -DENABLE_MDC1200
+endif
+ifeq ($(ENABLE_MDC1200_SHOW_OP_ARG),1)
+	CFLAGS  += -DENABLE_MDC1200_SHOW_OP_ARG
 endif
 ifeq ($(ENABLE_PWRON_PASSWORD),1)
 	CFLAGS  += -DENABLE_PWRON_PASSWORD

@@ -610,9 +610,9 @@ void UI_DisplayMenu(void)
 				strcat(str, "OFF");
 			else
 			if (g_sub_menu_selection < 105)
-				sprintf(str + strlen(str), "D%03oN", DCS_OPTIONS[g_sub_menu_selection -   1]);
+				sprintf(str + strlen(str), "D%03oN", DCS_CODE_LIST[g_sub_menu_selection -   1]);
 			else
-				sprintf(str + strlen(str), "D%03oI", DCS_OPTIONS[g_sub_menu_selection - 105]);
+				sprintf(str + strlen(str), "D%03oI", DCS_CODE_LIST[g_sub_menu_selection - 105]);
 			break;
 
 		case MENU_RX_CTCSS:
@@ -634,23 +634,23 @@ void UI_DisplayMenu(void)
 					pConfig->code_type = CODE_TYPE_NONE;
 					pConfig->code = Code;
 
-					BK4819_ExitSubAu();
+					BK4819_disable_sub_audible();
 				}
 				else
 				{
-					sprintf(str + strlen(str), "%u.%uHz", CTCSS_OPTIONS[g_sub_menu_selection - 1] / 10, CTCSS_OPTIONS[g_sub_menu_selection - 1] % 10);
+					sprintf(str + strlen(str), "%u.%uHz", CTCSS_TONE_LIST[g_sub_menu_selection - 1] / 10, CTCSS_TONE_LIST[g_sub_menu_selection - 1] % 10);
 
 					pConfig->code_type = CODE_TYPE_CONTINUOUS_TONE;
 					Code = g_sub_menu_selection - 1;
 					pConfig->code = Code;
 
-					BK4819_SetCTCSSFrequency(CTCSS_OPTIONS[Code]);
+					BK4819_set_CTCSS_freq(CTCSS_TONE_LIST[Code]);
 				}
 			#else
 				if (g_sub_menu_selection == 0)
 					strcat(str, "OFF");
 				else
-					sprintf(str + strlen(str), "%u.%uHz", CTCSS_OPTIONS[g_sub_menu_selection - 1] / 10, CTCSS_OPTIONS[g_sub_menu_selection - 1] % 10);
+					sprintf(str + strlen(str), "%u.%uHz", CTCSS_TONE_LIST[g_sub_menu_selection - 1] / 10, CTCSS_TONE_LIST[g_sub_menu_selection - 1] % 10);
 			#endif
 
 			break;

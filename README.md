@@ -57,6 +57,8 @@ ENABLE_VOX                       := 0       voice operated transmission
 ENABLE_REDUCE_LOW_MID_TX_POWER   := 1       reduce the low and mid TX power levels (high remains unchanged)
 ENABLE_ALARM                     := 0       TX alarms
 ENABLE_1750HZ                    := 0       side key 1750Hz TX tone (older style repeater access)
+ENABLE_MDC1200                   := 0       enable MDC1200 TX/RX + menu TX option
+ENABLE_MDC1200_SHOW_OP_ARG       := 1       show RX opcode and argument values when MDC1200 is RX'ed
 ENABLE_PWRON_PASSWORD            := 0       include power-on password code
 ENABLE_RESET_AES_KEY             := 1       '1' = reset/clear the AES key stored in the eeprom (only if it's set)
 ENABLE_BIG_FREQ                  := 0       big font frequencies (like original QS firmware)

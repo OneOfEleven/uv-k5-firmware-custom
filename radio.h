@@ -157,7 +157,7 @@ void     RADIO_enableTX(const bool fsk_tx);
 
 void     RADIO_set_vfo_state(vfo_state_t State);
 void     RADIO_PrepareTX(void);
-void     RADIO_EnableCxCSS(void);
+void     RADIO_enable_CxCSS_tail(void);
 void     RADIO_PrepareCssTX(void);
 void     RADIO_tx_eot(void);
 
