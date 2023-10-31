@@ -141,8 +141,9 @@ void UI_DisplayFM(void)
 	
 	// *************************************
 
-	// can't do this during FM radio - audio clicks else
-	if (g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF || g_fm_resume_tick_500ms > 0)
+	if (!g_ask_to_delete &&
+	    !g_ask_to_save &&
+	    (g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF || g_fm_resume_tick_500ms > 0))
 	{
 		const uint16_t rssi_status = BK1080_ReadRegister(BK1080_REG_10);
 		const uint16_t dev_snr     = BK1080_ReadRegister(BK1080_REG_07);

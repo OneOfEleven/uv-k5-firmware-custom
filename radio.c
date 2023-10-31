@@ -977,10 +977,8 @@ void RADIO_set_vfo_state(vfo_state_t State)
 			g_vfo_state[vfo] = State;
 		}
 
-		#ifdef ENABLE_FMRADIO
-			if (g_fm_radio_mode && g_fm_resume_tick_500ms < fm_resume_500ms)
-				g_fm_resume_tick_500ms = fm_resume_500ms;
-		#endif
+		// cause a display update to remove the message
+		g_update_screen_tick_500ms = 8;    // 4 seconds
 	}
 
 	g_update_display = true;
