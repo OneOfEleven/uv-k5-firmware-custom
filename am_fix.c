@@ -19,8 +19,6 @@
 //
 // that is until someone works out how to properly configure the BK chip !
 
-#include <string.h>
-
 #include "am_fix.h"
 #include "app/main.h"
 #include "board.h"

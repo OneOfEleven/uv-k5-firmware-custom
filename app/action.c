@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-
 #include "app/action.h"
 #include "app/app.h"
 #include "app/dtmf.h"
@@ -183,7 +181,7 @@ void ACTION_Scan(bool bRestart)
 					}
 					g_fm_channel_position = 0;
 
-					BK1080_GetFrequencyDeviation(Frequency);
+					BK1080_get_freq_offset(Frequency);
 
 					FM_tune(Frequency, FM_SCAN_STATE_DIR_UP, bRestart);
 

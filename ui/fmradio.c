@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-
 #include "app/fm.h"
 #include "driver/backlight.h"
 #include "driver/bk1080.h"
@@ -144,16 +142,31 @@ void UI_DisplayFM(void)
 	// *************************************
 
 	// can't do this during FM radio - audio clicks else
-	if (g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF)
+	if (g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF || g_fm_resume_tick_500ms > 0)
 	{
-		const uint16_t val_07 = BK1080_ReadRegister(0x07);
-		const uint16_t val_0A = BK1080_ReadRegister(0x0A);
-		sprintf(str, "%s %s %2udBuV %2u",
-			((val_0A >> 9) & 1u) ? "STE" : "ste",
-			((val_0A >> 8) & 1u) ? "ST"  : "st",
-			 (val_0A >> 0) & 0x00ff,
-			 (val_07 >> 0) & 0x000f);
-		UI_PrintStringSmall(str, 0, LCD_WIDTH, 6);
+		const uint16_t rssi_status = BK1080_ReadRegister(BK1080_REG_10);
+		const uint16_t dev_snr     = BK1080_ReadRegister(BK1080_REG_07);
+
+		const int16_t freq_offset  = (int16_t)dev_snr / 16;
+		const uint8_t snr          = dev_snr & 0x000f;
+
+//		const uint8_t stc          = (rssi_status >> 14) & 1u;
+//		const uint8_t sf_bl        = (rssi_status >> 13) & 1u;
+		const uint8_t afc_railed   = (rssi_status >> 12) & 1u;
+		const uint8_t ste          = (rssi_status >> 9) & 1u;
+		const uint8_t st           = (rssi_status >> 8) & 1u;
+		const uint8_t rssi         =  rssi_status & 0x00ff;
+
+		sprintf(str, "%s %s %c %2udBuV %2u",
+			ste        ? "STE" : "ste",
+			st         ? "ST"  : "st",
+			afc_railed ? 'R'   : 'r',
+			rssi,
+			snr);
+		UI_PrintStringSmall(str, 0, 0, 6);
+
+		sprintf(str, "%c%d", (freq_offset > 0) ? '+' : (freq_offset < 0) ? '-' : ' ', abs(freq_offset));
+		UI_PrintStringSmall(str, 0, 0, 5);
 	}
 
 	// *************************************

@@ -14,9 +14,6 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-#include <stdlib.h>  // abs()
-
 #include "app/dtmf.h"
 #include "app/menu.h"
 #include "bitmaps.h"

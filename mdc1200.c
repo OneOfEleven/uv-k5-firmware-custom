@@ -1,6 +1,4 @@
 
-#include <string.h>
-
 #include "driver/bk4819.h"
 #include "driver/crc.h"
 #if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)

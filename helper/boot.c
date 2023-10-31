@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-
 #ifdef ENABLE_AIRCOPY
 	#include "app/aircopy.h"
 #endif

@@ -14,11 +14,10 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-
 #include "driver/st7565.h"
 #include "external/printf/printf.h"
 #include "font.h"
+#include "misc.h"
 #include "ui/helper.h"
 #include "ui/inputbox.h"
 

@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-
 #include "misc.h"
 #include "ui/inputbox.h"
 

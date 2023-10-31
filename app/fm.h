@@ -37,7 +37,6 @@ extern uint8_t             g_fm_channel_position;
 // Doubts about whether this should be signed or not
 extern uint16_t            g_fm_frequency_deviation;
 extern bool                g_fm_found_frequency;
-extern bool                g_fm_auto_scan;
 extern uint8_t             g_fm_resume_tick_500ms;
 extern uint16_t            g_fm_restore_tick_10ms;
 extern uint8_t             g_fm_radio_tick_500ms;
@@ -50,7 +49,7 @@ int          FM_configure_channel_state(void);
 void         FM_erase_channels(void);
 void         FM_tune(uint16_t frequency, const fm_scan_state_dir_t scan_state_dir, const bool flag);
 void         FM_stop_scan(void);
-int          FM_check_frequency_lock(uint16_t Frequency, uint16_t LowerLimit);
+int          FM_check_frequency_lock(const uint16_t frequency, const uint16_t lower_limit);
 void         FM_scan(void);
 void         FM_turn_on(void);
 void         FM_turn_off(void);

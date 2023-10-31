@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-
 #include "app/aircopy.h"
 #include "driver/st7565.h"
 #include "external/printf/printf.h"

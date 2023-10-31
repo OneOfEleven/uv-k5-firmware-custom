@@ -23,8 +23,8 @@
 #include "misc.h"
 
 //#define CHAN_SPACING     0u  // 200kHz
-  #define CHAN_SPACING     1u  // 100kHz
-//#define CHAN_SPACING     2u  // 50kHz
+//#define CHAN_SPACING     1u  // 100kHz
+#define   CHAN_SPACING     2u  // 50kHz
 
 #define VOLUME             15u
 
@@ -101,8 +101,8 @@ static const uint16_t BK1080_RegisterTable[] =
 bool     is_init;
 uint16_t BK1080_freq_lower;
 uint16_t BK1080_freq_upper;
-uint16_t BK1080_BaseFrequency;
-uint16_t BK1080_FrequencyDeviation;
+uint16_t BK1080_freq_base;
+int16_t  BK1080_freq_offset;
 
 void BK1080_Init(const uint16_t frequency, const bool initialise)
 {
@@ -115,6 +115,9 @@ void BK1080_Init(const uint16_t frequency, const bool initialise)
 
 		if (!is_init)
 		{
+			BK1080_freq_base   = 0;
+			BK1080_freq_offset = 0;
+
 			BK1080_freq_lower = 0xffff;
 			BK1080_freq_upper = 0;
 	
@@ -201,14 +204,14 @@ void BK1080_WriteRegister(BK1080_Register_t Register, uint16_t Value)
 	I2C_Stop();
 }
 
-void BK1080_Mute(bool Mute)
+void BK1080_Mute(const bool Mute)
 {
 	BK1080_WriteRegister(BK1080_REG_02_POWER_CONFIGURATION, (1u << 9) | (1u << 0) | (Mute ? 1u << 14 : 0u));
 }
 
 void BK1080_SetFrequency(uint16_t Frequency)
 {
-	uint16_t channel;
+	int      channel;
 	uint16_t band = 0;
 
 //	#if (ARRAY_SIZE(FM_RADIO_FREQ_BAND_TABLE) > 1)   // compiler doesn't like this :(
@@ -229,18 +232,20 @@ void BK1080_SetFrequency(uint16_t Frequency)
 	
 	#endif
 
-	channel = Frequency - FM_RADIO_FREQ_BAND_TABLE[band].lower;  // 100kHz channel spacing
+//	channel =  (int)Frequency - FM_RADIO_FREQ_BAND_TABLE[band].lower;       // 100kHz channel spacing
+	channel = ((int)Frequency - FM_RADIO_FREQ_BAND_TABLE[band].lower) * 2;  // 50kHz channel spacing
+	channel = (channel < 0) ? 0 : (channel > 1023) ? 1023 : channel;
 
 	BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, (SEEK_THRESHOLD << 8) | (band << 6) | (CHAN_SPACING << 4) | (VOLUME << 0));
 
-	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel);
+	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, (uint16_t)channel);
 	SYSTEM_DelayMs(1);
-	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, channel | (1u << 15));
+	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, (uint16_t)channel | (1u << 15));
 }
 
-uint16_t BK1080_GetFrequencyDeviation(uint16_t Frequency)
+int16_t BK1080_get_freq_offset(const uint16_t Frequency)
 {
-	BK1080_BaseFrequency      = Frequency;
-	BK1080_FrequencyDeviation = BK1080_ReadRegister(BK1080_REG_07) >> 4;
-	return BK1080_FrequencyDeviation;
+	BK1080_freq_base   = Frequency;
+	BK1080_freq_offset = (int16_t)BK1080_ReadRegister(BK1080_REG_07) / 16;
+	return BK1080_freq_offset;
 }

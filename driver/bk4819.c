@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#include <string.h>   // NULL and memset
-
 #include "bk4819.h"
 #include "bsp/dp32g030/gpio.h"
 #include "bsp/dp32g030/portcon.h"

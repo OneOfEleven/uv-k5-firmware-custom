@@ -14,9 +14,6 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-#include <stdlib.h>  // abs()
-
 #include "app/dtmf.h"
 #ifdef ENABLE_AM_FIX_SHOW_DATA
 	#include "am_fix.h"

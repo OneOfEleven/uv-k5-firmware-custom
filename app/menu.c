@@ -14,8 +14,6 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-
 #if !defined(ENABLE_OVERLAY)
 	#include "ARMCM0.h"
 #endif

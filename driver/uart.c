@@ -14,14 +14,12 @@
  *     limitations under the License.
  */
 
-#include <string.h>
-#include <stdbool.h>
-
 #include "bsp/dp32g030/dma.h"
 #include "bsp/dp32g030/syscon.h"
 #include "bsp/dp32g030/uart.h"
 #include "driver/uart.h"
 #include "external/printf/printf.h"
+#include "misc.h"
 
 static bool UART_IsLogEnabled;
 uint8_t     UART_DMA_Buffer[256];

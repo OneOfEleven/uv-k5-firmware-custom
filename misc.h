@@ -17,6 +17,8 @@
 #ifndef MISC_H
 #define MISC_H
 
+#include <string.h>
+#include <stdlib.h>     // abs()
 #include <stdbool.h>
 #include <stdint.h>
 
