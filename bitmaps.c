@@ -59,7 +59,7 @@ const uint8_t BITMAP_RX[8] =
 	{
 		__extension__ 0b00000000,
 		__extension__ 0b00111110,
-		__extension__ 0b00100010,
+		__extension__ 0b01100011,
 		__extension__ 0b01000001,
 		__extension__ 0b01000001,
 		__extension__ 0b01000001,
@@ -94,7 +94,7 @@ const uint8_t BITMAP_RX[8] =
 		__extension__ 0b01000001,
 		__extension__ 0b01000001,
 		__extension__ 0b01000001,
-		__extension__ 0b00100010,
+		__extension__ 0b01100011,
 		__extension__ 0b00111110
 	};
 #endif

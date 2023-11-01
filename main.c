@@ -73,14 +73,15 @@ void Main(void)
 	UART_Init();
 #endif
 
-	BOARD_Init();
-
 	#if defined(ENABLE_UART)
 		UART_SendText(UART_Version_str);
 		UART_SendText("\r\n");
 	#endif
 
-	// Not implementing authentic device checks
+	// load the entire EEPROM contents into memory
+	SETTINGS_read_eeprom();
+
+	BOARD_Init();
 
 	memset(&g_eeprom, 0, sizeof(g_eeprom));
 

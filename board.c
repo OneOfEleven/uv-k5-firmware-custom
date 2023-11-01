@@ -522,9 +522,12 @@ void BOARD_eeprom_load(void)
 
 //	memset(Data, 0, sizeof(Data));
 
+	// sanity checks
+	g_eeprom2.config.call1        = IS_USER_CHANNEL(g_eeprom2.config.call1) ? g_eeprom2.config.call1 : USER_CHANNEL_FIRST;
+
 	// 0E70..0E77
 	EEPROM_ReadBuffer(0x0E70, Data, 8);
-	g_eeprom.chan_1_call          = IS_USER_CHANNEL(Data[0]) ? Data[0] : USER_CHANNEL_FIRST;
+//	g_eeprom.chan_1_call          = IS_USER_CHANNEL(Data[0]) ? Data[0] : USER_CHANNEL_FIRST;
 	g_eeprom.squelch_level        = (Data[1] < 10) ? Data[1] : 1;
 	g_eeprom.tx_timeout_timer     = (Data[2] < 11) ? Data[2] : 1;
 	#ifdef ENABLE_NOAA

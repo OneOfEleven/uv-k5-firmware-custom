@@ -132,37 +132,37 @@ int I2C_Write(uint8_t Data)
 	return ret;
 }
 
-int I2C_ReadBuffer(void *pBuffer, uint8_t Size)
+int I2C_ReadBuffer(void *pBuffer, const unsigned int Size)
 {
 	uint8_t *pData = (uint8_t *)pBuffer;
-	uint8_t i;
+	unsigned int i;
 
-	if (Size == 1) {
+	if (Size == 1)
+	{
 		*pData = I2C_Read(true);
 		return 1;
 	}
 
-	for (i = 0; i < Size - 1; i++) {
-		SYSTICK_DelayUs(1);
+	for (i = 0; i < (Size - 1); i++)
+	{
+//		SYSTICK_DelayUs(1);
 		pData[i] = I2C_Read(false);
 	}
 
-	SYSTICK_DelayUs(1);
+//	SYSTICK_DelayUs(1);
 	pData[i++] = I2C_Read(true);
 
 	return Size;
 }
 
-int I2C_WriteBuffer(const void *pBuffer, uint8_t Size)
+int I2C_WriteBuffer(const void *pBuffer, const unsigned int Size)
 {
 	const uint8_t *pData = (const uint8_t *)pBuffer;
-	uint8_t i;
+	unsigned int i;
 
-	for (i = 0; i < Size; i++) {
-		if (I2C_Write(*pData++) < 0) {
+	for (i = 0; i < Size; i++)
+		if (I2C_Write(*pData++) < 0)
 			return -1;
-		}
-	}
 
 	return 0;
 }

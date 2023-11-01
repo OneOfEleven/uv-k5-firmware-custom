@@ -24,7 +24,30 @@
 #include "misc.h"
 #include "settings.h"
 
+t_eeprom g_eeprom2;
+
 eeprom_config_t g_eeprom;
+
+void SETTINGS_read_eeprom(void)
+{
+	EEPROM_ReadBuffer(0, &g_eeprom2, sizeof(g_eeprom2));
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("config size %04X %u\r\n"
+		            "calib  size %04X %u\r\n"
+		            "eeprom size %04X %u\r\n",
+		             sizeof(g_eeprom2.config), sizeof(g_eeprom2.config),
+					 sizeof(g_eeprom2.calib),  sizeof(g_eeprom2.calib),
+					 sizeof(g_eeprom2),        sizeof(g_eeprom2));
+	#endif
+}
+
+void SETTINGS_write_eeprom_config(void)
+{
+	uint32_t index;
+	for (index = 0; index < sizeof(g_eeprom2); index += 8)
+		EEPROM_WriteBuffer8(index, (uint8_t *)(&g_eeprom2) + index);
+}
 
 #ifdef ENABLE_FMRADIO
 	void SETTINGS_save_fm(void)
@@ -77,7 +100,7 @@ void SETTINGS_save(void)
 {
 	uint8_t State[8];
 
-	State[0] = g_eeprom.chan_1_call;
+	State[0] = g_eeprom2.config.call1;
 	State[1] = g_eeprom.squelch_level;
 	State[2] = g_eeprom.tx_timeout_timer;
 	#ifdef ENABLE_NOAA

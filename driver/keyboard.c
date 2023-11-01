@@ -22,7 +22,7 @@
 #include "driver/i2c.h"
 #include "misc.h"
 
-uint8_t    g_ptt_debounce;
+int8_t     g_ptt_debounce;
 uint8_t    g_key_debounce_press;
 uint8_t    g_key_debounce_repeat;
 key_code_t g_key_prev    = KEY_INVALID;

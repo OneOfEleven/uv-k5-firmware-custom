@@ -200,78 +200,6 @@ typedef struct {
 	uint8_t    scanlist1:1;                  // set if in scan list 1
 } __attribute__((packed)) t_channel_attr;    //
 
-// 512 bytes
-typedef struct {
-
-	// 0x1E00
-	struct {
-		uint8_t open_rssi_thresh[10];               //
-		uint8_t unused1[6];                         // 0xff's
-		uint8_t close_rssi_thresh[10];              //
-		uint8_t unused2[6];                         // 0xff's
-		uint8_t open_noise_thresh[10];              //
-		uint8_t unused3[6];                         // 0xff's
-		uint8_t close_noise_thresh[10];             //
-		uint8_t unused4[6];                         // 0xff's
-		uint8_t open_glitch_thresh[10];             //
-		uint8_t unused5[6];                         // 0xff's
-		uint8_t close_glitch_thresh[10];            //
-		uint8_t unused6[6];                         // 0xff's
-	} __attribute__((packed)) squelch_band_4567[6]; //
-
-	// 0x1E60
-	struct {
-		uint8_t open_rssi_thresh[10];               //
-		uint8_t unused1[6];                         // 0xff's
-		uint8_t close_rssi_thresh[10];              //
-		uint8_t unused2[6];                         // 0xff's
-		uint8_t open_noise_thresh[10];              //
-		uint8_t unused3[6];                         // 0xff's
-		uint8_t close_noise_thresh[10];             //
-		uint8_t unused4[6];                         // 0xff's
-		uint8_t open_glitch_thresh[10];             //
-		uint8_t unused5[6];                         // 0xff's
-		uint8_t close_glitch_thresh[10];            //
-		uint8_t unused6[6];                         // 0xff's
-	} __attribute__((packed)) squelch_band_123[6];  //
-
-	// 0x1EC0
-	uint16_t rssi_band_4567[4];                     // RSSI bargraph thresholds .. (dBm + 160) * 2
-	uint16_t rssi_band_123[4];                      // RSSI bargraph thresholds .. (dBm + 160) * 2
-
-	// 0x1ED0
-	struct
-	{
-		uint8_t low[3];                             //
-		uint8_t mid[3];                             //
-		uint8_t high[3];                            //
-		uint8_t unused[7];                          // 0xff's
-	} tx_band_power[7];                             //
-
-	// 0x1F40
-	uint16_t battery[6];                            //
-	uint8_t  unused1[4];                            // 0xff's
-
-	// 0x1F50
-	struct
-	{
-		uint16_t threshold[10];                     //
-		uint8_t  unused[4];                         // 0xff's
-	} __attribute__((packed)) vox[2];               //
-
-	// 0x1F80
-	uint8_t  mic_gain_dB2[5];                       //
-	uint8_t  unused4[3];                            //
-	int16_t  bk4819_xtal_freq_low;                  //
-	uint16_t unknown2;                              //
-	uint16_t unknown3;                              //
-	uint8_t  volume_gain;                           //
-	uint8_t  dac_gain;                              //
-
-	uint8_t  unused5[8 * 10];                       // 0xff's
-
-} __attribute__((packed)) t_calibration;
-
 // user configuration
 typedef struct {
 
@@ -455,19 +383,94 @@ typedef struct {
 
 } __attribute__((packed)) t_config;
 
+// 512 bytes
+typedef struct {
+
+	// 0x1E00
+	struct {
+		uint8_t open_rssi_thresh[10];               //
+		uint8_t unused1[6];                         // 0xff's
+		uint8_t close_rssi_thresh[10];              //
+		uint8_t unused2[6];                         // 0xff's
+		uint8_t open_noise_thresh[10];              //
+		uint8_t unused3[6];                         // 0xff's
+		uint8_t close_noise_thresh[10];             //
+		uint8_t unused4[6];                         // 0xff's
+		uint8_t open_glitch_thresh[10];             //
+		uint8_t unused5[6];                         // 0xff's
+		uint8_t close_glitch_thresh[10];            //
+		uint8_t unused6[6];                         // 0xff's
+	} squelch_band_4567[6];
+
+	// 0x1E60
+	struct {
+		uint8_t open_rssi_thresh[10];               //
+		uint8_t unused1[6];                         // 0xff's
+		uint8_t close_rssi_thresh[10];              //
+		uint8_t unused2[6];                         // 0xff's
+		uint8_t open_noise_thresh[10];              //
+		uint8_t unused3[6];                         // 0xff's
+		uint8_t close_noise_thresh[10];             //
+		uint8_t unused4[6];                         // 0xff's
+		uint8_t open_glitch_thresh[10];             //
+		uint8_t unused5[6];                         // 0xff's
+		uint8_t close_glitch_thresh[10];            //
+		uint8_t unused6[6];                         // 0xff's
+	} squelch_band_123[6];
+
+	// 0x1EC0
+	uint16_t rssi_band_4567[4];                     // RSSI bargraph thresholds .. (dBm + 160) * 2
+	uint16_t rssi_band_123[4];                      // RSSI bargraph thresholds .. (dBm + 160) * 2
+
+	// 0x1ED0
+	struct
+	{
+		uint8_t low[3];                             //
+		uint8_t mid[3];                             //
+		uint8_t high[3];                            //
+		uint8_t unused[7];                          // 0xff's
+	} tx_band_power[7];                             //
+
+	// 0x1F40
+	uint16_t battery[6];                            //
+	uint8_t  unused1[4];                            // 0xff's
+
+	// 0x1F50
+	struct
+	{
+		uint16_t threshold[10];                     //
+		uint8_t  unused[4];                         // 0xff's
+	} vox[2];
+
+	// 0x1F80
+	uint8_t  mic_gain_dB2[5];                       //
+	uint8_t  unused4[3];                            //
+	int16_t  bk4819_xtal_freq_low;                  //
+	uint16_t unknown2;                              //
+	uint16_t unknown3;                              //
+	uint8_t  volume_gain;                           //
+	uint8_t  dac_gain;                              //
+
+	// 0x1F90
+	uint8_t  unused5[16 * 7];                       // 0xff's
+
+	// 0x2000
+
+} __attribute__((packed)) t_calibration;
+
 // entire eeprom
 typedef struct {
 
 	// 0x0000
-	t_config       config;                // radios user config
+	t_config       config;            // radios user config
 
 	// 0x1D00
-	uint8_t        unused14[256];         // does this belong to the config, or the calibration, or neither ?
+	uint8_t        unused[256];       // does this belong to the config, or the calibration, or neither ?
 
 	// 0x1E00
-	t_calibration  calibration;           // calibration settings .. we DO NOT pass this through aircopy, it's radio specific
+	t_calibration  calib;             // calibration settings .. we DO NOT pass this through aircopy, it's radio specific
 
-} __attribute__((packed)) t_eeprom;       // 8192 bytes of eeprom
+} __attribute__((packed)) t_eeprom;   // 8192 (0x2000) bytes of eeprom
 
 // ************************************************
 // this and all the other variables are going to be replaced with the above t_eeprom
@@ -534,7 +537,7 @@ typedef struct {
 	uint8_t               key2_long_press_action;
 	uint8_t               mic_sensitivity;
 	uint8_t               mic_sensitivity_tuning;
-	uint8_t               chan_1_call;
+//	uint8_t               chan_1_call;
 	char                  ani_dtmf_id[8];
 	char                  kill_code[8];
 	char                  revive_code[8];
@@ -583,7 +586,12 @@ typedef struct {
 
 } eeprom_config_t;
 
+extern t_eeprom g_eeprom2;
+
 extern eeprom_config_t g_eeprom;
+
+void SETTINGS_read_eeprom(void);
+void SETTINGS_write_eeprom_config(void);
 
 #ifdef ENABLE_FMRADIO
 	void SETTINGS_save_fm(void);

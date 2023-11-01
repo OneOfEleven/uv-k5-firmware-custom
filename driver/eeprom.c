@@ -22,7 +22,7 @@
 
 void EEPROM_ReadBuffer(const uint16_t address, void *p_buffer, const unsigned int size)
 {
-	if (p_buffer == NULL || (address + size) > 0x2000 || size == 0)
+	if ((address + size) > 0x2000 || size == 0)
 		return;
 
 	I2C_Start();

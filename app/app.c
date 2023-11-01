@@ -1175,63 +1175,47 @@ void APP_check_keys(void)
 	if (ptt_pressed)
 	{	// PTT pressed
 
-		if (!g_ptt_is_pressed && g_serial_config_tick_500ms == 0 && g_setting_tx_enable)
+		#ifdef ENABLE_AIRCOPY
+			if (!g_ptt_is_pressed && g_serial_config_tick_500ms == 0 && g_setting_tx_enable && g_current_function != FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
+		#else
+			if (!g_ptt_is_pressed && g_serial_config_tick_500ms == 0 && g_setting_tx_enable && g_current_function != FUNCTION_TRANSMIT)
+		#endif
 		{
 			#ifdef ENABLE_KILL_REVIVE
 				if (!g_setting_radio_disabled)
 			#endif
 			{
-				#ifdef ENABLE_AIRCOPY
-					if (!g_ptt_is_pressed && g_current_display_screen != DISPLAY_AIRCOPY)
-				#else
-					if (!g_ptt_is_pressed)
-				#endif
-				{
-					if (++g_ptt_debounce >= 3)        // 30ms debounce
-					{	// start TX'ing
+				if (++g_ptt_debounce >= 3)        // 30ms debounce
+				{	// start TX'ing
 	
-						g_boot_tick_10ms   = 0;       // cancel the boot-up screen
-						g_ptt_is_pressed   = ptt_pressed;
-						g_ptt_was_released = false;
-						g_ptt_debounce     = 0;
+					g_boot_tick_10ms   = 0;       // cancel the boot-up screen
+					g_ptt_is_pressed   = ptt_pressed;
+					g_ptt_was_released = false;
+					g_ptt_debounce     = 3;
 	
-						APP_process_key(KEY_PTT, true, false);
-	
-						#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//							UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
-						#endif
-					}
+					APP_process_key(KEY_PTT, true, false);
 				}
-				else
-					g_ptt_debounce = 0;
 			}
 		}
 	}
 	else
 	{	// PTT released
 
-		if (g_ptt_is_pressed && g_current_function == FUNCTION_TRANSMIT)
+		#ifdef ENABLE_KILL_REVIVE
+			if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0 || !g_setting_tx_enable || g_current_function == FUNCTION_TRANSMIT || g_setting_radio_disabled)
+		#else
+			if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0 || !g_setting_tx_enable || g_current_function == FUNCTION_TRANSMIT)
+		#endif
 		{
-			if (++g_ptt_debounce >= 3 || g_serial_config_tick_500ms > 0 || !g_setting_tx_enable)  // 30ms debounce
+			if (--g_ptt_debounce <= 0)
 			{	// stop TX'ing
 
-//				g_ptt_is_pressed   = false;
+				g_ptt_is_pressed   = false;
 				g_ptt_was_released = true;
 				g_ptt_debounce     = 0;
 
 				APP_process_key(KEY_PTT, false, false);
-
-				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//					UART_printf(" ptt key %3u %u %u\r\n", KEY_PTT, g_ptt_is_pressed, g_ptt_was_released);
-				#endif
 			}
-		}
-		else
-		{
-			g_ptt_debounce = 0;
-
-			if (g_ptt_is_pressed && !ptt_pressed)
-				g_ptt_is_pressed = false;
 		}
 	}
 
@@ -1262,10 +1246,6 @@ void APP_check_keys(void)
 				if (g_key_prev != KEY_INVALID)
 				{	// key now fully released
 
-					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//						UART_printf(" old key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
-					#endif
-
 					#ifdef ENABLE_AIRCOPY
 						if (g_current_display_screen != DISPLAY_AIRCOPY)
 							APP_process_key(g_key_prev, false, g_key_held);
@@ -1279,10 +1259,10 @@ void APP_check_keys(void)
 					g_key_debounce_repeat = 0;
 					g_key_prev            = KEY_INVALID;
 					g_key_held            = false;
-					g_boot_tick_10ms   = 0;         // cancel the boot-up screen
+					g_boot_tick_10ms      = 0;         // cancel the boot-up screen
 
 					g_update_status       = true;
-					g_update_display      = true;
+//					g_update_display      = true;
 				}
 			}
 			if (g_key_debounce_repeat > 0)
@@ -1299,12 +1279,7 @@ void APP_check_keys(void)
 				{	// key now fully pressed
 					g_key_debounce_repeat = key_debounce_10ms;
 					g_key_held            = false;
-
-					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//						UART_printf("\r\n new key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
-					#endif
-
-					g_key_prev = key;
+					g_key_prev            = key;
 
 					#ifdef ENABLE_AIRCOPY
 						if (g_current_display_screen != DISPLAY_AIRCOPY)
@@ -1316,7 +1291,7 @@ void APP_check_keys(void)
 					#endif
 
 					g_update_status  = true;
-					g_update_display = true;
+//					g_update_display = true;
 				}
 			}
 		}
@@ -1327,10 +1302,6 @@ void APP_check_keys(void)
 			{	// key long press
 				g_key_held = true;
 
-				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//					UART_printf("long key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
-				#endif
-
 				#ifdef ENABLE_AIRCOPY
 					if (g_current_display_screen != DISPLAY_AIRCOPY)
 						APP_process_key(g_key_prev, true, g_key_held);
@@ -1339,23 +1310,21 @@ void APP_check_keys(void)
 				#else
 					APP_process_key(g_key_prev, true, g_key_held);
 				#endif
+
+				g_update_status  = true;
 			}
 		}
 		else
 		if (key == KEY_UP || key == KEY_DOWN)
-		{	// only the up and down keys are repeatable
+		{	// only the up and down keys are made repeatable
 
-			// go much faster if the user is moving up/down freq/channel
+			// key repeat max 10ms speed if user is moving up/down in freq/channel
 			const uint8_t repeat_10ms = (g_manual_scanning && g_monitor_enabled && g_current_display_screen == DISPLAY_MAIN) ? 1 : key_repeat_10ms;
 
 			if (++g_key_debounce_repeat >= (key_long_press_10ms + repeat_10ms))
 			{	// key repeat
 
 				g_key_debounce_repeat = key_long_press_10ms;
-
-				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//					UART_printf("rept key %3u %3u, %3u %3u, %u\r\n", key, g_key_prev, g_key_debounce_press, g_key_debounce_repeat, g_key_held);
-				#endif
 
 				#ifdef ENABLE_AIRCOPY
 					if (g_current_display_screen != DISPLAY_AIRCOPY)

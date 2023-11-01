@@ -404,7 +404,7 @@ void processFKeyFunction(const key_code_t Key)
 
 		case KEY_9:    // CALL
 
-			if (!RADIO_CheckValidChannel(g_eeprom.chan_1_call, false, 0))
+			if (!RADIO_CheckValidChannel(g_eeprom2.config.call1, false, 0))
 			{
 				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 				return;
@@ -414,12 +414,12 @@ void processFKeyFunction(const key_code_t Key)
 
 			APP_stop_scan();
 
-			g_eeprom.user_channel[Vfo]   = g_eeprom.chan_1_call;
-			g_eeprom.screen_channel[Vfo] = g_eeprom.chan_1_call;
+			g_eeprom.user_channel[Vfo]   = g_eeprom2.config.call1;
+			g_eeprom.screen_channel[Vfo] = g_eeprom2.config.call1;
 
 			#ifdef ENABLE_VOICE
 				AUDIO_SetVoiceID(0, VOICE_ID_CHANNEL_MODE);
-				AUDIO_SetDigitVoice(1, g_eeprom.chan_1_call + 1);
+				AUDIO_SetDigitVoice(1, 1 + g_eeprom2.config.call1);
 				g_another_voice_id       = (voice_id_t)0xFE;
 			#endif
 

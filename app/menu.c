@@ -685,7 +685,7 @@ void MENU_AcceptSetting(void)
 			return;
 
 		case MENU_1_CALL:
-			g_eeprom.chan_1_call = g_sub_menu_selection;
+			g_eeprom2.config.call1 = g_sub_menu_selection;
 			break;
 
 		case MENU_S_LIST:
@@ -1160,7 +1160,7 @@ void MENU_ShowCurrentSetting(void)
 			return;
 
 		case MENU_1_CALL:
-			g_sub_menu_selection = g_eeprom.chan_1_call;
+			g_sub_menu_selection = g_eeprom2.config.call1;
 			break;
 
 		case MENU_S_LIST:

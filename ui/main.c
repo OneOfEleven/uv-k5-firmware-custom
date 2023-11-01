@@ -793,31 +793,27 @@ void UI_DisplayMain(void)
 				const uint8_t freq_in_channel = g_eeprom.vfo_info[vfo_num].freq_in_channel;
 //				const uint8_t freq_in_channel = BOARD_find_channel(frequency);  // currently way to slow
 
-//				if (g_eeprom.vfo_info[vfo_num].compand)
+				if (g_eeprom.vfo_info[vfo_num].compand)
 				{
-					strcpy(str, " ");
+					strcpy(str, "  ");
 
 					if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-					{	// the channel number that contains this VFO frequency
-//						strcpy(str, "F");
-						sprintf(str, "%03u", freq_in_channel);
-					}
+						str[0] = 'F';  // channel number that contains this VFO frequency
 	
 					if (g_eeprom.vfo_info[vfo_num].compand)
-						strcat(str, "C");
+						str[1] = 'C';  // compander is enabled
 
-//					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 2), 0, line + 1);
-					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 4), 0, line + 1);
+					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 2), 0, line + 1);
 				}
-/*				else
+				else
 				{
 					if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-					{	// the channel number that contains this VFO frequency
+					{	// channel number that contains this VFO frequency
 						sprintf(str, "%03u", freq_in_channel);
 						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
 					}
 				}
-*/			}
+			}
 			#endif
 		}
 
