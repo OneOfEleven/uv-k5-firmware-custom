@@ -2663,7 +2663,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 					BK4819_DisableScramble();
 
 					if (Code == 0xFE)
-						BK4819_TransmitTone(g_eeprom.dtmf_side_tone, 1750);
+						BK4819_TransmitTone(g_eeprom.dtmf_side_tone, 1050);//1050 Hz instead 1750
 					else
 						BK4819_PlayDTMFEx(g_eeprom.dtmf_side_tone, Code);
 				}
