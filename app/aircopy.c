@@ -44,19 +44,20 @@
 //  payloads ................ 0xABCD + 2 byte eeprom address + 64 byte payload + 2 byte CRC + 0xDCBA
 //  1of11 req/ack additon ... 0xBCDA + 2 byte eeprom address +                   2 byte CRC + 0xCDBA
 
-#define AIRCOPY_MAGIC_START_REQ    0xBCDA   // used to request a block resend
-#define AIRCOPY_MAGIC_END_REQ      0xCDBA   // used to request a block resend
+#define AIRCOPY_MAGIC_START_REQ      0xBCDA   // used to request a block resend
+#define AIRCOPY_MAGIC_END_REQ        0xCDBA   // used to request a block resend
 
-#define AIRCOPY_MAGIC_START        0xABCD   // normal start value
-#define AIRCOPY_MAGIC_END          0xDCBA   // normal end   value
+#define AIRCOPY_MAGIC_START          0xABCD   // normal start value
+#define AIRCOPY_MAGIC_END            0xDCBA   // normal end   value
 
-#define AIRCOPY_LAST_EEPROM_ADDR   0x1E00   // size of eeprom transferred
+#define AIRCOPY_LAST_EEPROM_ADDR     0x1E00                 // size of eeprom transferred
+//#define AIRCOPY_LAST_EEPROM_ADDR   (sizeof(t_config))     //
 
 // FSK payload data length
-#define AIRCOPY_DATA_PACKET_SIZE   (2 + 2 + 64 + 2 + 2)
+#define AIRCOPY_DATA_PACKET_SIZE     (2 + 2 + 64 + 2 + 2)
 
 // FSK req/ack data length .. 0xBCDA + 2 byte eeprom address + 2 byte CRC + 0xCDBA
-#define AIRCOPY_REQ_PACKET_SIZE    (2 + 2 + 2 + 2)
+#define AIRCOPY_REQ_PACKET_SIZE      (2 + 2 + 2 + 2)
 
 // **********************
 
@@ -590,8 +591,11 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 			data[2] = 0;
 		}
 
-		EEPROM_WriteBuffer8(eeprom_addr, data);   // 8 bytes at a time
-//		memcpy(((uint8_t *)&g_eeprom) + eeprom_addr, data, 8);
+		if (eeprom_addr < sizeof(t_config))		// don't allow writing to the calibration data area
+		{
+			EEPROM_WriteBuffer8(eeprom_addr, data);   // 8 bytes at a time
+//			memcpy(((uint8_t *)&g_eeprom) + eeprom_addr, data, 8);
+		}
 
 		data        += write_size / sizeof(data[0]);
 		eeprom_addr += write_size;
@@ -605,6 +609,9 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		g_aircopy_state  = AIRCOPY_RX_COMPLETE;
 		AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
 
+		// save the received data to the EEPROM chip
+//		SETTINGS_write_eeprom_config();
+
 		#ifdef ENABLE_AIRCOPY_RX_REBOOT
 			#if defined(ENABLE_OVERLAY)
 				overlay_FLASH_RebootToBootloader();
@@ -613,9 +620,9 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 			#endif
 		#endif
 	}
-	
+
 	return;
-	
+
 send_req:
 	g_fsk_write_index = 0;
 

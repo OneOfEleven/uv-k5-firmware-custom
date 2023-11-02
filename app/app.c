@@ -1849,7 +1849,7 @@ void APP_process_power_save(void)
 		// go back to sleep
 
 		g_power_save_tick_10ms = g_eeprom.config.setting.battery_save_ratio * 10;
-		g_rx_idle_mode    = true;
+		g_rx_idle_mode         = true;
 
 		BK4819_DisableVox();
 		BK4819_Sleep();
@@ -1870,15 +1870,6 @@ void APP_time_slice_500ms(void)
 {
 	bool exit_menu = false;
 
-	if (g_serial_config_tick_500ms > 0)
-	{	// config upload/download is running
-		return;
-	}
-
-	if (g_keypad_locked > 0)
-		if (--g_keypad_locked == 0)
-			g_update_display = true;
-
 	if (g_key_input_count_down > 0)
 	{
 		if (--g_key_input_count_down == 0)
@@ -1887,10 +1878,30 @@ void APP_time_slice_500ms(void)
 
 			if (g_beep_to_play != BEEP_NONE)
 			{
-				AUDIO_PlayBeep(g_beep_to_play);
+				if (g_serial_config_tick_500ms == 0)
+					AUDIO_PlayBeep(g_beep_to_play);
 				g_beep_to_play = BEEP_NONE;
 			}
 		}
+	}
+
+	#ifdef ENABLE_AIRCOPY
+		if (g_current_display_screen == DISPLAY_AIRCOPY)
+		{	// we're in AIRCOPY mode
+
+			BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);
+
+			return;
+		}
+	#endif
+
+	if (g_keypad_locked > 0)
+		if (--g_keypad_locked == 0)
+			g_update_display = true;
+
+	if (g_serial_config_tick_500ms > 0)
+	{	// config upload/download is running
+		return;
 	}
 
 	if (g_update_screen_tick_500ms > 0)
@@ -2010,24 +2021,19 @@ void APP_time_slice_500ms(void)
 	if (g_fm_scan_state_dir == FM_SCAN_STATE_DIR_OFF || g_ask_to_save)
 #endif
 	{
-	#ifdef ENABLE_AIRCOPY
-		if (g_current_display_screen != DISPLAY_AIRCOPY)
-	#endif
+		if (g_css_scan_mode == CSS_SCAN_MODE_OFF   &&
+		    g_scan_state_dir == SCAN_STATE_DIR_OFF &&
+		   (g_current_display_screen != DISPLAY_SEARCH         ||
+			g_search_css_state == SEARCH_CSS_STATE_FOUND  ||
+			g_search_css_state == SEARCH_CSS_STATE_FAILED ||
+			g_search_css_state == SEARCH_CSS_STATE_REPEAT))
 		{
-			if (g_css_scan_mode == CSS_SCAN_MODE_OFF   &&
-			    g_scan_state_dir == SCAN_STATE_DIR_OFF &&
-			   (g_current_display_screen != DISPLAY_SEARCH         ||
-				g_search_css_state == SEARCH_CSS_STATE_FOUND  ||
-				g_search_css_state == SEARCH_CSS_STATE_FAILED ||
-				g_search_css_state == SEARCH_CSS_STATE_REPEAT))
-			{
-
-				#ifdef ENABLE_KEYLOCK
+			#ifdef ENABLE_KEYLOCK
 				if (g_eeprom.config.setting.auto_key_lock != 0 &&
-				    g_key_lock_tick_500ms > 0 &&
+					g_key_lock_tick_500ms > 0 &&
 				   !g_dtmf_input_mode         &&
-				    g_input_box_index == 0    &&
-				    g_current_display_screen != DISPLAY_MENU)
+					g_input_box_index == 0    &&
+					g_current_display_screen != DISPLAY_MENU)
 				{
 					if (--g_key_lock_tick_500ms == 0)
 					{	// lock the keyboard
@@ -2035,69 +2041,68 @@ void APP_time_slice_500ms(void)
 						g_update_status = true;
 					}
 				}
-				#endif
-
-				if (exit_menu)
+			#endif
+		
+			if (exit_menu)
+			{
+				g_menu_tick_10ms = 0;
+		
+				if (g_eeprom.config.setting.backlight_time == 0)
 				{
-					g_menu_tick_10ms = 0;
-
-					if (g_eeprom.config.setting.backlight_time == 0)
-					{
-						g_backlight_tick_500ms = 0;
-						GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
-					}
-
-					if (g_input_box_index > 0 || g_dtmf_input_mode)
-						AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
-/*
-					if (g_current_display_screen == DISPLAY_SEARCH)
-					{
-						BK4819_StopScan();
-
-						RADIO_configure_channel(0, VFO_CONFIGURE_RELOAD);
-						RADIO_configure_channel(1, VFO_CONFIGURE_RELOAD);
-
-						RADIO_setup_registers(true);
-					}
-*/
-					DTMF_clear_input_box();
-
-					g_fkey_pressed    = false;
-					g_input_box_index = 0;
-
-					g_ask_to_save     = false;
-					g_ask_to_delete   = false;
-
-					g_update_status   = true;
-					g_update_display  = true;
-
-					{
-						gui_display_type_t disp = DISPLAY_INVALID;
-
-						#ifdef ENABLE_FMRADIO
-							if (g_fm_radio_mode &&
-								g_current_function != FUNCTION_RECEIVE &&
-								g_current_function != FUNCTION_TRANSMIT &&
-								!g_monitor_enabled)
-							{
-								disp = DISPLAY_FM;
-							}
-						#endif
-
-						if (disp == DISPLAY_INVALID)
+					g_backlight_tick_500ms = 0;
+					GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
+				}
+		
+				if (g_input_box_index > 0 || g_dtmf_input_mode)
+					AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
+/*      
+				if (g_current_display_screen == DISPLAY_SEARCH)
+				{
+					BK4819_StopScan();
+		
+					RADIO_configure_channel(0, VFO_CONFIGURE_RELOAD);
+					RADIO_configure_channel(1, VFO_CONFIGURE_RELOAD);
+		
+					RADIO_setup_registers(true);
+				}
+*/      
+				DTMF_clear_input_box();
+		
+				g_fkey_pressed    = false;
+				g_input_box_index = 0;
+		
+				g_ask_to_save     = false;
+				g_ask_to_delete   = false;
+		
+				g_update_status   = true;
+				g_update_display  = true;
+		
+				{
+					gui_display_type_t disp = DISPLAY_INVALID;
+		
+					#ifdef ENABLE_FMRADIO
+						if (g_fm_radio_mode &&
+							g_current_function != FUNCTION_RECEIVE &&
+							g_current_function != FUNCTION_TRANSMIT &&
+							!g_monitor_enabled)
 						{
-							#ifndef ENABLE_CODE_SEARCH_TIMEOUT
-								if (g_current_display_screen != DISPLAY_SEARCH)
-							#endif
-									disp = DISPLAY_MAIN;
+							disp = DISPLAY_FM;
 						}
-
-						if (disp != DISPLAY_INVALID)
-							GUI_SelectNextDisplay(disp);
+					#endif
+		
+					if (disp == DISPLAY_INVALID)
+					{
+						#ifndef ENABLE_CODE_SEARCH_TIMEOUT
+							if (g_current_display_screen != DISPLAY_SEARCH)
+						#endif
+								disp = DISPLAY_MAIN;
 					}
+		
+					if (disp != DISPLAY_INVALID)
+						GUI_SelectNextDisplay(disp);
 				}
 			}
-		}
+		}	
 	}
 
 	if (g_current_function != FUNCTION_POWER_SAVE && g_current_function != FUNCTION_TRANSMIT)
@@ -2496,7 +2501,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 
 			if (key_held)
 			{	// unlock the keypad
-				g_eeprom.config.setting.g_eeprom.key_lock       = false;
+				g_eeprom.config.setting.key_lock = false;
 				g_request_save_settings = true;
 				g_update_status         = true;
 

@@ -257,8 +257,8 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 			char               s[16];
 
 			#ifdef ENABLE_KEYLOCK
-			if (g_eeprom.key_lock && g_keypad_locked > 0)
-				return false;     // display is in use
+				if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
+					return false;     // display is in use
 			#endif
 
 			if (g_current_function == FUNCTION_TRANSMIT ||
@@ -446,14 +446,14 @@ void UI_DisplayMain(void)
 	}
 
 	#ifdef ENABLE_KEYLOCK
-	if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
-	{	// tell user how to unlock the keyboard
-		backlight_turn_on(10);     // 5 seconds
-		UI_PrintString("Long press #", 0, LCD_WIDTH, 1, 8);
-		UI_PrintString("to unlock",    0, LCD_WIDTH, 3, 8);
-		ST7565_BlitFullScreen();
-		return;
-	}
+		if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
+		{	// tell user how to unlock the keyboard
+			backlight_turn_on(10);     // 5 seconds
+			UI_PrintString("Long press #", 0, LCD_WIDTH, 1, 8);
+			UI_PrintString("to unlock",    0, LCD_WIDTH, 3, 8);
+			ST7565_BlitFullScreen();
+			return;
+		}
 	#endif
 
 	for (vfo_num = 0; vfo_num < 2; vfo_num++)

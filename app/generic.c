@@ -59,7 +59,7 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 				g_another_voice_id = g_eeprom.config.setting.key_lock ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
 			#endif
 
-			g_eeprom.config.setting.key_lock = (g_eeprom.key_lock + 1) & 1u;
+			g_eeprom.config.setting.key_lock = (g_eeprom.config.setting.key_lock + 1) & 1u;
 			g_request_save_settings = true;
 			g_update_status         = true;
 

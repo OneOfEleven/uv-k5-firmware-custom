@@ -308,9 +308,9 @@ void SETTINGS_read_eeprom(void)
 }
 
 void SETTINGS_write_eeprom_config(void)
-{	// save the entire EEPROM contents
+{	// save the entire EEPROM config contents
 	uint32_t index;
-	for (index = 0; index < sizeof(g_eeprom); index += 8)
+	for (index = 0; index < sizeof(g_eeprom.config); index += 8)
 		EEPROM_WriteBuffer8(index, (uint8_t *)(&g_eeprom) + index);
 }
 

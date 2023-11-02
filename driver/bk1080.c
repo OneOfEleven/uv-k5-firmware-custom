@@ -179,7 +179,7 @@ void BK1080_Init(const uint16_t frequency, const bool initialise)
 	}
 }
 
-uint16_t BK1080_ReadRegister(BK1080_Register_t Register)
+uint16_t BK1080_ReadRegister(BK1080_register_t Register)
 {
 	uint8_t Value[2];
 	I2C_Start();
@@ -190,7 +190,7 @@ uint16_t BK1080_ReadRegister(BK1080_Register_t Register)
 	return (Value[0] << 8) | Value[1];
 }
 
-void BK1080_WriteRegister(BK1080_Register_t Register, uint16_t Value)
+void BK1080_WriteRegister(BK1080_register_t Register, uint16_t Value)
 {
 	I2C_Start();
 	I2C_Write(0x80);

@@ -28,8 +28,8 @@ extern uint16_t BK1080_freq_base;
 extern int16_t  BK1080_freq_offset;
 
 void     BK1080_Init(const uint16_t frequency, const bool initialise);
-uint16_t BK1080_ReadRegister(BK1080_Register_t Register);
-void     BK1080_WriteRegister(BK1080_Register_t Register, uint16_t Value);
+uint16_t BK1080_ReadRegister(BK1080_register_t Register);
+void     BK1080_WriteRegister(BK1080_register_t Register, uint16_t Value);
 void     BK1080_Mute(const bool Mute);
 void     BK1080_SetFrequency(uint16_t Frequency);
 int16_t  BK1080_get_freq_offset(const uint16_t Frequency);
