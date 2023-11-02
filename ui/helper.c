@@ -84,7 +84,8 @@ void UI_PrintString(const char *str, unsigned int x, const unsigned int end, con
 			x += ofs;
 	}
 
-	for (i = 0; i < length && (x + width) <= LCD_WIDTH; i++, x += width)
+//	for (i = 0; i < length && (x + width) <= LCD_WIDTH; i++, x += width)
+	for (i = 0; i < length; i++, x += width)
 	{
 		const int c = (int)str[i] - ' ';
 		if (c >= 0 && c < (int)font_size)
@@ -117,6 +118,7 @@ static void UI_print_string(
 	}
 
 	for (i = 0; i < length && (x + char_width) <= LCD_WIDTH; i++, x += char_pitch)
+//	for (i = 0; i < length; i++, x += char_pitch)
 	{
 		const int c = (int)str[i] - ' ';
 		if (c >= 0 && c < (int)font_size)

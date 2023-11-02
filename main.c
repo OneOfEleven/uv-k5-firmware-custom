@@ -190,7 +190,7 @@ void Main(void)
 	g_unhide_hidden = (BootMode == BOOT_MODE_UNHIDE_HIDDEN); // flag to say include the hidden menu items
 
 	// load the entire EEPROM contents into memory
-	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // backlight on
+//	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // backlight on
 	MAIN_DisplayReadingEEPROM();
 	SETTINGS_read_eeprom();
 	MAIN_DisplayClear();
@@ -227,9 +227,7 @@ void Main(void)
 
 	RADIO_configure_channel(0, VFO_CONFIGURE_RELOAD);
 	RADIO_configure_channel(1, VFO_CONFIGURE_RELOAD);
-
 	RADIO_select_vfos();
-
 	RADIO_setup_registers(true);
 
 	for (i = 0; i < ARRAY_SIZE(g_battery_voltages); i++)

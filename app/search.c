@@ -251,7 +251,7 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 				}
 
 				g_tx_vfo->freq_config_tx = g_tx_vfo->freq_config_rx;
-				g_tx_vfo->step_setting   = g_search_step_setting;
+				g_tx_vfo->channel.step_setting = g_search_step_setting;
 			}
 			else
 			{
@@ -272,7 +272,7 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 			}
 			else
 			{
-				Channel = FREQ_CHANNEL_FIRST + g_tx_vfo->band;
+				Channel = FREQ_CHANNEL_FIRST + g_tx_vfo->channel_attributes.band;
 				g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].frequency = Channel;
 			}
 
@@ -605,13 +605,13 @@ void SEARCH_Start(void)
 			g_rx_vfo->channel_save = FREQ_CHANNEL_FIRST + BAND6_400MHz;
 	#endif
 
-	BackupStep     = g_rx_vfo->step_setting;
+	BackupStep     = g_rx_vfo->channel.step_setting;
 	BackupStepFreq = g_rx_vfo->step_freq;
 
 	RADIO_InitInfo(g_rx_vfo, g_rx_vfo->channel_save, g_rx_vfo->p_rx->frequency);
 
-	g_rx_vfo->step_setting = BackupStep;
-	g_rx_vfo->step_freq    = BackupStepFreq;
+	g_rx_vfo->channel.step_setting = BackupStep;
+	g_rx_vfo->step_freq            = BackupStepFreq;
 
 	g_monitor_enabled = false;
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -626,7 +626,7 @@ void SEARCH_Start(void)
 	{
 		g_search_css_state    = SEARCH_CSS_STATE_SCANNING;
 		g_search_frequency    = g_rx_vfo->p_rx->frequency;
-		g_search_step_setting = g_rx_vfo->step_setting;
+		g_search_step_setting = g_rx_vfo->channel.step_setting;
 
 		BK4819_set_rf_filter_path(g_search_frequency);
 

@@ -30,6 +30,7 @@
 #include "frequencies.h"
 #include "helper/battery.h"
 #include "misc.h"
+#include "radio.h"
 #include "settings.h"
 #include "ui/helper.h"
 #include "ui/inputbox.h"
@@ -469,10 +470,10 @@ void UI_SortMenu(const bool hide_hidden)
 
 void UI_DisplayMenu(void)
 {
-	const unsigned int menu_list_width = 6;                          // max no. of characters on the menu list (left side)
-	const unsigned int sub_menu_x1     = (8 * menu_list_width) + 0;  // start x corrd
-	const unsigned int sub_menu_x2     = LCD_WIDTH - 1;              //   end x coord
-	bool               channel_setting = false;                      // set if the setting is a channel setting
+	const unsigned int menu_list_width = 6;                    // max no. of characters on the menu list (left side)
+	const unsigned int sub_menu_x1     = 8 * menu_list_width;  // start x corrd
+	const unsigned int sub_menu_x2     = LCD_WIDTH - 1;        //   end x coord
+	bool               channel_setting = false;                // set if the setting is a channel setting
 	unsigned int       i;
 	char               str[64];  // bigger cuz we can now do multi-line in one string (use '\n' char)
 
@@ -736,7 +737,6 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_MOD_MODE:
-//			strcpy(str, (g_sub_menu_selection == 0) ? "FM" : "AM");
 			strcpy(str, g_sub_menu_mod_mode[g_sub_menu_selection]);
 			channel_setting = true;
 			break;
@@ -793,6 +793,10 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_DTMF_DCD:
+			channel_setting = true;
+
+			// Fallthrough
+
 		case MENU_DTMF_LIVE_DEC:
 			strcpy(str, "DTMF\nDECODE\n");
 			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
@@ -989,16 +993,19 @@ void UI_DisplayMenu(void)
 		case MENU_UP_CODE:
 			strcpy(str, "DTMF BOT\n");
 			strcat(str, g_eeprom.config.setting.dtmf.key_up_code);
+			channel_setting = true;
 			break;
 
 		case MENU_DN_CODE:
 			strcpy(str, "DTMF EOT\n");
 			strcat(str, g_eeprom.config.setting.dtmf.key_down_code);
+			channel_setting = true;
 			break;
 
 		case MENU_DTMF_RSP:
 			strcpy(str, "DTMF\nRESPONSE\n");
 			strcat(str, g_sub_menu_dtmf_rsp[g_sub_menu_selection]);
+			channel_setting = true;
 			break;
 
 		case MENU_DTMF_HOLD:

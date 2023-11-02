@@ -36,6 +36,7 @@
 #endif
 #include "functions.h"
 #include "misc.h"
+#include "radio.h"
 #include "settings.h"
 #if defined(ENABLE_OVERLAY)
 	#include "sram-overlay.h"
@@ -462,16 +463,16 @@ static void cmd_052F(const uint8_t *pBuffer)
 {
 	const cmd_052F_t *pCmd = (const cmd_052F_t *)pBuffer;
 
-	g_rx_vfo                                  = 0;
-	g_eeprom.config.setting.dual_watch       = DUAL_WATCH_OFF;
-	g_eeprom.config.setting.cross_vfo        = CROSS_BAND_OFF;
-	g_eeprom.config.setting.dtmf.side_tone   = false;
-	g_vfo_info[0].frequency_reverse           = false;
-	g_vfo_info[0].p_rx                        = &g_vfo_info[0].freq_config_rx;
-	g_vfo_info[0].p_tx                        = &g_vfo_info[0].freq_config_tx;
-	g_vfo_info[0].tx_offset_freq_dir          = TX_OFFSET_FREQ_DIR_OFF;
-	g_vfo_info[0].dtmf_ptt_id_tx_mode         = PTT_ID_OFF;
-	g_vfo_info[0].dtmf_decoding_enable        = false;
+	g_rx_vfo_num                               = 0;
+	g_eeprom.config.setting.dual_watch         = DUAL_WATCH_OFF;
+	g_eeprom.config.setting.cross_vfo          = CROSS_BAND_OFF;
+	g_eeprom.config.setting.dtmf.side_tone     = false;
+	g_vfo_info[0].channel.frequency_reverse    = false;
+	g_vfo_info[0].p_rx                         = &g_vfo_info[0].freq_config_rx;
+	g_vfo_info[0].p_tx                         = &g_vfo_info[0].freq_config_tx;
+	g_vfo_info[0].channel.tx_offset_dir        = TX_OFFSET_FREQ_DIR_OFF;
+	g_vfo_info[0].channel.dtmf_ptt_id_tx_mode  = PTT_ID_OFF;
+	g_vfo_info[0].channel.dtmf_decoding_enable = false;
 
 	g_serial_config_tick_500ms = serial_config_tick_500ms;
 

@@ -80,19 +80,19 @@ void toggle_chan_scanlist(void)
 		return;
 	}
 
-	if (g_tx_vfo->scanlist_1_participation)
+	if (g_tx_vfo->channel_attributes.scanlist1)
 	{
-		if (g_tx_vfo->scanlist_2_participation)
-			g_tx_vfo->scanlist_1_participation = 0;
+		if (g_tx_vfo->channel_attributes.scanlist2)
+			g_tx_vfo->channel_attributes.scanlist1 = 0;
 		else
-			g_tx_vfo->scanlist_2_participation = 1;
+			g_tx_vfo->channel_attributes.scanlist2 = 1;
 	}
 	else
 	{
-		if (g_tx_vfo->scanlist_2_participation)
-			g_tx_vfo->scanlist_2_participation = 0;
+		if (g_tx_vfo->channel_attributes.scanlist2)
+			g_tx_vfo->channel_attributes.scanlist2 = 0;
 		else
-			g_tx_vfo->scanlist_1_participation = 1;
+			g_tx_vfo->channel_attributes.scanlist1 = 1;
 	}
 
 	SETTINGS_save_chan_attribs_name(g_tx_vfo->channel_save, g_tx_vfo);
@@ -122,7 +122,7 @@ void toggle_chan_scanlist(void)
 		if (IS_USER_CHANNEL(g_eeprom.config.setting.indices.vfo[vfo].screen))
 		{	// copy channel to VFO, then swap to the VFO
 
-			const unsigned int channel = FREQ_CHANNEL_FIRST + g_vfo_info[vfo].band;
+			const unsigned int channel = FREQ_CHANNEL_FIRST + g_vfo_info[vfo].channel_attributes.band;
 
 			g_eeprom.config.setting.indices.vfo[vfo].screen = channel;
 			g_vfo_info[vfo].channel_save        = channel;
@@ -210,10 +210,10 @@ void processFKeyFunction(const key_code_t Key)
 			if (g_fkey_pressed)
 			{
 				#if 0
-					g_tx_vfo->am_mode = (g_tx_vfo->am_mode + 1) & 1u;
+					g_tx_vfo->channel.am_mode = (g_tx_vfo->am_mode + 1) & 1u;
 				#else
-					if (++g_tx_vfo->am_mode >= 3)
-						g_tx_vfo->am_mode = 0;
+					if (++g_tx_vfo->channel.am_mode >= 3)
+						g_tx_vfo->channel.am_mode = 0;
 				#endif
 				g_request_save_channel = 1;
 			}
@@ -242,7 +242,7 @@ void processFKeyFunction(const key_code_t Key)
 
 			APP_stop_scan();
 
-			Band = g_tx_vfo->band + 1;
+			Band = g_tx_vfo->channel_attributes.band + 1;
 			if (g_eeprom.config.setting.enable_350 || Band != BAND5_350MHz)
 			{
 				if (Band > BAND7_470MHz)
@@ -250,7 +250,7 @@ void processFKeyFunction(const key_code_t Key)
 			}
 			else
 				Band = BAND6_400MHz;      // jump to next band
-			g_tx_vfo->band = Band;
+			g_tx_vfo->channel_attributes.band = Band;
 
 			g_eeprom.config.setting.indices.vfo[vfo].screen    = FREQ_CHANNEL_FIRST + Band;
 			g_eeprom.config.setting.indices.vfo[vfo].frequency = FREQ_CHANNEL_FIRST + Band;
@@ -397,7 +397,7 @@ void processFKeyFunction(const key_code_t Key)
 				return;
 			}
 
-			g_tx_vfo->frequency_reverse = g_tx_vfo->frequency_reverse == false;
+			g_tx_vfo->channel.frequency_reverse = g_tx_vfo->channel.frequency_reverse == false;
 			g_request_save_channel = 1;
 
 			break;
@@ -566,9 +566,9 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 				g_another_voice_id = (voice_id_t)Key;
 			#endif
 
-			if (g_tx_vfo->band != band)
+			if (g_tx_vfo->channel_attributes.band != band)
 			{
-				g_tx_vfo->band = band;
+				g_tx_vfo->channel_attributes.band = band;
 				g_eeprom.config.setting.indices.vfo[vfo].screen    = band + FREQ_CHANNEL_FIRST;
 				g_eeprom.config.setting.indices.vfo[vfo].frequency = band + FREQ_CHANNEL_FIRST;
 
@@ -578,7 +578,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			}
 
 			Frequency += g_tx_vfo->step_freq / 2; // for rounding to nearest step size
-			Frequency = FREQUENCY_floor_to_step(Frequency, g_tx_vfo->step_freq, FREQ_BAND_TABLE[g_tx_vfo->band].lower, FREQ_BAND_TABLE[g_tx_vfo->band].upper);
+			Frequency = FREQUENCY_floor_to_step(Frequency, g_tx_vfo->step_freq, FREQ_BAND_TABLE[g_tx_vfo->channel_attributes.band].lower, FREQ_BAND_TABLE[g_tx_vfo->channel_attributes.band].upper);
 
 			if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
 			{	// clamp the frequency to the limit

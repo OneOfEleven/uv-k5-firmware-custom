@@ -219,7 +219,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 		#else
 			// append our DTMF ID to the inputted DTMF code -
 			//  IF the user inputted code is exactly 3 digits long and D-DCD is enabled
-			if (g_dtmf_input_box_index == 3 && g_tx_vfo->dtmf_decoding_enable > 0)
+			if (g_dtmf_input_box_index == 3 && g_tx_vfo->channel.dtmf_decoding_enable > 0)
 				g_dtmf_call_mode = DTMF_CheckGroupCall(g_dtmf_input_box, 3);
 			else
 				g_dtmf_call_mode = DTMF_CALL_MODE_DTMF;

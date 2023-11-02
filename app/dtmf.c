@@ -27,6 +27,7 @@
 #include "dtmf.h"
 #include "external/printf/printf.h"
 #include "misc.h"
+#include "radio.h"
 #include "settings.h"
 #include "ui/ui.h"
 
@@ -214,9 +215,9 @@ void DTMF_HandleRequest(void)
 	}
 
 	#ifdef ENABLE_KILL_REVIVE
-		if (!g_rx_vfo->dtmf_decoding_enable && !g_eeprom.config.setting.radio_disabled)
+		if (!g_rx_vfo->channel.dtmf_decoding_enable && !g_eeprom.config.setting.radio_disabled)
 	#else
-		if (!g_rx_vfo->dtmf_decoding_enable)
+		if (!g_rx_vfo->channel.dtmf_decoding_enable)
 	#endif
 	{	// D-DCD is disabled or we're enabled
 		DTMF_clear_RX();
@@ -417,9 +418,9 @@ bool DTMF_Reply(void)
 		default:
 		case DTMF_REPLY_NONE:
 			if (g_dtmf_call_state != DTMF_CALL_STATE_NONE           ||
-			    g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO ||
-			    g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_OFF    ||
-			    g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN)
+			    g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO ||
+			    g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_OFF    ||
+			    g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN)
 			{
 				g_dtmf_reply_state = DTMF_REPLY_NONE;
 				return false;

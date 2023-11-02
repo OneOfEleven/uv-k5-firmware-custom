@@ -76,11 +76,11 @@ static void ACTION_FlashLight(void)
 
 void ACTION_Power(void)
 {
-	if (++g_tx_vfo->output_power > OUTPUT_POWER_HIGH)
-		g_tx_vfo->output_power = OUTPUT_POWER_LOW;
+	if (++g_tx_vfo->channel.tx_power > OUTPUT_POWER_HIGH)
+		g_tx_vfo->channel.tx_power = OUTPUT_POWER_LOW;
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//		UART_printf("act_pwr %u\r\n", g_tx_vfo->output_power);
+//		UART_printf("act_pwr %u\r\n", g_tx_vfo->channel.tx_power);
 	#endif
 
 	g_request_save_channel = 1;

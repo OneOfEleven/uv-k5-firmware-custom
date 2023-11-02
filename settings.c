@@ -25,6 +25,7 @@
 	#include "driver/uart.h"
 #endif
 #include "misc.h"
+#include "radio.h"
 #include "settings.h"
 #include "ui/menu.h"
 
@@ -41,8 +42,8 @@ static const uint32_t DEFAULT_FREQUENCY_TABLE[] =
 };
 
 t_eeprom         g_eeprom;
-t_channel_attrib g_user_channel_attributes[FREQ_CHANNEL_LAST + 1];
 
+t_channel_attrib g_user_channel_attributes[FREQ_CHANNEL_LAST + 1];
 
 void SETTINGS_read_eeprom(void)
 {
@@ -63,10 +64,8 @@ void SETTINGS_read_eeprom(void)
 					 sizeof(g_eeprom),        sizeof(g_eeprom));
 	#endif
 
+#if 0
 	// sanity checks ..
-
-	// 0D60..0E27
-	memcpy(&g_user_channel_attributes, &g_eeprom.config.channel_attributes, sizeof(g_user_channel_attributes));
 
 	g_eeprom.config.setting.call1            = IS_USER_CHANNEL(g_eeprom.config.setting.call1)  ? g_eeprom.config.setting.call1 : USER_CHANNEL_FIRST;
 	g_eeprom.config.setting.squelch_level    = (g_eeprom.config.setting.squelch_level < 10)    ? g_eeprom.config.setting.squelch_level : 1;
@@ -237,7 +236,7 @@ void SETTINGS_read_eeprom(void)
 	g_eeprom.config.setting.freq_lock = (g_eeprom.config.setting.freq_lock < FREQ_LOCK_LAST) ? g_eeprom.config.setting.freq_lock : FREQ_LOCK_NORMAL;
 //	g_eeprom.config.setting.enable_tx_350       = (g_eeprom.config.setting.enable_tx_350 < 2) ? g_eeprom.config.setting.enable_tx_350 : false;
 	#ifdef ENABLE_KILL_REVIVE
-//		g_eeprom.config.setting.radio_disabled  = (g_eeprom.config.setting.radio_disabled < 2) ? g_eeprom.config.setting.radio_disabled : 0;
+		g_eeprom.config.setting.radio_disabled  = (g_eeprom.config.setting.radio_disabled < 2) ? g_eeprom.config.setting.radio_disabled : 0;
 	#else
 		g_eeprom.config.setting.radio_disabled  = 0;
 	#endif
@@ -261,12 +260,35 @@ void SETTINGS_read_eeprom(void)
 	#endif
 //	g_eeprom.config.setting.backlight_on_tx_rx = (Data[7] >> 6) & 3u;
 
+#else
+
+	#ifndef ENABLE_KILL_REVIVE
+		memset(g_eeprom.config.setting.dtmf.kill_code,   0, sizeof(g_eeprom.config.setting.dtmf.kill_code));
+		memset(g_eeprom.config.setting.dtmf.revive_code, 0, sizeof(g_eeprom.config.setting.dtmf.revive_code));
+
+		g_eeprom.config.setting.dtmf.permit_remote_kill  = 0;
+	#endif
+
+	#if ENABLE_RESET_AES_KEY
+		// wipe that darned AES key
+		memset(&g_eeprom.config.setting.aes_key, 0xff, sizeof(g_eeprom.config.setting.aes_key));
+	#endif
+
+	#ifndef ENABLE_KILL_REVIVE
+		g_eeprom.config.setting.radio_disabled  = 0;
+	#endif
+
+#endif
+
 	// 0F48..0F4F
 	g_eeprom.config.setting.scan_hold_time = (g_eeprom.config.setting.scan_hold_time > 40) ? 6 : (g_eeprom.config.setting.scan_hold_time < 2) ? 6 : g_eeprom.config.setting.scan_hold_time;
 
 	memset(&g_eeprom.config.unused13, 0xff, sizeof(g_eeprom.config.unused13));
 
 	memset(&g_eeprom.unused, 0xff, sizeof(g_eeprom.unused));
+
+	// 0D60..0E27
+	memcpy(&g_user_channel_attributes, &g_eeprom.config.channel_attributes, sizeof(g_user_channel_attributes));
 
 	// ****************************************
 
@@ -374,7 +396,7 @@ void SETTINGS_save(void)
 	}
 }
 
-void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, const vfo_info_t *p_vfo, const unsigned int mode)
+void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, vfo_info_t *p_vfo, const unsigned int mode)
 {
 	const unsigned int chan  = CHANNEL_NUM(channel, vfo);
 	t_channel         *p_channel = &g_eeprom.config.channel[chan];
@@ -386,41 +408,28 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, c
 	if (mode < 2 && channel <= USER_CHANNEL_LAST)
 		return;
 
-	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("sav_chan %04X  %3u %3u %u %u\r\n", eeprom_addr, chan, channel, vfo, mode);
-	#endif
-
 	// ****************
 
 	if (p_vfo != NULL)
 	{
 		memset(p_channel, 0, sizeof(t_channel));
-		p_channel->frequency            = p_vfo->freq_config_rx.frequency;
-		p_channel->tx_offset            = p_vfo->tx_offset_freq;
-		p_channel->rx_ctcss_cdcss_code  = p_vfo->freq_config_rx.code;
-		p_channel->tx_ctcss_cdcss_code  = p_vfo->freq_config_tx.code;
-		p_channel->rx_ctcss_cdcss_type  = p_vfo->freq_config_rx.code_type;
-//		p_channel->unused1:2
-		p_channel->tx_ctcss_cdcss_type  = p_vfo->freq_config_tx.code_type;
-		#ifdef ENABLE_MDC1200
-			p_channel->mdc1200_mode     = p_vfo->mdc1200_mode;
+
+		p_vfo->channel.frequency           = p_vfo->freq_config_rx.frequency;
+		p_vfo->channel.rx_ctcss_cdcss_code = p_vfo->freq_config_rx.code;
+		p_vfo->channel.tx_ctcss_cdcss_code = p_vfo->freq_config_tx.code;
+		p_vfo->channel.rx_ctcss_cdcss_type = p_vfo->freq_config_rx.code_type;
+		p_vfo->channel.tx_ctcss_cdcss_type = p_vfo->freq_config_tx.code_type;
+
+		memcpy(p_channel, &p_vfo->channel, sizeof(t_channel));
+
+		if (IS_USER_CHANNEL(channel))
+			g_eeprom.config.channel_attributes[channel] = g_user_channel_attributes[channel];
+
+//		memcpy(g_eeprom.config.channel_name[channel], p_vfo->channel_name, 16);
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("save chan %04X  %3u %3u %u %u %uHz\r\n", eeprom_addr, chan, channel, vfo, mode, p_channel->frequency * 10);
 		#endif
-		p_channel->tx_offset_dir        = p_vfo->tx_offset_freq_dir;
-//		p_channel->unused3:2
-		p_channel->am_mode              = p_vfo->am_mode;
-//		p_channel->unused4:3
-		p_channel->frequency_reverse    = p_vfo->frequency_reverse;
-		p_channel->channel_bandwidth    = p_vfo->channel_bandwidth;
-		p_channel->tx_power             = p_vfo->output_power;
-		p_channel->busy_channel_lock    = p_vfo->busy_channel_lock;
-//		p_channel->unused5:1
-		p_channel->compand              = p_vfo->compand;
-		p_channel->dtmf_decoding_enable = p_vfo->dtmf_decoding_enable;
-		p_channel->dtmf_ptt_id_tx_mode  = p_vfo->dtmf_ptt_id_tx_mode;
-//		p_channel->unused6:4
-		p_channel->step_setting         = p_vfo->step_setting;
-		p_channel->scrambler            = p_vfo->scrambling_type;
-		p_channel->squelch_level        = p_vfo->squelch_level;
 	}
 	else
 	if (channel <= USER_CHANNEL_LAST)
@@ -428,8 +437,8 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, c
 		memset(p_channel, 0xff, sizeof(t_channel));
 	}
 
-	EEPROM_WriteBuffer8(eeprom_addr + 0, (uint8_t *)(p_channel) + 0);
-	EEPROM_WriteBuffer8(eeprom_addr + 8, (uint8_t *)(p_channel) + 8);
+	EEPROM_WriteBuffer8(eeprom_addr + 0, ((uint8_t *)p_channel) + 0);
+	EEPROM_WriteBuffer8(eeprom_addr + 8, ((uint8_t *)p_channel) + 8);
 
 	// ****************
 
@@ -450,7 +459,7 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, c
 		#else
 
 			if (p_vfo != NULL)
-				memcpy(&g_eeprom.config.channel_name[channel], p_vfo->name, 10);
+				memcpy(&g_eeprom.config.channel_name[channel], p_vfo->channel_name, 10);
 
 			if (mode >= 3 || p_vfo == NULL)
 			{	// save the channel name
@@ -476,14 +485,9 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 	if (p_vfo != NULL)
 	{	// channel attributes
 
-		t_channel_attrib attribs;
-
- 		attribs.band      = p_vfo->band & 7u;
-		attribs.unused    = 3u;
-		attribs.scanlist2 = p_vfo->scanlist_2_participation;
-		attribs.scanlist1 = p_vfo->scanlist_1_participation;
-
-		g_user_channel_attributes[channel]           = attribs;            // remember new attributes
+		t_channel_attrib attribs = p_vfo->channel_attributes;
+		attribs.unused = 3u;
+		g_user_channel_attributes[channel]          = attribs;            // remember new attributes
 		g_eeprom.config.channel_attributes[channel] = attribs;
 
 		EEPROM_WriteBuffer8(0x0D60 + index, g_user_channel_attributes + index);
@@ -504,7 +508,7 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 		if (p_vfo != NULL)
 		{
 			memset(&g_eeprom.config.channel_name[channel], 0, sizeof(g_eeprom.config.channel_name[channel]));
-			memcpy(&g_eeprom.config.channel_name[channel], p_vfo->name, 10);
+			memcpy(&g_eeprom.config.channel_name[channel], p_vfo->channel_name, 10);
 		}
 		else
 		{
@@ -650,7 +654,7 @@ void SETTINGS_factory_reset(bool bIsAll)
 			const uint32_t Frequency           = DEFAULT_FREQUENCY_TABLE[i];
 			g_rx_vfo->freq_config_rx.frequency = Frequency;
 			g_rx_vfo->freq_config_tx.frequency = Frequency;
-			g_rx_vfo->band                     = FREQUENCY_GetBand(Frequency);
+			g_rx_vfo->channel_attributes.band  = FREQUENCY_GetBand(Frequency);
 			SETTINGS_save_channel(USER_CHANNEL_FIRST + i, 0, g_rx_vfo, 2);
 		}
 	}

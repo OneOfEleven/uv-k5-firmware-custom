@@ -50,7 +50,7 @@ void FUNCTION_Init(void)
 	{
 		g_current_code_type = g_selected_code_type;
 		if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
-			g_current_code_type = (g_rx_vfo->am_mode > 0) ? CODE_TYPE_NONE : g_rx_vfo->p_rx->code_type;
+			g_current_code_type = (g_rx_vfo->channel.am_mode > 0) ? CODE_TYPE_NONE : g_rx_vfo->p_rx->code_type;
 	}
 	else
 		g_current_code_type = CODE_TYPE_CONTINUOUS_TONE;
@@ -233,7 +233,7 @@ void FUNCTION_Select(function_type_t Function)
 				}
 			#endif
 
-			if (g_current_vfo->scrambling_type == 0 || !g_eeprom.config.setting.enable_scrambler)
+			if (g_current_vfo->channel.scrambler == 0 || !g_eeprom.config.setting.enable_scrambler)
 				BK4819_DisableScramble();
 
 			RADIO_enableTX(false);
@@ -283,7 +283,7 @@ void FUNCTION_Select(function_type_t Function)
 				}
 				else
 			#endif
-				if (g_current_vfo->dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+				if (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 				{
 					BK4819_PlayTone(APOLLO_TONE1_HZ, APOLLO_TONE_MS, 0);
 				}
@@ -301,9 +301,9 @@ void FUNCTION_Select(function_type_t Function)
 				(1u  <<  1) |    // enable  TX DSP
 				(0u  <<  0));    // disable RX DSP
 */
-			if (g_current_vfo->scrambling_type > 0 && g_eeprom.config.setting.enable_scrambler)
+			if (g_current_vfo->channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
 			{
-				BK4819_EnableScramble(g_current_vfo->scrambling_type - 1);
+				BK4819_EnableScramble(g_current_vfo->channel.scrambler - 1);
 			}
 			
 			break;
