@@ -29,7 +29,6 @@ enum fm_scan_state_dir_e {
 };
 typedef enum fm_scan_state_dir_e fm_scan_state_dir_t;
 
-extern uint16_t            g_fm_channels[20];
 extern bool                g_fm_radio_mode;
 extern fm_scan_state_dir_t g_fm_scan_state_dir;
 extern bool                g_fm_auto_scan;

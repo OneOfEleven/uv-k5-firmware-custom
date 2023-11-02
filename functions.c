@@ -119,14 +119,14 @@ void FUNCTION_Select(function_type_t Function)
 
 			#ifdef ENABLE_FMRADIO
 				if (g_fm_radio_mode)
-					g_fm_restore_tick_10ms = g_eeprom.scan_hold_time_500ms * 50;
+					g_fm_restore_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
 			#endif
 
 			if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT ||
 			    g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED ||
 				g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
 			{
-				g_dtmf_auto_reset_time_500ms = g_eeprom.dtmf_auto_reset_time * 2;
+				g_dtmf_auto_reset_time_500ms = g_eeprom.config.setting.dtmf.auto_reset_time * 2;
 			}
 
 			return;
@@ -154,7 +154,7 @@ void FUNCTION_Select(function_type_t Function)
 				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 			}
 			
-			g_power_save_tick_10ms = g_eeprom.battery_save * 10;
+			g_power_save_tick_10ms = g_eeprom.config.setting.battery_save_ratio * 10;
 			g_power_save_expired   = false;
 
 			g_rx_idle_mode = true;
@@ -174,14 +174,14 @@ void FUNCTION_Select(function_type_t Function)
 				UART_SendText("func transmit\r\n");
 			#endif
 
-			if (g_setting_backlight_on_tx_rx == 1 || g_setting_backlight_on_tx_rx == 3)
+			if (g_eeprom.config.setting.backlight_on_tx_rx == 1 || g_eeprom.config.setting.backlight_on_tx_rx == 3)
 				backlight_turn_on(backlight_tx_rx_time_500ms);
 
-			if (g_eeprom.dual_watch != DUAL_WATCH_OFF)
+			if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
 			{	// dual-RX is enabled
 				g_dual_watch_tick_10ms = dual_watch_delay_after_tx_10ms;
-				if (g_dual_watch_tick_10ms < (g_eeprom.scan_hold_time_500ms * 50))
-					g_dual_watch_tick_10ms = g_eeprom.scan_hold_time_500ms * 50;
+				if (g_dual_watch_tick_10ms < (g_eeprom.config.setting.scan_hold_time * 50))
+					g_dual_watch_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
 			}
 
 			#ifdef ENABLE_MDC1200
@@ -210,7 +210,7 @@ void FUNCTION_Select(function_type_t Function)
 			GUI_DisplayScreen();
 
 			#ifdef ENABLE_ALARM
-				if (g_alarm_state == ALARM_STATE_TXALARM && g_eeprom.alarm_mode != ALARM_MODE_TONE)
+				if (g_alarm_state == ALARM_STATE_TXALARM && g_eeprom.config.setting.alarm_mode != ALARM_MODE_TONE)
 				{	// enable the alarm tone but not the TX
 			
 					g_alarm_state = ALARM_STATE_ALARM;
@@ -233,7 +233,7 @@ void FUNCTION_Select(function_type_t Function)
 				}
 			#endif
 
-			if (g_current_vfo->scrambling_type == 0 || !g_setting_scramble_enable)
+			if (g_current_vfo->scrambling_type == 0 || !g_eeprom.config.setting.enable_scrambler)
 				BK4819_DisableScramble();
 
 			RADIO_enableTX(false);
@@ -279,7 +279,7 @@ void FUNCTION_Select(function_type_t Function)
 						(1u  <<  1) |    // enable  TX DSP
 						(0u  <<  0));    // disable RX DSP
 					SYSTEM_DelayMs(120);
-					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.mdc1200_id);
+					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.config.setting.mdc1200_id);
 				}
 				else
 			#endif
@@ -301,7 +301,7 @@ void FUNCTION_Select(function_type_t Function)
 				(1u  <<  1) |    // enable  TX DSP
 				(0u  <<  0));    // disable RX DSP
 */
-			if (g_current_vfo->scrambling_type > 0 && g_setting_scramble_enable)
+			if (g_current_vfo->scrambling_type > 0 && g_eeprom.config.setting.enable_scrambler)
 			{
 				BK4819_EnableScramble(g_current_vfo->scrambling_type - 1);
 			}

@@ -112,7 +112,7 @@ static void SEARCH_Key_EXIT(bool key_pressed, bool key_held)
 	switch (g_search_edit_state)
 	{
 		case SEARCH_EDIT_STATE_NONE:
-			g_eeprom.cross_vfo_rx_tx = g_backup_cross_vfo_rx_tx;
+			g_eeprom.config.setting.cross_vfo = g_backup_cross_vfo;
 			g_update_status          = true;
 			g_vfo_configure_mode     = VFO_CONFIGURE_RELOAD;
 			g_flag_reset_vfos        = true;
@@ -184,7 +184,7 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 				// determine what the current step size is for the detected frequency
 				// use the 7 VFO channels/bands to determine it
 				const unsigned int band = (unsigned int)FREQUENCY_GetBand(g_search_frequency);
-				g_search_step_setting = BOARD_fetchFrequencyStepSetting(band, g_eeprom.tx_vfo);
+				g_search_step_setting = SETTINGS_fetch_frequency_step_setting(band, g_eeprom.config.setting.tx_vfo_num);
 				{	// round to nearest step size
 					const uint16_t step_size = STEP_FREQ_TABLE[g_search_step_setting];
 					g_search_frequency = ((g_search_frequency + (step_size / 2)) / step_size) * step_size;
@@ -268,16 +268,16 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 			if (g_tx_vfo->channel_save <= USER_CHANNEL_LAST)
 			{
 				Channel = g_search_channel;
-				g_eeprom.user_channel[g_eeprom.tx_vfo] = Channel;
+				g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].user = Channel;
 			}
 			else
 			{
 				Channel = FREQ_CHANNEL_FIRST + g_tx_vfo->band;
-				g_eeprom.freq_channel[g_eeprom.tx_vfo] = Channel;
+				g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].frequency = Channel;
 			}
 
 			g_tx_vfo->channel_save = Channel;
-			g_eeprom.screen_channel[g_eeprom.tx_vfo] = Channel;
+			g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen = Channel;
 			g_request_save_channel = 2;
 
 			#ifdef ENABLE_VOICE
@@ -619,7 +619,7 @@ void SEARCH_Start(void)
 	RADIO_setup_registers(true);
 
 	#ifdef ENABLE_NOAA
-		g_is_noaa_mode = false;
+		g_noaa_mode = false;
 	#endif
 
 	if (g_search_single_frequency)

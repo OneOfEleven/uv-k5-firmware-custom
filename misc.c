@@ -81,38 +81,9 @@ const uint16_t        noaa_tick_3_10ms                 =    200 / 10;   // 200ms
 
 // ***********************************************
 
-const uint32_t        g_default_aes_key[4]                = {0x4AA5CC60, 0x0312CC5F, 0xFFD2DABB, 0x6BBA7F92};
+const uint32_t        g_default_aes_key[4]             = {0x4AA5CC60, 0x0312CC5F, 0xFFD2DABB, 0x6BBA7F92};
 
-const uint8_t         g_mic_gain_dB_2[5]                  = {3, 8, 16, 24, 31};
-
-#ifdef ENABLE_KILL_REVIVE
-	bool              g_setting_radio_disabled;
-#endif
-
-bool                  g_setting_350_tx_enable;
-bool                  g_setting_174_tx_enable;
-bool                  g_setting_470_tx_enable;
-bool                  g_setting_350_enable;
-bool                  g_setting_tx_enable;
-uint8_t               g_setting_freq_lock;
-bool                  g_setting_scramble_enable;
-
-uint8_t               g_setting_backlight_on_tx_rx;
-
-#ifdef ENABLE_AM_FIX
-	bool              g_setting_am_fix = true;
-#endif
-#ifdef ENABLE_AM_FIX_TEST1
-	uint8_t           g_setting_am_fix_test1 = 0;
-#endif
-#ifdef ENABLE_TX_AUDIO_BAR
-	bool              g_setting_mic_bar;
-#endif
-#ifdef ENABLE_RX_SIGNAL_BAR
-	bool              g_setting_rssi_bar;
-#endif
-bool                  g_setting_live_dtmf_decoder;
-uint8_t               g_setting_battery_text;
+const uint8_t         g_mic_gain_dB_2[5]               = {3, 8, 16, 24, 31};
 
 #ifdef ENABLE_CONTRAST
 	uint8_t           g_setting_contrast;
@@ -125,16 +96,12 @@ uint8_t               g_setting_side2_long;
 
 bool                  g_monitor_enabled;
 
-uint32_t              g_custom_aes_key[4];
-bool                  g_has_custom_aes_key;
+bool                  g_has_aes_key;
 uint32_t              g_challenge[4];
 
+uint16_t              g_vox_threshold[2];
+
 uint16_t              g_eeprom_rssi_calib[7][4];
-
-//uint16_t              g_eeprom_1F8A;
-//uint16_t              g_eeprom_1F8C;
-
-uint8_t               g_user_channel_attributes[FREQ_CHANNEL_LAST + 1];
 
 volatile uint16_t     g_schedule_power_save_tick_10ms = battery_save_count_10ms;
 volatile bool         g_schedule_power_save;
@@ -234,16 +201,19 @@ bool                  g_scan_pause_time_mode;      // set if we stopped in SCAN_
 volatile uint16_t     g_scan_pause_tick_10ms;
 scan_state_dir_t      g_scan_state_dir;
 
+uint8_t               g_rx_vfo_num;
 bool                  g_rx_vfo_is_active;
+
 #ifdef ENABLE_ALARM
 	uint16_t          g_alarm_tone_counter_10ms;
 	uint16_t          g_alarm_running_counter_10ms;
 #endif
 uint8_t               g_menu_list_count;
-uint8_t               g_backup_cross_vfo_rx_tx;
+
+uint8_t               g_backup_cross_vfo;
 
 #ifdef ENABLE_NOAA
-	bool              g_is_noaa_mode;
+	bool              g_noaa_mode;
 	uint8_t           g_noaa_channel;
 #endif
 
@@ -268,36 +238,38 @@ volatile uint16_t     g_boot_tick_10ms = 4000 / 10;   // 4 seconds
 
 int16_t               g_current_rssi[2] = {0, 0};  // now one per VFO
 
+uint8_t               g_mic_sensitivity_tuning;
+
 unsigned int get_RX_VFO(void)
 {
-	unsigned int rx_vfo = g_eeprom.tx_vfo;
-	if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_B)
+	unsigned int rx_vfo = g_eeprom.config.setting.tx_vfo_num;
+	if (g_eeprom.config.setting.cross_vfo == CROSS_BAND_CHAN_B)
 		rx_vfo = 0;
 	else
-	if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_A)
+	if (g_eeprom.config.setting.cross_vfo == CROSS_BAND_CHAN_A)
 		rx_vfo = 1;
 	else
-	if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_B)
+	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_CHAN_B)
 		rx_vfo = 1;
 	else
-	if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_A)
+	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_CHAN_A)
 		rx_vfo = 0;
 	return rx_vfo;
 }
 
 unsigned int get_TX_VFO(void)
 {
-	unsigned int tx_vfo = g_eeprom.tx_vfo;
-	if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_B)
+	unsigned int tx_vfo = g_eeprom.config.setting.tx_vfo_num;
+	if (g_eeprom.config.setting.cross_vfo == CROSS_BAND_CHAN_B)
 		tx_vfo = 1;
 	else
-	if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_A)
+	if (g_eeprom.config.setting.cross_vfo == CROSS_BAND_CHAN_A)
 		tx_vfo = 0;
 	else
-	if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_B)
+	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_CHAN_B)
 		tx_vfo = 1;
 	else
-	if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_A)
+	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_CHAN_A)
 		tx_vfo = 0;
 	return tx_vfo;
 }

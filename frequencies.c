@@ -215,21 +215,22 @@ int FREQUENCY_tx_freq_check(const uint32_t Frequency)
 	if (Frequency < FREQ_BAND_TABLE[0].lower || Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
 		return -1;  // TX not allowed outside this range
 
-	switch (g_setting_freq_lock)
+	switch (g_eeprom.config.setting.freq_lock)
 	{
+		default:
 		case FREQ_LOCK_NORMAL:
 			if (Frequency >= AIR_BAND.upper && Frequency < 17400000)
 				return 0;
 			if (Frequency >= 17400000 && Frequency < 35000000)
-				if (g_setting_174_tx_enable)
+				if (g_eeprom.config.setting.enable_tx_200)
 					return 0;
 			if (Frequency >= 35000000 && Frequency < 40000000)
-				if (g_setting_350_tx_enable && g_setting_350_enable)
+				if (g_eeprom.config.setting.enable_tx_350 && g_eeprom.config.setting.enable_350)
 					return 0;
 			if (Frequency >= 40000000 && Frequency < 47000000)
 				return 0;
 			if (Frequency >= 47000000 && Frequency <= 60000000)
-				if (g_setting_470_tx_enable)
+				if (g_eeprom.config.setting.enable_tx_470)
 					return 0;
 			break;
 

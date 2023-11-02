@@ -34,7 +34,7 @@ void UI_DisplayFM(void)
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	#ifdef ENABLE_KEYLOCK
-	if (g_eeprom.key_lock && g_keypad_locked > 0)
+	if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
 		backlight_turn_on(0);
 		UI_PrintString("Long press #", 0, LCD_WIDTH - 1, 1, 8);
@@ -54,7 +54,7 @@ void UI_DisplayFM(void)
 	
 	if (g_ask_to_save)
 	{
-		const unsigned int freq = g_eeprom.fm_frequency_playing;
+		const unsigned int freq = g_eeprom.config.setting.fm_radio.selected_frequency;
 		sprintf(str, "SAVE %u.%u ?", freq / 10, freq % 10);
 	}
 	else
@@ -68,22 +68,22 @@ void UI_DisplayFM(void)
 
 		if (g_fm_scan_state_dir == FM_SCAN_STATE_DIR_OFF)
 		{
-			if (!g_eeprom.fm_channel_mode)
+			if (g_eeprom.config.setting.fm_radio.channel_mode == 0)
 			{
-				for (i = 0; i < ARRAY_SIZE(g_fm_channels); i++)
+				for (i = 0; i < ARRAY_SIZE(g_eeprom.config.setting.fm_channel); i++)
 				{
-					if (g_eeprom.fm_frequency_playing == g_fm_channels[i])
+					if (g_eeprom.config.setting.fm_radio.selected_frequency == g_eeprom.config.setting.fm_channel[i])
 					{
 						sprintf(str, "VFO (CH %u)", 1 + i);
 						break;
 					}
 				}
 
-				if (i >= ARRAY_SIZE(g_fm_channels))
+				if (i >= ARRAY_SIZE(g_eeprom.config.setting.fm_channel))
 					strcpy(str, "VFO");
 			}
 			else
-				sprintf(str, "CH %u", 1 + g_eeprom.fm_selected_channel);
+				sprintf(str, "CH %u", 1 + g_eeprom.config.setting.fm_radio.selected_channel);
 		}
 		else
 		if (!g_fm_auto_scan)
@@ -102,13 +102,13 @@ void UI_DisplayFM(void)
 	if (g_ask_to_save)
 	{	// channel mode
 		const unsigned int chan = g_fm_channel_position;
-		const uint32_t     freq = g_fm_channels[chan];
+		const uint32_t     freq = g_eeprom.config.setting.fm_channel[chan];
 		UI_GenerateChannelString(str, chan, ' ');
 		if (FM_check_valid_channel(chan))
 			sprintf(str + strlen(str), " (%u.%u)", freq / 10, freq % 10);
 	}
 	else
-	if (g_eeprom.fm_channel_mode && g_input_box_index > 0)
+	if (g_eeprom.config.setting.fm_radio.channel_mode != 0 && g_input_box_index > 0)
 	{	// user is entering a channel number
 		UI_GenerateChannelString(str, g_fm_channel_position, ' ');
 	}
@@ -117,7 +117,7 @@ void UI_DisplayFM(void)
 	{
 		if (g_input_box_index == 0)
 		{	// frequency mode
-			const uint32_t freq = g_eeprom.fm_frequency_playing;
+			const uint32_t freq = g_eeprom.config.setting.fm_radio.selected_frequency;
 			NUMBER_ToDigits(freq * 10000, str);
 			#ifdef ENABLE_TRIM_TRAILING_ZEROS
 				UI_DisplayFrequency(str, 30, 4, false, true);
@@ -132,8 +132,8 @@ void UI_DisplayFM(void)
 	}
 	else
 	{	// delete channel
-		const uint32_t chan = g_eeprom.fm_selected_channel;
-		const uint32_t freq = g_fm_channels[chan];
+		const uint32_t chan = g_eeprom.config.setting.fm_radio.selected_channel;
+		const uint32_t freq = g_eeprom.config.setting.fm_channel[chan];
 		sprintf(str, "CH %u (%u.%u)", 1 + chan, freq / 10, freq % 10);
 	}
 

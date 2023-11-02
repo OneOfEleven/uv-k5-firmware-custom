@@ -22,6 +22,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+//#include "settings.h"
+
 #ifndef ARRAY_SIZE
 	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
@@ -42,6 +44,8 @@
 #define IS_NOAA_CHANNEL(x)     ((x) >= NOAA_CHANNEL_FIRST && (x) <= NOAA_CHANNEL_LAST)
 //#define IS_NOT_NOAA_CHANNEL(x) ((x) >= USER_CHANNEL_FIRST   && (x) <= FREQ_CHANNEL_LAST)
 #define IS_NOT_NOAA_CHANNEL(x) ((x) <= FREQ_CHANNEL_LAST)
+
+#define CHANNEL_NUM(chaanel, vfo) IS_FREQ_CHANNEL(channel) ? (FREQ_CHANNEL_FIRST + ((channel) - FREQ_CHANNEL_FIRST) * 2) + (vfo) : (channel);
 
 // PTT key-up/key-down audio tone freq's used in NASA's apollo rides to the moon
 #define APOLLO_TONE_MS         200     // slightly shorter tone length
@@ -173,35 +177,6 @@ extern const uint16_t        scan_pause_chan_10ms;
 
 extern const uint8_t         g_mic_gain_dB_2[5];
 
-#ifdef ENABLE_KILL_REVIVE
-	extern bool              g_setting_radio_disabled;
-#endif
-
-extern bool                  g_setting_350_tx_enable;
-extern bool                  g_setting_174_tx_enable;
-extern bool                  g_setting_470_tx_enable;
-extern bool                  g_setting_350_enable;
-extern bool                  g_setting_tx_enable;
-extern uint8_t               g_setting_freq_lock;
-extern bool                  g_setting_scramble_enable;
-
-extern uint8_t               g_setting_backlight_on_tx_rx;
-
-#ifdef ENABLE_AM_FIX
-	extern bool              g_setting_am_fix;
-#endif
-#ifdef ENABLE_AM_FIX_TEST1
-	extern uint8_t           g_setting_am_fix_test1;
-#endif
-#ifdef ENABLE_TX_AUDIO_BAR
-	extern bool              g_setting_mic_bar;
-#endif
-#ifdef ENABLE_RX_SIGNAL_BAR
-	extern bool              g_setting_rssi_bar;
-#endif
-extern bool                  g_setting_live_dtmf_decoder;
-extern uint8_t               g_setting_battery_text;
-
 #ifdef ENABLE_CONTRAST
 	extern uint8_t           g_setting_contrast;
 #endif
@@ -214,17 +189,10 @@ extern uint8_t               g_setting_side2_long;
 extern bool                  g_monitor_enabled;
 
 extern const uint32_t        g_default_aes_key[4];
-extern uint32_t              g_custom_aes_key[4];
-extern bool                  g_has_custom_aes_key;
+extern bool                  g_has_aes_key;
 extern uint32_t              g_challenge[4];
 
 extern uint16_t              g_eeprom_rssi_calib[7][4];
-//extern uint16_t              g_eeprom_rssi_calib[2][4];
-
-//extern uint16_t              g_eeprom_1F8A;
-//extern uint16_t              g_eeprom_1F8C;
-
-extern uint8_t               g_user_channel_attributes[207];
 
 extern volatile uint16_t     g_schedule_power_save_tick_10ms;
 extern volatile bool         g_schedule_power_save;
@@ -325,14 +293,17 @@ extern bool                  g_scan_pause_time_mode;   // set if we stopped in S
 extern volatile uint16_t     g_scan_pause_tick_10ms;        // ticks till we move to next channel/frequency
 extern scan_state_dir_t      g_scan_state_dir;         // the direction we're scanning in
 
-
+extern uint8_t               g_rx_vfo_num;
 extern bool                  g_rx_vfo_is_active;
+
+extern uint16_t              g_vox_threshold[2];
+
 extern uint16_t              g_alarm_tone_counter_10ms;
 extern uint16_t              g_alarm_running_counter_10ms;
 extern uint8_t               g_menu_list_count;
-extern uint8_t               g_backup_cross_vfo_rx_tx;
+extern uint8_t               g_backup_cross_vfo;
 #ifdef ENABLE_NOAA
-	extern bool              g_is_noaa_mode;
+	extern bool              g_noaa_mode;
 	extern uint8_t           g_noaa_channel;
 #endif
 extern volatile bool         g_next_time_slice;
@@ -354,6 +325,8 @@ extern volatile bool         g_next_time_slice_40ms;
 extern volatile bool         g_flag_tail_tone_elimination_complete;
 extern int16_t               g_current_rssi[2];   // now one per VFO
 extern volatile uint16_t     g_boot_tick_10ms;
+
+extern uint8_t               g_mic_sensitivity_tuning;
 
 unsigned int get_TX_VFO(void);
 unsigned int get_RX_VFO(void);

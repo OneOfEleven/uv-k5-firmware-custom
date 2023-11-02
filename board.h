@@ -24,15 +24,6 @@ void         BOARD_GPIO_Init(void);
 void         BOARD_PORTCON_Init(void);
 void         BOARD_ADC_Init(void);
 void         BOARD_ADC_GetBatteryInfo(uint16_t *pVoltage, uint16_t *pCurrent);
-void         BOARD_Init(void);
-void         BOARD_eeprom_load(void);
-void         BOARD_eeprom_loadCalibration(void);
-unsigned int BOARD_find_channel(const uint32_t frequency);
-uint32_t     BOARD_fetchChannelFrequency(const int channel);
-unsigned int BOARD_fetchChannelStepSetting(const int channel);
-void         BOARD_fetchChannelName(char *s, const int channel);
-unsigned int BOARD_fetchFrequencyStepSetting(const int channel, const int vfo);
-void         BOARD_FactoryReset(bool bIsAll);
 
 #endif
 

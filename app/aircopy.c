@@ -114,6 +114,7 @@ void AIRCOPY_start_fsk_tx(const int request_block_num)
 	if (request_block_num < 0)
 	{
 		EEPROM_ReadBuffer(eeprom_addr, &g_fsk_buffer[tx_size], 64);
+//		memcpy(&g_fsk_buffer[tx_size], ((uint8_t *)&g_eeprom) + eeprom_addr, 64);
 		tx_size += 64 / 2;
 	}
 
@@ -590,6 +591,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		}
 
 		EEPROM_WriteBuffer8(eeprom_addr, data);   // 8 bytes at a time
+//		memcpy(((uint8_t *)&g_eeprom) + eeprom_addr, data, 8);
 
 		data        += write_size / sizeof(data[0]);
 		eeprom_addr += write_size;

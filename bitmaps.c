@@ -59,7 +59,7 @@ const uint8_t BITMAP_RX[8] =
 	{
 		__extension__ 0b00000000,
 		__extension__ 0b00111110,
-		__extension__ 0b01100011,
+		__extension__ 0b01111111,
 		__extension__ 0b01000001,
 		__extension__ 0b01000001,
 		__extension__ 0b01000001,
@@ -94,7 +94,7 @@ const uint8_t BITMAP_RX[8] =
 		__extension__ 0b01000001,
 		__extension__ 0b01000001,
 		__extension__ 0b01000001,
-		__extension__ 0b01100011,
+		__extension__ 0b01111111,
 		__extension__ 0b00111110
 	};
 #endif
@@ -175,7 +175,7 @@ const uint8_t BITMAP_F_KEY[6] =
 	};
 #else
 	// 'XB' (cross-band/cross-VFO)
-	const uint8_t BITMAP_XB[12] =
+	const uint8_t BITMAP_XB[11] =
 	{	// "XB"
 		__extension__ 0b00000000,
 		__extension__ 0b01100011,
@@ -187,16 +187,14 @@ const uint8_t BITMAP_F_KEY[6] =
 		__extension__ 0b01111111,
 		__extension__ 0b01001001,
 		__extension__ 0b01001001,
-		__extension__ 0b01001001,
 		__extension__ 0b00110110
 	};
 #endif
 
-const uint8_t BITMAP_TDR_RUNNING[12] =
+const uint8_t BITMAP_TDR_RUNNING[11] =
 {	// "DW"
 	__extension__ 0b00000000,
 	__extension__ 0b01111111,
-	__extension__ 0b01000001,
 	__extension__ 0b01000001,
 	__extension__ 0b01000001,
 	__extension__ 0b00111110,
@@ -208,10 +206,9 @@ const uint8_t BITMAP_TDR_RUNNING[12] =
 	__extension__ 0b01111111
 };
 
-const uint8_t BITMAP_TDR_HOLDING[12] =
+const uint8_t BITMAP_TDR_HOLDING[11] =
 {	// "--" .. DW on hold
 	__extension__ 0b00000000,
-	__extension__ 0b00001000,
 	__extension__ 0b00001000,
 	__extension__ 0b00001000,
 	__extension__ 0b00001000,
@@ -225,14 +222,12 @@ const uint8_t BITMAP_TDR_HOLDING[12] =
 };
 
 #ifdef ENABLE_VOICE
-	const uint8_t BITMAP_VOICE_PROMPT[9] =
+	const uint8_t BITMAP_VOICE_PROMPT[7] =
 	{
 		__extension__ 0b00000000,
 		__extension__ 0b00011000,
 		__extension__ 0b00011000,
 		__extension__ 0b00100100,
-		__extension__ 0b00100100,
-		__extension__ 0b01000010,
 		__extension__ 0b01000010,
 		__extension__ 0b11111111,
 		__extension__ 0b00011000
@@ -250,11 +245,10 @@ const uint8_t BITMAP_MONITOR[6] =
 };
 
 #ifdef ENABLE_FMRADIO
-	const uint8_t BITMAP_FM[12] =
+	const uint8_t BITMAP_FM[11] =
 	{	// "FM"
 		__extension__ 0b00000000,
 		__extension__ 0b01111111,
-		__extension__ 0b00001001,
 		__extension__ 0b00001001,
 		__extension__ 0b00001001,
 		__extension__ 0b00000001,
@@ -268,7 +262,7 @@ const uint8_t BITMAP_MONITOR[6] =
 #endif
 
 #ifdef ENABLE_NOAA
-	const uint8_t BITMAP_NOAA[12] =
+	const uint8_t BITMAP_NOAA[10] =
 	{	// "NS"
 		__extension__ 0b00000000,
 		__extension__ 0b01111111,
@@ -276,11 +270,8 @@ const uint8_t BITMAP_MONITOR[6] =
 		__extension__ 0b00001000,
 		__extension__ 0b00010000,
 		__extension__ 0b01111111,
-
 		__extension__ 0b00000000,
 		__extension__ 0b01000110,
-		__extension__ 0b01001001,
-		__extension__ 0b01001001,
 		__extension__ 0b01001001,
 		__extension__ 0b00110001
 	};

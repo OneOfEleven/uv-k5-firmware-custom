@@ -47,7 +47,7 @@ bool g_manual_scanning;
 
 bool scanning_paused(void)
 {
-	if ((g_scan_state_dir != SCAN_STATE_DIR_OFF || g_eeprom.dual_watch != DUAL_WATCH_OFF) &&
+	if ((g_scan_state_dir != SCAN_STATE_DIR_OFF || g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF) &&
 	    g_scan_pause_tick_10ms > 0 && g_scan_pause_tick_10ms <= (200 / 10))
 	{	// scanning isn't paused
 		return false;
@@ -105,9 +105,9 @@ void toggle_chan_scanlist(void)
 	void MAIN_copy_mem_vfo_mem(void)
 	{
 		//const unsigned int vfo = get_RX_VFO();
-		const unsigned int vfo = g_eeprom.tx_vfo;
+		const unsigned int vfo = g_eeprom.config.setting.tx_vfo_num;
 
-		if (g_css_scan_mode != CSS_SCAN_MODE_OFF || !g_eeprom.vfo_open)
+		if (g_css_scan_mode != CSS_SCAN_MODE_OFF || g_eeprom.config.setting.vfo_open == 0)
 		{	// scanning or VFO disabled
 			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
@@ -119,14 +119,14 @@ void toggle_chan_scanlist(void)
 			return;
 		}
 
-		if (IS_USER_CHANNEL(g_eeprom.screen_channel[vfo]))
+		if (IS_USER_CHANNEL(g_eeprom.config.setting.indices.vfo[vfo].screen))
 		{	// copy channel to VFO, then swap to the VFO
 
-			const unsigned int channel = FREQ_CHANNEL_FIRST + g_eeprom.vfo_info[vfo].band;
+			const unsigned int channel = FREQ_CHANNEL_FIRST + g_vfo_info[vfo].band;
 
-			g_eeprom.screen_channel[vfo]        = channel;
-			g_eeprom.vfo_info[vfo].channel_save = channel;
-			g_eeprom.tx_vfo                     = vfo;
+			g_eeprom.config.setting.indices.vfo[vfo].screen = channel;
+			g_vfo_info[vfo].channel_save        = channel;
+			g_eeprom.config.setting.tx_vfo_num = vfo;
 
 			RADIO_select_vfos();
 			RADIO_ApplyOffset(g_tx_vfo, false);
@@ -135,9 +135,9 @@ void toggle_chan_scanlist(void)
 			RADIO_setup_registers(true);
 
 			// find the first channel that contains this frequency
-			g_tx_vfo->freq_in_channel = BOARD_find_channel(g_tx_vfo->freq_config_tx.frequency);
+			g_tx_vfo->freq_in_channel = SETTINGS_find_channel(g_tx_vfo->freq_config_tx.frequency);
 
-			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
+			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.config.setting.tx_vfo_num, g_tx_vfo, 1);
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_printf("chan-vfo %u\r\n", g_tx_vfo->channel_save);
@@ -150,14 +150,14 @@ void toggle_chan_scanlist(void)
 			g_update_display = true;
 		}
 		else
-		if (IS_NOT_NOAA_CHANNEL(g_eeprom.screen_channel[vfo]))
+		if (IS_NOT_NOAA_CHANNEL(g_eeprom.config.setting.indices.vfo[vfo].screen))
 		{	// copy VFO to a channel
 
 			// search the channels to see if the frequency is already present
-			unsigned int chan = BOARD_find_channel(g_eeprom.vfo_info[vfo].p_tx->frequency);
+			unsigned int chan = SETTINGS_find_channel(g_vfo_info[vfo].p_tx->frequency);
 			if (chan > USER_CHANNEL_LAST)
 			{	// not found - find next free channel to save too
-				//for (chan = g_eeprom.screen_channel[vfo]; chan <= USER_CHANNEL_LAST; chan++)
+				//for (chan = g_eeprom.config.setting.indices.vfo[vfo].screen; chan <= USER_CHANNEL_LAST; chan++)
 				for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
 					if (!RADIO_CheckValidChannel(chan, false, vfo))
 						break;
@@ -192,7 +192,7 @@ void toggle_chan_scanlist(void)
 void processFKeyFunction(const key_code_t Key)
 {
 	uint8_t Band;
-	uint8_t Vfo = g_eeprom.tx_vfo;
+	uint8_t vfo = g_eeprom.config.setting.tx_vfo_num;
 
 	if (g_current_function == FUNCTION_TRANSMIT || g_current_display_screen == DISPLAY_MENU)
 	{
@@ -243,7 +243,7 @@ void processFKeyFunction(const key_code_t Key)
 			APP_stop_scan();
 
 			Band = g_tx_vfo->band + 1;
-			if (g_setting_350_enable || Band != BAND5_350MHz)
+			if (g_eeprom.config.setting.enable_350 || Band != BAND5_350MHz)
 			{
 				if (Band > BAND7_470MHz)
 					Band = BAND1_50MHz;   // wrap-a-round
@@ -252,8 +252,8 @@ void processFKeyFunction(const key_code_t Key)
 				Band = BAND6_400MHz;      // jump to next band
 			g_tx_vfo->band = Band;
 
-			g_eeprom.screen_channel[Vfo] = FREQ_CHANNEL_FIRST + Band;
-			g_eeprom.freq_channel[Vfo]   = FREQ_CHANNEL_FIRST + Band;
+			g_eeprom.config.setting.indices.vfo[vfo].screen    = FREQ_CHANNEL_FIRST + Band;
+			g_eeprom.config.setting.indices.vfo[vfo].frequency = FREQ_CHANNEL_FIRST + Band;
 
 			g_request_save_vfo   = true;
 			g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
@@ -265,19 +265,19 @@ void processFKeyFunction(const key_code_t Key)
 
 			APP_stop_scan();
 
-			if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_A)
-				g_eeprom.cross_vfo_rx_tx = CROSS_BAND_CHAN_B;
+			if (g_eeprom.config.setting.cross_vfo == CROSS_BAND_CHAN_A)
+				g_eeprom.config.setting.cross_vfo = CROSS_BAND_CHAN_B;
 			else
-			if (g_eeprom.cross_vfo_rx_tx == CROSS_BAND_CHAN_B)
-				g_eeprom.cross_vfo_rx_tx = CROSS_BAND_CHAN_A;
+			if (g_eeprom.config.setting.cross_vfo == CROSS_BAND_CHAN_B)
+				g_eeprom.config.setting.cross_vfo = CROSS_BAND_CHAN_A;
 			else
-			if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_A)
-				g_eeprom.dual_watch = DUAL_WATCH_CHAN_B;
+			if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_CHAN_A)
+				g_eeprom.config.setting.dual_watch = DUAL_WATCH_CHAN_B;
 			else
-			if (g_eeprom.dual_watch == DUAL_WATCH_CHAN_B)
-				g_eeprom.dual_watch = DUAL_WATCH_CHAN_A;
+			if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_CHAN_B)
+				g_eeprom.config.setting.dual_watch = DUAL_WATCH_CHAN_A;
 			else
-				g_eeprom.tx_vfo = (Vfo + 1) & 1u;
+				g_eeprom.config.setting.tx_vfo_num = (vfo + 1) & 1u;
 
 			g_request_save_settings = 1;
 			g_flag_reconfigure_vfos = true;
@@ -289,13 +289,13 @@ void processFKeyFunction(const key_code_t Key)
 
 			APP_stop_scan();
 
-			if (g_eeprom.vfo_open && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
+			if (g_eeprom.config.setting.vfo_open > 0 && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 			{
 				uint8_t Channel;
 
 				if (IS_USER_CHANNEL(g_tx_vfo->channel_save))
 				{	// swap to frequency mode
-					g_eeprom.screen_channel[Vfo] = g_eeprom.freq_channel[g_eeprom.tx_vfo];
+					g_eeprom.config.setting.indices.vfo[vfo].screen = g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].frequency;
 
 					#ifdef ENABLE_VOICE
 						g_another_voice_id = VOICE_ID_FREQUENCY_MODE;
@@ -306,10 +306,10 @@ void processFKeyFunction(const key_code_t Key)
 					break;
 				}
 
-				Channel = RADIO_FindNextChannel(g_eeprom.user_channel[g_eeprom.tx_vfo], 1, false, 0);
+				Channel = RADIO_FindNextChannel(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].user, 1, false, 0);
 				if (Channel != 0xFF)
 				{	// swap to channel mode
-					g_eeprom.screen_channel[Vfo] = Channel;
+					g_eeprom.config.setting.indices.vfo[vfo].screen= Channel;
 
 					#ifdef ENABLE_VOICE
 						AUDIO_SetVoiceID(0, VOICE_ID_CHANNEL_MODE);
@@ -333,8 +333,8 @@ void processFKeyFunction(const key_code_t Key)
 
 			g_search_flag_start_scan  = true;
 			g_search_single_frequency = false;
-			g_backup_cross_vfo_rx_tx  = g_eeprom.cross_vfo_rx_tx;
-			g_eeprom.cross_vfo_rx_tx  = CROSS_BAND_OFF;
+			g_backup_cross_vfo  = g_eeprom.config.setting.cross_vfo;
+			g_eeprom.config.setting.cross_vfo = CROSS_BAND_OFF;
 			break;
 
 		case KEY_5:    // NOAA
@@ -345,11 +345,11 @@ void processFKeyFunction(const key_code_t Key)
 
 				if (IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 				{
-					g_eeprom.screen_channel[Vfo] = g_eeprom.noaa_channel[g_eeprom.tx_vfo];
+					g_eeprom.config.setting.indices.vfo[vfo].screen = g_eeprom.config.setting.indices.noaa_channel[g_eeprom.config.setting.tx_vfo_num];
 				}
 				else
 				{
-					g_eeprom.screen_channel[Vfo] = g_eeprom.freq_channel[g_eeprom.tx_vfo];
+					g_eeprom.config.setting.indices.vfo[vfo].screen = g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].frequency;
 
 					#ifdef ENABLE_VOICE
 						g_another_voice_id = VOICE_ID_FREQUENCY_MODE;
@@ -404,7 +404,7 @@ void processFKeyFunction(const key_code_t Key)
 
 		case KEY_9:    // CALL
 
-			if (!RADIO_CheckValidChannel(g_eeprom2.config.call1, false, 0))
+			if (!RADIO_CheckValidChannel(g_eeprom.config.setting.call1, false, 0))
 			{
 				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 				return;
@@ -414,13 +414,13 @@ void processFKeyFunction(const key_code_t Key)
 
 			APP_stop_scan();
 
-			g_eeprom.user_channel[Vfo]   = g_eeprom2.config.call1;
-			g_eeprom.screen_channel[Vfo] = g_eeprom2.config.call1;
+			g_eeprom.config.setting.indices.vfo[vfo].user   = g_eeprom.config.setting.call1;
+			g_eeprom.config.setting.indices.vfo[vfo].screen = g_eeprom.config.setting.call1;
 
 			#ifdef ENABLE_VOICE
 				AUDIO_SetVoiceID(0, VOICE_ID_CHANNEL_MODE);
-				AUDIO_SetDigitVoice(1, 1 + g_eeprom2.config.call1);
-				g_another_voice_id       = (voice_id_t)0xFE;
+				AUDIO_SetDigitVoice(1, 1 + g_eeprom.config.setting.call1);
+				g_another_voice_id = (voice_id_t)0xFE;
 			#endif
 
 			g_request_save_vfo   = true;
@@ -436,6 +436,8 @@ void processFKeyFunction(const key_code_t Key)
 
 void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 {
+	const uint8_t vfo = g_eeprom.config.setting.tx_vfo_num;
+
 	g_key_input_count_down = key_input_timeout_500ms;
 
 	if (key_held)
@@ -476,8 +478,6 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		g_update_status = true;
 		return;
 	}
-
-	const uint8_t Vfo = g_eeprom.tx_vfo;
 
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_current_function == FUNCTION_TRANSMIT)
 	{
@@ -520,8 +520,8 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			g_another_voice_id = (voice_id_t)Key;
 		#endif
 
-		g_eeprom.user_channel[Vfo]    = (uint8_t)Channel;
-		g_eeprom.screen_channel[Vfo]  = (uint8_t)Channel;
+		g_eeprom.config.setting.indices.vfo[vfo].user   = (uint8_t)Channel;
+		g_eeprom.config.setting.indices.vfo[vfo].screen = (uint8_t)Channel;
 		g_request_save_vfo            = true;
 		g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
 
@@ -568,13 +568,13 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 			if (g_tx_vfo->band != band)
 			{
-				g_tx_vfo->band               = band;
-				g_eeprom.screen_channel[Vfo] = band + FREQ_CHANNEL_FIRST;
-				g_eeprom.freq_channel[Vfo]   = band + FREQ_CHANNEL_FIRST;
+				g_tx_vfo->band = band;
+				g_eeprom.config.setting.indices.vfo[vfo].screen    = band + FREQ_CHANNEL_FIRST;
+				g_eeprom.config.setting.indices.vfo[vfo].frequency = band + FREQ_CHANNEL_FIRST;
 
 				SETTINGS_save_vfo_indices();
 
-				RADIO_configure_channel(Vfo, VFO_CONFIGURE_RELOAD);
+				RADIO_configure_channel(vfo, VFO_CONFIGURE_RELOAD);
 			}
 
 			Frequency += g_tx_vfo->step_freq / 2; // for rounding to nearest step size
@@ -590,7 +590,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			g_tx_vfo->freq_config_tx.frequency = Frequency;
 
 			// find the first channel that contains this frequency
-			g_tx_vfo->freq_in_channel = BOARD_find_channel(Frequency);
+			g_tx_vfo->freq_in_channel = SETTINGS_find_channel(Frequency);
 
 			g_request_save_channel = 1;
 			g_vfo_configure_mode   = VFO_CONFIGURE;
@@ -610,7 +610,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			if (g_input_box_index != 2)
 			{
 				#ifdef ENABLE_VOICE
-					g_another_voice_id   = (voice_id_t)Key;
+					g_another_voice_id = (voice_id_t)Key;
 				#endif
 //				g_request_display_screen = DISPLAY_MAIN;
 				return;
@@ -621,15 +621,15 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			Channel = (g_input_box[0] * 10) + g_input_box[1];
 			if (Channel >= 1 && Channel <= ARRAY_SIZE(NOAA_FREQUENCY_TABLE))
 			{
-				Channel                      += NOAA_CHANNEL_FIRST;
+				Channel += NOAA_CHANNEL_FIRST;
 				#ifdef ENABLE_VOICE
-					g_another_voice_id       = (voice_id_t)Key;
+					g_another_voice_id = (voice_id_t)Key;
 				#endif
-				g_eeprom.noaa_channel[Vfo]   = Channel;
-				g_eeprom.screen_channel[Vfo] = Channel;
-				g_request_save_vfo           = true;
-				g_vfo_configure_mode         = VFO_CONFIGURE_RELOAD;
-				g_update_display             = true;
+				g_eeprom.config.setting.indices.noaa_channel[vfo] = Channel;
+				g_eeprom.config.setting.indices.vfo[vfo].screen = Channel;
+				g_request_save_vfo   = true;
+				g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
+				g_update_display     = true;
 				return;
 			}
 		}
@@ -845,8 +845,8 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 		// scan the CTCSS/DCS code
 		g_search_flag_start_scan  = true;
 		g_search_single_frequency = true;
-		g_backup_cross_vfo_rx_tx  = g_eeprom.cross_vfo_rx_tx;
-		g_eeprom.cross_vfo_rx_tx  = CROSS_BAND_OFF;
+		g_backup_cross_vfo  = g_eeprom.config.setting.cross_vfo;
+		g_eeprom.config.setting.cross_vfo = CROSS_BAND_OFF;
 	}
 
 	g_ptt_was_released = true;
@@ -860,7 +860,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 		static bool monitor_was_enabled = false;
 	#endif
 
-	uint8_t Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
+	uint8_t Channel = g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen;
 
 	if (key_pressed && !key_held)
 	{	// key just pressed
@@ -886,9 +886,9 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 			g_tx_vfo->freq_config_tx.frequency = g_tx_vfo->freq_config_rx.frequency;
 
 			// find the first channel that contains this frequency
-			g_tx_vfo->freq_in_channel = BOARD_find_channel(g_tx_vfo->freq_config_rx.frequency);
+			g_tx_vfo->freq_in_channel = SETTINGS_find_channel(g_tx_vfo->freq_config_rx.frequency);
 
-			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.tx_vfo, g_tx_vfo, 1);
+			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.config.setting.tx_vfo_num, g_tx_vfo, 1);
 
 			RADIO_ApplyOffset(g_tx_vfo, true);
 
@@ -969,7 +969,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 				// TODO: include this once we have the entire eeprom loaded
 				//
 				//if (!key_held && key_pressed)
-				//	g_tx_vfo->freq_in_channel = BOARD_find_channel(frequency);
+				//	g_tx_vfo->freq_in_channel = SETTINGS_find_channel(frequency);
 				//else
 				//if (key_held && key_pressed)
 					g_tx_vfo->freq_in_channel = 0xff;
@@ -1027,8 +1027,8 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 				}
 			#endif
 
-			g_eeprom.user_channel[g_eeprom.tx_vfo]   = Next;
-			g_eeprom.screen_channel[g_eeprom.tx_vfo] = Next;
+			g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].user = Next;
+			g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen = Next;
 
 			if (!key_held)
 			{
@@ -1041,9 +1041,9 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t Directio
 		#ifdef ENABLE_NOAA
 			else
 			{
-				Channel = NOAA_CHANNEL_FIRST + NUMBER_AddWithWraparound(g_eeprom.screen_channel[g_eeprom.tx_vfo] - NOAA_CHANNEL_FIRST, Direction, 0, 9);
-				g_eeprom.noaa_channel[g_eeprom.tx_vfo]   = Channel;
-				g_eeprom.screen_channel[g_eeprom.tx_vfo] = Channel;
+				Channel = NOAA_CHANNEL_FIRST + NUMBER_AddWithWraparound(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen - NOAA_CHANNEL_FIRST, Direction, 0, 9);
+				g_eeprom.config.setting.indices.noaa_channel[g_eeprom.config.setting.tx_vfo_num] = Channel;
+				g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen   = Channel;
 			}
 		#endif
 

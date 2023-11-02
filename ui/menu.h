@@ -180,7 +180,7 @@ extern const char         g_sub_menu_mem_disp[4][15];
 	extern const char     g_sub_menu_alarm_mode[2][5];
 #endif
 extern const char         g_sub_menu_dtmf_rsp[4][9];
-extern const char         g_sub_menu_ptt_id[5][15];
+extern const char         g_sub_menu_ptt_id[5][16];
 #ifdef ENABLE_MDC1200
 	extern const char     g_sub_menu_mdc1200_mode[4][8];
 #endif

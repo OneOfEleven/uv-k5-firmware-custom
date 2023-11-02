@@ -20,11 +20,11 @@
 #include "settings.h"
 
 // this is decremented once every 500ms
-uint16_t g_backlight_count_down = 0;
+uint16_t g_backlight_tick_500ms = 0;
 
 uint16_t backlight_ticks(void)
 {
-	switch (g_eeprom.backlight)
+	switch (g_eeprom.config.setting.backlight_time)
 	{
 		case 1:	return 2 *  5;      // 5 sec
 		case 2:	return 2 * 10;      // 10 sec
@@ -41,14 +41,14 @@ void backlight_turn_on(const uint16_t min_ticks)
 {
 	if (min_ticks > 0)
 	{
-		if (g_backlight_count_down < min_ticks)
-			g_backlight_count_down = min_ticks;
+		if (g_backlight_tick_500ms < min_ticks)
+			g_backlight_tick_500ms = min_ticks;
 		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
 	}
 	else
-	if (g_eeprom.backlight > 0)
+	if (g_eeprom.config.setting.backlight_time > 0)
 	{
 		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-		g_backlight_count_down = backlight_ticks();
+		g_backlight_tick_500ms = backlight_ticks();
 	}
 }

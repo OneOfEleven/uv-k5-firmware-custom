@@ -78,7 +78,7 @@ void SystickHandler(void)
 	if (g_current_function == FUNCTION_POWER_SAVE)
 		DECREMENT_AND_TRIGGER(g_power_save_tick_10ms, g_power_save_expired);
 
-	if (g_eeprom.dual_watch != DUAL_WATCH_OFF &&
+	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF &&
 	    g_scan_state_dir == SCAN_STATE_DIR_OFF &&
 	    g_css_scan_mode == CSS_SCAN_MODE_OFF)
 	{
@@ -89,8 +89,8 @@ void SystickHandler(void)
 	#ifdef ENABLE_NOAA
 		if (g_scan_state_dir == SCAN_STATE_DIR_OFF &&
 		    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
-		    g_eeprom.dual_watch == DUAL_WATCH_OFF &&
-		    g_is_noaa_mode &&
+		    g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF &&
+		    g_noaa_mode &&
 		   !g_monitor_enabled &&
 		    g_current_function != FUNCTION_TRANSMIT)
 		{

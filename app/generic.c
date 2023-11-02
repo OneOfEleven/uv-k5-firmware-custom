@@ -56,10 +56,10 @@ void GENERIC_Key_F(bool key_pressed, bool key_held)
 		{	// toggle the keyboad lock
 
 			#ifdef ENABLE_VOICE
-				g_another_voice_id = g_eeprom.key_lock ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
+				g_another_voice_id = g_eeprom.config.setting.key_lock ? VOICE_ID_UNLOCK : VOICE_ID_LOCK;
 			#endif
 
-			g_eeprom.key_lock       = !g_eeprom.key_lock;
+			g_eeprom.config.setting.key_lock = (g_eeprom.key_lock + 1) & 1u;
 			g_request_save_settings = true;
 			g_update_status         = true;
 
@@ -113,10 +113,10 @@ void GENERIC_Key_PTT(bool key_pressed)
 			{
 				APP_end_tx();
 
-				if (g_eeprom.repeater_tail_tone_elimination == 0)
+				if (g_eeprom.config.setting.repeater_tail_tone_elimination == 0)
 					FUNCTION_Select(FUNCTION_FOREGROUND);
 				else
-					g_rtte_count_down = g_eeprom.repeater_tail_tone_elimination * 10;
+					g_rtte_count_down = g_eeprom.config.setting.repeater_tail_tone_elimination * 10;
 			}
 
 			g_flag_end_tx = false;
@@ -147,7 +147,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 
 		if (g_current_display_screen == DISPLAY_SEARCH)
 		{	// CTCSS/CDCSS scanning .. stop
-			g_eeprom.cross_vfo_rx_tx = g_backup_cross_vfo_rx_tx;
+			g_eeprom.config.setting.cross_vfo = g_backup_cross_vfo;
 			g_search_flag_stop_scan  = true;
 			g_vfo_configure_mode     = VFO_CONFIGURE_RELOAD;
 			g_flag_reset_vfos        = true;

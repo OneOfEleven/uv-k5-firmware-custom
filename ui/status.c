@@ -37,9 +37,9 @@ void UI_DisplayStatus(const bool test_display)
 	uint8_t     *line = g_status_line;
 	unsigned int x    = 0;
 	unsigned int x1   = 0;
-	
+
 	g_update_status = false;
-	
+
 	memset(g_status_line, 0, sizeof(g_status_line));
 
 	// **************
@@ -65,78 +65,79 @@ void UI_DisplayStatus(const bool test_display)
 		x1 = x + sizeof(BITMAP_POWERSAVE);
 	}
 	x += sizeof(BITMAP_POWERSAVE);
+	x++;
 
 	#ifdef ENABLE_NOAA
-		// NOASS SCAN indicator
-		if (g_is_noaa_mode || test_display)
+		// NOAA scan indicator
+		if (g_noaa_mode || test_display)
 		{
 			memcpy(line + x, BITMAP_NOAA, sizeof(BITMAP_NOAA));
 			x1 = x + sizeof(BITMAP_NOAA);
+			x += sizeof(BITMAP_NOAA);
 		}
-		x += sizeof(BITMAP_NOAA);
-	#else
-		// hmmm, what to put in it's place
+		x++;
 	#endif
-	
+
 	#ifdef ENABLE_KILL_REVIVE
-		if (g_setting_radio_disabled)
+		if (g_eeprom.config.setting.radio_disabled)
 		{
 			memset(line + x, 0xFF, 10);
 			x1 = x + 10;
+			x += 10;
 		}
-		else
 	#endif
-	{
+
 	#ifdef ENABLE_FMRADIO
 		// FM indicator
 		if (g_fm_radio_mode || test_display)
 		{
 			memcpy(line + x, BITMAP_FM, sizeof(BITMAP_FM));
 			x1 = x + sizeof(BITMAP_FM);
+			x += sizeof(BITMAP_FM);
 		}
-		else
+		x++;
 	#endif
-		// SCAN indicator
-		if (g_scan_state_dir != SCAN_STATE_DIR_OFF || test_display)
+
+	// SCAN indicator
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || test_display)
+	{
+		// don't display this if in search mode
+		if (g_current_display_screen != DISPLAY_SEARCH)
 		{
-			// don't display this if in search mode
-			if (g_current_display_screen != DISPLAY_SEARCH)
-			{
-				if (g_scan_next_channel <= USER_CHANNEL_LAST)
-				{	// channel mode
-					if (g_eeprom.scan_list_default == 0)
-						UI_PrintStringSmallBuffer("1", line + x);
-					else
-					if (g_eeprom.scan_list_default == 1)
-						UI_PrintStringSmallBuffer("2", line + x);
-					else
-					if (g_eeprom.scan_list_default == 2)
-						UI_PrintStringSmallBuffer("*", line + x);
-				}
+			if (g_scan_next_channel <= USER_CHANNEL_LAST)
+			{	// channel mode
+				if (g_eeprom.config.setting.scan_list_default == 0)
+					UI_PrintStringSmallBuffer("1", line + x);
 				else
-				{	// frequency mode
-					UI_PrintStringSmallBuffer("S", line + x);
-				}
-				x1 = x + 7;
+				if (g_eeprom.config.setting.scan_list_default == 1)
+					UI_PrintStringSmallBuffer("2", line + x);
+				else
+				if (g_eeprom.config.setting.scan_list_default == 2)
+					UI_PrintStringSmallBuffer("*", line + x);
 			}
+			else
+			{	// frequency mode
+				UI_PrintStringSmallBuffer("S", line + x);
+			}
+			x1 = x + 7;
 		}
+		x += 7;  // font character width
 	}
-	x += 7;  // font character width
+	x++;
 
 	#ifdef ENABLE_VOICE
 		// VOICE indicator
-		if (g_eeprom.voice_prompt != VOICE_PROMPT_OFF || test_display)
+		if (g_eeprom.config.setting.voice_prompt != VOICE_PROMPT_OFF || test_display)
 		{
 			memcpy(line + x, BITMAP_VOICE_PROMPT, sizeof(BITMAP_VOICE_PROMPT));
 			x1 = x + sizeof(BITMAP_VOICE_PROMPT);
+			x += sizeof(BITMAP_VOICE_PROMPT);
 		}
-		x += sizeof(BITMAP_VOICE_PROMPT);
-	#else
-		// hmmm, what to put in it's place
+		x++;
 	#endif
 
 	// DUAL-WATCH indicator
-	if (g_eeprom.dual_watch != DUAL_WATCH_OFF || test_display)
+	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF || test_display)
 	{
 		if (g_dual_watch_tick_10ms > dual_watch_delay_toggle_10ms ||
 	        g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
@@ -152,42 +153,47 @@ void UI_DisplayStatus(const bool test_display)
 			memcpy(line + x, BITMAP_TDR_RUNNING, sizeof(BITMAP_TDR_RUNNING));
 		}
 		x1 = x + sizeof(BITMAP_TDR_RUNNING);
+		x += sizeof(BITMAP_TDR_RUNNING);
 	}
-	x += sizeof(BITMAP_TDR_RUNNING);
+	x++;
 
 	// monitor
 	if (g_monitor_enabled)
 	{
 		memcpy(line + x, BITMAP_MONITOR, sizeof(BITMAP_MONITOR));
 		x1 = x + sizeof(BITMAP_MONITOR);
+		x += sizeof(BITMAP_MONITOR);
 	}
-	x += sizeof(BITMAP_MONITOR);
+	x++;
 
 	// CROSS-VFO indicator
-	if (g_eeprom.cross_vfo_rx_tx != CROSS_BAND_OFF || test_display)
+	if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF || test_display)
 	{
 		memcpy(line + x, BITMAP_XB, sizeof(BITMAP_XB));
 		x1 = x + sizeof(BITMAP_XB);
+		x += sizeof(BITMAP_XB);
 	}
-	x += sizeof(BITMAP_XB);
-	
+	x++;
+
 	#ifdef ENABLE_VOX
 		// VOX indicator
-		if (g_eeprom.vox_switch || test_display)
+		if (g_eeprom.config.setting.vox_switch || test_display)
 		{
 			memcpy(line + x, BITMAP_VOX, sizeof(BITMAP_VOX));
 			x1 = x + sizeof(BITMAP_VOX);
+			x += sizeof(BITMAP_VOX);
 		}
-		x += sizeof(BITMAP_VOX);
+		x++;
 	#endif
 
 	#ifdef ENABLE_KEYLOCK
 	// KEY-LOCK indicator
-	if (g_eeprom.key_lock || test_display)
+	if (g_eeprom.config.setting.key_lock || test_display)
 	{
 		memcpy(line + x, BITMAP_KEYLOCK, sizeof(BITMAP_KEYLOCK));
 		x += sizeof(BITMAP_KEYLOCK);
 		x1 = x;
+		x++;
 	}
 	else
 	#endif
@@ -197,22 +203,23 @@ void UI_DisplayStatus(const bool test_display)
 		x += sizeof(BITMAP_F_KEY);
 		x1 = x;
 	}
+	x++;
 
 	{	// battery voltage or percentage text
 		char         s[8];
 		unsigned int space_needed;
-		
+
 		unsigned int x2 = LCD_WIDTH - sizeof(BITMAP_BATTERY_LEVEL) - 3;
 
 		if (g_charging_with_type_c)
 			x2 -= sizeof(BITMAP_USB_C);  // the radio is on USB charge
 
-		switch (g_setting_battery_text)
+		switch (g_eeprom.config.setting.battery_text)
 		{
 			default:
 			case 0:
 				break;
-	
+
 			case 1:		// voltage
 			{
 				const uint16_t voltage = (g_battery_voltage_average <= 999) ? g_battery_voltage_average : 999; // limit to 9.99V
@@ -222,7 +229,7 @@ void UI_DisplayStatus(const bool test_display)
 					UI_PrintStringSmallBuffer(s, line + x2 - space_needed);
 				break;
 			}
-			
+
 			case 2:		// percentage
 			{
 				sprintf(s, "%u%%", BATTERY_VoltsToPercent(g_battery_voltage_average));
@@ -233,10 +240,10 @@ void UI_DisplayStatus(const bool test_display)
 			}
 		}
 	}
-		
+
 	// move to right side of the screen
 	x = LCD_WIDTH - sizeof(BITMAP_BATTERY_LEVEL) - sizeof(BITMAP_USB_C);
-	
+
 	// USB-C charge indicator
 	if (g_charging_with_type_c || test_display)
 		memcpy(line + x, BITMAP_USB_C, sizeof(BITMAP_USB_C));
@@ -244,7 +251,7 @@ void UI_DisplayStatus(const bool test_display)
 
 	// BATTERY LEVEL indicator
 	UI_DrawBattery(line + x, g_battery_display_level, g_low_battery_blink);
-	
+
 	// **************
 
 	ST7565_BlitStatusLine();

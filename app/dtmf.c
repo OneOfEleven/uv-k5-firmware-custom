@@ -93,9 +93,10 @@ bool DTMF_ValidateCodes(char *pCode, const unsigned int size)
 bool DTMF_GetContact(const int Index, char *pContact)
 {
 	int i = -1;
-	if (Index >= 0 && Index < MAX_DTMF_CONTACTS && pContact != NULL)
+	if (Index >= 0 && Index < (int)ARRAY_SIZE(g_eeprom.config.dtmf_contact))
 	{
-		EEPROM_ReadBuffer(0x1C00 + (Index * 16), pContact, 16);
+		memcpy(pContact, &g_eeprom.config.dtmf_contact[Index], 16);
+//		EEPROM_ReadBuffer(0x1C00 + (Index * 16), pContact, 16);
 		i = (int)pContact[0] - ' ';
 	}
 	return (i < 0 || i >= 95) ? false : true;
@@ -159,7 +160,7 @@ bool DTMF_CompareMessage(const char *pMsg, const char *pTemplate, const unsigned
 	{
 		if (pMsg[i] != pTemplate[i])
 		{
-			if (!bCheckGroup || pMsg[i] != g_eeprom.dtmf_group_call_code)
+			if (!bCheckGroup || pMsg[i] != g_eeprom.config.setting.dtmf.group_call_code)
 				return false;
 			g_dtmf_IsGroupCall = true;
 		}
@@ -172,7 +173,7 @@ dtmf_call_mode_t DTMF_CheckGroupCall(const char *pMsg, const unsigned int size)
 {
 	unsigned int i;
 	for (i = 0; i < size; i++)
-		if (pMsg[i] == g_eeprom.dtmf_group_call_code)
+		if (pMsg[i] == g_eeprom.config.setting.dtmf.group_call_code)
 			break;
 
 	return (i < size) ? DTMF_CALL_MODE_GROUP : DTMF_CALL_MODE_NOT_GROUP;
@@ -213,7 +214,7 @@ void DTMF_HandleRequest(void)
 	}
 
 	#ifdef ENABLE_KILL_REVIVE
-		if (!g_rx_vfo->dtmf_decoding_enable && !g_setting_radio_disabled)
+		if (!g_rx_vfo->dtmf_decoding_enable && !g_eeprom.config.setting.radio_disabled)
 	#else
 		if (!g_rx_vfo->dtmf_decoding_enable)
 	#endif
@@ -228,16 +229,16 @@ void DTMF_HandleRequest(void)
 		if (g_dtmf_rx_index >= 9)
 		{	// look for the RADIO DISABLE code
 	
-			sprintf(String, "%s%c%s", g_eeprom.ani_dtmf_id, g_eeprom.dtmf_separate_code, g_eeprom.kill_code);
+			sprintf(String, "%s%c%s", g_eeprom.config.setting.dtmf.ani_id, g_eeprom.config.setting.dtmf.separate_code, g_eeprom.config.setting.dtmf.kill_code);
 	
 			Offset = g_dtmf_rx_index - strlen(String);
 	
 			if (DTMF_CompareMessage(g_dtmf_rx + Offset, String, strlen(String), true))
 			{	// bugger
 	
-				if (g_eeprom.permit_remote_kill)
+				if (g_eeprom.config.setting.dtmf.permit_remote_kill != 0)
 				{
-					g_setting_radio_disabled = true;      // :(
+					g_eeprom.config.setting.radio_disabled = true;      // :(
 	
 					DTMF_clear_RX();
 	
@@ -269,14 +270,14 @@ void DTMF_HandleRequest(void)
 		if (g_dtmf_rx_index >= 9)
 		{	// look for the REVIVE code
 	
-			sprintf(String, "%s%c%s", g_eeprom.ani_dtmf_id, g_eeprom.dtmf_separate_code, g_eeprom.revive_code);
+			sprintf(String, "%s%c%s", g_eeprom.config.setting.dtmf.ani_id, g_eeprom.config.setting.dtmf.separate_code, g_eeprom.config.setting.dtmf.revive_code);
 	
 			Offset = g_dtmf_rx_index - strlen(String);
 	
 			if (DTMF_CompareMessage(g_dtmf_rx + Offset, String, strlen(String), true))
 			{	// shit, we're back !
 	
-				g_setting_radio_disabled  = false;
+				g_eeprom.config.setting.radio_disabled  = false;
 	
 				DTMF_clear_RX();
 	
@@ -318,7 +319,7 @@ void DTMF_HandleRequest(void)
 	    g_dtmf_rx_index >= 9)
 	{	// waiting for a reply
 
-		sprintf(String, "%s%c%s", g_dtmf_string, g_eeprom.dtmf_separate_code, "AAAAA");
+		sprintf(String, "%s%c%s", g_dtmf_string, g_eeprom.config.setting.dtmf.separate_code, "AAAAA");
 
 		Offset = g_dtmf_rx_index - strlen(String);
 
@@ -331,7 +332,7 @@ void DTMF_HandleRequest(void)
 	}
 
 	#ifdef ENABLE_KILL_REVIVE
-		if (g_setting_radio_disabled)
+		if (g_eeprom.config.setting.radio_disabled)
 			return;        // we've been disabled
 	#endif
 
@@ -340,7 +341,7 @@ void DTMF_HandleRequest(void)
 
 		g_dtmf_IsGroupCall = false;
 
-		sprintf(String, "%s%c", g_eeprom.ani_dtmf_id, g_eeprom.dtmf_separate_code);
+		sprintf(String, "%s%c", g_eeprom.config.setting.dtmf.ani_id, g_eeprom.config.setting.dtmf.separate_code);
 
 		Offset = g_dtmf_rx_index - strlen(String) - 3;
 
@@ -358,7 +359,7 @@ void DTMF_HandleRequest(void)
 
 			g_update_display = true;
 
-			switch (g_eeprom.dtmf_decode_response)
+			switch (g_eeprom.config.setting.dtmf.decode_response)
 			{
 				case DTMF_DEC_RESPONSE_BOTH:
 					g_dtmf_decode_ring_tick_500ms = dtmf_decode_ring_500ms;
@@ -386,7 +387,7 @@ void DTMF_HandleRequest(void)
 
 bool DTMF_Reply(void)
 {
-	const uint16_t Delay   = (g_eeprom.dtmf_preload_time < 150) ? 150 : g_eeprom.dtmf_preload_time;
+	const uint16_t delay_ms = ((g_eeprom.config.setting.dtmf.preload_time < 15) ? 15 : g_eeprom.config.setting.dtmf.preload_time) * 10;
 	const char    *pString = NULL;
 	char           String[23];
 
@@ -399,7 +400,7 @@ bool DTMF_Reply(void)
 			}
 			else
 			{	// append our ID code onto the end of the DTMF code to send
-				sprintf(String, "%s%c%s", g_dtmf_string, g_eeprom.dtmf_separate_code, g_eeprom.ani_dtmf_id);
+				sprintf(String, "%s%c%s", g_dtmf_string, g_eeprom.config.setting.dtmf.separate_code, g_eeprom.config.setting.dtmf.ani_id);
 				pString = String;
 			}
 			break;
@@ -409,7 +410,7 @@ bool DTMF_Reply(void)
 			break;
 
 		case DTMF_REPLY_AAAAA:
-			sprintf(String, "%s%c%s", g_eeprom.ani_dtmf_id, g_eeprom.dtmf_separate_code, "AAAAA");
+			sprintf(String, "%s%c%s", g_eeprom.config.setting.dtmf.ani_id, g_eeprom.config.setting.dtmf.separate_code, "AAAAA");
 			pString = String;
 			break;
 
@@ -425,7 +426,7 @@ bool DTMF_Reply(void)
 			}
 
 			// send TX-UP DTMF
-			pString = g_eeprom.dtmf_key_up_code;
+			pString = g_eeprom.config.setting.dtmf.key_up_code;
 			break;
 	}
 
@@ -434,22 +435,22 @@ bool DTMF_Reply(void)
 	if (pString == NULL)
 		return false;
 
-	if (g_eeprom.dtmf_side_tone)
+	if (g_eeprom.config.setting.dtmf.side_tone)
 	{	// the user will also hear the transmitted tones
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	}
 
-	SYSTEM_DelayMs(Delay);
+	SYSTEM_DelayMs(delay_ms);
 
-	BK4819_EnterDTMF_TX(g_eeprom.dtmf_side_tone);
+	BK4819_EnterDTMF_TX(g_eeprom.config.setting.dtmf.side_tone);
 
 	BK4819_PlayDTMFString(
 		pString,
 		1,
-		g_eeprom.dtmf_first_code_persist_time,
-		g_eeprom.dtmf_hash_code_persist_time,
-		g_eeprom.dtmf_code_persist_time,
-		g_eeprom.dtmf_code_interval_time);
+		g_eeprom.config.setting.dtmf.first_code_persist_time * 10,
+		g_eeprom.config.setting.dtmf.hash_code_persist_time * 10,
+		g_eeprom.config.setting.dtmf.code_persist_time * 10,
+		g_eeprom.config.setting.dtmf.code_interval_time * 10);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 

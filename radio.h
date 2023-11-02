@@ -24,12 +24,6 @@
 #include "dcs.h"
 #include "frequencies.h"
 
-enum {
-	USER_CH_BAND_MASK = 0x0F << 0,
-	USER_CH_SPARE     =   3u << 4,
-	USER_CH_SCANLIST2 =   1u << 6,
-	USER_CH_SCANLIST1 =   1u << 7
-};
 /*
 enum {
 	RADIO_CHANNEL_UP   = 0x01u,
@@ -131,6 +125,8 @@ typedef struct vfo_info_t
 
 	char           name[16];
 } vfo_info_t;
+
+extern vfo_info_t      g_vfo_info[2];
 
 extern vfo_info_t     *g_tx_vfo;
 extern vfo_info_t     *g_rx_vfo;

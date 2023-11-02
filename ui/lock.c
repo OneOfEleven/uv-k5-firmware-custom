@@ -107,7 +107,7 @@ void UI_DisplayLock(void)
 
 								NUMBER_Get(g_input_box, &Password);
 
-								if ((g_eeprom.power_on_password * 100) == Password)
+								if ((g_eeprom.config.setting.power_on_password * 100) == Password)
 								{
 									AUDIO_PlayBeep(BEEP_1KHZ_60MS_OPTIONAL);
 									return;

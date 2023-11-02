@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-extern uint16_t g_backlight_count_down;
+extern uint16_t g_backlight_tick_500ms;
 
 uint16_t backlight_ticks(void);
 void     backlight_turn_on(const uint16_t min_ticks);

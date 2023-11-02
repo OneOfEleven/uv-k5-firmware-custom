@@ -128,11 +128,7 @@ void BK1080_Init(const uint16_t frequency, const bool initialise)
 		
 				if (BK1080_freq_lower > lower)
 					BK1080_freq_lower = lower;
-//				if (BK1080_freq_lower > upper)
-//					BK1080_freq_lower = upper;
-		
-//				if (BK1080_freq_upper < lower)
-//					BK1080_freq_upper = lower;
+
 				if (BK1080_freq_upper < upper)
 					BK1080_freq_upper = upper;
 			}
@@ -239,7 +235,7 @@ void BK1080_SetFrequency(uint16_t Frequency)
 	BK1080_WriteRegister(BK1080_REG_05_SYSTEM_CONFIGURATION2, (SEEK_THRESHOLD << 8) | (band << 6) | (CHAN_SPACING << 4) | (VOLUME << 0));
 
 	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, (uint16_t)channel);
-	SYSTEM_DelayMs(1);
+//	SYSTEM_DelayMs(1);
 	BK1080_WriteRegister(BK1080_REG_03_CHANNEL, (uint16_t)channel | (1u << 15));
 }
 

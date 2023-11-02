@@ -220,7 +220,7 @@
 
 	#ifdef ENABLE_AM_FIX_TEST1
 		// user manually sets the table index .. used to calibrate the desired dB gain table
-		unsigned int gain_table_index[2] = {1 + g_setting_am_fix_test1, 1 + g_setting_am_fix_test1};
+		unsigned int gain_table_index[2] = {1 + g_eeprom.config.setting.am_fix_test1, 1 + g_eeprom.config.setting.am_fix_test1};
 	#else
 		unsigned int gain_table_index[2] = {original_index, original_index};
 	#endif
@@ -248,7 +248,7 @@
 		for (vfo = 0; vfo < 2; vfo++)
 		{
 			#ifdef ENABLE_AM_FIX_TEST1
-				gain_table_index[vfo] = 1 + g_setting_am_fix_test1;
+				gain_table_index[vfo] = 1 + g_eeprom.config.setting.am_fix_test1;
 			#else
 				gain_table_index[vfo] = original_index;  // re-start with original QS setting
 			#endif
@@ -271,7 +271,7 @@
 		rssi_gain_diff[vfo]        = 0;
 		gain_table_index_prev[vfo] = 0;
 		#ifdef ENABLE_AM_FIX_TEST1
-//			gain_table_index[vfo] = 1 + g_setting_am_fix_test1;
+//			gain_table_index[vfo] = 1 + g_eeprom.config.setting.am_fix_test1;
 		#else
 //			gain_table_index[vfo] = original_index;  // re-start with original QS setting
 		#endif
@@ -347,7 +347,7 @@
 		// user is manually adjusting a gain register - don't do anything automatically
 
 		{
-			int i = 1 + (int)g_setting_am_fix_test1;
+			int i = 1 + (int)g_eeprom.config.setting.am_fix_test1;
 			i = (i < 1) ? 1 : (i > ((int)ARRAY_SIZE(gain_table) - 1) ? ARRAY_SIZE(gain_table) - 1 : i;
 
 			if (gain_table_index[vfo] == i)

@@ -66,17 +66,17 @@ void BOOT_ProcessMode(boot_mode_t Mode)
 		else
 		if (Mode == BOOT_MODE_AIRCOPY)
 		{
-			g_eeprom.dual_watch               = DUAL_WATCH_OFF;
-			g_eeprom.battery_save             = 0;
+			g_eeprom.config.setting.dual_watch         = DUAL_WATCH_OFF;
+			g_eeprom.config.setting.battery_save_ratio = 0;
 			#ifdef ENABLE_VOX
-				g_eeprom.vox_switch           = false;
+				g_eeprom.config.setting.vox_switch   = false;
 			#endif
-			g_eeprom.cross_vfo_rx_tx          = CROSS_BAND_OFF;
-			g_eeprom.auto_keypad_lock         = false;
-			g_eeprom.key1_short_press_action  = ACTION_OPT_NONE;
-			g_eeprom.key1_long_press_action   = ACTION_OPT_NONE;
-			g_eeprom.key2_short_press_action  = ACTION_OPT_NONE;
-			g_eeprom.key2_long_press_action   = ACTION_OPT_NONE;
+			g_eeprom.config.setting.cross_vfo  = CROSS_BAND_OFF;
+			g_eeprom.config.setting.auto_key_lock = 0;
+			g_eeprom.config.setting.key1_short  = ACTION_OPT_NONE;
+			g_eeprom.config.setting.key1_long   = ACTION_OPT_NONE;
+			g_eeprom.config.setting.key2_short  = ACTION_OPT_NONE;
+			g_eeprom.config.setting.key2_long   = ACTION_OPT_NONE;
 
 			RADIO_InitInfo(g_rx_vfo, FREQ_CHANNEL_LAST - 1, g_aircopy_freq);
 

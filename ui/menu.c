@@ -21,7 +21,7 @@
 #include "dcs.h"
 #include "driver/backlight.h"
 #include "driver/bk4819.h"
-#include "driver/eeprom.h"   // EEPROM_ReadBuffer()
+#include "driver/eeprom.h"
 #include "driver/st7565.h"
 #if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	#include "driver/uart.h"
@@ -283,12 +283,12 @@ const char g_sub_menu_dtmf_rsp[4][9] =
 	"RNG RPLY"
 };
 
-const char g_sub_menu_ptt_id[5][15] =
+const char g_sub_menu_ptt_id[5][16] =
 {
-	"OFF",
-	"BOT",
-	"EOT",
-	"BOT+EOT",
+	"DTMF ID\nOFF",
+	"DTMF ID\nBOT",
+	"DTMF ID\nEOT",
+	"DTMF ID\nBOT+EOT",
 	"APOLLO\nQUINDAR"
 };
 
@@ -469,9 +469,10 @@ void UI_SortMenu(const bool hide_hidden)
 
 void UI_DisplayMenu(void)
 {
-	const unsigned int menu_list_width = 6;            // max no. of characters on the menu list (left side)
+	const unsigned int menu_list_width = 6;                          // max no. of characters on the menu list (left side)
 	const unsigned int sub_menu_x1     = (8 * menu_list_width) + 2;  // start x corrd
 	const unsigned int sub_menu_x2     = LCD_WIDTH - 1;              //   end x coord
+	bool               channel_setting = false;                      // set if the setting is a channel setting
 	unsigned int       i;
 	char               str[64];  // bigger cuz we can now do multi-line in one string (use '\n' char)
 
@@ -573,6 +574,7 @@ void UI_DisplayMenu(void)
 				sprintf(str, "%d", g_sub_menu_selection);
 //			g_tx_vfo->squelch_level = g_sub_menu_selection;
 //			RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
+			channel_setting = true;
 			break;
 
 		case MENU_MIC_GAIN:
@@ -596,11 +598,13 @@ void UI_DisplayMenu(void)
 				NUMBER_trim_trailing_zeros(str);
 				strcat(str, "kHz");
 			}
+			channel_setting = true;
 			break;
 		}
 
 		case MENU_TX_POWER:
 			strcpy(str, g_sub_menu_tx_power[g_sub_menu_selection]);
+			channel_setting = true;
 			break;
 
 		case MENU_RX_CDCSS:
@@ -613,11 +617,13 @@ void UI_DisplayMenu(void)
 				sprintf(str + strlen(str), "D%03oN", DCS_CODE_LIST[g_sub_menu_selection -   1]);
 			else
 				sprintf(str + strlen(str), "D%03oI", DCS_CODE_LIST[g_sub_menu_selection - 105]);
+			channel_setting = true;
 			break;
 
 		case MENU_RX_CTCSS:
 		case MENU_TX_CTCSS:
 		{
+			channel_setting = true;
 			strcpy(str, "CTCSS\n");
 			#if 1
 				// set CTCSS as the user adjusts it
@@ -658,9 +664,11 @@ void UI_DisplayMenu(void)
 
 		case MENU_SHIFT_DIR:
 			strcpy(str, g_sub_menu_shift_dir[g_sub_menu_selection]);
+			channel_setting = true;
 			break;
 
 		case MENU_OFFSET:
+			channel_setting = true;
 			if (!g_in_sub_menu || g_input_box_index == 0)
 			{
 				sprintf(str, "%d.%05u", g_sub_menu_selection / 100000, abs(g_sub_menu_selection) % 100000);
@@ -692,6 +700,7 @@ void UI_DisplayMenu(void)
 
 		case MENU_BANDWIDTH:
 			strcpy(str, g_sub_menu_bandwidth[g_sub_menu_selection]);
+			channel_setting = true;
 			break;
 
 		case MENU_SCRAMBLER:
@@ -699,11 +708,12 @@ void UI_DisplayMenu(void)
 			strcat(str, g_sub_menu_scrambler[g_sub_menu_selection]);
 
 			#if 1
-				if (g_sub_menu_selection > 0 && g_setting_scramble_enable)
+				if (g_sub_menu_selection > 0 && g_eeprom.config.setting.enable_scrambler)
 					BK4819_EnableScramble(g_sub_menu_selection - 1);
 				else
 					BK4819_DisableScramble();
 			#endif
+			channel_setting = true;
 			break;
 
 		#ifdef ENABLE_VOX
@@ -728,12 +738,13 @@ void UI_DisplayMenu(void)
 		case MENU_MOD_MODE:
 //			strcpy(str, (g_sub_menu_selection == 0) ? "FM" : "AM");
 			strcpy(str, g_sub_menu_mod_mode[g_sub_menu_selection]);
+			channel_setting = true;
 			break;
 
 		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				strcpy(str, g_sub_menu_AM_FIX_test1[g_sub_menu_selection]);
-//				g_setting_am_fix = g_sub_menu_selection;
+//				g_eeprom.config.setting.am_fix = g_sub_menu_selection;
 				break;
 		#endif
 
@@ -748,6 +759,7 @@ void UI_DisplayMenu(void)
 
 		case MENU_COMPAND:
 			strcpy(str, g_sub_menu_rx_tx[g_sub_menu_selection]);
+			channel_setting = true;
 			break;
 
 		#ifdef ENABLE_CONTRAST
@@ -772,6 +784,7 @@ void UI_DisplayMenu(void)
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
 			strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
+			channel_setting = true;
 			break;
 
 		case MENU_BUSY_CHAN_LOCK:
@@ -830,6 +843,7 @@ void UI_DisplayMenu(void)
 		case MENU_SCRAMBLER_EN:
 			strcpy(str, "SCRAMBLER\n");
 			strcat(str, g_sub_menu_dis_en[g_sub_menu_selection]);
+			channel_setting = true;
 			break;
 
 		case MENU_TX_EN:
@@ -847,13 +861,13 @@ void UI_DisplayMenu(void)
 			UI_GenerateChannelStringEx(str, valid ? "CH-" : "", g_sub_menu_selection);
 
 			// channel name
-			BOARD_fetchChannelName(s, g_sub_menu_selection);
+			SETTINGS_fetch_channel_name(s, g_sub_menu_selection);
 			strcat(str, "\n");
 			strcat(str, (s[0] == 0) ? "--" : s);
 
 			if (valid && !g_ask_for_confirmation)
 			{	// show the frequency so that the user knows the channels frequency
-				const uint32_t frequency = BOARD_fetchChannelFrequency(g_sub_menu_selection);
+				const uint32_t frequency = SETTINGS_fetch_channel_frequency(g_sub_menu_selection);
 				sprintf(str + strlen(str), "\n%u.%05u", frequency / 100000, frequency % 100000);
 
 				#ifdef ENABLE_TRIM_TRAILING_ZEROS
@@ -861,6 +875,7 @@ void UI_DisplayMenu(void)
 				#endif
 			}
 
+			channel_setting = (g_menu_cursor != MENU_1_CALL) ? true : false;
 			break;
 		}
 
@@ -874,11 +889,11 @@ void UI_DisplayMenu(void)
 
 			if (valid)
 			{
-				const uint32_t frequency = BOARD_fetchChannelFrequency(g_sub_menu_selection);
+				const uint32_t frequency = SETTINGS_fetch_channel_frequency(g_sub_menu_selection);
 
 				if (!g_in_sub_menu || g_edit_index < 0)
 				{	// show the channel name
-					BOARD_fetchChannelName(str, g_sub_menu_selection);
+					SETTINGS_fetch_channel_name(str, g_sub_menu_selection);
 					if (str[0] == 0)
 						strcpy(str, "--");
 					UI_PrintString(str, sub_menu_x1, sub_menu_x2, y + 2, 8);
@@ -901,6 +916,7 @@ void UI_DisplayMenu(void)
 			}
 
 			already_printed = true;
+			channel_setting = true;
 			break;
 		}
 
@@ -931,7 +947,7 @@ void UI_DisplayMenu(void)
 			strcpy(str, "SCAN\nRESUME\n");
 			strcat(str, g_sub_menu_scan_car_resume[g_sub_menu_selection]);
 			if (g_sub_menu_selection == SCAN_RESUME_TIME)
-				sprintf(str + strlen(str), "%d.%ds", g_eeprom.scan_hold_time_500ms / 2, 5 * (g_eeprom.scan_hold_time_500ms % 2));
+				sprintf(str + strlen(str), "%d.%ds", g_eeprom.config.setting.scan_hold_time / 2, 5 * (g_eeprom.config.setting.scan_hold_time % 2));
 			break;
 
 		case MENU_SCAN_HOLD:
@@ -951,10 +967,11 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_S_LIST:
+			strcpy(str, "SCAN LIST\n");
 			if (g_sub_menu_selection < 2)
-				sprintf(str, "LIST%u", 1 + g_sub_menu_selection);
+				sprintf(str + strlen(str), "LIST%u", 1 + g_sub_menu_selection);
 			else
-				strcpy(str, "ALL");
+				strcat(str, "ALL");
 			break;
 
 		#ifdef ENABLE_ALARM
@@ -966,17 +983,17 @@ void UI_DisplayMenu(void)
 
 		case MENU_ANI_ID:
 			strcpy(str, "YOUR ID\n");
-			strcat(str, g_eeprom.ani_dtmf_id);
+			strcat(str, g_eeprom.config.setting.dtmf.ani_id);
 			break;
 
 		case MENU_UP_CODE:
-			strcpy(str, "PTT DTMF\nBEGIN\n");
-			strcat(str, g_eeprom.dtmf_key_up_code);
+			strcpy(str, "DTMF BOT\n");
+			strcat(str, g_eeprom.config.setting.dtmf.key_up_code);
 			break;
 
 		case MENU_DN_CODE:
-			strcpy(str, "PTT DTMF\nEND\n");
-			strcat(str, g_eeprom.dtmf_key_down_code);
+			strcpy(str, "DTMF EOT\n");
+			strcat(str, g_eeprom.config.setting.dtmf.key_down_code);
 			break;
 
 		case MENU_DTMF_RSP:
@@ -1013,7 +1030,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_DTMF_PRE:
-			strcpy(str, "TX DTMF\nDELAY\n");
+			strcpy(str, "DTMF BOT\nDELAY\n");
 //			sprintf(String + strlen(String), "%d*10ms", g_sub_menu_selection);
 			sprintf(str + strlen(str), "%dms", 10 * g_sub_menu_selection);
 			break;
@@ -1022,6 +1039,7 @@ void UI_DisplayMenu(void)
 			case MENU_MDC1200_MODE:
 				strcpy(str, "MDC1200\nMODE\n");
 				strcat(str, g_sub_menu_mdc1200_mode[g_sub_menu_selection]);
+				channel_setting = true;
 				break;
 				
 			case MENU_MDC1200_ID:
@@ -1030,8 +1048,8 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_PTT_ID:
-			strcpy(str, (g_sub_menu_selection > 0) ? "TX ID\n" : "");
-			strcat(str, g_sub_menu_ptt_id[g_sub_menu_selection]);
+			strcpy(str, g_sub_menu_ptt_id[g_sub_menu_selection]);
+			channel_setting = true;
 			break;
 
 		case MENU_BAT_TXT:
@@ -1178,11 +1196,11 @@ void UI_DisplayMenu(void)
 
 		case MENU_BAT_CAL:
 		{
-			const uint16_t vol = (uint32_t)g_battery_voltage_average * g_battery_calibration[3] / g_sub_menu_selection;
+			const uint16_t vol = (uint32_t)g_battery_voltage_average * g_eeprom.calib.battery[3] / g_sub_menu_selection;
 			if (!g_in_sub_menu)
 				sprintf(str, "%u.%02uV\n%d", vol / 100, vol % 100, g_sub_menu_selection);
 			else
-				sprintf(str, "%u.%02uV\n(%#4d)\n%#4d", vol / 100, vol % 100, g_battery_calibration[3], g_sub_menu_selection);
+				sprintf(str, "%u.%02uV\n(%#4d)\n%#4d", vol / 100, vol % 100, g_eeprom.calib.battery[3], g_sub_menu_selection);
 			break;
 		}
 	}
@@ -1251,14 +1269,14 @@ void UI_DisplayMenu(void)
 		else
 			UI_GenerateChannelStringEx(str, "CH-", g_sub_menu_selection);
 
-//		if (g_sub_menu_selection == 0xFF || !g_eeprom.scan_list_enabled[i])
-		if (g_sub_menu_selection < 0 || !g_eeprom.scan_list_enabled[i])
+//		if (g_sub_menu_selection == 0xFF || g_eeprom.config.setting.priority_scan_list[i].enabled == 0)
+		if (g_sub_menu_selection < 0 || g_eeprom.config.setting.priority_scan_list[i].enabled == 0)
 		{
 			// channel number
 			UI_PrintString(str, sub_menu_x1, sub_menu_x2, 0, 8);
 
 			// channel name
-			BOARD_fetchChannelName(str, g_sub_menu_selection);
+			SETTINGS_fetch_channel_name(str, g_sub_menu_selection);
 			if (str[0] == 0)
 				strcpy(str, "--");
 			UI_PrintString(str, sub_menu_x1, sub_menu_x2, 2, 8);
@@ -1270,20 +1288,20 @@ void UI_DisplayMenu(void)
 
 			// channel name
 			memset(str, 0, sizeof(str));
-			BOARD_fetchChannelName(str, g_sub_menu_selection);
+			SETTINGS_fetch_channel_name(str, g_sub_menu_selection);
 			if (str[0] == 0)
 				strcpy(str, "--");
 			UI_PrintStringSmall(str, sub_menu_x1, sub_menu_x2, 2);
 
-			if (IS_USER_CHANNEL(g_eeprom.scan_list_priority_ch1[i]))
+			if (IS_USER_CHANNEL(g_eeprom.config.setting.priority_scan_list[i].channel[0]))
 			{
-				sprintf(str, "PRI1:%u", g_eeprom.scan_list_priority_ch1[i] + 1);
+				sprintf(str, "PRI1:%u", 1 + g_eeprom.config.setting.priority_scan_list[i].channel[0]);
 				UI_PrintString(str, sub_menu_x1, sub_menu_x2, 3, 8);
 			}
 
-			if (IS_USER_CHANNEL(g_eeprom.scan_list_priority_ch2[i]))
+			if (IS_USER_CHANNEL(g_eeprom.config.setting.priority_scan_list[i].channel[1]))
 			{
-				sprintf(str, "PRI2:%u", g_eeprom.scan_list_priority_ch2[i] + 1);
+				sprintf(str, "PRI2:%u", 1 + g_eeprom.config.setting.priority_scan_list[i].channel[1]);
 				UI_PrintString(str, sub_menu_x1, sub_menu_x2, 5, 8);
 			}
 		}
@@ -1293,12 +1311,12 @@ void UI_DisplayMenu(void)
 		UI_PrintString("SCAN", sub_menu_x1, sub_menu_x2, 4, 8);
 
 	if (g_menu_cursor == MENU_UP_CODE)
-		if (strlen(g_eeprom.dtmf_key_up_code) > 8)
-			UI_PrintString(g_eeprom.dtmf_key_up_code + 8, sub_menu_x1, sub_menu_x2, 4, 8);
+		if (strlen(g_eeprom.config.setting.dtmf.key_up_code) > 8)
+			UI_PrintString(g_eeprom.config.setting.dtmf.key_up_code + 8, sub_menu_x1, sub_menu_x2, 4, 8);
 
 	if (g_menu_cursor == MENU_DN_CODE)
-		if (strlen(g_eeprom.dtmf_key_down_code) > 8)
-			UI_PrintString(g_eeprom.dtmf_key_down_code + 8, sub_menu_x1, sub_menu_x2, 4, 8);
+		if (strlen(g_eeprom.config.setting.dtmf.key_down_code) > 8)
+			UI_PrintString(g_eeprom.config.setting.dtmf.key_down_code + 8, sub_menu_x1, sub_menu_x2, 4, 8);
 
 	if (g_menu_cursor == MENU_RX_CTCSS ||
 	    g_menu_cursor == MENU_TX_CTCSS ||
@@ -1323,6 +1341,9 @@ void UI_DisplayMenu(void)
 		strcpy(str, (g_ask_for_confirmation == 1) ? "SURE?" : "WAIT!");
 		UI_PrintString(str, sub_menu_x1, sub_menu_x2, 5, 8);
 	}
+
+	if (channel_setting)
+		UI_PrintStringSmall("ch", sub_menu_x1, 0, 0);
 
 	ST7565_BlitFullScreen();
 }

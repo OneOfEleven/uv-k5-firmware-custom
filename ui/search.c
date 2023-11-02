@@ -22,6 +22,7 @@
 #include "frequencies.h"
 #include "misc.h"
 #include "radio.h"
+#include "settings.h"
 #include "ui/helper.h"
 #include "ui/search.h"
 #include "ui/ui.h"
@@ -161,7 +162,7 @@ void UI_DisplaySearch(void)
 			strcpy(String, "SAVE ");
 			{
 				char s[11];
-				BOARD_fetchChannelName(s, g_search_channel);
+				SETTINGS_fetch_channel_name(s, g_search_channel);
 				if (s[0] == 0)
 					UI_GenerateChannelStringEx(s, g_search_show_chan_prefix ? "CH-" : "", g_search_channel);
 				strcat(String, s);

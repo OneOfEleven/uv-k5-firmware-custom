@@ -97,7 +97,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	uint16_t       ToneFrequency;
 	uint16_t       Duration;
 
-	if (!g_eeprom.beep_control)
+	if (g_eeprom.config.setting.beep_control == 0)
 	{	// beep not enabled
 		if (Beep != BEEP_880HZ_60MS_TRIPLE_BEEP &&
 			Beep != BEEP_500HZ_60MS_DOUBLE_BEEP &&
@@ -261,7 +261,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	{
 		unsigned int i;
 
-		if (g_eeprom.voice_prompt == VOICE_PROMPT_OFF)
+		if (g_eeprom.config.setting.voice_prompt == VOICE_PROMPT_OFF)
 			return;
 
 		GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_VOICE_0);
@@ -288,10 +288,10 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		uint8_t Delay;
 		uint8_t VoiceID = g_voice_id[0];
 
-		if (g_eeprom.voice_prompt == VOICE_PROMPT_OFF || g_voice_write_index == 0)
+		if (g_eeprom.config.setting.voice_prompt == VOICE_PROMPT_OFF || g_voice_write_index == 0)
 			goto Bailout;
 
-		if (g_eeprom.voice_prompt == VOICE_PROMPT_CHINESE)
+		if (g_eeprom.config.setting.voice_prompt == VOICE_PROMPT_CHINESE)
 		{	// Chinese
 			if (VoiceID >= ARRAY_SIZE(VoiceClipLengthChinese))
 				goto Bailout;
@@ -371,13 +371,13 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 
 	void AUDIO_SetVoiceID(uint8_t Index, voice_id_t VoiceID)
 	{
-		if (g_eeprom.voice_prompt == VOICE_PROMPT_OFF || Index == 0)
+		if (g_eeprom.config.setting.voice_prompt == VOICE_PROMPT_OFF || Index == 0)
 		{
 			g_voice_write_index = 0;
 			g_voice_read_index  = 0;
 		}
 
-		if (g_eeprom.voice_prompt != VOICE_PROMPT_OFF && Index < ARRAY_SIZE(g_voice_id))
+		if (g_eeprom.config.setting.voice_prompt != VOICE_PROMPT_OFF && Index < ARRAY_SIZE(g_voice_id))
 		{
 			g_voice_id[Index] = VoiceID;
 			g_voice_write_index++;
@@ -390,13 +390,13 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		uint8_t  Result;
 		uint8_t  Count;
 
-		if (g_eeprom.voice_prompt == VOICE_PROMPT_OFF || Index == 0)
+		if (g_eeprom.config.setting.voice_prompt == VOICE_PROMPT_OFF || Index == 0)
 		{
 			g_voice_write_index = 0;
 			g_voice_read_index  = 0;
 		}
 
-		if (g_eeprom.voice_prompt == VOICE_PROMPT_OFF)
+		if (g_eeprom.config.setting.voice_prompt == VOICE_PROMPT_OFF)
 			return 0;
 
 		Count     = 0;
@@ -431,17 +431,17 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		uint8_t Delay;
 		bool    Skip = false;
 
-		if (g_eeprom.voice_prompt == VOICE_PROMPT_OFF)
+		if (g_eeprom.config.setting.voice_prompt == VOICE_PROMPT_OFF)
 		{
 			g_voice_write_index = 0;
 			g_voice_read_index  = 0;
 			return;
 		}
 
-		if (g_voice_read_index != g_voice_write_index && g_eeprom.voice_prompt != VOICE_PROMPT_OFF)
+		if (g_voice_read_index != g_voice_write_index && g_eeprom.config.setting.voice_prompt != VOICE_PROMPT_OFF)
 		{
 			VoiceID = g_voice_id[g_voice_read_index];
-			if (g_eeprom.voice_prompt == VOICE_PROMPT_CHINESE)
+			if (g_eeprom.config.setting.voice_prompt == VOICE_PROMPT_CHINESE)
 			{
 				if (VoiceID < ARRAY_SIZE(VoiceClipLengthChinese))
 				{

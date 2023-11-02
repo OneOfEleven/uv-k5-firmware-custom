@@ -28,6 +28,8 @@
 	#include "driver/bk1080.h"
 #endif
 #include "driver/bk4819.h"
+#include "driver/crc.h"
+#include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/st7565.h"
 #include "driver/system.h"
@@ -35,6 +37,7 @@
 #if defined(ENABLE_UART)
 	#include "driver/uart.h"
 #endif
+#include "external/printf/printf.h"
 #include "helper/battery.h"
 #include "helper/boot.h"
 #ifdef ENABLE_MDC1200
@@ -43,10 +46,106 @@
 #include "misc.h"
 #include "radio.h"
 #include "settings.h"
+#include "ui/helper.h"
 #include "ui/lock.h"
-#include "ui/welcome.h"
 #include "ui/menu.h"
+#include "ui/status.h"
 #include "version.h"
+
+void MAIN_DisplayClear(void)
+{
+	memset(g_status_line,  0, sizeof(g_status_line));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
+
+	ST7565_BlitStatusLine();
+	ST7565_BlitFullScreen();
+}
+
+void MAIN_DisplayReadingEEPROM(void)
+{
+	memset(g_status_line,  0, sizeof(g_status_line));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
+
+	UI_PrintString("READING",   0, LCD_WIDTH, 1, 10);
+	UI_PrintString("EEPROM", 0, LCD_WIDTH, 3, 10);
+
+	ST7565_BlitStatusLine();
+	ST7565_BlitFullScreen();
+}
+
+void MAIN_DisplayReleaseKeys(void)
+{
+	memset(g_status_line,  0, sizeof(g_status_line));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
+
+	UI_PrintString("RELEASE",  0, LCD_WIDTH, 1, 10);
+	UI_PrintString("ALL KEYS", 0, LCD_WIDTH, 3, 10);
+
+	ST7565_BlitStatusLine();  // blank status line
+	ST7565_BlitFullScreen();
+}
+
+void MAIN_DisplayWelcome(void)
+{
+	char str0[17];
+	char str1[17];
+	char str2[17];
+	
+	memset(g_status_line,  0, sizeof(g_status_line));
+	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
+
+	if (g_eeprom.config.setting.power_on_display_mode == PWR_ON_DISPLAY_MODE_NONE)
+	{
+		ST7565_FillScreen(0xFF);
+	}
+	else
+	if (g_eeprom.config.setting.power_on_display_mode == PWR_ON_DISPLAY_MODE_FULL_SCREEN)
+	{
+		ST7565_FillScreen(0xFF);
+	}
+	else
+	{
+		unsigned int slen = strlen(Version_str);
+		if (slen > (sizeof(str2) - 1))
+			slen =  sizeof(str2) - 1;
+
+		memset(str0, 0, sizeof(str0));
+		memset(str1, 0, sizeof(str1));
+		memset(str2, 0, sizeof(str2));
+
+		if (g_eeprom.config.setting.power_on_display_mode == PWR_ON_DISPLAY_MODE_VOLTAGE)
+		{
+			strcpy(str0, "VOLTAGE");
+			sprintf(str1, "%u.%02uV %u%%",
+				g_battery_voltage_average / 100,
+				g_battery_voltage_average % 100,
+				BATTERY_VoltsToPercent(g_battery_voltage_average));
+		}
+		else
+		{
+			//EEPROM_ReadBuffer(0x0EB0, str0, 16);
+			//sEEPROM_ReadBuffer(0x0EC0, str1, 16);
+			memcpy(str0, g_eeprom.config.setting.welcome_line[0], 16);
+			memcpy(str1, g_eeprom.config.setting.welcome_line[1], 16);
+		}
+
+		memcpy(str2, Version_str, slen);
+		
+		UI_PrintString(str0, 0, LCD_WIDTH, 0, 10);
+		UI_PrintString(str1, 0, LCD_WIDTH, 2, 10);
+		UI_PrintStringSmall(str2, 0, LCD_WIDTH, 4);
+		UI_PrintStringSmall(__DATE__, 0, LCD_WIDTH, 5);
+		UI_PrintStringSmall(__TIME__, 0, LCD_WIDTH, 6);
+
+		#if 1
+			ST7565_BlitStatusLine();  // blank status line
+		#else
+			UI_DisplayStatus(true);   // show all status line symbols (test)
+		#endif
+		
+		ST7565_BlitFullScreen();
+	}
+}
 
 void Main(void)
 {
@@ -64,37 +163,47 @@ void Main(void)
 		| SYSCON_DEV_CLK_GATE_CRC_BITS_ENABLE
 		| SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE;
 
-	g_monitor_enabled = false;
-	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-
 	SYSTICK_Init();
 
-#ifdef ENABLE_UART
-	UART_Init();
-#endif
+	BOARD_PORTCON_Init();
+	BOARD_GPIO_Init();
+	CRC_Init();
+	#ifdef ENABLE_UART
+		UART_Init();
+	#endif
+	BOARD_ADC_Init();
+	ST7565_Init(true);
+	#ifdef ENABLE_FMRADIO
+		BK1080_Init(0, false);
+	#endif
+
+	// ***************************
+
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	#if defined(ENABLE_UART)
 		UART_SendText(UART_Version_str);
 		UART_SendText("\r\n");
 	#endif
 
+	BootMode = BOOT_GetMode();
+	g_unhide_hidden = (BootMode == BOOT_MODE_UNHIDE_HIDDEN); // flag to say include the hidden menu items
+
 	// load the entire EEPROM contents into memory
+	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // backlight on
+	MAIN_DisplayReadingEEPROM();
 	SETTINGS_read_eeprom();
-
-	BOARD_Init();
-
-	memset(&g_eeprom, 0, sizeof(g_eeprom));
-
-	memset(g_dtmf_string, '-', sizeof(g_dtmf_string));
-	g_dtmf_string[sizeof(g_dtmf_string) - 1] = 0;
+	MAIN_DisplayClear();
 
 	FREQUENCY_init();
 
-#if 0
-	SETTINGS_restore_calibration();
-#endif
-
 	BK4819_Init();
+
+	BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);
+
+	#ifdef ENABLE_CONTRAST
+		ST7565_SetContrast(g_setting_contrast);
+	#endif
 
 	#if defined(ENABLE_UART)
 		UART_printf("BK4819  id %04X  rev %04X\r\n", BK4819_ReadRegister(0x00), BK4819_ReadRegister(0x01));
@@ -103,17 +212,18 @@ void Main(void)
 		#endif
 	#endif
 
-#ifdef ENABLE_MDC1200
-	MDC1200_init();
-#endif
+	memset(g_dtmf_string, '-', sizeof(g_dtmf_string));
+	g_dtmf_string[sizeof(g_dtmf_string) - 1] = 0;
 
-	BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);
+	#ifdef ENABLE_MDC1200
+		MDC1200_init();
+	#endif
 
-	BOARD_eeprom_load();
+	#ifdef ENABLE_AM_FIX
+		AM_fix_init();
+	#endif
 
-	BOARD_eeprom_loadCalibration();
-
-	BK4819_set_mic_gain(g_eeprom.mic_sensitivity_tuning);
+	BK4819_set_mic_gain(g_mic_sensitivity_tuning);
 
 	RADIO_configure_channel(0, VFO_CONFIGURE_RELOAD);
 	RADIO_configure_channel(1, VFO_CONFIGURE_RELOAD);
@@ -127,18 +237,6 @@ void Main(void)
 
 	BATTERY_GetReadings(false);
 
-	#ifdef ENABLE_CONTRAST
-		ST7565_SetContrast(g_setting_contrast);
-	#endif
-
-	#ifdef ENABLE_AM_FIX
-		AM_fix_init();
-	#endif
-
-	BootMode = BOOT_GetMode();
-
-	g_unhide_hidden = (BootMode == BOOT_MODE_UNHIDE_HIDDEN); // flag to say include the hidden menu items
-
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 		if (g_unhide_hidden)
 			UART_SendText("boot_unhide_hidden\r\n");
@@ -147,13 +245,13 @@ void Main(void)
 	// sort the menu list
 	UI_SortMenu(!g_unhide_hidden);
 
-	// wait for user to release all butts before moving on
+	// wait for user to release all buttons before moving on
 	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||
 	     KEYBOARD_Poll() != KEY_INVALID ||
 		 BootMode != BOOT_MODE_NORMAL)
 	{
-		backlight_turn_on(0);
-		UI_DisplayReleaseKeys();
+		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // backlight on
+		MAIN_DisplayReleaseKeys();
 		i = 0;
 		while (i < (500 / 10))  // 500ms
 		{
@@ -166,7 +264,7 @@ void Main(void)
 	{
 		FUNCTION_Select(FUNCTION_POWER_SAVE);
 
-		if (g_eeprom.backlight < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
+		if (g_eeprom.config.setting.backlight_time < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
 			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
 		else
 			GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  	// turn the backlight ON
@@ -175,7 +273,7 @@ void Main(void)
 	}
 	else
 	{
-		UI_DisplayWelcome();
+		MAIN_DisplayWelcome();
 
 		backlight_turn_on(0);
 
@@ -184,7 +282,7 @@ void Main(void)
 //			AUDIO_PlaySingleVoice(0);
 		#endif
 
-		if (g_eeprom.pwr_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
+		if (g_eeprom.config.setting.power_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
 		{	// 3 second boot-up screen
 			while (g_boot_tick_10ms > 0)
 			{
@@ -201,7 +299,7 @@ void Main(void)
 		}
 
 		#ifdef ENABLE_PWRON_PASSWORD
-			if (g_eeprom.power_on_password < 1000000)
+			if (g_eeprom.config.setting.power_on_password < 1000000)
 			{
 				g_password_locked = true;
 				UI_DisplayLock();
@@ -216,9 +314,9 @@ void Main(void)
 		g_update_status = true;
 
 		#ifdef ENABLE_VOICE
-		if (g_eeprom.voice_prompt != VOICE_PROMPT_OFF)
+		if (g_eeprom.config.setting.voice_prompt != VOICE_PROMPT_OFF)
 		{
-			const uint8_t Channel = g_eeprom.screen_channel[g_eeprom.tx_vfo];
+			const uint8_t Channel = g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen;
 
 			AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
 			AUDIO_PlaySingleVoice(0);

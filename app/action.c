@@ -104,8 +104,8 @@ void ACTION_Monitor(void)
 			BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
 
 		#ifdef ENABLE_NOAA
-//			if (g_rx_vfo->channel_save >= NOAA_CHANNEL_FIRST && g_is_noaa_mode)
-			if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_is_noaa_mode)
+//			if (g_rx_vfo->channel_save >= NOAA_CHANNEL_FIRST && g_noaa_mode)
+			if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_noaa_mode)
 				g_noaa_channel = g_rx_vfo->channel_save - NOAA_CHANNEL_FIRST;
 		#endif
 
@@ -121,10 +121,10 @@ void ACTION_Monitor(void)
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-		g_scan_pause_tick_10ms = g_eeprom.scan_hold_time_500ms * 50;
+		g_scan_pause_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
 
 	#ifdef g_power_save_expired
-		if (g_eeprom.dual_watch == DUAL_WATCH_OFF && g_is_noaa_mode)
+		if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_noaa_mode)
 		{
 			g_noaa_tick_10ms = noaa_tick_10ms;
 			g_schedule_noaa  = false;
@@ -177,7 +177,7 @@ void ACTION_Scan(bool bRestart)
 					else
 					{	// scan without auto store
 						g_fm_auto_scan = false;
-						Frequency      = g_eeprom.fm_frequency_playing;
+						Frequency      = g_eeprom.config.setting.fm_radio.selected_frequency;
 					}
 					g_fm_channel_position = 0;
 
@@ -218,11 +218,11 @@ void ACTION_Scan(bool bRestart)
 				if (g_scan_next_channel <= USER_CHANNEL_LAST)
 				{	// channel mode
 
-					if (g_eeprom.scan_list_default < 2)
+					if (g_eeprom.config.setting.scan_list_default < 2)
 					{	// keep scanning but toggle between scan lists
 
-						//g_eeprom.scan_list_default = (g_eeprom.scan_list_default + 1) % 3;
-						g_eeprom.scan_list_default++;
+						//g_eeprom.config.setting.scan_list_default = (g_eeprom.config.setting.scan_list_default + 1) % 3;
+						g_eeprom.config.setting.scan_list_default++;
 
 						// jump to the next channel
 						APP_channel_next(true, g_scan_state_dir);
@@ -234,7 +234,7 @@ void ACTION_Scan(bool bRestart)
 						return;
 					}
 
-					g_eeprom.scan_list_default = 0;	// back to scan list 1 - the next time we start scanning
+					g_eeprom.config.setting.scan_list_default = 0;	// back to scan list 1 - the next time we start scanning
 				}
 
 				// stop scanning
@@ -263,7 +263,7 @@ void ACTION_Scan(bool bRestart)
 			#endif
 			
 			// clear the other vfo's rssi level (to hide the antenna symbol)
-			g_vfo_rssi_bar_level[(g_eeprom.rx_vfo + 1) & 1u] = 0;
+			g_vfo_rssi_bar_level[(g_rx_vfo_num + 1) & 1u] = 0;
 			
 			g_update_status = true;
 		}
@@ -280,7 +280,7 @@ void ACTION_Scan(bool bRestart)
 //	if (!bRestart)
 	if (!bRestart && g_scan_next_channel <= USER_CHANNEL_LAST)
 	{	// channel mode, keep scanning but toggle between scan lists
-		g_eeprom.scan_list_default = (g_eeprom.scan_list_default + 1) % 3;
+		g_eeprom.config.setting.scan_list_default = (g_eeprom.config.setting.scan_list_default + 1) % 3;
 
 		// jump to the next channel
 		APP_channel_next(true, g_scan_state_dir);
@@ -300,13 +300,13 @@ void ACTION_Scan(bool bRestart)
 #ifdef ENABLE_VOX
 	void ACTION_Vox(void)
 	{
-		g_eeprom.vox_switch   = !g_eeprom.vox_switch;
-		g_request_save_settings = true;
-		g_flag_reconfigure_vfos = true;
+		g_eeprom.config.setting.vox_switch = (g_eeprom.config.setting.vox_switch + 1) & 1u;
+		g_request_save_settings     = true;
+		g_flag_reconfigure_vfos     = true;
 		#ifdef ENABLE_VOICE
-			g_another_voice_id  = VOICE_ID_VOX;
+			g_another_voice_id = VOICE_ID_VOX;
 		#endif
-		g_update_status        = true;
+		g_update_status = true;
 	}
 #endif
 
@@ -378,14 +378,14 @@ void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key
 
 	if (Key == KEY_SIDE1)
 	{
-		Short = g_eeprom.key1_short_press_action;
-		Long  = g_eeprom.key1_long_press_action;
+		Short = g_eeprom.config.setting.key1_short;
+		Long  = g_eeprom.config.setting.key1_long;
 	}
 	else
 	if (Key == KEY_SIDE2)
 	{
-		Short = g_eeprom.key2_short_press_action;
-		Long  = g_eeprom.key2_long_press_action;
+		Short = g_eeprom.config.setting.key2_short;
+		Long  = g_eeprom.config.setting.key2_long;
 	}
 
 	if (!key_held && key_pressed)
