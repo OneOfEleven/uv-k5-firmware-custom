@@ -470,7 +470,7 @@ void UI_SortMenu(const bool hide_hidden)
 void UI_DisplayMenu(void)
 {
 	const unsigned int menu_list_width = 6;                          // max no. of characters on the menu list (left side)
-	const unsigned int sub_menu_x1     = (8 * menu_list_width) + 2;  // start x corrd
+	const unsigned int sub_menu_x1     = (8 * menu_list_width) + 0;  // start x corrd
 	const unsigned int sub_menu_x2     = LCD_WIDTH - 1;              //   end x coord
 	bool               channel_setting = false;                      // set if the setting is a channel setting
 	unsigned int       i;
