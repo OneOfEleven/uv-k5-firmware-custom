@@ -300,9 +300,10 @@ void ACTION_Scan(bool bRestart)
 #ifdef ENABLE_VOX
 	void ACTION_Vox(void)
 	{
-		g_eeprom.config.setting.vox_switch = (g_eeprom.config.setting.vox_switch + 1) & 1u;
-		g_request_save_settings     = true;
-		g_flag_reconfigure_vfos     = true;
+		// toggle VOX on/off
+		g_eeprom.config.setting.vox_enabled = (g_eeprom.config.setting.vox_enabled + 1) & 1u;
+		g_request_save_settings = true;
+		g_flag_reconfigure_vfos = true;
 		#ifdef ENABLE_VOICE
 			g_another_voice_id = VOICE_ID_VOX;
 		#endif

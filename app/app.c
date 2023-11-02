@@ -1011,9 +1011,15 @@ void APP_process_radio_interrupts(void)
 			if (int_bits & BK4819_REG_02_VOX_LOST)
 			{
 				g_vox_lost            = true;
-				g_vox_pause_tick_10ms = 10;
+				g_vox_pause_tick_10ms = 10;  // 100ms
 
-				if (g_eeprom.config.setting.vox_switch)
+				g_update_status = true;
+
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//					UART_SendText("vox lost\r\n");
+				#endif
+
+				if (g_eeprom.config.setting.vox_enabled)
 				{
 					if (g_current_function == FUNCTION_POWER_SAVE && !g_rx_idle_mode)
 					{
@@ -1034,6 +1040,12 @@ void APP_process_radio_interrupts(void)
 			{
 				g_vox_lost            = false;
 				g_vox_pause_tick_10ms = 0;
+
+				g_update_status = true;
+
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//					UART_SendText("vox found\r\n");
+				#endif
 			}
 		#endif
 
@@ -1111,26 +1123,18 @@ void APP_end_tx(void)
 #ifdef ENABLE_VOX
 	static void APP_process_vox(void)
 	{
-		#ifdef ENABLE_KILL_REVIVE
-			if (g_eeprom.config.setting.radio_disabled)
-				return;
-		#endif
-
 		if (g_vox_resume_tick_10ms == 0)
 		{
-			if (g_vox_pause_tick_10ms)
+			if (g_vox_pause_tick_10ms > 0)
 				return;
 		}
 		else
 		{
-			g_vox_lost         = false;
+			g_vox_lost            = false;
 			g_vox_pause_tick_10ms = 0;
-		}
 
-		#ifdef ENABLE_FMRADIO
-			if (g_fm_radio_mode)
-				return;
-		#endif
+			g_update_status = true;
+		}
 
 		if (g_current_function == FUNCTION_RECEIVE || g_monitor_enabled)
 			return;
@@ -1141,19 +1145,21 @@ void APP_end_tx(void)
 		if (g_vox_noise_detected)
 		{
 			if (g_vox_lost)
-				g_vox_stop_tick_10ms = vox_stop_10ms;
+			{
+				g_vox_stop_tick_10ms = vox_stop_10ms;   // 1 second
+			}
 			else
 			if (g_vox_stop_tick_10ms == 0)
+			{
 				g_vox_noise_detected = false;
+				g_update_status = true;
+			}
 
-			if (g_current_function == FUNCTION_TRANSMIT &&
-			   !g_ptt_is_pressed &&
-			   !g_vox_noise_detected)
+			if (g_current_function == FUNCTION_TRANSMIT && !g_ptt_is_pressed && !g_vox_noise_detected)
 			{
 				if (g_flag_end_tx)
-				{
-					//if (g_current_function != FUNCTION_FOREGROUND)
-						FUNCTION_Select(FUNCTION_FOREGROUND);
+				{	// back to RX mode
+					FUNCTION_Select(FUNCTION_FOREGROUND);
 				}
 				else
 				{
@@ -1170,23 +1176,46 @@ void APP_end_tx(void)
 
 				g_flag_end_tx = false;
 			}
+
 			return;
 		}
 
-		if (g_vox_lost)
-		{
-			g_vox_noise_detected = true;
+		if (!g_vox_lost)
+			return;
 
-			if (g_current_function == FUNCTION_POWER_SAVE)
-				FUNCTION_Select(FUNCTION_FOREGROUND);
+		g_vox_noise_detected = true;
 
-			if (g_current_function != FUNCTION_TRANSMIT && g_serial_config_tick_500ms == 0)
-			{
-				g_dtmf_reply_state = DTMF_REPLY_NONE;
-				RADIO_PrepareTX();
-				g_update_display = true;
-			}
-		}
+		g_update_status = true;
+
+		#ifdef ENABLE_KILL_REVIVE
+			if (g_eeprom.config.setting.radio_disabled)
+				return;
+		#endif
+
+		if (!g_eeprom.config.setting.tx_enable)
+			return;
+
+		#ifdef ENABLE_FMRADIO
+			if (g_fm_radio_mode)
+				return;
+		#endif
+
+		if (g_current_display_screen == DISPLAY_MENU)
+			return;
+
+		if (g_current_function == FUNCTION_POWER_SAVE)
+			FUNCTION_Select(FUNCTION_FOREGROUND);
+
+		if (g_current_function == FUNCTION_TRANSMIT || g_serial_config_tick_500ms > 0)
+			return;
+		
+		// ************* go into TX mode
+
+		g_dtmf_reply_state = DTMF_REPLY_NONE;
+
+		RADIO_PrepareTX();
+
+		g_update_display = true;
 	}
 #endif
 
@@ -1235,9 +1264,9 @@ void APP_check_keys(void)
 	{	// PTT released
 
 		#ifdef ENABLE_KILL_REVIVE
-			if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0 || !g_eeprom.config.setting.tx_enable || g_current_function == FUNCTION_TRANSMIT || g_eeprom.config.setting.radio_disabled)
+			if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0 || !g_eeprom.config.setting.tx_enable || g_eeprom.config.setting.radio_disabled)
 		#else
-			if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0 || !g_eeprom.config.setting.tx_enable || g_current_function == FUNCTION_TRANSMIT)
+			if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0 || !g_eeprom.config.setting.tx_enable)
 		#endif
 		{
 			if (--g_ptt_debounce <= 0)
@@ -1825,8 +1854,8 @@ void APP_process_power_save(void)
 		BK4819_Conditional_RX_TurnOn();
 
 		#ifdef ENABLE_VOX
-			if (g_eeprom.config.setting.vox_switch)
-				BK4819_EnableVox(g_vox_threshold[1], g_vox_threshold[0]);
+			if (g_eeprom.config.setting.vox_enabled)
+				RADIO_enable_vox(g_eeprom.config.setting.vox_level);
 		#endif
 
 		if (APP_toggle_dual_watch_vfo())
@@ -2401,7 +2430,7 @@ void APP_time_slice_10ms(void)
 		if (g_vox_pause_tick_10ms > 0)
 			g_vox_pause_tick_10ms--;
 
-		if (g_eeprom.config.setting.vox_switch)
+		if (g_eeprom.config.setting.vox_enabled)
 			APP_process_vox();
 	#endif
 

@@ -412,6 +412,35 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		p_vfo->freq_in_channel = SETTINGS_find_channel(frequency); // find channel that has this frequency
 }
 
+#ifdef ENABLE_VOX
+	void RADIO_enable_vox(unsigned int level)
+	{
+		uint16_t threshold_enable;
+		uint16_t threshold_disable;
+	
+		if (level > (ARRAY_SIZE(g_eeprom.calib.vox[0].threshold) - 1))
+			level = ARRAY_SIZE(g_eeprom.calib.vox[0].threshold) - 1;
+	
+		// my eeprom values ..
+		//
+		// vox threshold enable   30 50 70 90 110 130 150 170 200 230 FFFF FFFF
+		// vox threshold disable  20 40 60 80 100 120 140 160 190 220 FFFF FFFF
+		//
+		#ifdef ENABLE_VOX_MORE_SENSITIVE
+			// more sensitive
+			threshold_enable  = g_eeprom.calib.vox[0].threshold[level] / 3;
+			threshold_disable = (threshold_enable > 13) ? threshold_enable - 10 : 3;
+		#else
+			threshold_enable  = g_eeprom.calib.vox[0].threshold[level];
+			threshold_disable = g_eeprom.calib.vox[1].threshold[level];
+		#endif
+	
+		BK4819_EnableVox(threshold_enable, threshold_disable);
+	
+		BK4819_WriteRegister(0x3F, BK4819_ReadRegister(0x3F) | BK4819_REG_3F_VOX_FOUND | BK4819_REG_3F_VOX_LOST);
+	}
+#endif
+
 void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 {
 //	uint8_t          tx_power[3];
@@ -826,11 +855,11 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			#ifdef ENABLE_FMRADIO
 				!g_fm_radio_mode &&
 			#endif
-			g_eeprom.config.setting.vox_switch &&
+			g_eeprom.config.setting.vox_enabled &&
 			IS_NOT_NOAA_CHANNEL(g_current_vfo->channel_save) &&
 			g_current_vfo->am_mode == 0)
 		{
-			BK4819_EnableVox(g_vox_threshold[1], g_vox_threshold[0]);
+			RADIO_enable_vox(g_eeprom.config.setting.vox_level);
 			interrupt_mask |= BK4819_REG_3F_VOX_FOUND | BK4819_REG_3F_VOX_LOST;
 		}
 		else
@@ -1012,7 +1041,7 @@ void RADIO_set_vfo_state(vfo_state_t State)
 
 void RADIO_PrepareTX(void)
 {
-	vfo_state_t State = VFO_STATE_NORMAL;  // default to OK to TX
+	vfo_state_t State = VFO_STATE_NORMAL;  // default to OK for TX
 
 	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
 	{	// dual-RX is enabled

@@ -650,7 +650,7 @@ void SEARCH_Start(void)
 	DTMF_clear_RX();
 
 	#ifdef ENABLE_VOX
-		g_vox_lost              = false;
+		g_vox_lost = false;
 	#endif
 
 	g_cxcss_tail_found          = false;

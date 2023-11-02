@@ -398,24 +398,29 @@ void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
 
 void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
 {
-	//VOX Algorithm
-	//if (voxamp>VoxEnableThreshold)                VOX = 1;
+	// VOX Algorithm
+	//if (vox_amp > VoxEnableThreshold)                VOX = 1;
 	//else
-	//if (voxamp<VoxDisableThreshold) (After Delay) VOX = 0;
+	//if (vox_amp < VoxDisableThreshold) (After Delay) VOX = 0;
 
 	const uint16_t REG_31_Value = BK4819_ReadRegister(0x31);
 
+	if (VoxEnableThreshold  > 2047)
+		VoxEnableThreshold  = 2047;
+	if (VoxDisableThreshold > 2047)
+		VoxDisableThreshold = 2047;
+
 	// 0xA000 is undocumented?
-	BK4819_WriteRegister(0x46, 0xA000 | (VoxEnableThreshold & 0x07FF));
+	BK4819_WriteRegister(0x46, 0xA000 | VoxEnableThreshold);
 
 	// 0x1800 is undocumented?
-	BK4819_WriteRegister(0x79, 0x1800 | (VoxDisableThreshold & 0x07FF));
+	BK4819_WriteRegister(0x79, 0x1800 | VoxDisableThreshold);
 
 	// Bottom 12 bits are undocumented, 15:12 vox disable delay *128ms
 	BK4819_WriteRegister(0x7A, 0x289A); // vox disable delay = 128*5 = 640ms
 
 	// Enable VOX
-	BK4819_WriteRegister(0x31, REG_31_Value | (1u << 2));    // VOX Enable
+	BK4819_WriteRegister(0x31, REG_31_Value | (1u << 2));
 }
 
 void BK4819_set_TX_deviation(const bool narrow)

@@ -557,8 +557,8 @@ void MENU_AcceptSetting(void)
 
 		#ifdef ENABLE_VOX
 			case MENU_VOX:
-				g_eeprom.config.setting.vox_switch = g_sub_menu_selection != 0;
-				if (g_eeprom.config.setting.vox_switch)
+				g_eeprom.config.setting.vox_enabled = (g_sub_menu_selection != 0) ? 1 : 0;
+				if (g_eeprom.config.setting.vox_enabled)
 					g_eeprom.config.setting.vox_level = g_sub_menu_selection - 1;
 				g_flag_reconfigure_vfos = true;
 				g_update_status         = true;
@@ -1054,11 +1054,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.config.setting.battery_save_ratio;
 			break;
 
-#ifdef ENABLE_VOX
+		#ifdef ENABLE_VOX
 			case MENU_VOX:
-				g_sub_menu_selection = g_eeprom.config.setting.vox_switch ? g_eeprom.config.setting.vox_level + 1 : 0;
+				g_sub_menu_selection = g_eeprom.config.setting.vox_enabled ? g_eeprom.config.setting.vox_level + 1 : 0;
 				break;
-#endif
+		#endif
 
 		case MENU_AUTO_BACKLITE:
 			g_sub_menu_selection = g_eeprom.config.setting.backlight_time;

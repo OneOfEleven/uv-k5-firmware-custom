@@ -296,8 +296,6 @@ extern scan_state_dir_t      g_scan_state_dir;         // the direction we're sc
 extern uint8_t               g_rx_vfo_num;
 extern bool                  g_rx_vfo_is_active;
 
-extern uint16_t              g_vox_threshold[2];
-
 extern uint16_t              g_alarm_tone_counter_10ms;
 extern uint16_t              g_alarm_running_counter_10ms;
 extern uint8_t               g_menu_list_count;

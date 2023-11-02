@@ -76,7 +76,7 @@ void SETTINGS_read_eeprom(void)
 	g_eeprom.config.setting.key_lock         = (g_eeprom.config.setting.key_lock < 2)          ? g_eeprom.config.setting.key_lock : 0;
 #endif
 #ifdef ENABLE_VOX
-	g_eeprom.config.setting.vox_switch       = (g_eeprom.config.setting.vox_switch < 2)        ? g_eeprom.config.setting.vox_switch : 0;
+	g_eeprom.config.setting.vox_enabled      = (g_eeprom.config.setting.vox_enabled < 2)       ? g_eeprom.config.setting.vox_enabled : 0;
 	g_eeprom.config.setting.vox_level        = (g_eeprom.config.setting.vox_level < 10)        ? g_eeprom.config.setting.vox_level : 1;
 #endif
 	g_eeprom.config.setting.mic_sensitivity  = (g_eeprom.config.setting.mic_sensitivity < 5)   ? g_eeprom.config.setting.mic_sensitivity : 4;
@@ -287,11 +287,6 @@ void SETTINGS_read_eeprom(void)
 	}
 	g_eeprom.calib.battery[5] = 2300;
 
-	#ifdef ENABLE_VOX
-		g_vox_threshold[1] = g_eeprom.calib.vox[0].threshold[g_eeprom.config.setting.vox_level];
-		g_vox_threshold[0] = g_eeprom.calib.vox[1].threshold[g_eeprom.config.setting.vox_level];
-	#endif
-
 	//EEPROM_ReadBuffer(0x1F80 + g_eeprom.config.setting.mic_sensitivity, &Mic, 1);
 	//g_mic_sensitivity_tuning = (Mic < 32) ? Mic : 15;
 	g_mic_sensitivity_tuning = g_mic_gain_dB_2[g_eeprom.config.setting.mic_sensitivity];
@@ -343,7 +338,7 @@ void SETTINGS_save(void)
 	#endif
 
 	#ifndef ENABLE_VOX
-//		g_eeprom.config.setting.vox_switch = 0;
+//		g_eeprom.config.setting.vox_enabled = 0;
 //		g_eeprom.config.setting.vox_level  = 0;
 	#endif
 

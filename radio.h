@@ -142,6 +142,9 @@ bool     RADIO_CheckValidChannel(uint16_t ChNum, bool bCheckScanList, uint8_t Ra
 uint8_t  RADIO_FindNextChannel(uint8_t ChNum, scan_state_dir_t Direction, bool bCheckScanList, uint8_t RadioNum);
 void     RADIO_InitInfo(vfo_info_t *p_vfo, const uint8_t ChannelSave, const uint32_t Frequency);
 void     RADIO_configure_channel(const unsigned int VFO, const unsigned int configure);
+#ifdef ENABLE_VOX
+	void RADIO_enable_vox(unsigned int level);
+#endif
 void     RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo);
 void     RADIO_ApplyOffset(vfo_info_t *p_vfo, const bool set_pees);
 void     RADIO_select_vfos(void);

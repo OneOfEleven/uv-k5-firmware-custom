@@ -36,7 +36,6 @@ void UI_DisplayStatus(const bool test_display)
 {
 	uint8_t     *line = g_status_line;
 	unsigned int x    = 0;
-	unsigned int x1   = 0;
 
 	g_update_status = false;
 
@@ -48,7 +47,6 @@ void UI_DisplayStatus(const bool test_display)
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{
 		memcpy(line + x, BITMAP_TX, sizeof(BITMAP_TX));
-		x1 = x + sizeof(BITMAP_TX);
 	}
 	else
 	if (g_current_function == FUNCTION_RECEIVE ||
@@ -56,33 +54,27 @@ void UI_DisplayStatus(const bool test_display)
 		g_monitor_enabled)
 	{
 		memcpy(line + x, BITMAP_RX, sizeof(BITMAP_RX));
-		x1 = x + sizeof(BITMAP_RX);
 	}
 	else
 	if (g_current_function == FUNCTION_POWER_SAVE || test_display)
 	{
 		memcpy(line + x, BITMAP_POWERSAVE, sizeof(BITMAP_POWERSAVE));
-		x1 = x + sizeof(BITMAP_POWERSAVE);
 	}
-	x += sizeof(BITMAP_POWERSAVE);
-	x++;
+	x += sizeof(BITMAP_POWERSAVE) + 1;
 
 	#ifdef ENABLE_NOAA
 		// NOAA scan indicator
 		if (g_noaa_mode || test_display)
 		{
 			memcpy(line + x, BITMAP_NOAA, sizeof(BITMAP_NOAA));
-			x1 = x + sizeof(BITMAP_NOAA);
-			x += sizeof(BITMAP_NOAA);
+			x += sizeof(BITMAP_NOAA) + 1;
 		}
-		x++;
 	#endif
 
 	#ifdef ENABLE_KILL_REVIVE
 		if (g_eeprom.config.setting.radio_disabled)
 		{
 			memset(line + x, 0xFF, 10);
-			x1 = x + 10;
 			x += 10;
 		}
 	#endif
@@ -92,10 +84,8 @@ void UI_DisplayStatus(const bool test_display)
 		if (g_fm_radio_mode || test_display)
 		{
 			memcpy(line + x, BITMAP_FM, sizeof(BITMAP_FM));
-			x1 = x + sizeof(BITMAP_FM);
-			x += sizeof(BITMAP_FM);
+			x += sizeof(BITMAP_FM) + 1;
 		}
-		x++;
 	#endif
 
 	// SCAN indicator
@@ -119,21 +109,17 @@ void UI_DisplayStatus(const bool test_display)
 			{	// frequency mode
 				UI_PrintStringSmallBuffer("S", line + x);
 			}
-			x1 = x + 7;
 		}
-		x += 7;  // font character width
+		x += 7 + 1;  // font character width + 1
 	}
-	x++;
 
 	#ifdef ENABLE_VOICE
 		// VOICE indicator
 		if (g_eeprom.config.setting.voice_prompt != VOICE_PROMPT_OFF || test_display)
 		{
 			memcpy(line + x, BITMAP_VOICE_PROMPT, sizeof(BITMAP_VOICE_PROMPT));
-			x1 = x + sizeof(BITMAP_VOICE_PROMPT);
-			x += sizeof(BITMAP_VOICE_PROMPT);
+			x += sizeof(BITMAP_VOICE_PROMPT) + 1;
 		}
-		x++;
 	#endif
 
 	// DUAL-WATCH indicator
@@ -152,38 +138,30 @@ void UI_DisplayStatus(const bool test_display)
 		{
 			memcpy(line + x, BITMAP_TDR_RUNNING, sizeof(BITMAP_TDR_RUNNING));
 		}
-		x1 = x + sizeof(BITMAP_TDR_RUNNING);
-		x += sizeof(BITMAP_TDR_RUNNING);
+		x += sizeof(BITMAP_TDR_RUNNING) + 1;
 	}
-	x++;
 
 	// monitor
 	if (g_monitor_enabled)
 	{
 		memcpy(line + x, BITMAP_MONITOR, sizeof(BITMAP_MONITOR));
-		x1 = x + sizeof(BITMAP_MONITOR);
-		x += sizeof(BITMAP_MONITOR);
+		x += sizeof(BITMAP_MONITOR) + 1;
 	}
-	x++;
 
 	// CROSS-VFO indicator
 	if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF || test_display)
 	{
 		memcpy(line + x, BITMAP_XB, sizeof(BITMAP_XB));
-		x1 = x + sizeof(BITMAP_XB);
-		x += sizeof(BITMAP_XB);
+		x += sizeof(BITMAP_XB) + 1;
 	}
-	x++;
 
 	#ifdef ENABLE_VOX
 		// VOX indicator
-		if (g_eeprom.config.setting.vox_switch || test_display)
+		if (g_eeprom.config.setting.vox_enabled || test_display)
 		{
-			memcpy(line + x, BITMAP_VOX, sizeof(BITMAP_VOX));
-			x1 = x + sizeof(BITMAP_VOX);
-			x += sizeof(BITMAP_VOX);
+			memcpy(line + x, g_vox_noise_detected ? BITMAP_VOX : BITMAP_VOX_SMALL, sizeof(BITMAP_VOX));
+			x += sizeof(BITMAP_VOX) + 1;
 		}
-		x++;
 	#endif
 
 	#ifdef ENABLE_KEYLOCK
@@ -191,9 +169,7 @@ void UI_DisplayStatus(const bool test_display)
 	if (g_eeprom.config.setting.key_lock || test_display)
 	{
 		memcpy(line + x, BITMAP_KEYLOCK, sizeof(BITMAP_KEYLOCK));
-		x += sizeof(BITMAP_KEYLOCK);
-		x1 = x;
-		x++;
+		x += sizeof(BITMAP_KEYLOCK) + 1;
 	}
 	else
 	#endif
@@ -201,7 +177,6 @@ void UI_DisplayStatus(const bool test_display)
 	{
 		memcpy(line + x, BITMAP_F_KEY, sizeof(BITMAP_F_KEY));
 		x += sizeof(BITMAP_F_KEY);
-		x1 = x;
 	}
 	x++;
 
@@ -225,7 +200,7 @@ void UI_DisplayStatus(const bool test_display)
 				const uint16_t voltage = (g_battery_voltage_average <= 999) ? g_battery_voltage_average : 999; // limit to 9.99V
 				sprintf(s, "%u.%02uV", voltage / 100, voltage % 100);
 				space_needed = (7 * strlen(s));
-				if (x2 >= (x1 + space_needed))
+				if (x2 >= (x + space_needed))
 					UI_PrintStringSmallBuffer(s, line + x2 - space_needed);
 				break;
 			}
@@ -234,7 +209,7 @@ void UI_DisplayStatus(const bool test_display)
 			{
 				sprintf(s, "%u%%", BATTERY_VoltsToPercent(g_battery_voltage_average));
 				space_needed = (7 * strlen(s));
-				if (x2 >= (x1 + space_needed))
+				if (x2 >= (x + space_needed))
 					UI_PrintStringSmallBuffer(s, line + x2 - space_needed);
 				break;
 			}

@@ -134,8 +134,9 @@ const uint8_t BITMAP_F_KEY[6] =
 };
 
 #ifdef ENABLE_VOX
-	const uint8_t BITMAP_VOX[18] =
+	const uint8_t BITMAP_VOX[17] =
 	{	// "VOX"
+	#if 0
 		__extension__ 0b00000000,
 		__extension__ 0b00011111,
 		__extension__ 0b00100000,
@@ -146,7 +147,6 @@ const uint8_t BITMAP_F_KEY[6] =
 		__extension__ 0b00111110,
 		__extension__ 0b01000001,
 		__extension__ 0b01000001,
-		__extension__ 0b01000001,
 		__extension__ 0b00111110,
 		__extension__ 0b00000000,
 		__extension__ 0b01100011,
@@ -154,6 +154,46 @@ const uint8_t BITMAP_F_KEY[6] =
 		__extension__ 0b00001000,
 		__extension__ 0b00010100,
 		__extension__ 0b01100011
+	#else
+		__extension__ 0b00000000,
+		__extension__ 0b00111111,
+		__extension__ 0b01111111,
+		__extension__ 0b01100000,
+		__extension__ 0b01111111,
+		__extension__ 0b00111111,
+		__extension__ 0b00000000,
+		__extension__ 0b00111110,
+		__extension__ 0b01100011,
+		__extension__ 0b01100011,
+		__extension__ 0b00111110,
+		__extension__ 0b00000000,
+		__extension__ 0b01100011,
+		__extension__ 0b00110110,
+		__extension__ 0b00011100,
+		__extension__ 0b00110110,
+		__extension__ 0b01100011
+	#endif
+	};
+
+	const uint8_t BITMAP_VOX_SMALL[17] =
+	{	// "vox"
+		__extension__ 0b00000000,
+		__extension__ 0b00000111,
+		__extension__ 0b00001000,
+		__extension__ 0b00010000,
+		__extension__ 0b00001000,
+		__extension__ 0b00000111,
+		__extension__ 0b00000000,
+		__extension__ 0b00001110,
+		__extension__ 0b00010001,
+		__extension__ 0b00010001,
+		__extension__ 0b00001110,
+		__extension__ 0b00000000,
+		__extension__ 0b00010001,
+		__extension__ 0b00001010,
+		__extension__ 0b00000100,
+		__extension__ 0b00001010,
+		__extension__ 0b00010001
 	};
 #endif
 

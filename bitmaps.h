@@ -19,7 +19,8 @@ extern const uint8_t BITMAP_USB_C[8];
 extern const uint8_t BITMAP_F_KEY[6];
 
 #ifdef ENABLE_VOX
-	extern const uint8_t BITMAP_VOX[18];
+	extern const uint8_t BITMAP_VOX[17];
+	extern const uint8_t BITMAP_VOX_SMALL[17];
 #endif
 
 #if 0

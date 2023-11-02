@@ -233,7 +233,7 @@ typedef struct {
 		uint8_t        tx_timeout;                      //
 		uint8_t        noaa_auto_scan;                  //
 		uint8_t        key_lock;                        //
-		uint8_t        vox_switch;                      //
+		uint8_t        vox_enabled;                     //
 		uint8_t        vox_level;                       //
 		uint8_t        mic_sensitivity;                 //
 		#ifdef ENABLE_CONTRAST

@@ -54,6 +54,7 @@ ENABLE_NOAA                      := 0       everything NOAA (only of any use in 
 ENABLE_VOICE                     := 0       want to hear voices ?
 ENABLE_MUTE_RADIO_FOR_VOICE      := 1       mute the radios audio when a voice is playing
 ENABLE_VOX                       := 0       voice operated transmission
+ENABLE_VOX_MORE_SENSITIVE        := 1       make VOX more sensitive
 ENABLE_REDUCE_LOW_MID_TX_POWER   := 1       reduce the low and mid TX power levels (high remains unchanged)
 ENABLE_ALARM                     := 0       TX alarms
 ENABLE_1750HZ                    := 0       side key 1750Hz TX tone (older style repeater access)
