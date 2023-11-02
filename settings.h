@@ -530,7 +530,10 @@ typedef struct vfo_info_t
 
 	t_channel_attrib channel_attributes;
 
-	char             channel_name[16];
+	struct {
+		char         name[10];
+		uint8_t      unused[6];
+	} channel_name;
 
 	uint16_t         step_freq;
 

@@ -211,7 +211,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	attributes = g_user_channel_attributes[channel];
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("config chan 1   %u %u   %u %u %u\r\n", channel, chan, attributes.band, attributes.scanlist1, attributes.scanlist2);
+//		UART_printf("config chan 1   %u %u   %u %u %u\r\n", channel, chan, attributes.band, attributes.scanlist1, attributes.scanlist2);
 	#endif
 
 	if (attributes.attributes == 0xff)
@@ -277,13 +277,13 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		p_vfo->freq_config_tx.code      = p_vfo->channel.tx_ctcss_cdcss_code;
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("config chan 2   %u %u   %u %u %u  %uHz\r\n", channel, chan, p_vfo->channel_attributes.band, p_vfo->channel_attributes.scanlist1, p_vfo->channel_attributes.scanlist2, p_vfo->channel.frequency * 10);
+//			UART_printf("config chan 2   %u %u   %u %u %u  %uHz\r\n", channel, chan, p_vfo->channel_attributes.band, p_vfo->channel_attributes.scanlist1, p_vfo->channel_attributes.scanlist2, p_vfo->channel.frequency * 10);
 		#endif
 	}
 	else
 	{
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("config chan 3   %u   %u %u %u  %uHz\r\n", channel, p_vfo->channel_attributes.band, p_vfo->channel_attributes.scanlist1, p_vfo->channel_attributes.scanlist2, p_vfo->channel.frequency * 10);
+//			UART_printf("config chan 3   %u   %u %u %u  %uHz\r\n", channel, p_vfo->channel_attributes.band, p_vfo->channel_attributes.scanlist1, p_vfo->channel_attributes.scanlist2, p_vfo->channel.frequency * 10);
 		#endif
 	}
 
@@ -333,10 +333,10 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	RADIO_ApplyOffset(p_vfo, true);
 
 	// channel name
-	memset(p_vfo->channel_name, 0, sizeof(p_vfo->channel_name));
+	memset(&p_vfo->channel_name, 0, sizeof(p_vfo->channel_name));
 	if (channel <= USER_CHANNEL_LAST)
 //		EEPROM_ReadBuffer(0x0F50 + (channel * 16), p_vfo->channel_name, 10);	// only 10 bytes used
-		memcpy(p_vfo->channel_name, &g_eeprom.config.channel_name[channel].name, sizeof(g_eeprom.config.channel_name[channel].name));
+		memcpy(p_vfo->channel_name.name, &g_eeprom.config.channel_name[channel].name, sizeof(p_vfo->channel_name.name));
 
 	if (p_vfo->channel.am_mode > 0)
 	{	// freq/chan is in AM mode

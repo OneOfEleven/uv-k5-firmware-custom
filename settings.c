@@ -425,10 +425,11 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, v
 		if (IS_USER_CHANNEL(channel))
 			g_eeprom.config.channel_attributes[channel] = g_user_channel_attributes[channel];
 
-//		memcpy(g_eeprom.config.channel_name[channel], p_vfo->channel_name, 16);
+		memset(&g_eeprom.config.channel_name[channel], 0, sizeof(g_eeprom.config.channel_name[channel]));
+		memcpy(g_eeprom.config.channel_name[channel].name, p_vfo->channel_name.name, sizeof(g_eeprom.config.channel_name[channel].name));
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("save chan %04X  %3u %3u %u %u %uHz\r\n", eeprom_addr, chan, channel, vfo, mode, p_channel->frequency * 10);
+//			UART_printf("save chan %04X  %3u %3u %u %u %uHz\r\n", eeprom_addr, chan, channel, vfo, mode, p_channel->frequency * 10);
 		#endif
 	}
 	else
@@ -453,19 +454,19 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, v
 		#ifndef ENABLE_KEEP_MEM_NAME
 
 			// clear/reset the channel name
-			EEPROM_WriteBuffer8(eeprom_addr + 0, g_eeprom.config.channel_name[channel] + 0);
-			EEPROM_WriteBuffer8(eeprom_addr + 8, g_eeprom.config.channel_name[channel] + 8);
+			EEPROM_WriteBuffer8(eeprom_addr + 0, ((uint8_t *)&g_eeprom.config.channel_name[channel]) + 0);
+			EEPROM_WriteBuffer8(eeprom_addr + 8, ((uint8_t *)&g_eeprom.config.channel_name[channel]) + 8);
 
 		#else
 
 			if (p_vfo != NULL)
-				memcpy(&g_eeprom.config.channel_name[channel], p_vfo->channel_name, 10);
+				memcpy(g_eeprom.config.channel_name[channel].name, p_vfo->channel_name.name, sizeof(g_eeprom.config.channel_name[channel].name));
 
 			if (mode >= 3 || p_vfo == NULL)
 			{	// save the channel name
 
-				EEPROM_WriteBuffer8(eeprom_addr + 0, &g_eeprom.config.channel_name[channel] + 0);
-				EEPROM_WriteBuffer8(eeprom_addr + 8, &g_eeprom.config.channel_name[channel] + 8);
+				EEPROM_WriteBuffer8(eeprom_addr + 0, ((uint8_t *)&g_eeprom.config.channel_name[channel]) + 0);
+				EEPROM_WriteBuffer8(eeprom_addr + 8, ((uint8_t *)&g_eeprom.config.channel_name[channel]) + 8);
 			}
 
 		#endif
@@ -474,7 +475,7 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, v
 
 void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_t *p_vfo)
 {
-	const unsigned int index = channel & ~7ul;     // eeprom writes are always 8 bytes in length
+	const unsigned int index = channel & ~7u;     // eeprom writes are always 8 bytes in length
 
 	if (channel >= ARRAY_SIZE(g_user_channel_attributes))
 		return;
@@ -486,11 +487,10 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 	{	// channel attributes
 
 		t_channel_attrib attribs = p_vfo->channel_attributes;
-		attribs.unused = 3u;
 		g_user_channel_attributes[channel]          = attribs;            // remember new attributes
 		g_eeprom.config.channel_attributes[channel] = attribs;
 
-		EEPROM_WriteBuffer8(0x0D60 + index, g_user_channel_attributes + index);
+		EEPROM_WriteBuffer8(0x0D60 + index, &g_user_channel_attributes[index]);
 	}
 	else
 	if (channel <= USER_CHANNEL_LAST)
@@ -498,7 +498,7 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 		g_user_channel_attributes[channel].attributes          = 0xff;
 		g_eeprom.config.channel_attributes[channel].attributes = 0xff;
 
-		EEPROM_WriteBuffer8(0x0D60 + index, g_user_channel_attributes + index);
+		EEPROM_WriteBuffer8(0x0D60 + index, &g_user_channel_attributes[index]);
 	}
 
 	if (channel <= USER_CHANNEL_LAST)
@@ -508,15 +508,23 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 		if (p_vfo != NULL)
 		{
 			memset(&g_eeprom.config.channel_name[channel], 0, sizeof(g_eeprom.config.channel_name[channel]));
-			memcpy(&g_eeprom.config.channel_name[channel], p_vfo->channel_name, 10);
+			memcpy(g_eeprom.config.channel_name[channel].name, p_vfo->channel_name.name, sizeof(g_eeprom.config.channel_name[channel].name));
 		}
 		else
 		{
 			memset(&g_eeprom.config.channel_name[channel], 0xff, sizeof(g_eeprom.config.channel_name[channel]));
 		}
 
-		EEPROM_WriteBuffer8(0x0F50 + 0 + index, &g_eeprom.config.channel_name[channel] + 0);
-		EEPROM_WriteBuffer8(0x0F50 + 8 + index, &g_eeprom.config.channel_name[channel] + 8);
+//		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		{
+//			char str[17] = {0};
+//			memcpy(str, &g_eeprom.config.channel_name[channel], 10);
+//			UART_printf("saved name %u %s\r\n", channel, str);
+//		}
+//		#endif
+
+		EEPROM_WriteBuffer8(0x0F50 + 0 + index, ((uint8_t *)&g_eeprom.config.channel_name[channel]) + 0);
+		EEPROM_WriteBuffer8(0x0F50 + 8 + index, ((uint8_t *)&g_eeprom.config.channel_name[channel]) + 8);
 	}
 }
 

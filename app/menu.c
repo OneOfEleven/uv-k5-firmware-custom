@@ -538,7 +538,8 @@ void MENU_AcceptSetting(void)
 
 		case MENU_MEM_NAME:
 			{	// trailing trim
-				for (int i = 9; i >= 0; i--)
+				int i;
+				for (i = 9; i >= 0; i--)
 				{
 					if (g_edit[i] != ' ' && g_edit[i] != '_' && g_edit[i] != 0x00 && g_edit[i] != 0xff)
 						break;
@@ -547,8 +548,8 @@ void MENU_AcceptSetting(void)
 			}
 
 			// save the channel name
-			memset(g_tx_vfo->channel_name, 0, sizeof(g_tx_vfo->channel_name));
-			memcpy(g_tx_vfo->channel_name, g_edit, 10);
+			memset(&g_tx_vfo->channel_name, 0, sizeof(g_tx_vfo->channel_name));
+			memcpy(g_tx_vfo->channel_name.name, g_edit, sizeof(g_tx_vfo->channel_name.name));
 			SETTINGS_save_channel(g_sub_menu_selection, g_eeprom.config.setting.tx_vfo_num, g_tx_vfo, 3);
 			g_flag_reconfigure_vfos = true;
 			return;
