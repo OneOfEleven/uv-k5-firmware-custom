@@ -159,7 +159,7 @@ void UI_DisplayStatus(const bool test_display)
 		// VOX indicator
 		if (g_eeprom.config.setting.vox_enabled || test_display)
 		{
-			memcpy(line + x, g_vox_noise_detected ? BITMAP_VOX : BITMAP_VOX_SMALL, sizeof(BITMAP_VOX));
+			memcpy(line + x, g_vox_audio_detected ? BITMAP_VOX : BITMAP_VOX_SMALL, sizeof(BITMAP_VOX));
 			x += sizeof(BITMAP_VOX) + 1;
 		}
 	#endif

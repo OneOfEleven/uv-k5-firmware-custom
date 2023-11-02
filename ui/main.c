@@ -74,60 +74,6 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 	#endif
 }
 
-#ifdef ENABLE_TX_TIMEOUT_BAR
-	bool UI_DisplayTXCountdown(const bool now)
-	{
-		unsigned int timeout_secs = 0;
-
-		if (g_current_function != FUNCTION_TRANSMIT || g_current_display_screen != DISPLAY_MAIN)
-			return false;
-
-		if (g_center_line != CENTER_LINE_NONE && g_center_line != CENTER_LINE_TX_TIMEOUT)
-			return false;
-
-		if (g_eeprom.config.setting.tx_timeout == 0)
-			timeout_secs = 30;   // 30 sec
-		else
-		if (g_eeprom.config.setting.tx_timeout < (ARRAY_SIZE(g_sub_menu_tx_timeout) - 1))
-			timeout_secs = 60 * g_eeprom.config.setting.tx_timeout;  // minutes
-		else
-			timeout_secs = 60 * 15;  // 15 minutes
-
-		if (timeout_secs == 0 || g_tx_timer_tick_500ms == 0)
-			return false;
-
-		{
-			const unsigned int line      = 3;
-			const unsigned int txt_width = 7 * 6;                 // 6 text chars
-			const unsigned int bar_x     = 2 + txt_width + 4;     // X coord of bar graph
-			const unsigned int bar_width = LCD_WIDTH - 1 - bar_x;
-			const unsigned int secs      = g_tx_timer_tick_500ms / 2;
-			const unsigned int level     = ((secs * bar_width) + (timeout_secs / 2)) / timeout_secs;   // with rounding
-//			const unsigned int level     = (((timeout_secs - secs) * bar_width) + (timeout_secs / 2)) / timeout_secs;   // with rounding
-			const unsigned int len       = (level <= bar_width) ? level : bar_width;
-			uint8_t           *p_line    = g_frame_buffer[line];
-			char               s[17];
-
-			if (now)
-				memset(p_line, 0, LCD_WIDTH);
-
-			sprintf(s, "TX %u", secs);
-			#ifdef ENABLE_SMALL_BOLD
-				UI_PrintStringSmallBold(s, 2, 0, line);
-			#else
-				UI_PrintStringSmall(s, 2, 0, line);
-			#endif
-
-			draw_bar(p_line + bar_x, len, bar_width);
-
-			if (now)
-				ST7565_BlitFullScreen();
-		}
-
-		return true;
-	}
-#endif
-
 void UI_drawBars(uint8_t *p, const unsigned int level)
 {
 	#pragma GCC diagnostic push
@@ -928,15 +874,6 @@ void UI_DisplayMain(void)
 	{	// we're free to use the middle line
 
 		const bool rx = (g_current_function == FUNCTION_RECEIVE && g_squelch_open) ? true : false;
-
-		#ifdef ENABLE_TX_TIMEOUT_BAR
-			// show the TX timeout count down
-			if (UI_DisplayTXCountdown(false))
-			{
-				g_center_line = CENTER_LINE_TX_TIMEOUT;
-			}
-			else
-		#endif
 
 		#ifdef ENABLE_TX_AUDIO_BAR
 			// show the TX audio level

@@ -87,7 +87,6 @@ ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1       open the squelch when holding down U
 ENABLE_FASTER_CHANNEL_SCAN       := 1       increase the channel scan speed, but also make the squelch more twitchy
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1       long press M, copy channel to VFO, or VFO to channel
 ENABLE_RX_SIGNAL_BAR             := 1       enable a menu option for showing an RSSI bar graph
-ENABLE_TX_TIMEOUT_BAR            := 0       show the remainng TX time
 ENABLE_TX_AUDIO_BAR              := 1       enable a menu option for showing a TX audio level bar
 ENABLE_SIDE_BUTT_MENU            := 1       enable menu option for configuring the programmable side buttons
 ENABLE_KEYLOCK                   := 1       enable keylock menu option + keylock code

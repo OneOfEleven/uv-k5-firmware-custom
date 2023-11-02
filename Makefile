@@ -74,8 +74,6 @@ ENABLE_FASTER_CHANNEL_SCAN       := 1
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
 # Rx Signal Bar 400 B
 ENABLE_RX_SIGNAL_BAR             := 1
-# Tx Timeout Bar 200 B
-ENABLE_TX_TIMEOUT_BAR            := 0
 # Tx Audio Bar 300 B
 ENABLE_TX_AUDIO_BAR              := 0
 # Side Button Menu 300 B
@@ -116,11 +114,6 @@ ifeq ($(filter $(ENABLE_FMRADIO_64_76) $(ENABLE_FMRADIO_76_90) $(ENABLE_FMRADIO_
 	ENABLE_FMRADIO := 1
 else
 	ENABLE_FMRADIO := 0
-endif
-
-ifeq ($(ENABLE_TX_TIMEOUT_BAR),1)
-	# can't have ENABLE_TX_TIMEOUT_BAR and ENABLE_TX_AUDIO_BAR enabled at same time
-	ENABLE_TX_AUDIO_BAR := 0
 endif
 
 ifeq ($(ENABLE_VOICE),1)
@@ -444,9 +437,6 @@ ifeq ($(ENABLE_RX_SIGNAL_BAR),1)
 endif
 ifeq ($(ENABLE_TX_AUDIO_BAR),1)
 	CFLAGS  += -DENABLE_TX_AUDIO_BAR
-endif
-ifeq ($(ENABLE_TX_TIMEOUT_BAR),1)
-	CFLAGS  += -DENABLE_TX_TIMEOUT_BAR
 endif
 ifeq ($(ENABLE_COPY_CHAN_TO_VFO_TO_CHAN),1)
 	CFLAGS  += -DENABLE_COPY_CHAN_TO_VFO_TO_CHAN

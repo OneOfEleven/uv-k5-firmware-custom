@@ -122,7 +122,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 			g_flag_end_tx = false;
 
 			#ifdef ENABLE_VOX
-				g_vox_noise_detected = false;
+				g_vox_audio_detected = false;
 			#endif
 
 			RADIO_set_vfo_state(VFO_STATE_NORMAL);

@@ -20,7 +20,6 @@
 enum center_line_e {
 	CENTER_LINE_NONE = 0,
 	CENTER_LINE_IN_USE,
-	CENTER_LINE_TX_TIMEOUT,
 	CENTER_LINE_AUDIO_BAR,
 	CENTER_LINE_RSSI,
 	CENTER_LINE_AM_FIX_DATA,
@@ -32,9 +31,6 @@ typedef enum center_line_e center_line_t;
 
 extern center_line_t g_center_line;
 
-#ifdef ENABLE_TX_TIMEOUT_BAR
-	bool UI_DisplayTXCountdown(const bool now);
-#endif
 #ifdef ENABLE_TX_AUDIO_BAR
 	bool UI_DisplayAudioBar(const bool now);
 #endif

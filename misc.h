@@ -271,7 +271,7 @@ extern uint8_t               g_ctcss_tail_phase_shift_rx;
 
 #ifdef ENABLE_VOX
 	extern bool              g_vox_lost;
-	extern bool              g_vox_noise_detected;
+	extern bool              g_vox_audio_detected;
 	extern uint16_t          g_vox_resume_tick_10ms;
 	extern uint16_t          g_vox_pause_tick_10ms;
 #endif

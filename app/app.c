@@ -1142,20 +1142,15 @@ void APP_end_tx(void)
 		if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_css_scan_mode != CSS_SCAN_MODE_OFF)
 			return;
 
-		if (g_vox_noise_detected)
+		if (g_vox_audio_detected)
 		{
 			if (g_vox_lost)
-			{
 				g_vox_stop_tick_10ms = vox_stop_10ms;   // 1 second
-			}
 			else
 			if (g_vox_stop_tick_10ms == 0)
-			{
-				g_vox_noise_detected = false;
-				g_update_status = true;
-			}
+				g_vox_audio_detected = false;
 
-			if (g_current_function == FUNCTION_TRANSMIT && !g_ptt_is_pressed && !g_vox_noise_detected)
+			if (g_current_function == FUNCTION_TRANSMIT && !g_ptt_is_pressed && !g_vox_audio_detected)
 			{
 				if (g_flag_end_tx)
 				{	// back to RX mode
@@ -1171,19 +1166,19 @@ void APP_end_tx(void)
 						g_rtte_count_down = g_eeprom.config.setting.repeater_tail_tone_elimination * 10;
 				}
 
-				g_update_status        = true;
-				g_update_display       = true;
+				g_update_display = true;
 
 				g_flag_end_tx = false;
 			}
 
+			g_update_status  = true;
 			return;
 		}
 
 		if (!g_vox_lost)
 			return;
 
-		g_vox_noise_detected = true;
+		g_vox_audio_detected = true;
 
 		g_update_status = true;
 
@@ -1197,7 +1192,7 @@ void APP_end_tx(void)
 
 		#ifdef ENABLE_FMRADIO
 			if (g_fm_radio_mode)
-				return;
+				return;            // can't do VOX while the speaker is emitting noise
 		#endif
 
 		if (g_current_display_screen == DISPLAY_MENU)
@@ -1208,7 +1203,7 @@ void APP_end_tx(void)
 
 		if (g_current_function == FUNCTION_TRANSMIT || g_serial_config_tick_500ms > 0)
 			return;
-		
+
 		// ************* go into TX mode
 
 		g_dtmf_reply_state = DTMF_REPLY_NONE;
@@ -1648,7 +1643,7 @@ void APP_process_scan(void)
 	{
 		if (g_rx_vfo_is_active && g_current_display_screen == DISPLAY_MAIN)
 			GUI_SelectNextDisplay(DISPLAY_MAIN);
-	
+
 		g_rx_vfo_is_active  = false;
 		g_rx_reception_mode = RX_MODE_NONE;
 	}
@@ -1976,11 +1971,8 @@ void APP_time_slice_500ms(void)
 		}
 	}
 
-	#ifdef ENABLE_TX_TIMEOUT_BAR
-		if (g_current_function == FUNCTION_TRANSMIT && g_tx_timer_tick_500ms & 1u))
-			g_update_display = true;
-//			UI_DisplayTXCountdown(true);
-	#endif
+	if (g_current_function == FUNCTION_TRANSMIT && (g_tx_timer_tick_500ms & 1u))
+		g_update_display = true;
 
 	if (g_menu_tick_10ms > 0)
 		if (--g_menu_tick_10ms == 0)
@@ -2071,44 +2063,44 @@ void APP_time_slice_500ms(void)
 					}
 				}
 			#endif
-		
+
 			if (exit_menu)
 			{
 				g_menu_tick_10ms = 0;
-		
+
 				if (g_eeprom.config.setting.backlight_time == 0)
 				{
 					g_backlight_tick_500ms = 0;
 					GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
 				}
-		
+
 				if (g_input_box_index > 0 || g_dtmf_input_mode)
 					AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
-/*      
+/*
 				if (g_current_display_screen == DISPLAY_SEARCH)
 				{
 					BK4819_StopScan();
-		
+
 					RADIO_configure_channel(0, VFO_CONFIGURE_RELOAD);
 					RADIO_configure_channel(1, VFO_CONFIGURE_RELOAD);
-		
+
 					RADIO_setup_registers(true);
 				}
-*/      
+*/
 				DTMF_clear_input_box();
-		
+
 				g_fkey_pressed    = false;
 				g_input_box_index = 0;
-		
+
 				g_ask_to_save     = false;
 				g_ask_to_delete   = false;
-		
+
 				g_update_status   = true;
 				g_update_display  = true;
-		
+
 				{
 					gui_display_type_t disp = DISPLAY_INVALID;
-		
+
 					#ifdef ENABLE_FMRADIO
 						if (g_fm_radio_mode &&
 							g_current_function != FUNCTION_RECEIVE &&
@@ -2118,7 +2110,7 @@ void APP_time_slice_500ms(void)
 							disp = DISPLAY_FM;
 						}
 					#endif
-		
+
 					if (disp == DISPLAY_INVALID)
 					{
 						#ifndef ENABLE_CODE_SEARCH_TIMEOUT
@@ -2126,12 +2118,12 @@ void APP_time_slice_500ms(void)
 						#endif
 								disp = DISPLAY_MAIN;
 					}
-		
+
 					if (disp != DISPLAY_INVALID)
 						GUI_SelectNextDisplay(disp);
 				}
 			}
-		}	
+		}
 	}
 
 	if (g_current_function != FUNCTION_POWER_SAVE && g_current_function != FUNCTION_TRANSMIT)
