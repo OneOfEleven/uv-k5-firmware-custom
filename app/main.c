@@ -359,9 +359,7 @@ void processFKeyFunction(const key_code_t Key)
 				g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 
 			#else
-				#ifdef ENABLE_VOX
-					toggle_chan_scanlist();
-				#endif
+				toggle_chan_scanlist();
 			#endif
 
 			break;
@@ -381,9 +379,8 @@ void processFKeyFunction(const key_code_t Key)
 
 			#ifdef ENABLE_VOX
 				APP_stop_scan();
-
 				ACTION_Vox();
-			#else
+			#elif defined(ENABLE_NOAA)
 				toggle_chan_scanlist();
 			#endif
 

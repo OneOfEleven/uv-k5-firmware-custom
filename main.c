@@ -52,22 +52,12 @@
 #include "ui/status.h"
 #include "version.h"
 
-void MAIN_DisplayClear(void)
+void MAIN_DisplayInitScreen(void)
 {
 	memset(g_status_line,  0, sizeof(g_status_line));
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
-	ST7565_BlitStatusLine();
-	ST7565_BlitFullScreen();
-}
-
-void MAIN_DisplayReadingEEPROM(void)
-{
-	memset(g_status_line,  0, sizeof(g_status_line));
-	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
-
-	UI_PrintString("READING",   0, LCD_WIDTH, 1, 10);
-	UI_PrintString("EEPROM", 0, LCD_WIDTH, 3, 10);
+	UI_PrintString("UV-K5(8)/K6", 0, LCD_WIDTH, 2, 10);
 
 	ST7565_BlitStatusLine();
 	ST7565_BlitFullScreen();
@@ -75,13 +65,13 @@ void MAIN_DisplayReadingEEPROM(void)
 
 void MAIN_DisplayReleaseKeys(void)
 {
-	memset(g_status_line,  0, sizeof(g_status_line));
+//	memset(g_status_line,  0, sizeof(g_status_line));
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	UI_PrintString("RELEASE",  0, LCD_WIDTH, 1, 10);
 	UI_PrintString("ALL KEYS", 0, LCD_WIDTH, 3, 10);
 
-	ST7565_BlitStatusLine();  // blank status line
+//	ST7565_BlitStatusLine();  // blank status line
 	ST7565_BlitFullScreen();
 }
 
@@ -91,7 +81,7 @@ void MAIN_DisplayWelcome(void)
 	char str1[17];
 	char str2[17];
 	
-	memset(g_status_line,  0, sizeof(g_status_line));
+//	memset(g_status_line,  0, sizeof(g_status_line));
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
 	if (g_eeprom.config.setting.power_on_display_mode == PWR_ON_DISPLAY_MODE_NONE)
@@ -137,12 +127,7 @@ void MAIN_DisplayWelcome(void)
 		UI_PrintStringSmall(__DATE__, 0, LCD_WIDTH, 5);
 		UI_PrintStringSmall(__TIME__, 0, LCD_WIDTH, 6);
 
-		#if 1
-			ST7565_BlitStatusLine();  // blank status line
-		#else
-			UI_DisplayStatus(true);   // show all status line symbols (test)
-		#endif
-		
+//		ST7565_BlitStatusLine();
 		ST7565_BlitFullScreen();
 	}
 }
@@ -189,11 +174,11 @@ void Main(void)
 	BootMode = BOOT_GetMode();
 	g_unhide_hidden = (BootMode == BOOT_MODE_UNHIDE_HIDDEN); // flag to say include the hidden menu items
 
+	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // backlight on
+	MAIN_DisplayInitScreen();
+
 	// load the entire EEPROM contents into memory
-//	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // backlight on
-	MAIN_DisplayReadingEEPROM();
 	SETTINGS_read_eeprom();
-	MAIN_DisplayClear();
 
 	FREQUENCY_init();
 
@@ -248,7 +233,6 @@ void Main(void)
 	     KEYBOARD_Poll() != KEY_INVALID ||
 		 BootMode != BOOT_MODE_NORMAL)
 	{
-		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // backlight on
 		MAIN_DisplayReleaseKeys();
 		i = 0;
 		while (i < (500 / 10))  // 500ms
