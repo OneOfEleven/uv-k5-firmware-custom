@@ -255,12 +255,9 @@ typedef struct {
 	} __attribute__((packed));
 
 	// 0x0D60
-	t_channel_attrib channel_attributes[200];
+	t_channel_attrib   channel_attributes[200 + 7 + 1]; // last byte = 0x00
 
 	struct {
-		// 0x0E28
-		uint8_t        unused1[8];                      // 0xff's
-
 		// 0x0E30
 		uint8_t        unused2[16];                     // 0xff's
 

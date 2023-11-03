@@ -45,6 +45,50 @@ t_eeprom         g_eeprom;
 
 t_channel_attrib g_user_channel_attributes[FREQ_CHANNEL_LAST + 1];
 
+void SETTINGS_write_eeprom_config(void)
+{	// save the entire EEPROM config contents
+	unsigned int index;
+	for (index = 0; index < sizeof(g_eeprom.config); index += 8)
+		EEPROM_WriteBuffer8(index, ((uint8_t *)&g_eeprom) + index);
+}
+
+#ifdef ENABLE_FMRADIO
+	void SETTINGS_save_fm(void)
+	{
+		unsigned int i;
+		unsigned int index;
+
+		index = (unsigned int)(((uint8_t *)&g_eeprom.config.setting.fm_radio) - ((uint8_t *)&g_eeprom));
+		EEPROM_WriteBuffer8(index, &g_eeprom.config.setting.fm_radio);
+
+		index = (unsigned int)(((uint8_t *)&g_eeprom.config.setting.fm_channel) - ((uint8_t *)&g_eeprom));
+		for (i = 0; i < sizeof(g_eeprom.config.setting.fm_channel); i += 8)
+			EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.setting.fm_channel) + i);
+	}
+#endif
+
+void SETTINGS_save_vfo_indices(void)
+{
+	const uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.config.setting.indices) - ((uint8_t *)&g_eeprom));
+	EEPROM_WriteBuffer8(index, &g_eeprom.config.setting.indices);
+}
+
+void SETTINGS_save_attributes(void)
+{
+	unsigned int i;
+	const unsigned int index = (unsigned int )(((uint8_t *)&g_eeprom.config.channel_attributes) - ((uint8_t *)&g_eeprom));
+	for (i = 0; i < sizeof(g_eeprom.config.channel_attributes); i += 8)
+		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.channel_attributes) + i);
+}
+
+void SETTINGS_save_channel_names(void)
+{
+	unsigned int i;
+	const unsigned int index = (unsigned int)(((uint8_t *)&g_eeprom.config.channel_name) - ((uint8_t *)&g_eeprom));
+	for (i = 0; i < sizeof(g_eeprom.config.channel_name); i += 8)
+		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.channel_name) + i);
+}
+
 void SETTINGS_read_eeprom(void)
 {
 	unsigned int index;
@@ -283,12 +327,39 @@ void SETTINGS_read_eeprom(void)
 	// 0F48..0F4F
 	g_eeprom.config.setting.scan_hold_time = (g_eeprom.config.setting.scan_hold_time > 40) ? 6 : (g_eeprom.config.setting.scan_hold_time < 2) ? 6 : g_eeprom.config.setting.scan_hold_time;
 
+
+	// ****************************************
+
 	memset(&g_eeprom.config.unused13, 0xff, sizeof(g_eeprom.config.unused13));
 
 	memset(&g_eeprom.unused, 0xff, sizeof(g_eeprom.unused));
 
-	// 0D60..0E27
-	memcpy(&g_user_channel_attributes, &g_eeprom.config.channel_attributes, sizeof(g_user_channel_attributes));
+	// clear out unused channels
+	for (index = 0; index < 200; index++)
+	{
+		if (g_eeprom.config.channel_attributes[index].band > BAND7_470MHz)
+		{	// unused channel
+			g_eeprom.config.channel_attributes[index].attributes = 0xff;
+			memset(&g_eeprom.config.user_channel[index], 0xff, sizeof(g_eeprom.config.user_channel[index]));
+			memset(&g_eeprom.config.channel_name[index], 0xff, sizeof(g_eeprom.config.channel_name[index]));
+		}
+		else
+		{	// used channel
+			g_eeprom.config.channel_attributes[index].unused = 0;
+			memset(g_eeprom.config.channel_name[index].unused, 0x00, sizeof(g_eeprom.config.channel_name[index].unused));
+		}
+	}
+
+	{	// 0D60
+		for (index = 0; index < 7; index++)  // default VFO attribs
+			g_eeprom.config.channel_attributes[200 + index].attributes = 0xC0 | index;
+
+		g_eeprom.config.channel_attributes[200 + 7].attributes = 0x00;
+	
+		memcpy(&g_user_channel_attributes, &g_eeprom.config.channel_attributes, sizeof(g_user_channel_attributes));
+
+		SETTINGS_save_attributes();
+	}
 
 	// ****************************************
 
@@ -322,33 +393,6 @@ void SETTINGS_read_eeprom(void)
 //	BK4819_WriteRegister(0x3C, g_eeprom.calib.BK4819_XTAL_FREQ_HIGH);
 
 	// ****************************************
-}
-
-void SETTINGS_write_eeprom_config(void)
-{	// save the entire EEPROM config contents
-	uint32_t index;
-	for (index = 0; index < sizeof(g_eeprom.config); index += 8)
-		EEPROM_WriteBuffer8(index, (uint8_t *)(&g_eeprom) + index);
-}
-
-#ifdef ENABLE_FMRADIO
-	void SETTINGS_save_fm(void)
-	{
-		unsigned int i;
-
-		uint16_t index = (uint16_t)((uint8_t *)&g_eeprom.config.setting.fm_radio - (uint8_t *)&g_eeprom.config);
-		EEPROM_WriteBuffer8(index, &g_eeprom.config.setting.fm_radio);
-
-		index = (uint16_t)((uint8_t *)&g_eeprom.config.setting.fm_channel - (uint8_t *)&g_eeprom.config);
-		for (i = 0; i < sizeof(g_eeprom.config.setting.fm_channel); i += 8)
-			EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.setting.fm_channel) + i);
-	}
-#endif
-
-void SETTINGS_save_vfo_indices(void)
-{
-	const uint16_t index = (uint16_t)((uint8_t *)&g_eeprom.config.setting.indices - (uint8_t *)&g_eeprom.config);
-	EEPROM_WriteBuffer8(index, &g_eeprom.config.setting.indices);
 }
 
 void SETTINGS_save(void)
@@ -391,8 +435,8 @@ void SETTINGS_save(void)
 
 	for (index = 0; index < sizeof(g_eeprom.config.setting); index += 8)
 	{
-		const uint16_t offset = (uint16_t)((uint8_t *)&g_eeprom.config.setting - (uint8_t *)&g_eeprom.config);
-		EEPROM_WriteBuffer8(offset + index, (uint8_t *)(&g_eeprom.config.setting) + index);
+		const uint16_t offset = (uint16_t)(((uint8_t *)&g_eeprom.config.setting) - ((uint8_t *)&g_eeprom));
+		EEPROM_WriteBuffer8(offset + index, ((uint8_t *)&g_eeprom.config.setting) + index);
 	}
 }
 
