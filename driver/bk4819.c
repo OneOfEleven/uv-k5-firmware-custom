@@ -35,6 +35,9 @@
 
 static uint16_t gBK4819_GpioOutState;
 
+//const uint32_t rf_filter_transition_freq = 28000000;  // original
+  const uint32_t rf_filter_transition_freq = 26500000;
+
 BK4819_filter_bandwidth_t m_bandwidth = BK4819_FILTER_BW_NARROW;
 
 bool g_rx_idle_mode;
@@ -592,8 +595,8 @@ void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
 	//               7 = max
 	//               0 = min
 	//
-	//                                                         280MHz     gain 1 = 1  gain 2 = 0  gain 1 = 4  gain 2 = 2
-	const uint8_t gain   = (frequency == 0) ? 0 : (frequency < 28000000) ? (1u << 3) | (0u << 0) : (4u << 3) | (2u << 0);
+	//                                                                         280MHz     gain 1 = 1  gain 2 = 0  gain 1 = 4  gain 2 = 2
+	const uint8_t gain   = (frequency == 0) ? 0 : (frequency < rf_filter_transition_freq) ? (1u << 3) | (0u << 0) : (4u << 3) | (2u << 0);
 	const uint8_t enable = 1;
 	BK4819_WriteRegister(0x36, ((uint16_t)bias << 8) | ((uint16_t)enable << 7) | ((uint16_t)gain << 0));
 }
@@ -740,7 +743,7 @@ void BK4819_RX_TurnOn(void)
 
 void BK4819_set_rf_filter_path(uint32_t Frequency)
 {
-	if (Frequency < 28000000)
+	if (Frequency < rf_filter_transition_freq)
 	{	// VHF
 		BK4819_set_GPIO_pin(BK4819_GPIO4_PIN32_VHF_LNA, true);
 		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31_UHF_LNA, false);
