@@ -55,6 +55,7 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 		for (i = 0; i < max_width; i += 2)
 			line[i] = (i <= len) ? 0x7f : 0x41;
 	#else
+
 		// segmented bar
 		for (i = 0; i < max_width; i += 4)
 		{
@@ -63,14 +64,18 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 				if (k >= 0)
 //					line[k] = (k < (i - 1)) ? 0x7f : 0x00;
 					if (k < (i - 1))
-						line[k] = 0x3e;
+						line[k] = 0x7f;
+//						line[k] = 0x3e;
 			}
 		}
-		// top/bottom lines
-		for (i = 0; i < len; i += 2)
-			line[i] |= 0x41;
-		for (i &= ~3u ; i < max_width; i += 4)
-			line[i] = 0x41;
+
+		#if 0
+			// top/bottom lines
+			for (i = 0; i < len; i += 2)
+				line[i] |= 0x41;
+			for (i &= ~3u ; i < max_width; i += 4)
+				line[i] = 0x41;
+		#endif
 	#endif
 }
 
@@ -242,15 +247,14 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 
 void UI_update_rssi(const int16_t rssi, const int vfo)
 {
-#ifdef ENABLE_RX_SIGNAL_BAR
-	if (g_center_line == CENTER_LINE_RSSI)
-	{	// optional larger RSSI dBm, S-point and bar level
-		if (g_current_function == FUNCTION_RECEIVE && g_squelch_open)
-		{
-			UI_DisplayRSSIBar(rssi, true);
+	#ifdef ENABLE_RX_SIGNAL_BAR
+		if (g_center_line == CENTER_LINE_RSSI)
+		{	// optional larger RSSI dBm, S-point and bar level
+			//if (g_current_function == FUNCTION_RECEIVE && g_squelch_open)
+			if (g_current_function == FUNCTION_RECEIVE)
+				UI_DisplayRSSIBar(rssi, true);
 		}
-	}
-#endif
+	#endif
 
 	{	// original little RS bars
 
@@ -871,7 +875,8 @@ void UI_DisplayMain(void)
 		g_dtmf_call_state == DTMF_CALL_STATE_NONE)
 	{	// we're free to use the middle line
 
-		const bool rx = (g_current_function == FUNCTION_RECEIVE && g_squelch_open) ? true : false;
+//		const bool rx = (g_current_function == FUNCTION_RECEIVE && g_squelch_open) ? true : false;
+		const bool rx = (g_current_function == FUNCTION_RECEIVE) ? true : false;
 
 		#ifdef ENABLE_TX_AUDIO_BAR
 			// show the TX audio level
