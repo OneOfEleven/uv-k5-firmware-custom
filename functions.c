@@ -265,7 +265,7 @@ void FUNCTION_Select(function_type_t Function)
 			if (!DTMF_Reply())
 			{
 			#ifdef ENABLE_MDC1200
-				if (g_current_vfo->mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->mdc1200_mode == MDC1200_MODE_BOTH)
+				if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)
 				{
 					BK4819_WriteRegister(0x30,
 						(1u  << 15) |    // enable  VCO calibration

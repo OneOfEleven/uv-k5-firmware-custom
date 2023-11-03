@@ -327,8 +327,10 @@ void SETTINGS_read_eeprom(void)
 	// 0F48..0F4F
 	g_eeprom.config.setting.scan_hold_time = (g_eeprom.config.setting.scan_hold_time > 40) ? 6 : (g_eeprom.config.setting.scan_hold_time < 2) ? 6 : g_eeprom.config.setting.scan_hold_time;
 
-
 	// ****************************************
+	// EEPROM cleaning
+
+#if 1
 
 	memset(&g_eeprom.config.unused13, 0xff, sizeof(g_eeprom.config.unused13));
 
@@ -345,7 +347,7 @@ void SETTINGS_read_eeprom(void)
 		}
 		else
 		{	// used channel
-			g_eeprom.config.channel_attributes[index].unused = 0;
+			g_eeprom.config.channel_attributes[index].unused = 0x00;
 			memset(g_eeprom.config.channel_name[index].unused, 0x00, sizeof(g_eeprom.config.channel_name[index].unused));
 		}
 	}
@@ -355,11 +357,13 @@ void SETTINGS_read_eeprom(void)
 			g_eeprom.config.channel_attributes[200 + index].attributes = 0xC0 | index;
 
 		g_eeprom.config.channel_attributes[200 + 7].attributes = 0x00;
-	
-		memcpy(&g_user_channel_attributes, &g_eeprom.config.channel_attributes, sizeof(g_user_channel_attributes));
 
 		SETTINGS_save_attributes();
 	}
+
+#endif
+
+	memcpy(&g_user_channel_attributes, &g_eeprom.config.channel_attributes, sizeof(g_user_channel_attributes));
 
 	// ****************************************
 
@@ -575,21 +579,21 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 unsigned int SETTINGS_find_channel(const uint32_t frequency)
 {
 	unsigned int chan;
-	
+
 	if (frequency == 0 || frequency == 0xffffffff)
 		return 0xffffffff;
-	
+
 	for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
 	{
 		const uint32_t freq = g_eeprom.config.channel[chan].frequency;
 
 		if (g_user_channel_attributes[chan].band > BAND7_470MHz || freq == 0 || freq == 0xffffffff)
 			continue;
-		
+
 		if (freq == frequency)
 			return chan;          // found it
 	}
-	
+
 	return 0xffffffff;
 }
 
