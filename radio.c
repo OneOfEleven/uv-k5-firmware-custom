@@ -63,7 +63,7 @@ bool RADIO_CheckValidChannel(uint16_t Channel, bool bCheckScanList, uint8_t VFO)
 	if (Channel > USER_CHANNEL_LAST)
 		return false;
 
-	if (g_user_channel_attributes[Channel].band > BAND7_470MHz)
+	if (g_eeprom.config.channel_attributes[Channel].band > BAND7_470MHz)
 		return false;
 
 	if (bCheckScanList)
@@ -71,7 +71,7 @@ bool RADIO_CheckValidChannel(uint16_t Channel, bool bCheckScanList, uint8_t VFO)
 		switch (VFO)
 		{
 			case 0:
-				if (g_user_channel_attributes[Channel].scanlist1 == 0)
+				if (g_eeprom.config.channel_attributes[Channel].scanlist1 == 0)
 					return false;
 
 				for (i = 0; i < 2; i++)
@@ -79,7 +79,7 @@ bool RADIO_CheckValidChannel(uint16_t Channel, bool bCheckScanList, uint8_t VFO)
 				break;
 
 			case 1:
-				if (g_user_channel_attributes[Channel].scanlist2 == 0)
+				if (g_eeprom.config.channel_attributes[Channel].scanlist2 == 0)
 					return false;
 
 				for (i = 0; i < 2; i++)
@@ -208,7 +208,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 	chan = CHANNEL_NUM(channel, VFO);
 
-	attributes = g_user_channel_attributes[channel];
+	attributes = g_eeprom.config.channel_attributes[channel];
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //		UART_printf("config chan 1   %u %u   %u %u %u\r\n", channel, chan, attributes.band, attributes.scanlist1, attributes.scanlist2);

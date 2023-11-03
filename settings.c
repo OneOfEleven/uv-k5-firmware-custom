@@ -41,9 +41,7 @@ static const uint32_t DEFAULT_FREQUENCY_TABLE[] =
 	43350000     //
 };
 
-t_eeprom         g_eeprom;
-
-t_channel_attrib g_user_channel_attributes[FREQ_CHANNEL_LAST + 1];
+t_eeprom g_eeprom;
 
 void SETTINGS_write_eeprom_config(void)
 {	// save the entire EEPROM config contents
@@ -352,18 +350,20 @@ void SETTINGS_read_eeprom(void)
 		}
 	}
 
+#endif
+
+#if 1
+
 	{	// 0D60
 		for (index = 0; index < 7; index++)  // default VFO attribs
 			g_eeprom.config.channel_attributes[200 + index].attributes = 0xC0 | index;
 
 		g_eeprom.config.channel_attributes[200 + 7].attributes = 0x00;
 
-		SETTINGS_save_attributes();
+//		SETTINGS_save_attributes();
 	}
 
 #endif
-
-	memcpy(&g_user_channel_attributes, &g_eeprom.config.channel_attributes, sizeof(g_user_channel_attributes));
 
 	// ****************************************
 
@@ -446,48 +446,51 @@ void SETTINGS_save(void)
 
 void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, vfo_info_t *p_vfo, const unsigned int mode)
 {
-	const unsigned int chan        = CHANNEL_NUM(channel, vfo);
-	t_channel         *p_channel   = &g_eeprom.config.channel[chan];
-	unsigned int       eeprom_addr = chan * 16;
-
-	if (IS_NOAA_CHANNEL(channel))
+	if (!IS_USER_CHANNEL(channel) && !IS_FREQ_CHANNEL(channel))
 		return;
-
-	if (mode < 2 && channel <= USER_CHANNEL_LAST)
-		return;
-
-	// ****************
 
 	if (p_vfo != NULL)
 	{
-		memset(p_channel, 0, sizeof(t_channel));
-
 		p_vfo->channel.frequency           = p_vfo->freq_config_rx.frequency;
 		p_vfo->channel.rx_ctcss_cdcss_code = p_vfo->freq_config_rx.code;
 		p_vfo->channel.tx_ctcss_cdcss_code = p_vfo->freq_config_tx.code;
 		p_vfo->channel.rx_ctcss_cdcss_type = p_vfo->freq_config_rx.code_type;
 		p_vfo->channel.tx_ctcss_cdcss_type = p_vfo->freq_config_tx.code_type;
 
-		memcpy(p_channel, &p_vfo->channel, sizeof(t_channel));
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("save chan 1  %u %u %u %uHz %uHz\r\n", channel, vfo, mode, p_vfo->channel.frequency * 10, p_vfo->channel.tx_offset * 10);
+		#endif
+	}
 
-		if (IS_USER_CHANNEL(channel))
-			g_eeprom.config.channel_attributes[channel] = g_user_channel_attributes[channel];
+	if (mode < 2 && channel <= USER_CHANNEL_LAST)
+		return;
+
+	{	// save the channel to EEPROM
+
+		const unsigned int chan = CHANNEL_NUM(channel, vfo);
+		const unsigned int addr = sizeof(t_channel) * chan;
+		t_channel          m_channel;
+	
+		if (p_vfo != NULL)
+			memcpy(&m_channel, &p_vfo->channel, sizeof(t_channel));
+		else
+		if (channel <= USER_CHANNEL_LAST)
+			memset(&m_channel, 0xff, sizeof(t_channel));
+		
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+			UART_printf("save chan 2 %04X  %3u %3u %u %u %uHz %uHz\r\n", addr, chan, channel, vfo, mode, m_channel.frequency * 10, m_channel.tx_offset * 10);
+		#endif
+
+		memcpy(&g_eeprom.config.channel[chan], &m_channel, sizeof(t_channel));
+
+		g_eeprom.config.channel_attributes[channel] = p_vfo->channel_attributes;
 
 		memset(&g_eeprom.config.channel_name[channel], 0, sizeof(g_eeprom.config.channel_name[channel]));
 		memcpy(g_eeprom.config.channel_name[channel].name, p_vfo->channel_name.name, sizeof(g_eeprom.config.channel_name[channel].name));
 
-		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//			UART_printf("save chan %04X  %3u %3u %u %u %uHz\r\n", eeprom_addr, chan, channel, vfo, mode, p_channel->frequency * 10);
-		#endif
+		EEPROM_WriteBuffer8(addr + 0, ((uint8_t *)&m_channel) + 0);
+		EEPROM_WriteBuffer8(addr + 8, ((uint8_t *)&m_channel) + 8);
 	}
-	else
-	if (channel <= USER_CHANNEL_LAST)
-	{	// user channel
-		memset(p_channel, 0xff, sizeof(t_channel));
-	}
-
-	EEPROM_WriteBuffer8(eeprom_addr + 0, ((uint8_t *)p_channel) + 0);
-	EEPROM_WriteBuffer8(eeprom_addr + 8, ((uint8_t *)p_channel) + 8);
 
 	// ****************
 
@@ -525,28 +528,19 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 {
 	const unsigned int index = channel & ~7u;     // eeprom writes are always 8 bytes in length
 
-	if (channel >= ARRAY_SIZE(g_user_channel_attributes))
-		return;
-
-	if (IS_NOAA_CHANNEL(channel))
+	if (!IS_USER_CHANNEL(channel) && !IS_FREQ_CHANNEL(channel))
 		return;
 
 	if (p_vfo != NULL)
 	{	// channel attributes
-
-		t_channel_attrib attribs = p_vfo->channel_attributes;
-		g_user_channel_attributes[channel]          = attribs;            // remember new attributes
-		g_eeprom.config.channel_attributes[channel] = attribs;
-
-		EEPROM_WriteBuffer8(0x0D60 + index, &g_user_channel_attributes[index]);
+		g_eeprom.config.channel_attributes[channel] = p_vfo->channel_attributes;
+		EEPROM_WriteBuffer8(0x0D60 + index, &g_eeprom.config.channel_attributes[index]);
 	}
 	else
 	if (channel <= USER_CHANNEL_LAST)
 	{	// user channel
-		g_user_channel_attributes[channel].attributes          = 0xff;
 		g_eeprom.config.channel_attributes[channel].attributes = 0xff;
-
-		EEPROM_WriteBuffer8(0x0D60 + index, &g_user_channel_attributes[index]);
+		EEPROM_WriteBuffer8(0x0D60 + index, &g_eeprom.config.channel_attributes[index]);
 	}
 
 	if (channel <= USER_CHANNEL_LAST)
@@ -586,12 +580,10 @@ unsigned int SETTINGS_find_channel(const uint32_t frequency)
 	for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
 	{
 		const uint32_t freq = g_eeprom.config.channel[chan].frequency;
-
-		if (g_user_channel_attributes[chan].band > BAND7_470MHz || freq == 0 || freq == 0xffffffff)
+		if (g_eeprom.config.channel_attributes[chan].band > BAND7_470MHz || freq == 0 || freq == 0xffffffff)
 			continue;
-
 		if (freq == frequency)
-			return chan;          // found it
+			return chan;    // found it
 	}
 
 	return 0xffffffff;
@@ -606,7 +598,7 @@ uint32_t SETTINGS_fetch_channel_frequency(const int channel)
 
 	freq = g_eeprom.config.channel[channel].frequency;
 
-	if (g_user_channel_attributes[channel].band > BAND7_470MHz || freq == 0 || freq == 0xffffffff)
+	if (g_eeprom.config.channel_attributes[channel].band > BAND7_470MHz || freq == 0 || freq == 0xffffffff)
 		return 0;
 
 	return freq;
@@ -656,7 +648,7 @@ void SETTINGS_fetch_channel_name(char *s, const int channel)
 	if (channel < 0 || channel > (int)USER_CHANNEL_LAST)
 		return;
 
-	if (g_user_channel_attributes[channel].band > BAND7_470MHz)
+	if (g_eeprom.config.channel_attributes[channel].band > BAND7_470MHz)
 		return;
 
 	memcpy(s, &g_eeprom.config.channel_name[channel], 10);

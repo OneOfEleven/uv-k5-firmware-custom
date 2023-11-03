@@ -700,13 +700,11 @@ void UI_DisplayMain(void)
 
 				unsigned int x = LCD_WIDTH - 1 - sizeof(BITMAP_SCANLIST2) - sizeof(BITMAP_SCANLIST1);
 
-				const t_channel_attrib attributes = g_user_channel_attributes[scrn_chan];
-
-				if (attributes.scanlist1)
+				if (g_vfo_info[vfo_num].channel_attributes.scanlist1)
 					memcpy(p_line0 + x, BITMAP_SCANLIST1, sizeof(BITMAP_SCANLIST1));
 				x += sizeof(BITMAP_SCANLIST1);
 
-				if (attributes.scanlist2)
+				if (g_vfo_info[vfo_num].channel_attributes.scanlist2)
 					memcpy(p_line0 + x, BITMAP_SCANLIST2, sizeof(BITMAP_SCANLIST2));
 				//x += sizeof(BITMAP_SCANLIST2);
 			}

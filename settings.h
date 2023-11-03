@@ -237,6 +237,11 @@ typedef union {
 	uint8_t attributes;
 } __attribute__((packed)) t_channel_attrib;
 
+typedef struct {
+	char         name[10];
+	uint8_t      unused[6];
+} __attribute__((packed)) t_channel_name;
+
 // user configuration
 typedef struct {
 
@@ -409,10 +414,7 @@ typedef struct {
 	}  __attribute__((packed)) setting;
 
 	// 0x0F50
-	struct {
-		char       name[10];
-		uint8_t    unused[6];             // 0xff's
-	} __attribute__((packed)) channel_name[USER_CHANNEL_LAST - USER_CHANNEL_FIRST + 1];
+	t_channel_name channel_name[USER_CHANNEL_LAST - USER_CHANNEL_FIRST + 1];
 
 	// 0x1BD0
 	uint8_t        unused13[16 * 3];      // 0xff's .. free to use
@@ -516,6 +518,10 @@ typedef struct
 
 typedef struct vfo_info_t
 {
+	t_channel        channel;
+	t_channel_attrib channel_attributes;
+	t_channel_name   channel_name;
+
 	uint8_t          channel_save;
 
 	freq_config_t    freq_config_rx;
@@ -523,25 +529,18 @@ typedef struct vfo_info_t
 	freq_config_t   *p_rx;
 	freq_config_t   *p_tx;
 
-	t_channel        channel;
-
-	t_channel_attrib channel_attributes;
-
-	struct {
-		char         name[10];
-		uint8_t      unused[6];
-	} channel_name;
-
 	uint16_t         step_freq;
 
-	uint8_t          freq_in_channel; // channel number where we also found this VFO's frequency
+	uint8_t          freq_in_channel; // first channel number we found this VFO's frequency in
+
+	uint8_t          squelch_open_rssi_thresh;
+	uint8_t          squelch_close_rssi_thresh;
+
+	uint8_t          squelch_open_noise_thresh;
+	uint8_t          squelch_close_noise_thresh;
 
 	uint8_t          squelch_open_glitch_thresh;
-	uint8_t          squelch_open_rssi_thresh;
-	uint8_t          squelch_open_noise_thresh;
 	uint8_t          squelch_close_glitch_thresh;
-	uint8_t          squelch_close_rssi_thresh;
-	uint8_t          squelch_close_noise_thresh;
 
 	uint8_t          txp_calculated_setting;
 
@@ -549,8 +548,7 @@ typedef struct vfo_info_t
 
 // ************************************************
 
-extern t_eeprom         g_eeprom;
-extern t_channel_attrib g_user_channel_attributes[FREQ_CHANNEL_LAST + 1];
+extern t_eeprom g_eeprom;
 
 void SETTINGS_read_eeprom(void);
 void SETTINGS_write_eeprom_config(void);

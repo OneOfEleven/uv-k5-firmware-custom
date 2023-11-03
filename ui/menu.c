@@ -672,10 +672,7 @@ void UI_DisplayMenu(void)
 			channel_setting = true;
 			if (!g_in_sub_menu || g_input_box_index == 0)
 			{
-				sprintf(str, "%d.%05u", g_sub_menu_selection / 100000, abs(g_sub_menu_selection) % 100000);
-				#ifdef ENABLE_TRIM_TRAILING_ZEROS
-					NUMBER_trim_trailing_zeros(str);
-				#endif
+				sprintf(str, "%03d.%05u", g_sub_menu_selection / 100000, abs(g_sub_menu_selection) % 100000);
 				UI_PrintString(str, sub_menu_x1, sub_menu_x2, 1, 8);
 			}
 			else

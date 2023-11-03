@@ -1433,6 +1433,11 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 	{
 		uint32_t Frequency;
 
+		NUMBER_Get(g_input_box, &Frequency);
+
+		if (g_input_box_index > 0)
+			g_sub_menu_selection = Frequency;
+
 		if (g_input_box_index < 8)
 		{	// not yet enough characters
 			#ifdef ENABLE_VOICE
@@ -1441,12 +1446,11 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 			return;
 		}
 
+		g_input_box_index = 0;
+
 		#ifdef ENABLE_VOICE
 			g_another_voice_id = (voice_id_t)Key;
 		#endif
-
-		NUMBER_Get(g_input_box, &Frequency);
-		g_input_box_index = 0;
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			UART_printf("offset 3 %u\r\n", Frequency);
@@ -1460,7 +1464,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		#endif
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("offset 4 %u\r\n", Frequency);
+//			UART_printf("offset 4 %u\r\n", Frequency);
 		#endif
 		
 		g_sub_menu_selection = Frequency;
@@ -1575,9 +1579,9 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 				g_input_box_index      = 0;
 				g_flag_refresh_menu    = true;
 
-#ifdef ENABLE_VOICE
+				#ifdef ENABLE_VOICE
 					g_another_voice_id = VOICE_ID_CANCEL;
-#endif
+				#endif
 			}
 			else
 				g_input_box[--g_input_box_index] = 10;
@@ -1588,9 +1592,9 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 			return;
 		}
 
-#ifdef ENABLE_VOICE
+		#ifdef ENABLE_VOICE
 			g_another_voice_id = VOICE_ID_CANCEL;
-#endif
+		#endif
 
 		g_request_display_screen = DISPLAY_MAIN;
 
@@ -1604,9 +1608,9 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 	{
 		MENU_stop_css_scan();
 
-#ifdef ENABLE_VOICE
+		#ifdef ENABLE_VOICE
 			g_another_voice_id   = VOICE_ID_SCANNING_STOP;
-#endif
+		#endif
 
 		g_request_display_screen = DISPLAY_MENU;
 	}

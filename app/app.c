@@ -908,16 +908,19 @@ void APP_process_radio_interrupts(void)
 		int_bits = BK4819_ReadRegister(0x02);
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		{
-			int i;
-			UART_printf("int bits %04X %04X ", reg_c, int_bits);
-			for (i = 15; i >= 0; i--)
-				UART_printf("%c", (reg_c & (1u << i)) ? '#' : '.');
-			UART_SendText("  ");
-			for (i = 15; i >= 0; i--)
-				UART_printf("%c", (int_bits & (1u << i)) ? '#' : '.');
-			UART_SendText("\r\n");
-		}
+			#ifdef ENABLE_AIRCOPY
+				if (g_current_display_screen != DISPLAY_AIRCOPY)
+			#endif
+				{
+					int i;
+					UART_printf("int bits %04X %04X ", reg_c, int_bits);
+					for (i = 15; i >= 0; i--)
+						UART_printf("%c", (reg_c & (1u << i)) ? '#' : '.');
+					UART_SendText("  ");
+					for (i = 15; i >= 0; i--)
+						UART_printf("%c", (int_bits & (1u << i)) ? '#' : '.');
+					UART_SendText("\r\n");
+				}
 		#endif
 
 		if (int_bits & BK4819_REG_02_DTMF_5TONE_FOUND)
