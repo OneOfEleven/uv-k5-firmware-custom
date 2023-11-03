@@ -646,7 +646,12 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	uint32_t                  Frequency;
 
 	if (!g_monitor_enabled)
-		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	{
+		#ifdef ENABLE_FMRADIO
+			if (!g_fm_radio_mode && g_request_display_screen != DISPLAY_FM)
+		#endif
+				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	}
 
 	// turn green LED off
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
@@ -736,16 +741,24 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			(g_eeprom.calib.dac_gain    << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
 	}
 
-	#ifdef ENABLE_VOICE
-		#ifdef MUTE_AUDIO_FOR_VOICE
-			if (g_voice_write_index == 0)
-				AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
-		#else
-			AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+	if (!g_monitor_enabled)
+	{
+		#ifdef ENABLE_FMRADIO
+			if (!g_fm_radio_mode && g_request_display_screen != DISPLAY_FM)
 		#endif
-	#else
-		AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
-	#endif
+		{
+			#ifdef ENABLE_VOICE
+				#ifdef MUTE_AUDIO_FOR_VOICE
+					if (g_voice_write_index == 0)
+						AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+				#else
+					AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+				#endif
+			#else
+				AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+			#endif
+		}
+	}
 
 	interrupt_mask = BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
 

@@ -125,19 +125,28 @@ void UI_DisplayStatus(const bool test_display)
 	// DUAL-WATCH indicator
 	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF || test_display)
 	{
+		bool dw_running = true;
+
+		#ifdef ENABLE_FMRADIO
+			if (g_fm_radio_mode && g_current_display_screen == DISPLAY_FM)
+				dw_running = false;
+			else
+		#endif
+
 		if (g_dual_watch_tick_10ms > dual_watch_delay_toggle_10ms ||
-	        g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
-		    g_scan_state_dir != SCAN_STATE_DIR_OFF  ||
+			g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+			g_scan_state_dir != SCAN_STATE_DIR_OFF  ||
 			g_css_scan_mode != CSS_SCAN_MODE_OFF    ||
 			(g_current_function != FUNCTION_FOREGROUND && g_current_function != FUNCTION_POWER_SAVE) ||
 			g_current_display_screen == DISPLAY_SEARCH)
 		{
-			memcpy(line + x, BITMAP_TDR_HOLDING, sizeof(BITMAP_TDR_HOLDING));
+			dw_running = false;
 		}
-		else
-		{
+
+		if (dw_running)
 			memcpy(line + x, BITMAP_TDR_RUNNING, sizeof(BITMAP_TDR_RUNNING));
-		}
+		else
+			memcpy(line + x, BITMAP_TDR_HOLDING, sizeof(BITMAP_TDR_HOLDING));
 		x += sizeof(BITMAP_TDR_RUNNING) + 1;
 	}
 

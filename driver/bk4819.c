@@ -895,11 +895,25 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level)
 	BK4819_WriteRegister(0x70, BK4819_REG_70_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
 	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x30,  // all of the following must be enable to get an audio beep ! ???
+#if 1
+	BK4819_WriteRegister(0x30,
 		BK4819_REG_30_ENABLE_AF_DAC    |
 		BK4819_REG_30_ENABLE_DISC_MODE |
 		BK4819_REG_30_ENABLE_TX_DSP);
-
+#else
+	BK4819_WriteRegister(0x30,
+		BK4819_REG_30_ENABLE_VCO_CALIB |
+		BK4819_REG_30_ENABLE_UNKNOWN   |
+//		BK4819_REG_30_ENABLE_RX_LINK   |
+		BK4819_REG_30_ENABLE_AF_DAC    |  //
+		BK4819_REG_30_ENABLE_DISC_MODE |  //
+		BK4819_REG_30_ENABLE_PLL_VCO   |
+		BK4819_REG_30_ENABLE_PA_GAIN   |
+//		BK4819_REG_30_ENABLE_MIC_ADC   |
+		BK4819_REG_30_ENABLE_TX_DSP    |  //
+//		BK4819_REG_30_ENABLE_RX_DSP    |
+	0);
+#endif
 	
 	BK4819_WriteRegister(0x71, scale_freq(frequency));
 
