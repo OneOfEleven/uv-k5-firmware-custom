@@ -321,7 +321,11 @@ extern volatile bool         g_next_time_slice_40ms;
 	extern volatile bool     g_schedule_noaa;
 #endif
 extern volatile bool         g_flag_tail_tone_elimination_complete;
-extern int16_t               g_current_rssi[2];   // now one per VFO
+
+extern int16_t               g_current_rssi[2];
+extern uint16_t              g_current_glitch[2];
+extern uint16_t              g_current_noise[2];
+
 extern volatile uint16_t     g_boot_tick_10ms;
 
 extern uint8_t               g_mic_sensitivity_tuning;

@@ -55,27 +55,13 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 		for (i = 0; i < max_width; i += 2)
 			line[i] = (i <= len) ? 0x7f : 0x41;
 	#else
-
 		// segmented bar
 		for (i = 0; i < max_width; i += 4)
-		{
 			for (int k = i - 4; k < i && k < len; k++)
-			{
 				if (k >= 0)
 //					line[k] = (k < (i - 1)) ? 0x7f : 0x00;
 					if (k < (i - 1))
 						line[k] = 0x7f;
-//						line[k] = 0x3e;
-			}
-		}
-
-		#if 0
-			// top/bottom lines
-			for (i = 0; i < len; i += 2)
-				line[i] |= 0x41;
-			for (i &= ~3u ; i < max_width; i += 4)
-				line[i] = 0x41;
-		#endif
 	#endif
 }
 
@@ -179,10 +165,14 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 #endif
 
 #ifdef ENABLE_RX_SIGNAL_BAR
-	bool UI_DisplayRSSIBar(const int16_t rssi, const bool now)
+	bool UI_DisplayRSSIBar(const int16_t rssi, const int16_t glitch, const int16_t noise, const bool now)
 	{
 		if (g_eeprom.config.setting.enable_rssi_bar)
 		{
+
+			(void)glitch;  // TODO:
+			(void)noise;
+
 //			const int16_t      s0_dBm       = -127;                  // S0 .. base level
 			const int16_t      s0_dBm       = -147;                  // S0 .. base level
 
@@ -245,14 +235,14 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 	}
 #endif
 
-void UI_update_rssi(const int16_t rssi, const int vfo)
+void UI_update_rssi(const int16_t rssi, const int16_t glitch, const int16_t noise, const int vfo)
 {
 	#ifdef ENABLE_RX_SIGNAL_BAR
 		if (g_center_line == CENTER_LINE_RSSI)
 		{	// optional larger RSSI dBm, S-point and bar level
 			//if (g_current_function == FUNCTION_RECEIVE && g_squelch_open)
 			if (g_current_function == FUNCTION_RECEIVE)
-				UI_DisplayRSSIBar(rssi, true);
+				UI_DisplayRSSIBar(rssi, glitch, noise, true);
 		}
 	#endif
 
@@ -921,7 +911,7 @@ void UI_DisplayMain(void)
 			if (rx && g_eeprom.config.setting.enable_rssi_bar)
 			{
 				g_center_line = CENTER_LINE_RSSI;
-				UI_DisplayRSSIBar(g_current_rssi[g_rx_vfo_num], false);
+				UI_DisplayRSSIBar(g_current_rssi[g_rx_vfo_num], g_current_glitch[g_rx_vfo_num], g_current_noise[g_rx_vfo_num], false);
 			}
 			else
 		#endif

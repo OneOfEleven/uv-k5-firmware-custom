@@ -82,7 +82,9 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 
 static void APP_update_rssi(const int vfo)
 {
-	int16_t rssi = BK4819_GetRSSI();
+	int16_t rssi   = BK4819_GetRSSI();
+	uint8_t glitch = BK4819_GetGlitchIndicator();
+	uint8_t noise  = BK4819_GetExNoiceIndicator();
 
 	#ifdef ENABLE_AM_FIX
 		// add RF gain adjust compensation
@@ -93,9 +95,11 @@ static void APP_update_rssi(const int vfo)
 	if (g_current_rssi[vfo] == rssi)
 		return;     // no change
 
-	g_current_rssi[vfo] = rssi;
+	g_current_rssi[vfo]   = rssi;
+	g_current_glitch[vfo] = glitch;
+	g_current_noise[vfo]  = noise;
 
-	UI_update_rssi(rssi, vfo);
+	UI_update_rssi(rssi, glitch, noise, vfo);
 }
 
 static void APP_check_for_new_receive(void)
@@ -1560,7 +1564,7 @@ void APP_process_flash_light_10ms(void)
 						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
 						#ifdef ENABLE_FLASH_LIGHT_SOS_TONE
 							if (!g_squelch_open && !g_monitor_enabled && !GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER))
-								BK4819_StartTone1(880, 50);
+								BK4819_StartTone1(880, 50, g_current_function == FUNCTION_TRANSMIT);
 						#endif
 					}
 				}

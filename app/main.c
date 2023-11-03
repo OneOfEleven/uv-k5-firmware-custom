@@ -819,17 +819,19 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 		if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 		{	// RF scanning
 	
-			if (scanning_paused())
-			{
-				FI_add_freq_ignored(g_rx_vfo->freq_config_rx.frequency);
-		
-				// immediately continue the scan
-				g_scan_pause_tick_10ms = 0;
-				g_scan_pause_time_mode = false;
-				g_squelch_open         = false;
-				g_rx_reception_mode    = RX_MODE_NONE;
-				FUNCTION_Select(FUNCTION_FOREGROUND);
-			}
+			#ifdef ENABLE_SCAN_IGNORE_LIST
+				if (scanning_paused())
+				{
+					FI_add_freq_ignored(g_rx_vfo->freq_config_rx.frequency);
+			
+					// immediately continue the scan
+					g_scan_pause_tick_10ms = 0;
+					g_scan_pause_time_mode = false;
+					g_squelch_open         = false;
+					g_rx_reception_mode    = RX_MODE_NONE;
+					FUNCTION_Select(FUNCTION_FOREGROUND);
+				}
+			#endif
 
 			return;
 		}

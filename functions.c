@@ -220,7 +220,7 @@ void FUNCTION_Select(function_type_t Function)
 					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 					SYSTEM_DelayMs(2);
-					BK4819_StartTone1(500, 28);
+					BK4819_StartTone1(500, 28, g_current_function == FUNCTION_TRANSMIT);
 					SYSTEM_DelayMs(2);
 
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);

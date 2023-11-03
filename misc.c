@@ -234,7 +234,9 @@ volatile bool         g_flag_tail_tone_elimination_complete;
 
 volatile uint16_t     g_boot_tick_10ms = 4000 / 10;   // 4 seconds
 
-int16_t               g_current_rssi[2] = {0, 0};  // now one per VFO
+int16_t               g_current_rssi[2]   = {0, 0};
+uint16_t              g_current_glitch[2] = {0, 0};
+uint16_t              g_current_noise[2]  = {0, 0};
 
 uint8_t               g_mic_sensitivity_tuning;
 

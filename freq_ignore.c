@@ -6,7 +6,7 @@
 #include "misc.h"
 
 // a list of frequencies to ignore/skip when scanning
-uint32_t ignore_frequencies[256];
+uint32_t ignore_frequencies[64];
 int      ignore_frequencies_count = 0;
 
 void FI_clear_freq_ignored(void)

@@ -16,20 +16,18 @@
  */
 
 #ifndef AM_FIXH
+#define AM_FIXH
 
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef ENABLE_AM_FIX
-	extern int16_t rssi_gain_diff[2];
+extern int16_t rssi_gain_diff[2];
 
-	void AM_fix_init(void);
-	void AM_fix_reset(const int vfo);
-	void AM_fix_10ms(const int vfo);
-	#ifdef ENABLE_AM_FIX_SHOW_DATA
-		void AM_fix_print_data(const int vfo, char *s);
-	#endif
-		
+void AM_fix_init(void);
+void AM_fix_reset(const int vfo);
+void AM_fix_10ms(const int vfo);
+#ifdef ENABLE_AM_FIX_SHOW_DATA
+	void AM_fix_print_data(const int vfo, char *s);
 #endif
-
+		
 #endif
