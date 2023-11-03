@@ -177,15 +177,6 @@ extern const uint16_t        scan_pause_chan_10ms;
 
 extern const uint8_t         g_mic_gain_dB_2[5];
 
-#ifdef ENABLE_CONTRAST
-	extern uint8_t           g_setting_contrast;
-#endif
-
-extern uint8_t               g_setting_side1_short;
-extern uint8_t               g_setting_side1_long;
-extern uint8_t               g_setting_side2_short;
-extern uint8_t               g_setting_side2_long;
-
 extern bool                  g_monitor_enabled;
 
 extern const uint32_t        g_default_aes_key[4];

@@ -122,10 +122,6 @@ void SETTINGS_read_eeprom(void)
 #endif
 	g_eeprom.config.setting.mic_sensitivity  = (g_eeprom.config.setting.mic_sensitivity < 5)   ? g_eeprom.config.setting.mic_sensitivity : 4;
 
-	#ifdef ENABLE_CONTRAST
-		g_eeprom.config.setting.lcd_contrast = (g_eeprom.config.setting.lcd_contrast > 45)     ? 31 : (g_eeprom.config.setting.lcd_contrast < 26) ? 31 : g_eeprom.config.setting.lcd_contrast;
-		g_setting_contrast                    =  g_eeprom.config.setting.lcd_contrast;
-	#endif
 	g_eeprom.config.setting.channel_display_mode  = (g_eeprom.config.setting.channel_display_mode < 4)  ? g_eeprom.config.setting.channel_display_mode : MDF_FREQUENCY;    // 4 instead of 3 - extra display mode
 	g_eeprom.config.setting.cross_vfo             = (g_eeprom.config.setting.cross_vfo < 3)             ? g_eeprom.config.setting.cross_vfo : CROSS_BAND_OFF;
 	g_eeprom.config.setting.battery_save_ratio    = (g_eeprom.config.setting.battery_save_ratio < 5)    ? g_eeprom.config.setting.battery_save_ratio : 4;
@@ -321,6 +317,10 @@ void SETTINGS_read_eeprom(void)
 	#endif
 
 #endif
+
+	#ifdef ENABLE_CONTRAST
+		g_eeprom.config.setting.lcd_contrast = (g_eeprom.config.setting.lcd_contrast > 45) ? 31 : (g_eeprom.config.setting.lcd_contrast < 26) ? 31 : g_eeprom.config.setting.lcd_contrast;
+	#endif
 
 	// 0F48..0F4F
 	g_eeprom.config.setting.scan_hold_time = (g_eeprom.config.setting.scan_hold_time > 40) ? 6 : (g_eeprom.config.setting.scan_hold_time < 2) ? 6 : g_eeprom.config.setting.scan_hold_time;

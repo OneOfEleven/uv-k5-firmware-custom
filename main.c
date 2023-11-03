@@ -187,7 +187,7 @@ void Main(void)
 	BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);
 
 	#ifdef ENABLE_CONTRAST
-		ST7565_SetContrast(g_setting_contrast);
+		ST7565_SetContrast(g_eeprom.config.setting.lcd_contrast);
 	#endif
 
 	#if defined(ENABLE_UART)

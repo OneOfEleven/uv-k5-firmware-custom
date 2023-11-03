@@ -245,7 +245,7 @@ void ST7565_WriteByte(const uint8_t Value)
 #ifdef ENABLE_CONTRAST
 	void ST7565_SetContrast(const uint8_t value)
 	{
-		contrast = (value <= 63) ? value : 63;
+		contrast = (value > 45) ? 45 : (value < 26) ? 26 : value;
 	}
 
 	uint8_t ST7565_GetContrast(void)

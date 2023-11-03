@@ -564,8 +564,8 @@ void MENU_AcceptSetting(void)
 
 		#ifdef ENABLE_CONTRAST
 			case MENU_CONTRAST:
-				g_setting_contrast = g_sub_menu_selection;
-				ST7565_SetContrast(g_setting_contrast);
+				g_eeprom.config.setting.lcd_contrast = g_sub_menu_selection;
+				ST7565_SetContrast(g_eeprom.config.setting.lcd_contrast);
 				break;
 		#endif
 		
@@ -1060,11 +1060,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.config.setting.backlight_on_tx_rx;
 			break;
 
-#ifdef ENABLE_CONTRAST
+		#ifdef ENABLE_CONTRAST
 			case MENU_CONTRAST:
-				g_sub_menu_selection = g_setting_contrast;
+				g_sub_menu_selection = g_eeprom.config.setting.lcd_contrast;
 				break;
-#endif
+		#endif
 		
 		case MENU_DUAL_WATCH:
 //			g_sub_menu_selection = g_eeprom.config.setting.dual_watch;

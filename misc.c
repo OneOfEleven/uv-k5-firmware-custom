@@ -85,15 +85,6 @@ const uint32_t        g_default_aes_key[4]             = {0x4AA5CC60, 0x0312CC5F
 
 const uint8_t         g_mic_gain_dB_2[5]               = {3, 8, 16, 24, 31};
 
-#ifdef ENABLE_CONTRAST
-	uint8_t           g_setting_contrast;
-#endif
-
-uint8_t               g_setting_side1_short;
-uint8_t               g_setting_side1_long;
-uint8_t               g_setting_side2_short;
-uint8_t               g_setting_side2_long;
-
 bool                  g_monitor_enabled;
 
 bool                  g_has_aes_key;

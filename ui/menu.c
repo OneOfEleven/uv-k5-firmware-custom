@@ -763,7 +763,6 @@ void UI_DisplayMenu(void)
 			case MENU_CONTRAST:
 				strcpy(str, "CONTRAST\n");
 				sprintf(str + strlen(str), "%d", g_sub_menu_selection);
-				//g_setting_contrast = g_sub_menu_selection
 				ST7565_SetContrast(g_sub_menu_selection);
 				g_update_display = true;
 				break;
