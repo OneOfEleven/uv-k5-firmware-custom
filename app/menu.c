@@ -54,23 +54,12 @@
 
 		if (update_eeprom)
 		{
-			struct
-			{
-				int16_t  BK4819_XtalFreqLow;
-				uint16_t EEPROM_1F8A;
-				uint16_t EEPROM_1F8C;
-				uint8_t  volume_gain;
-				uint8_t  dac_gain;
-			} __attribute__((packed)) misc;
-
-			g_eeprom.config.setting.BK4819_xtal_freq_low = value;
+			g_eeprom.calib.bk4819_xtal_freq_low = value;
 
 			// radio 1 .. 04 00 46 00 50 00 2C 0E
 			// radio 2 .. 05 00 46 00 50 00 2C 0E
 			//
-			EEPROM_ReadBuffer(0x1F88, &misc, 8);
-			misc.BK4819_XtalFreqLow = value;
-			EEPROM_WriteBuffer8(0x1F88, &misc);
+			EEPROM_WriteBuffer8(0x1F88, &g_eeprom.calib.bk4819_xtal_freq_low);
 		}
 	}
 #endif
@@ -1330,11 +1319,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.config.setting.tx_enable;
 			break;
 
-#ifdef ENABLE_F_CAL_MENU
+		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
-				g_sub_menu_selection = g_eeprom.config.setting.BK4819_xtal_freq_low;
+				g_sub_menu_selection = g_eeprom.calib.bk4819_xtal_freq_low;
 				break;
-#endif
+		#endif
 
 		case MENU_BAT_CAL:
 			g_sub_menu_selection = g_eeprom.calib.battery[3];
