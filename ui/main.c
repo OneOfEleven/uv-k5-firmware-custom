@@ -39,6 +39,8 @@
 #include "ui/menu.h"
 #include "ui/ui.h"
 
+//#define SHOW_RX_TEST_VALUES
+
 center_line_t g_center_line = CENTER_LINE_NONE;
 
 // ***************************************************************************
@@ -165,77 +167,105 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 #endif
 
 #ifdef ENABLE_RX_SIGNAL_BAR
-	bool UI_DisplayRSSIBar(const int16_t rssi, const int16_t glitch, const int16_t noise, const bool now)
+	bool UI_DisplayRSSIBar(const int16_t rssi, const uint16_t glitch, const uint16_t noise, const bool now)
 	{
 		if (g_eeprom.config.setting.enable_rssi_bar)
 		{
+			#ifdef SHOW_RX_TEST_VALUES
 
-			(void)glitch;  // TODO:
-			(void)noise;
+				const unsigned int line   = 3;
+				uint8_t           *p_line = g_frame_buffer[line];
+				char               str[22];
 
-//			const int16_t      s0_dBm       = -127;                  // S0 .. base level
-			const int16_t      s0_dBm       = -147;                  // S0 .. base level
+				#ifdef ENABLE_KEYLOCK
+					if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
+						return false;     // display is in use
+				#endif
 
-			const int16_t      s9_dBm       = s0_dBm + (6 * 9);      // S9 .. 6dB/S-Point
-			const int16_t      bar_max_dBm  = s9_dBm + 60;           // S9+60dB
-//			const int16_t      bar_min_dBm  = s0_dBm + (6 * 0);      // S0
-			const int16_t      bar_min_dBm  = s0_dBm + (6 * 4);      // S4
-
-			// ************
-
-			const unsigned int txt_width    = 7 * 8;                 // 8 text chars
-			const unsigned int bar_x        = 2 + txt_width + 4;     // X coord of bar graph
-			const unsigned int bar_width    = LCD_WIDTH - 1 - bar_x;
-
-			const int16_t      rssi_dBm     = (rssi / 2) - 160;
-			const int16_t      clamped_dBm  = (rssi_dBm <= bar_min_dBm) ? bar_min_dBm : (rssi_dBm >= bar_max_dBm) ? bar_max_dBm : rssi_dBm;
-			const unsigned int bar_range_dB = bar_max_dBm - bar_min_dBm;
-			const unsigned int len          = ((clamped_dBm - bar_min_dBm) * bar_width) / bar_range_dB;
-
-			const unsigned int line         = 3;
-			uint8_t           *p_line        = g_frame_buffer[line];
-
-			char               s[16];
-
-			#ifdef ENABLE_KEYLOCK
-				if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
+				if (g_current_function == FUNCTION_TRANSMIT || g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 					return false;     // display is in use
+
+				if (now)
+					memset(p_line, 0, LCD_WIDTH);
+
+				sprintf(str, "r %3u g %3u n %3u", (uint16_t )rssi, glitch, noise);
+				UI_PrintStringSmall(str, 2, 0, line);
+
+				if (now)
+					ST7565_BlitFullScreen();
+
+				return true;
+
+			#else
+
+				(void)glitch;  // TODO:
+				(void)noise;
+
+//				const int16_t      s0_dBm       = -127;                  // S0 .. base level
+				const int16_t      s0_dBm       = -147;                  // S0 .. base level
+
+				const int16_t      s9_dBm       = s0_dBm + (6 * 9);      // S9 .. 6dB/S-Point
+				const int16_t      bar_max_dBm  = s9_dBm + 60;           // S9+60dB
+//				const int16_t      bar_min_dBm  = s0_dBm + (6 * 0);      // S0
+				const int16_t      bar_min_dBm  = s0_dBm + (6 * 4);      // S4
+
+				// ************
+
+				const unsigned int txt_width    = 7 * 8;                 // 8 text chars
+				const unsigned int bar_x        = 2 + txt_width + 4;     // X coord of bar graph
+				const unsigned int bar_width    = LCD_WIDTH - 1 - bar_x;
+
+				const int16_t      rssi_dBm     = (rssi / 2) - 160;
+				const int16_t      clamped_dBm  = (rssi_dBm <= bar_min_dBm) ? bar_min_dBm : (rssi_dBm >= bar_max_dBm) ? bar_max_dBm : rssi_dBm;
+				const unsigned int bar_range_dB = bar_max_dBm - bar_min_dBm;
+				const unsigned int len          = ((clamped_dBm - bar_min_dBm) * bar_width) / bar_range_dB;
+
+				const unsigned int line         = 3;
+				uint8_t           *p_line        = g_frame_buffer[line];
+
+				char               s[16];
+
+				#ifdef ENABLE_KEYLOCK
+					if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
+						return false;     // display is in use
+				#endif
+
+				if (g_current_function == FUNCTION_TRANSMIT ||
+					g_current_display_screen != DISPLAY_MAIN ||
+					g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+					return false;     // display is in use
+
+				if (now)
+					memset(p_line, 0, LCD_WIDTH);
+
+				if (rssi_dBm >= (s9_dBm + 6))
+				{	// S9+XXdB, 1dB increment
+					const char *fmt[] = {"%3d 9+%u  ", "%3d 9+%2u "};
+					const unsigned int s9_dB = ((rssi_dBm - s9_dBm) <= 99) ? rssi_dBm - s9_dBm : 99;
+					sprintf(s, (s9_dB < 10) ? fmt[0] : fmt[1], rssi_dBm, s9_dB);
+				}
+				else
+				{	// S0 ~ S9, 6dB per S-point
+					const unsigned int s_level = (rssi_dBm >= s0_dBm) ? (rssi_dBm - s0_dBm) / 6 : 0;
+					sprintf(s, "%4d S%u ", rssi_dBm, s_level);
+				}
+				UI_PrintStringSmall(s, 2, 0, line);
+
+				draw_bar(p_line + bar_x, len, bar_width);
+
+				if (now)
+					ST7565_BlitFullScreen();
+
+				return true;
+
 			#endif
-
-			if (g_current_function == FUNCTION_TRANSMIT ||
-				g_current_display_screen != DISPLAY_MAIN ||
-				g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-				return false;     // display is in use
-
-			if (now)
-				memset(p_line, 0, LCD_WIDTH);
-
-			if (rssi_dBm >= (s9_dBm + 6))
-			{	// S9+XXdB, 1dB increment
-				const char *fmt[] = {"%3d 9+%u  ", "%3d 9+%2u "};
-				const unsigned int s9_dB = ((rssi_dBm - s9_dBm) <= 99) ? rssi_dBm - s9_dBm : 99;
-				sprintf(s, (s9_dB < 10) ? fmt[0] : fmt[1], rssi_dBm, s9_dB);
-			}
-			else
-			{	// S0 ~ S9, 6dB per S-point
-				const unsigned int s_level = (rssi_dBm >= s0_dBm) ? (rssi_dBm - s0_dBm) / 6 : 0;
-				sprintf(s, "%4d S%u ", rssi_dBm, s_level);
-			}
-			UI_PrintStringSmall(s, 2, 0, line);
-
-			draw_bar(p_line + bar_x, len, bar_width);
-
-			if (now)
-				ST7565_BlitFullScreen();
-
-			return true;
 		}
 
 		return false;
 	}
 #endif
 
-void UI_update_rssi(const int16_t rssi, const int16_t glitch, const int16_t noise, const int vfo)
+void UI_update_rssi(const int16_t rssi, const uint16_t glitch, const uint16_t noise, const int vfo)
 {
 	#ifdef ENABLE_RX_SIGNAL_BAR
 		if (g_center_line == CENTER_LINE_RSSI)
@@ -653,7 +683,7 @@ void UI_DisplayMain(void)
 						}
 						else
 						{	// name & frequency
-							
+
 							// name
 							#ifdef ENABLE_SMALL_BOLD
 								UI_PrintStringSmallBold(str, x + 4, 0, line);
@@ -741,7 +771,7 @@ void UI_DisplayMain(void)
 
 					if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
 						str[0] = 'F';  // channel number that contains this VFO frequency
-	
+
 					if (g_vfo_info[vfo_num].channel.compand)
 						str[1] = 'C';  // compander is enabled
 
@@ -821,7 +851,7 @@ void UI_DisplayMain(void)
 				str[0] = (i < ARRAY_SIZE(pwr_list)) ? pwr_list[i] : '\0';
 				str[1] = '\0';
 				UI_PrintStringSmall(str, 46, 0, line + 2);
-		
+
 				if (g_vfo_info[vfo_num].freq_config_rx.frequency != g_vfo_info[vfo_num].freq_config_tx.frequency)
 				{	// show the TX offset symbol
 					const char dir_list[] = "\0+-";
@@ -832,7 +862,7 @@ void UI_DisplayMain(void)
 				}
 			}
 		}
-		
+
 		// show the TX/RX reverse symbol
 		if (g_vfo_info[vfo_num].channel.frequency_reverse)
 			UI_PrintStringSmall("R", 62, 0, line + 2);

@@ -80,8 +80,8 @@ void BOOT_ProcessMode(boot_mode_t Mode)
 
 			RADIO_InitInfo(g_rx_vfo, FREQ_CHANNEL_LAST - 1, g_aircopy_freq);
 
-			g_rx_vfo->channel_bandwidth = BANDWIDTH_WIDE;
-			g_rx_vfo->output_power      = OUTPUT_POWER_LOW;
+			g_rx_vfo->channel.channel_bandwidth = BANDWIDTH_WIDE;
+			g_rx_vfo->channel.tx_power          = OUTPUT_POWER_LOW;
 
 			RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
 

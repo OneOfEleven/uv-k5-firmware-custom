@@ -693,7 +693,7 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 					g_another_voice_id = (voice_id_t)Key;
 				#endif
 
-				g_rx_vfo->band = i;
+				g_rx_vfo->channel_attributes.band = i;
 
 				// round the frequency to nearest step size
 				Frequency = ((Frequency + (g_rx_vfo->step_freq / 2)) / g_rx_vfo->step_freq) * g_rx_vfo->step_freq;
