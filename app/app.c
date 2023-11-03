@@ -50,6 +50,9 @@
 #include "dtmf.h"
 #include "external/printf/printf.h"
 #include "frequencies.h"
+#ifdef ENABLE_SCAN_IGNORE_LIST
+	#include "freq_ignore.h"
+#endif
 #include "functions.h"
 #include "helper/battery.h"
 #ifdef ENABLE_MDC1200
@@ -668,12 +671,27 @@ void APP_stop_scan(void)
 static void APP_next_freq(void)
 {
 	frequency_band_t       new_band;
-	const frequency_band_t old_band  = FREQUENCY_GetBand(g_rx_vfo->freq_config_rx.frequency);
-	const uint32_t         frequency = APP_set_frequency_by_step(g_rx_vfo, g_scan_state_dir);
+	const frequency_band_t old_band = FREQUENCY_GetBand(g_rx_vfo->freq_config_rx.frequency);
+
+	uint32_t frequency = APP_set_frequency_by_step(g_rx_vfo, g_scan_state_dir);
+	g_rx_vfo->freq_config_rx.frequency = frequency;
+
+	#ifdef ENABLE_SCAN_IGNORE_LIST
+		while (FI_freq_ignored(frequency) >= 0)
+		{
+			uint32_t next_frequency;
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//				UART_printf("skipping %u\r\n", frequency);
+			#endif
+			next_frequency = APP_set_frequency_by_step(g_rx_vfo, g_scan_state_dir); // skip to next frequency
+			if (frequency == next_frequency)
+				break;
+			frequency = next_frequency;
+			g_rx_vfo->freq_config_rx.frequency = frequency;
+		}
+	#endif
 
 	new_band = FREQUENCY_GetBand(frequency);
-
-	g_rx_vfo->freq_config_rx.frequency = frequency;
 
 	g_rx_vfo->freq_in_channel = 0xff;
 
@@ -682,7 +700,7 @@ static void APP_next_freq(void)
 	#endif
 
 	if (new_band != old_band)
-	{	// original slow method
+	{	// original slower method
 
 		RADIO_ApplyOffset(g_rx_vfo, false);
 		RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);

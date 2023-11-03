@@ -187,7 +187,7 @@ void UI_drawBars(uint8_t *p, const unsigned int level)
 			const int16_t      s0_dBm       = -147;                  // S0 .. base level
 
 			const int16_t      s9_dBm       = s0_dBm + (6 * 9);      // S9 .. 6dB/S-Point
-			const int16_t      bar_max_dBm  = s9_dBm + 30;           // S9+30dB
+			const int16_t      bar_max_dBm  = s9_dBm + 60;           // S9+60dB
 //			const int16_t      bar_min_dBm  = s0_dBm + (6 * 0);      // S0
 			const int16_t      bar_min_dBm  = s0_dBm + (6 * 4);      // S4
 

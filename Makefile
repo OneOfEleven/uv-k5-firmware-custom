@@ -62,6 +62,7 @@ ENABLE_SHOW_CHARGE_LEVEL         := 0
 ENABLE_REVERSE_BAT_SYMBOL        := 1
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
+ENABLE_SCAN_IGNORE_LIST          := 1
 # Kill and Revive 400 B
 ENABLE_KILL_REVIVE               := 0
 # AM Fix 800 B
@@ -176,6 +177,9 @@ OBJS += app/generic.o
 OBJS += app/main.o
 OBJS += app/menu.o
 OBJS += app/search.o
+ifeq ($(ENABLE_SCAN_IGNORE_LIST),1)
+	OBJS += freq_ignore.o
+endif
 ifeq ($(ENABLE_PANADAPTER),1)
 	OBJS += app/spectrum.o
 endif
@@ -404,6 +408,9 @@ ifeq ($(ENABLE_REVERSE_BAT_SYMBOL),1)
 endif
 ifeq ($(ENABLE_CODE_SEARCH_TIMEOUT),1)
 	CFLAGS  += -DENABLE_CODE_SEARCH_TIMEOUT
+endif
+ifeq ($(ENABLE_SCAN_IGNORE_LIST),1)
+	CFLAGS  += -DENABLE_SCAN_IGNORE_LIST
 endif
 ifeq ($(ENABLE_KILL_REVIVE),1)
 	CFLAGS  += -DENABLE_KILL_REVIVE

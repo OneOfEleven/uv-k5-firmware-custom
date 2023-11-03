@@ -31,6 +31,9 @@
 #if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	#include "driver/uart.h"
 #endif
+#ifdef ENABLE_SCAN_IGNORE_LIST
+	#include "freq_ignore.h"
+#endif
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"
@@ -247,6 +250,10 @@ void ACTION_Scan(bool bRestart)
 
 			// start scanning
 	
+			#ifdef ENABLE_SCAN_IGNORE_LIST
+				FI_clear_freq_ignored();
+			#endif
+
 			g_monitor_enabled = false;
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 

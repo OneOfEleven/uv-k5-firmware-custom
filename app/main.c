@@ -35,6 +35,9 @@
 #endif
 #include "dtmf.h"
 #include "frequencies.h"
+#ifdef ENABLE_SCAN_IGNORE_LIST
+	#include "freq_ignore.h"
+#endif
 #include "misc.h"
 #include "radio.h"
 #include "settings.h"
@@ -807,13 +810,29 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 		return;
 	}
 
-	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_current_function == FUNCTION_TRANSMIT)
-	{	// RF scanning or TX'ing
+	if (g_current_function == FUNCTION_TRANSMIT)
 		return;
-	}
 
 	if (!g_fkey_pressed)
 	{	// pressed without the F-key
+
+		if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
+		{	// RF scanning
+	
+			if (scanning_paused())
+			{
+				FI_add_freq_ignored(g_rx_vfo->freq_config_rx.frequency);
+		
+				// immediately continue the scan
+				g_scan_pause_tick_10ms = 0;
+				g_scan_pause_time_mode = false;
+				g_squelch_open         = false;
+				g_rx_reception_mode    = RX_MODE_NONE;
+				FUNCTION_Select(FUNCTION_FOREGROUND);
+			}
+
+			return;
+		}
 
 		if (g_scan_state_dir == SCAN_STATE_DIR_OFF && IS_NOT_NOAA_CHANNEL(g_tx_vfo->channel_save))
 		{	// start entering a DTMF string
@@ -832,6 +851,9 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 	else
 	{	// with the F-key
 		g_fkey_pressed = false;
+
+		if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
+			return;	// RF scanning
 
 		if (IS_NOAA_CHANNEL(g_tx_vfo->channel_save))
 		{
