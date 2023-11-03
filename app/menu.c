@@ -415,19 +415,16 @@ void MENU_AcceptSetting(void)
 		case MENU_CHAN_SQL:
 			g_tx_vfo->channel.squelch_level = g_sub_menu_selection;
 			g_request_save_channel = 1;
-			g_vfo_configure_mode   = VFO_CONFIGURE;
 			return;
 
 		case MENU_STEP:
 			g_tx_vfo->channel.step_setting = step_freq_table_sorted[g_sub_menu_selection];
 			g_request_save_channel = 1;
-			g_vfo_configure_mode   = VFO_CONFIGURE_RELOAD;
 			return;
 
 		case MENU_TX_POWER:
 			g_tx_vfo->channel.tx_power = g_sub_menu_selection;
 			g_request_save_channel = 1;
-			g_vfo_configure_mode   = VFO_CONFIGURE_RELOAD;
 			return;
 
 		case MENU_TX_CDCSS:

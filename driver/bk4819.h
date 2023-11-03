@@ -103,7 +103,7 @@ void     BK4819_SetCompander(const unsigned int mode);
 void     BK4819_DisableVox(void);
 void     BK4819_DisableDTMF(void);
 void     BK4819_EnableDTMF(void);
-void     BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool set_dac);
+void     BK4819_StartTone1(const uint16_t frequency, const unsigned int level);
 void     BK4819_StopTones(const bool tx);
 void     BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level);
 void     BK4819_EnterTxMute(void);

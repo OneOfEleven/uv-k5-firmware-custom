@@ -446,8 +446,8 @@ void SETTINGS_save(void)
 
 void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, vfo_info_t *p_vfo, const unsigned int mode)
 {
-	const unsigned int chan  = CHANNEL_NUM(channel, vfo);
-	t_channel         *p_channel = &g_eeprom.config.channel[chan];
+	const unsigned int chan        = CHANNEL_NUM(channel, vfo);
+	t_channel         *p_channel   = &g_eeprom.config.channel[chan];
 	unsigned int       eeprom_addr = chan * 16;
 
 	if (IS_NOAA_CHANNEL(channel))
