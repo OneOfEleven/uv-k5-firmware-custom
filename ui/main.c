@@ -244,6 +244,9 @@ void UI_update_rssi(const int16_t rssi, const int16_t glitch, const int16_t nois
 			if (g_current_function == FUNCTION_RECEIVE)
 				UI_DisplayRSSIBar(rssi, glitch, noise, true);
 		}
+	#else
+		(void)glitch;
+		(void)noise;
 	#endif
 
 	{	// original little RS bars

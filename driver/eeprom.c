@@ -32,7 +32,8 @@ void EEPROM_ReadBuffer(const uint16_t address, void *p_buffer, const unsigned in
 
 	I2C_Start();
 	I2C_Write(0xA1);
-	I2C_ReadBuffer(p_buffer, size);
+//	I2C_ReadBuffer(p_buffer, size, false);
+	I2C_ReadBuffer(p_buffer, size, true);   // faster read
 	I2C_Stop();
 }
 
@@ -59,7 +60,9 @@ void EEPROM_WriteBuffer8(const uint16_t address, const void *p_buffer)
 	// only write the data if it's different to what's already there
 
 	uint8_t buffer[8];
+
 	EEPROM_ReadBuffer(address, buffer, 8);
+
 	if (memcmp(p_buffer, buffer, 8) != 0)
 	{
 		I2C_Start();

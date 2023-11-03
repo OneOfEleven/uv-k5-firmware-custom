@@ -29,9 +29,10 @@ void I2C_Start(void);
 void I2C_Stop(void);
 
 uint8_t I2C_Read(bool bFinal);
+uint8_t I2C_Read_fast(bool bFinal);
 int I2C_Write(uint8_t Data);
 
-int I2C_ReadBuffer(void *pBuffer, unsigned int Size);
+int I2C_ReadBuffer(void *pBuffer, unsigned int Size, const bool fast);
 int I2C_WriteBuffer(const void *pBuffer, unsigned int Size);
 
 #endif
