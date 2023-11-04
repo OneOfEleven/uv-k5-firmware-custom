@@ -26,6 +26,9 @@
 #include "external/printf/printf.h"
 #include "font.h"
 #include "functions.h"
+#ifdef ENABLE_SCAN_IGNORE_LIST
+	#include "freq_ignore.h"
+#endif
 #include "helper/battery.h"
 #ifdef ENABLE_MDC1200
 	#include "mdc1200.h"
@@ -765,26 +768,31 @@ void UI_DisplayMain(void)
 				const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
 //				const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // currently way to slow
 
-				if (g_vfo_info[vfo_num].channel.compand)
+//				if (g_vfo_info[vfo_num].channel.compand)
 				{
-					strcpy(str, "  ");
+					strcpy(str, "   ");
+
+					#ifdef ENABLE_SCAN_IGNORE_LIST
+						if (FI_freq_ignored(frequency) >= 0)
+							str[0] = 'I';  // frequency is in the ignore list
+					#endif
 
 					if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-						str[0] = 'F';  // channel number that contains this VFO frequency
+						str[1] = 'F';  // channel number that contains this VFO frequency
 
 					if (g_vfo_info[vfo_num].channel.compand)
-						str[1] = 'C';  // compander is enabled
+						str[2] = 'C';  // compander is enabled
 
-					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 2), 0, line + 1);
+					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
 				}
-				else
-				{
-					if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-					{	// channel number that contains this VFO frequency
-						sprintf(str, "%03u", freq_in_channel);
-						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
-					}
-				}
+//				else
+//				{
+//					if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
+//					{	// channel number that contains this VFO frequency
+//						sprintf(str, "%03u", freq_in_channel);
+//						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
+//					}
+//				}
 			}
 			#endif
 		}

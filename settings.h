@@ -286,6 +286,8 @@ typedef struct {
 		uint8_t        vox_enabled;                     //
 		uint8_t        vox_level;                       //
 		uint8_t        mic_sensitivity;                 //
+
+		// 0x0E78
 		#ifdef ENABLE_CONTRAST
 			uint8_t    lcd_contrast;                    // 1of11
 		#else

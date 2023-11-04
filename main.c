@@ -83,6 +83,10 @@ void MAIN_DisplayPowerOn(void)
 	memset(str1, 0, sizeof(str1));
 	memset(str2, 0, sizeof(str2));
 
+	// fetch backlight time
+	EEPROM_ReadBuffer(0x0E78, ((uint8_t *)&g_eeprom) + 0x0E78, 16);
+
+	// fetch power-on mode
 	EEPROM_ReadBuffer(0x0E90, ((uint8_t *)&g_eeprom) + 0x0E90, 16);
 
 	switch (g_eeprom.config.setting.power_on_display_mode)
@@ -142,7 +146,7 @@ void MAIN_DisplayPowerOn(void)
 	}
 
 	if (g_eeprom.config.setting.power_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
-		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // backlight on
+		backlight_turn_on(0);   // turn the back light on
 }
 
 void Main(void)
@@ -267,9 +271,9 @@ void Main(void)
 		FUNCTION_Select(FUNCTION_POWER_SAVE);
 
 		if (g_eeprom.config.setting.backlight_time < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
-			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
+			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);   // turn the backlight OFF
 		else
-			GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  	// turn the backlight ON
+			backlight_turn_on(0);                               // turn the backlight ON
 
 		g_reduced_service = true;
 	}

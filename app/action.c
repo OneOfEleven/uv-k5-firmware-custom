@@ -251,7 +251,7 @@ void ACTION_Scan(bool bRestart)
 			// start scanning
 	
 			#ifdef ENABLE_SCAN_IGNORE_LIST
-				FI_clear_freq_ignored();
+//				FI_clear_freq_ignored();
 			#endif
 
 			g_monitor_enabled = false;

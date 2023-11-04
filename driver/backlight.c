@@ -24,17 +24,17 @@ uint16_t g_backlight_tick_500ms = 0;
 
 uint16_t backlight_ticks(void)
 {
+	uint16_t ticks = 0;
 	switch (g_eeprom.config.setting.backlight_time)
 	{
-		case 1:	return 2 *  5;      // 5 sec
-		case 2:	return 2 * 10;      // 10 sec
-		case 3: return 2 * 20;      // 20 sec
-		case 4: return 2 * 60;      // 1 min
-		case 5: return 2 * 60 * 2;  // 2 min
-		case 6: return 2 * 60 * 4;  // 4 min
-		default:
-		case 7: return 0;           // always on
+		case 1:	ticks =  5;     break;  // 5 sec
+		case 2:	ticks = 10;     break;  // 10 sec
+		case 3: ticks = 20;     break;  // 20 sec
+		case 4: ticks = 60;     break;  // 1 min
+		case 5: ticks = 60 * 2; break;  // 2 min
+		case 6: ticks = 60 * 4; break;  // 4 min
 	}
+	return ticks * 2;
 }
 
 void backlight_turn_on(const uint16_t min_ticks)
