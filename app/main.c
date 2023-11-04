@@ -753,8 +753,24 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 				g_fkey_pressed  = false;
 				g_update_status = true;
 
-				#ifdef ENABLE_COPY_CHAN_TO_VFO_TO_CHAN
+				#ifdef ENABLE_SCAN_IGNORE_LIST
+
+					if (g_scan_state_dir == SCAN_STATE_DIR_OFF &&
+					    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
+					    FI_freq_ignored(g_rx_vfo->p_rx->frequency) >= 0)
+					{	// remove the frequency from the ignore list
+						FI_sub_freq_ignored(g_rx_vfo->p_rx->frequency);
+						g_update_display = true;
+					}
+					#ifdef ENABLE_COPY_CHAN_TO_VFO_TO_CHAN
+						else
+							MAIN_copy_mem_vfo_mem();
+					#endif
+
+				#elif defined(ENABLE_COPY_CHAN_TO_VFO_TO_CHAN)
+
 					MAIN_copy_mem_vfo_mem();
+
 				#endif
 			}
 		}
