@@ -922,15 +922,14 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 				}
 			#endif
 
-			g_rx_vfo->freq_config_tx.frequency = g_rx_vfo->freq_config_rx.frequency;
+			g_tx_vfo->freq_config_tx.frequency = g_tx_vfo->freq_config_rx.frequency;
 
 			// find the first channel that contains this frequency
-			g_rx_vfo->freq_in_channel = SETTINGS_find_channel(g_rx_vfo->freq_config_rx.frequency);
+			g_tx_vfo->freq_in_channel = SETTINGS_find_channel(g_tx_vfo->freq_config_rx.frequency);
 
-//			SETTINGS_save_channel(g_rx_vfo->channel_save, g_eeprom.config.setting.tx_vfo_num, g_tx_vfo, 1);
-			SETTINGS_save_channel(g_rx_vfo->channel_save, g_rx_vfo_num, g_rx_vfo, 1);
+			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.config.setting.tx_vfo_num, g_tx_vfo, 1);
 
-			RADIO_ApplyOffset(g_rx_vfo, true);
+			RADIO_ApplyOffset(g_tx_vfo, true);
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //				UART_printf("save chan %u\r\n", g_rx_vfo->channel_save);
@@ -983,8 +982,8 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 			if (IS_FREQ_CHANNEL(Channel))
 			{	// frequency mode
 
-				uint32_t               freq  = g_rx_vfo->freq_config_rx.frequency;
-				const uint32_t         step  = g_rx_vfo->step_freq;
+				uint32_t               freq  = g_tx_vfo->freq_config_rx.frequency;
+				const uint32_t         step  = g_tx_vfo->step_freq;
 				const frequency_band_t band  = FREQUENCY_GetBand(freq);
 				const uint32_t         upper = FREQ_BAND_TABLE[band].upper;
 				const uint32_t         lower = FREQ_BAND_TABLE[band].lower;
@@ -1006,17 +1005,17 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 					return;
 				}
 
-				g_rx_vfo->freq_config_rx.frequency = freq;
+				g_tx_vfo->freq_config_rx.frequency = freq;
 
-				RADIO_ApplyOffset(g_rx_vfo, false);
+				RADIO_ApplyOffset(g_tx_vfo, false);
 
 				// find the first channel that contains this frequency .. currently takes too long
 				//
 				//if (!key_held && key_pressed)
-				//	g_rx_vfo->freq_in_channel = SETTINGS_find_channel(freq);
+				//	g_tx_vfo->freq_in_channel = SETTINGS_find_channel(freq);
 				//else
 				//if (key_held && key_pressed)
-					g_rx_vfo->freq_in_channel = 0xff;
+					g_tx_vfo->freq_in_channel = 0xff;
 
 				#if 0
 					// original slow method
