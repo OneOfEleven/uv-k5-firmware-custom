@@ -382,10 +382,10 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	{
 		uint16_t threshold_enable;
 		uint16_t threshold_disable;
-	
+
 		if (level > (ARRAY_SIZE(g_eeprom.calib.vox[0].threshold) - 1))
 			level = ARRAY_SIZE(g_eeprom.calib.vox[0].threshold) - 1;
-	
+
 		// my eeprom values ..
 		//
 		// vox threshold enable   30 50 70 90 110 130 150 170 200 230 FFFF FFFF
@@ -399,27 +399,19 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 			threshold_enable  = g_eeprom.calib.vox[0].threshold[level];
 			threshold_disable = g_eeprom.calib.vox[1].threshold[level];
 		#endif
-	
+
 		BK4819_EnableVox(threshold_enable, threshold_disable);
-	
+
 		BK4819_WriteRegister(0x3F, BK4819_ReadRegister(0x3F) | BK4819_REG_3F_VOX_FOUND | BK4819_REG_3F_VOX_LOST);
 	}
 #endif
 
 void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 {
-//	uint8_t          tx_power[3];
-//	uint16_t         base;
-//	frequency_band_t band;
-	uint8_t          squelch_level;
-
 	// *******************************
 	// squelch
 
-//	band = FREQUENCY_GetBand(p_vfo->p_rx->frequency);
-//	base = (Band < BAND4_174MHz) ? 0x1E60 : 0x1E00;
-
-	squelch_level = (p_vfo->channel.squelch_level > 0) ? p_vfo->channel.squelch_level : g_eeprom.config.setting.squelch_level;
+	const unsigned int squelch_level = (p_vfo->channel.squelch_level > 0) ? p_vfo->channel.squelch_level : g_eeprom.config.setting.squelch_level;
 
 	// note that 'noise' and 'glitch' values are inverted compared to 'rssi' values
 
@@ -436,18 +428,6 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 	}
 	else
 	{	// squelch >= 1
-#if 0
-		Base += squelch_level;                                                   // my eeprom squelch-1
-		                                                                         // VHF   UHF
-		EEPROM_ReadBuffer(Base + 0x00, &p_vfo->squelch_open_rssi_thresh,    1);  //  50    10
-		EEPROM_ReadBuffer(Base + 0x10, &p_vfo->squelch_close_rssi_thresh,   1);  //  40     5
-
-		EEPROM_ReadBuffer(Base + 0x20, &p_vfo->squelch_open_noise_thresh,   1);  //  65    90
-		EEPROM_ReadBuffer(Base + 0x30, &p_vfo->squelch_close_noise_thresh,  1);  //  70   100
-
-		EEPROM_ReadBuffer(Base + 0x40, &p_vfo->squelch_close_glitch_thresh, 1);  //  90    90      BUG  ??? .. these 2 swapped ?
-		EEPROM_ReadBuffer(Base + 0x50, &p_vfo->squelch_open_glitch_thresh,  1);  // 100   100       "            "
-#else
 		unsigned int band = (unsigned int)FREQUENCY_GetBand(p_vfo->p_rx->frequency);
 		band = (band < BAND4_174MHz) ? 1 : 0;
 
@@ -459,18 +439,15 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 
 		p_vfo->squelch_open_glitch_thresh  = g_eeprom.calib.squelch_band[band].open_glitch_thresh[squelch_level];
 		p_vfo->squelch_close_glitch_thresh = g_eeprom.calib.squelch_band[band].close_glitch_thresh[squelch_level];
-#endif
+
 		// *********
 
-		// used in AM mode
 		int16_t rssi_open    = p_vfo->squelch_open_rssi_thresh;      // 0 ~ 255
 		int16_t rssi_close   = p_vfo->squelch_close_rssi_thresh;     // 0 ~ 255
 
-		// used in FM mode
 		int16_t noise_open   = p_vfo->squelch_open_noise_thresh;     // 127 ~ 0
 		int16_t noise_close  = p_vfo->squelch_close_noise_thresh;    // 127 ~ 0
 
-		// used in both modes ?
 		int16_t glitch_open  = p_vfo->squelch_open_glitch_thresh;    // 255 ~ 0
 		int16_t glitch_close = p_vfo->squelch_close_glitch_thresh;   // 255 ~ 0
 
@@ -482,19 +459,19 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 			// getting the best general settings here is experimental, bare with me
 
 			#if 0
-//				rssi_open   = (rssi_open   * 8) / 9;
+				rssi_open   = (rssi_open   * 8) / 9;
 				noise_open  = (noise_open  * 9) / 8;
 				glitch_open = (glitch_open * 9) / 8;
 			#else
 				// even more sensitive .. use when RX bandwidths are fixed (no weak signal auto adjust)
-//				rssi_open   = (rssi_open   * 1) / 2;
+				rssi_open   = (rssi_open   * 1) / 2;
 				noise_open  = (noise_open  * 2) / 1;
 				glitch_open = (glitch_open * 2) / 1;
 			#endif
 
 		#else
 			// more sensitive .. use when RX bandwidths are fixed (no weak signal auto adjust)
-//			rssi_open   = (rssi_open   * 3) / 4;
+			rssi_open   = (rssi_open   * 3) / 4;
 			noise_open  = (noise_open  * 4) / 3;
 			glitch_open = (glitch_open * 4) / 3;
 		#endif
@@ -503,14 +480,14 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 		// ensure the 'close' threshold is lower than the 'open' threshold
 		// ie, maintain a minimum level of hysteresis
 
-//		rssi_close   = (rssi_open   * 4) / 6;
+		rssi_close   = (rssi_open   * 4) / 6;
 		noise_close  = (noise_open  * 6) / 4;
 		glitch_close = (glitch_open * 6) / 4;
 
-//		if (rssi_open  <  8)
-//			rssi_open  =  8;
-//		if (rssi_close > (rssi_open   - 8))
-//			rssi_close =  rssi_open   - 8;
+		if (rssi_open  <  8)
+			rssi_open  =  8;
+		if (rssi_close > (rssi_open   - 8))
+			rssi_close =  rssi_open   - 8;
 
 		if (noise_open  > (127 - 4))
 			noise_open  =  127 - 4;
@@ -547,10 +524,10 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 		// 1F10    5A 5A 5A   64 64 64   82 82 82   FF FF FF FF FF FF FF .. 350 MHz
 		// 1F20    5A 5A 5A   64 64 64   8F 91 8A   FF FF FF FF FF FF FF .. 400 MHz
 		// 1F30    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 470 MHz
-	
+
 		uint8_t tx_power[3];
 		const unsigned int band = (unsigned int)FREQUENCY_GetBand(p_vfo->p_tx->frequency);
-	
+
 //		EEPROM_ReadBuffer(0x1ED0 + (band * 16) + (p_vfo->output_power * 3), tx_power, 3);
 		memcpy(&tx_power, &g_eeprom.calib.tx_band_power[band].level[p_vfo->channel.tx_power], 3);
 
@@ -570,7 +547,7 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 				tx_power[2] /= 3;    //tx_power[2] /= 5;   get more low power
 			}
 		#endif
-	
+
 		p_vfo->txp_calculated_setting = FREQUENCY_CalculateOutputPower(
 			tx_power[0],
 			tx_power[1],
@@ -682,7 +659,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	}
 
 	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x30, 
+	BK4819_WriteRegister(0x30,
 		BK4819_REG_30_ENABLE_VCO_CALIB |
 //		BK4819_REG_30_ENABLE_UNKNOWN   |
 		BK4819_REG_30_ENABLE_RX_LINK   |
@@ -814,7 +791,8 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			}
 
 			if (g_rx_vfo->channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
-				BK4819_EnableScramble(g_rx_vfo->channel.scrambler - 1);
+//				BK4819_EnableScramble(g_rx_vfo->channel.scrambler - 1);
+				BK4819_EnableScramble(2600 + ((g_rx_vfo->channel.scrambler - 1) * 100));
 			else
 				BK4819_DisableScramble();
 		}

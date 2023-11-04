@@ -498,7 +498,8 @@ void MENU_AcceptSetting(void)
 			g_tx_vfo->channel.scrambler = g_sub_menu_selection;
 			#if 0
 				if (g_sub_menu_selection > 0 && g_eeprom.config.setting.enable_scrambler)
-					BK4819_EnableScramble(g_sub_menu_selection - 1);
+//					BK4819_EnableScramble(g_sub_menu_selection - 1);
+					BK4819_EnableScramble(2600 + ((g_sub_menu_selection - 1) * 100));
 				else
 					BK4819_DisableScramble();
 			#endif
@@ -856,7 +857,7 @@ void MENU_AcceptSetting(void)
 
 		case MENU_SCRAMBLER_EN:
 			g_eeprom.config.setting.enable_scrambler = g_sub_menu_selection;
-			g_flag_reconfigure_vfos    = true;
+			g_flag_reconfigure_vfos = true;
 			break;
 
 		case MENU_TX_EN:

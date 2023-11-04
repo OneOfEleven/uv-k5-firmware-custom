@@ -367,9 +367,9 @@ const char g_sub_menu_dis_en[2][9] =
 	"ENABLED"
 };
 
-const char g_sub_menu_scrambler[11][7] =
+const char g_sub_menu_scrambler[16][7] =
 {
-	"OFF",
+	"OFF",     // 0
 	"2600Hz",
 	"2700Hz",
 	"2800Hz",
@@ -379,7 +379,12 @@ const char g_sub_menu_scrambler[11][7] =
 	"3200Hz",
 	"3300Hz",
 	"3400Hz",
-	"3500Hz"
+	"3500Hz",  // 10
+	"3600Hz",
+	"3700Hz",
+	"3800Hz",
+	"3900Hz",
+	"4000Hz"   // 15
 };
 
 #ifdef ENABLE_SIDE_BUTT_MENU
@@ -707,7 +712,8 @@ void UI_DisplayMenu(void)
 
 			#if 1
 				if (g_sub_menu_selection > 0 && g_eeprom.config.setting.enable_scrambler)
-					BK4819_EnableScramble(g_sub_menu_selection - 1);
+//					BK4819_EnableScramble(g_sub_menu_selection - 1);
+					BK4819_EnableScramble(2600 + ((g_sub_menu_selection - 1) * 100));
 				else
 					BK4819_DisableScramble();
 			#endif

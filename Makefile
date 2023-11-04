@@ -21,7 +21,7 @@ ENABLE_AIRCOPY_RX_REBOOT         := 0
 ENABLE_FMRADIO_64_76             := 0
 ENABLE_FMRADIO_76_90             := 0
 ENABLE_FMRADIO_76_108            := 0
-ENABLE_FMRADIO_875_108           := 0
+ENABLE_FMRADIO_875_108           := 1
 ENABLE_FMRADIO_64_108            := 0
 # NOAA 1.2 kB
 ENABLE_NOAA                      := 0
@@ -78,7 +78,7 @@ ENABLE_RX_SIGNAL_BAR             := 1
 # Tx Audio Bar 300 B
 ENABLE_TX_AUDIO_BAR              := 0
 # Side Button Menu 300 B
-ENABLE_SIDE_BUTT_MENU            := 1
+ENABLE_SIDE_BUTT_MENU            := 0
 # Key Lock 400 B
 ENABLE_KEYLOCK                   := 0
 #ENABLE_PANADAPTER               := 0

@@ -43,9 +43,9 @@ BK4819_filter_bandwidth_t m_bandwidth = BK4819_FILTER_BW_NARROW;
 bool g_rx_idle_mode;
 
 __inline uint16_t scale_freq(const uint16_t freq)
-{
-//	return (((uint32_t)freq * 1032444u) + 50000u) / 100000u;   // with rounding
-	return (((uint32_t)freq * 1353245u) + (1u << 16)) >> 17;   // with rounding
+{	// with rounding
+//	return (((uint32_t)freq * 1032444u) + 50000u) / 100000u;
+	return (((uint32_t)freq * 338311u) + (1u << 14)) >> 15;    // max freq = 12695
 }
 
 void BK4819_Init(void)
@@ -67,10 +67,7 @@ void BK4819_Init(void)
 	BK4819_EnableAGC();  // only do this in linear modulation modes, not FM
 #endif
 
-//	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
-//	BK4819_WriteRegister(0x7D, 0xE940);  // 111010010100 0000
-	BK4819_WriteRegister(0x7D, 0xE940 | 0x1f);
-	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable
+	BK4819_set_mic_gain(31);
 
 	// REG_48 .. RX AF level
 	//
@@ -95,6 +92,15 @@ void BK4819_Init(void)
 		( 0u << 10) |     // AF Rx Gain-1
 		(58u <<  4) |     // AF Rx Gain-2
 		( 8u <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
+
+	// squelch mode
+//	BK4819_WriteRegister(0x77, 0x88EF);     // rssi + noise + glitch .. RT-890
+//	BK4819_WriteRegister(0x77, 0xA8EF);     // rssi + noise + glitch .. default
+	BK4819_WriteRegister(0x77, 0xAAEF);     // rssi + glitch
+//	BK4819_WriteRegister(0x77, 0xCCEF);     // rssi + noise
+//	BK4819_WriteRegister(0x77, 0xFFEF);     // rssi
+
+//	BK4819_WriteRegister(0x73, (0u << 11) | (1u << 4));     // disable AFC
 
 	BK4819_config_sub_audible();
 	
@@ -154,7 +160,6 @@ void BK4819_Init(void)
 	BK4819_WriteRegister(0x53, 0xE678);
 	BK4819_WriteRegister(0x2C, 0x5705);
 	BK4819_WriteRegister(0x4B, 0x7102);
-	BK4819_WriteRegister(0x77, 0x88EF);
 	BK4819_WriteRegister(0x26, 0x13A0);
 #endif
 }
@@ -498,7 +503,7 @@ void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const 
 				val =
 					(0u << 15) |     //  0
 					(4u << 12) |     // *3 RF filter bandwidth
-					(4u <<  9) |     // *0 RF filter bandwidth when signal is weak
+					(2u <<  9) |     // *0 RF filter bandwidth when signal is weak
 					(6u <<  6) |     // *0 AFTxLPF2 filter Band Width
 					(2u <<  4) |     //  2 BW Mode Selection
 					(1u <<  3) |     //  1
@@ -525,7 +530,7 @@ void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const 
 				val =
 					(0u << 15) |     //  0
 					(4u << 12) |     // *4 RF filter bandwidth
-					(4u <<  9) |     // *0 RF filter bandwidth when signal is weak
+					(2u <<  9) |     // *0 RF filter bandwidth when signal is weak
 					(0u <<  6) |     // *1 AFTxLPF2 filter Band Width
 					(0u <<  4) |     //  0 BW Mode Selection
 					(1u <<  3) |     //  1
@@ -767,13 +772,23 @@ void BK4819_DisableScramble(void)
 	BK4819_WriteRegister(0x31, Value & ~(1u << 1));
 }
 
-void BK4819_EnableScramble(uint8_t Type)
+#if 0
+void BK4819_EnableScramble(const uint8_t Type)
 {
 	const uint16_t Value = BK4819_ReadRegister(0x31);
 	BK4819_WriteRegister(0x31, Value | (1u << 1));
 
-	BK4819_WriteRegister(0x71, 0x68DC + (Type * 1032));   // 0110 1000 1101 1100
+	BK4819_WriteRegister(0x71, (26 + Type) * 1032);
 }
+#else
+void BK4819_EnableScramble(const uint16_t freq)
+{
+	const uint16_t Value = BK4819_ReadRegister(0x31);
+	BK4819_WriteRegister(0x31, Value | (1u << 1));
+
+	BK4819_WriteRegister(0x71, scale_freq(freq));
+}
+#endif
 
 bool BK4819_CompanderEnabled(void)
 {
@@ -1025,6 +1040,26 @@ void BK4819_Sleep(void)
 	BK4819_WriteRegister(0x37, 0x1D00);  // 0 0 0111 0 1 0000 0 0 0 0
 }
 
+void BK4819_setTxAudio(const unsigned int mode)
+{
+	switch (mode)
+	{
+		case 0:
+			break;
+		case 1:
+			BK4819_WriteRegister(0x53,0xE678); // ???
+			BK4819_WriteRegister(0x4B,0x7102); // enable TX audio AGC
+			BK4819_WriteRegister(0x27,0x7430); // ???
+//			BK4819_WriteRegister(0x29,0xAB2A);
+			break;
+		case 2:
+			BK4819_WriteRegister(0x4B,0x7120); // disable TX audio AGC
+			BK4819_WriteRegister(0x27,0xC430); // ???
+//			BK4819_WriteRegister(0x29,0xAB20);
+			break;
+	}
+}
+
 void BK4819_set_mic_gain(unsigned int level)
 {
 	if (level > 31)
@@ -1032,7 +1067,11 @@ void BK4819_set_mic_gain(unsigned int level)
 	
 	// mic gain 0.5dB/step 0 to 31
 	BK4819_WriteRegister(0x7D, 0xE940 | level);
+
 //	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable  .. doesn't work
+//	BK4819_WriteRegister(0x19, BK4819_ReadRegister(0x19) & ~(1u << 15));  // enable mic AGC
+
+//	BK4819_setTxAudio(1);
 }
 
 void BK4819_TurnsOffTones_TurnsOnRX(void)
@@ -1232,8 +1271,8 @@ void BK4819_PlayDTMF(char Code)
 
     if (index < 16)
     {
-    	BK4819_WriteRegister(0x71, (((uint32_t)tones[0][index] * 103244u) + 5000u) / 10000u);   // with rounding
-    	BK4819_WriteRegister(0x72, (((uint32_t)tones[1][index] * 103244u) + 5000u) / 10000u);   // with rounding
+    	BK4819_WriteRegister(0x71, scale_freq(tones[0][index]));
+    	BK4819_WriteRegister(0x72, scale_freq(tones[1][index]));
     }
 }
 
@@ -1808,7 +1847,7 @@ void BK4819_reset_fsk(void)
 		//
 		// tone-2 = 1200Hz
 		//
-		BK4819_WriteRegister(0x72, ((1200u * 103244) + 5000) / 10000);   // with rounding
+		BK4819_WriteRegister(0x72, scale_freq(1200));
 
 		// aircopy is done in direct FM mode
 		//
@@ -2072,7 +2111,7 @@ void BK4819_reset_fsk(void)
 				( 1u <<  7) |    // 1
 				(96u <<  0));    // 96
 
-			BK4819_WriteRegister(0x72, ((1200u * 103244) + 5000) / 10000);   // with rounding
+			BK4819_WriteRegister(0x72, scale_freq(1200));
 
 			BK4819_WriteRegister(0x58,
 				(1u << 13) |		// 1 FSK TX mode selection
@@ -2230,12 +2269,14 @@ void BK4819_reset_fsk(void)
 		
 		// REG_2B   0
 		//
-		// <10>     0 AF RX HPF 300Hz filter     0 = enable 1 = disable
-		// <9>      0 AF RX LPF 3kHz filter      0 = enable 1 = disable
-		// <8>      0 AF RX de-emphasis filter   0 = enable 1 = disable
-		// <2>      0 AF TX HPF 300Hz filter     0 = enable 1 = disable
-		// <1>      0 AF TX LPF filter           0 = enable 1 = disable
-		// <0>      0 AF TX pre-emphasis filter  0 = enable 1 = disable
+		// <15> 1 Enable CTCSS/CDCSS DC cancellation after FM Demodulation   1 = enable 0 = disable
+		// <14> 1 Enable AF DC cancellation after FM Demodulation            1 = enable 0 = disable
+		// <10> 0 AF RX HPF 300Hz filter     0 = enable 1 = disable
+		// <9>  0 AF RX LPF 3kHz filter      0 = enable 1 = disable
+		// <8>  0 AF RX de-emphasis filter   0 = enable 1 = disable
+		// <2>  0 AF TX HPF 300Hz filter     0 = enable 1 = disable
+		// <1>  0 AF TX LPF filter           0 = enable 1 = disable
+		// <0>  0 AF TX pre-emphasis filter  0 = enable 1 = disable
 		//
 		// disable the 300Hz HPF and FM pre-emphasis filter
 		//
@@ -2302,7 +2343,7 @@ void BK4819_reset_fsk(void)
 		//
 		// tone-2 = 1200Hz
 		//
-		BK4819_WriteRegister(0x72, ((1200u * 103244) + 5000) / 10000);   // with rounding
+		BK4819_WriteRegister(0x72, scale_freq(1200));
 
 		// REG_70
 		//

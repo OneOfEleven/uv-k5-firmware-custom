@@ -303,7 +303,8 @@ void FUNCTION_Select(function_type_t Function)
 */
 			if (g_current_vfo->channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
 			{
-				BK4819_EnableScramble(g_current_vfo->channel.scrambler - 1);
+//				BK4819_EnableScramble(g_current_vfo->channel.scrambler - 1);
+				BK4819_EnableScramble(2600 + ((g_current_vfo->channel.scrambler - 1) * 100));
 			}
 			
 			break;
