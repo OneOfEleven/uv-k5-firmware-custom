@@ -81,7 +81,7 @@ ENABLE_TX_AUDIO_BAR              := 0
 ENABLE_SIDE_BUTT_MENU            := 0
 # Key Lock 400 B
 ENABLE_KEYLOCK                   := 0
-#ENABLE_PANADAPTER               := 0
+ENABLE_PANADAPTER                := 0
 #ENABLE_SINGLE_VFO_CHAN          := 0
 
 #############################################################
@@ -181,7 +181,7 @@ ifeq ($(ENABLE_SCAN_IGNORE_LIST),1)
 	OBJS += freq_ignore.o
 endif
 ifeq ($(ENABLE_PANADAPTER),1)
-	OBJS += app/spectrum.o
+//	OBJS += app/spectrum.o
 endif
 ifeq ($(ENABLE_UART),1)
 	OBJS += app/uart.o
