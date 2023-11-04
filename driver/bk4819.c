@@ -33,7 +33,7 @@
 	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
-static uint16_t gBK4819_GpioOutState;
+static uint16_t g_bk4819_gpio_out_state;
 
 //const uint32_t rf_filter_transition_freq = 28000000;  // original
   const uint32_t rf_filter_transition_freq = 26500000;
@@ -50,6 +50,8 @@ __inline uint16_t scale_freq(const uint16_t freq)
 
 void BK4819_Init(void)
 {
+	g_bk4819_gpio_out_state = 0x9000;
+
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
@@ -104,40 +106,18 @@ void BK4819_Init(void)
 
 	BK4819_config_sub_audible();
 	
-#if 1
 	const uint8_t dtmf_coeffs[] = {111, 107, 103, 98, 80, 71, 58, 44, 65, 55, 37, 23, 228, 203, 181, 159};
 	for (unsigned int i = 0; i < ARRAY_SIZE(dtmf_coeffs); i++)
 		BK4819_WriteRegister(0x09, (i << 12) | dtmf_coeffs[i]);
-#else
-	// original code
-	BK4819_WriteRegister(0x09, 0x006F);  // 6F
-	BK4819_WriteRegister(0x09, 0x106B);  // 6B
-	BK4819_WriteRegister(0x09, 0x2067);  // 67
-	BK4819_WriteRegister(0x09, 0x3062);  // 62
-	BK4819_WriteRegister(0x09, 0x4050);  // 50
-	BK4819_WriteRegister(0x09, 0x5047);  // 47
-	BK4819_WriteRegister(0x09, 0x603A);  // 3A
-	BK4819_WriteRegister(0x09, 0x702C);  // 2C
-	BK4819_WriteRegister(0x09, 0x8041);  // 41
-	BK4819_WriteRegister(0x09, 0x9037);  // 37
-	BK4819_WriteRegister(0x09, 0xA025);  // 25
-	BK4819_WriteRegister(0x09, 0xB017);  // 17
-	BK4819_WriteRegister(0x09, 0xC0E4);  // E4
-	BK4819_WriteRegister(0x09, 0xD0CB);  // CB
-	BK4819_WriteRegister(0x09, 0xE0B5);  // B5
-	BK4819_WriteRegister(0x09, 0xF09F);  // 9F
-#endif
 
-	BK4819_WriteRegister(0x1F, 0x5454);
-	BK4819_WriteRegister(0x3E, 0xA037);
-
-	gBK4819_GpioOutState = 0x9000;
-
-	BK4819_WriteRegister(0x33, 0x9000);
-	BK4819_WriteRegister(0x3F, 0);
+	BK4819_WriteRegister(0x1F, 0x5454);  // 0101 0100 01 01 0100
+	BK4819_WriteRegister(0x3E, 41015);   // band selection threshold = VCO max frequency (Hz) / 96 / 640
+	BK4819_WriteRegister(0x33, 0x9000);  // 1001 0000 0000 0000 .. GPIO
+	BK4819_WriteRegister(0x3F, 0);       // disable interrupts
 
 #if 0
-	// rt-890
+	// RT-890
+
 //	BK4819_WriteRegister(0x37, 0x1D0F);
 
 //	DisableAGC(0);
@@ -150,17 +130,12 @@ void BK4819_Init(void)
 	BK4819_WriteRegister(0x49, 0x2A38);
 	BK4819_WriteRegister(0x7B, 0x8420);
 
-	BK4819_WriteRegister(0x33, 0x1F00);
-	BK4819_WriteRegister(0x35, 0x0000);
-	BK4819_WriteRegister(0x1E, 0x4C58);
-	BK4819_WriteRegister(0x1F, 0xA656);
-//	BK4819_WriteRegister(0x3E, gCalibration.BandSelectionThreshold);
-	BK4819_WriteRegister(0x3F, 0x0000);
-	BK4819_WriteRegister(0x2A, 0x4F18);
-	BK4819_WriteRegister(0x53, 0xE678);
-	BK4819_WriteRegister(0x2C, 0x5705);
-	BK4819_WriteRegister(0x4B, 0x7102);
-	BK4819_WriteRegister(0x26, 0x13A0);
+	BK4819_WriteRegister(0x1E, 0x4C58);  // ???
+	BK4819_WriteRegister(0x2A, 0x4F18);  // ???
+	BK4819_WriteRegister(0x53, 0xE678);  // ???
+	BK4819_WriteRegister(0x2C, 0x5705);  // ???
+	BK4819_WriteRegister(0x4B, 0x7102);  // AF gains
+	BK4819_WriteRegister(0x26, 0x13A0);  // ???
 #endif
 }
 
@@ -397,11 +372,11 @@ void BK4819_EnableAGC(void)
 void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
 {
 	if (bSet)
-		gBK4819_GpioOutState |=  (0x40u >> Pin);
+		g_bk4819_gpio_out_state |=  (0x40u >> Pin);
 	else
-		gBK4819_GpioOutState &= ~(0x40u >> Pin);
+		g_bk4819_gpio_out_state &= ~(0x40u >> Pin);
 
-	BK4819_WriteRegister(0x33, gBK4819_GpioOutState);
+	BK4819_WriteRegister(0x33, g_bk4819_gpio_out_state);
 }
 
 void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
@@ -411,24 +386,22 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
 	//else
 	//if (vox_amp < VoxDisableThreshold) (After Delay) VOX = 0;
 
-	const uint16_t REG_31_Value = BK4819_ReadRegister(0x31);
-
 	if (VoxEnableThreshold  > 2047)
 		VoxEnableThreshold  = 2047;
 	if (VoxDisableThreshold > 2047)
 		VoxDisableThreshold = 2047;
 
-	// 0xA000 is undocumented?
-	BK4819_WriteRegister(0x46, 0xA000 | VoxEnableThreshold);
+	// 0xA000 is undocumented
+	BK4819_WriteRegister(0x46, (20u << 11) | VoxEnableThreshold); // ???, amp threshold for vox on
 
-	// 0x1800 is undocumented?
-	BK4819_WriteRegister(0x79, 0x1800 | VoxDisableThreshold);
+	BK4819_WriteRegister(0x79, (3u << 11) | VoxDisableThreshold); // vox det interval time, amp threshold for vox off
 
 	// Bottom 12 bits are undocumented, 15:12 vox disable delay *128ms
-	BK4819_WriteRegister(0x7A, 0x289A); // vox disable delay = 128*5 = 640ms
+	BK4819_WriteRegister(0x7A, (2u << 12) | 0x089A); // vox disable delay = 128*5 = 640ms
+	// 0010 100010011010
 
 	// Enable VOX
-	BK4819_WriteRegister(0x31, REG_31_Value | (1u << 2));
+	BK4819_WriteRegister(0x31, BK4819_ReadRegister(0x31) | (1u << 2));
 }
 
 void BK4819_set_TX_deviation(const bool narrow)
@@ -775,7 +748,7 @@ void BK4819_set_scrambler(const int index)
 	}
 	else
 	{	// enable
-		uint16_t freq = 2600 + ((index - 1) * 50);       // 50 Hz steps
+		uint16_t freq = 2600 + ((index - 1) * 50);       // 2600Hz ++ 50 Hz steps
 		if (freq > 12000)
 			freq = 12000;
 

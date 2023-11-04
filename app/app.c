@@ -569,33 +569,6 @@ bool APP_start_listening(void)
 	return true;
 }
 
-uint32_t APP_set_frequency_by_step(vfo_info_t *pInfo, int8_t Step)
-{
-	uint32_t Frequency = pInfo->freq_config_rx.frequency + (Step * pInfo->step_freq);
-
-	if (pInfo->step_freq == 833)
-	{
-		const uint32_t Lower = FREQ_BAND_TABLE[pInfo->channel_attributes.band].lower;
-		const uint32_t Delta = Frequency - Lower;
-		uint32_t       Base  = (Delta / 2500) * 2500;
-		const uint32_t Index = ((Delta - Base) % 2500) / 833;
-
-		if (Index == 2)
-			Base++;
-
-		Frequency = Lower + Base + (Index * 833);
-	}
-
-//	if (Frequency >= FREQ_BAND_TABLE[pInfo->channel_attributes.band].upper)
-//		Frequency =  FREQ_BAND_TABLE[pInfo->channel_attributes.band].lower;
-//	else
-//	if (Frequency < FREQ_BAND_TABLE[pInfo->channel_attributes.band].lower)
-//		Frequency = FREQUENCY_floor_to_step(FREQ_BAND_TABLE[pInfo->channel_attributes.band].upper, pInfo->step_freq, FREQ_BAND_TABLE[pInfo->channel_attributes.band].lower);
-	Frequency = FREQUENCY_wrap_to_step_band(Frequency, pInfo->step_freq, pInfo->channel_attributes.band);
-
-	return Frequency;
-}
-
 void APP_stop_scan(void)
 {
 	if (g_scan_state_dir == SCAN_STATE_DIR_OFF)
@@ -674,37 +647,40 @@ void APP_stop_scan(void)
 
 static void APP_next_freq(void)
 {
-	frequency_band_t       new_band;
-	const frequency_band_t old_band = FREQUENCY_GetBand(g_rx_vfo->freq_config_rx.frequency);
-
-	uint32_t frequency = APP_set_frequency_by_step(g_rx_vfo, g_scan_state_dir);
-	g_rx_vfo->freq_config_rx.frequency = frequency;
+	uint32_t               freq  = g_rx_vfo->freq_config_rx.frequency;
+	const uint32_t         step  = g_rx_vfo->step_freq;
+	const frequency_band_t band  = FREQUENCY_GetBand(freq);
+	const uint32_t         upper = FREQ_BAND_TABLE[band].upper;
+	const uint32_t         lower = FREQ_BAND_TABLE[band].lower;
 
 	#ifdef ENABLE_SCAN_IGNORE_LIST
-		while (FI_freq_ignored(frequency) >= 0)
-		{
-			uint32_t next_frequency;
-			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//				UART_printf("skipping %u\r\n", frequency);
-			#endif
-			next_frequency = APP_set_frequency_by_step(g_rx_vfo, g_scan_state_dir); // skip to next frequency
-			if (frequency == next_frequency)
-				break;
-			frequency = next_frequency;
-			g_rx_vfo->freq_config_rx.frequency = frequency;
-		}
+		do {
 	#endif
+			freq += step * g_scan_state_dir;
 
-	new_band = FREQUENCY_GetBand(frequency);
+			// wrap-a-round
+			while (freq >= upper)
+				freq -= upper - lower;
+			while (freq < lower)
+				freq += upper - lower;
+
+			if (band == BAND2_108MHz)  // air band uses set channels
+				freq = lower + ((((freq - lower) + (step / 2)) / step) * step);
+
+	#ifdef ENABLE_SCAN_IGNORE_LIST
+		} while (FI_freq_ignored(freq) >= 0);
+	#endif
 
 	g_rx_vfo->freq_in_channel = 0xff;
 
+	g_rx_vfo->freq_config_rx.frequency = freq;
+
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//		UART_printf("APP_next_freq %u %u\r\n", frequency, new_band);
+//		UART_printf("APP_next_freq %u %u\r\n", freq, new_band);
 	#endif
 
-	if (new_band != old_band)
-	{	// original slower method
+	#if 0
+		// original slower method
 
 		RADIO_ApplyOffset(g_rx_vfo, false);
 		RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
@@ -716,20 +692,23 @@ static void APP_next_freq(void)
 		#else
 			g_scan_pause_tick_10ms = scan_pause_freq_10ms;
 		#endif
-	}
-	else
-	{	// don't need to go through all the other stuff .. lets speed things up !!
 
-		BK4819_set_rf_frequency(frequency, true);
-		BK4819_set_rf_filter_path(frequency);
+	#else
+		// don't need to go through all the other stuff .. speed things up !!
+
+//		RADIO_ApplyOffset(g_rx_vfo, false);
+
+		BK4819_set_rf_frequency(g_rx_vfo->freq_config_rx.frequency, true);
+		BK4819_set_rf_filter_path(g_rx_vfo->freq_config_rx.frequency);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
-//			g_scan_pause_tick_10ms = 10;   // 100ms
+			//g_scan_pause_tick_10ms = 10;   // 100ms
 			g_scan_pause_tick_10ms = 6;    // 60ms
 		#else
 			g_scan_pause_tick_10ms = scan_pause_freq_10ms;
 		#endif
-	}
+
+	#endif
 
 	g_scan_pause_time_mode = false;
 	g_update_display       = true;

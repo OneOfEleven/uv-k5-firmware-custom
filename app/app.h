@@ -32,7 +32,6 @@ void     APP_end_tx(void);
 void     APP_stop_scan(void);
 void     APP_channel_next(const bool remember_current, const scan_state_dir_t scan_direction);
 bool     APP_start_listening(void);
-uint32_t APP_set_frequency_by_step(vfo_info_t *pInfo, int8_t Step);
 void     APP_time_slice_10ms(void);
 void     APP_time_slice_500ms(void);
 

@@ -294,9 +294,9 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	else
 	if (frequency >= FREQ_BAND_TABLE[attributes.band].upper)
 		frequency = FREQUENCY_floor_to_step(frequency, p_vfo->step_freq, FREQ_BAND_TABLE[attributes.band].lower, FREQ_BAND_TABLE[attributes.band].upper);
-	else
-	if (channel >= FREQ_CHANNEL_FIRST)
-		frequency = FREQUENCY_floor_to_step(frequency, p_vfo->step_freq, FREQ_BAND_TABLE[attributes.band].lower, FREQ_BAND_TABLE[attributes.band].upper);
+//	else
+//	if (channel >= FREQ_CHANNEL_FIRST)
+//		frequency = FREQUENCY_floor_to_step(frequency, p_vfo->step_freq, FREQ_BAND_TABLE[attributes.band].lower, FREQ_BAND_TABLE[attributes.band].upper);
 
 	if (!g_eeprom.config.setting.enable_350 && frequency >= 35000000 && frequency < 40000000)
 	{	// 350~400Mhz not allowed
