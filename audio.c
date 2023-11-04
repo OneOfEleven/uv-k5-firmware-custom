@@ -34,6 +34,7 @@
 #endif
 #include "functions.h"
 #include "misc.h"
+#include "radio.h"
 #include "settings.h"
 #include "ui/ui.h"
 
@@ -338,7 +339,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			SYSTEM_DelayMs(Delay * 10);
 
 			if (g_current_function == FUNCTION_RECEIVE)
-				AUDIO_set_mod_mode(g_rx_vfo->am_mode);
+				AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
 			
 			#ifdef ENABLE_FMRADIO
 				if (g_fm_radio_mode)
@@ -486,7 +487,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		// unmute the radios audio
 
 		if (g_current_function == FUNCTION_RECEIVE)
-			AUDIO_set_mod_mode(g_rx_vfo->am_mode);
+			AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
 		
 		#ifdef ENABLE_FMRADIO
 			if (g_fm_radio_mode)
