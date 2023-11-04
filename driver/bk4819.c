@@ -766,29 +766,23 @@ void BK4819_set_rf_filter_path(uint32_t Frequency)
 	}
 }
 
-void BK4819_DisableScramble(void)
+void BK4819_set_scrambler(const int index)
 {
 	const uint16_t Value = BK4819_ReadRegister(0x31);
-	BK4819_WriteRegister(0x31, Value & ~(1u << 1));
-}
+	if (index <= 0)
+	{	// disable
+		BK4819_WriteRegister(0x31, Value & ~(1u << 1));
+	}
+	else
+	{	// enable
+		uint16_t freq = 2600 + ((index - 1) * 50);       // 50 Hz steps
+		if (freq > 12000)
+			freq = 12000;
 
-#if 0
-void BK4819_EnableScramble(const uint8_t Type)
-{
-	const uint16_t Value = BK4819_ReadRegister(0x31);
-	BK4819_WriteRegister(0x31, Value | (1u << 1));
-
-	BK4819_WriteRegister(0x71, (26 + Type) * 1032);
+		BK4819_WriteRegister(0x31, Value | (1u << 1));   // enable
+		BK4819_WriteRegister(0x71, scale_freq(freq));
+	}
 }
-#else
-void BK4819_EnableScramble(const uint16_t freq)
-{
-	const uint16_t Value = BK4819_ReadRegister(0x31);
-	BK4819_WriteRegister(0x31, Value | (1u << 1));
-
-	BK4819_WriteRegister(0x71, scale_freq(freq));
-}
-#endif
 
 bool BK4819_CompanderEnabled(void)
 {

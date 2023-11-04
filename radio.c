@@ -790,11 +790,10 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 					break;
 			}
 
-			if (g_rx_vfo->channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
-//				BK4819_EnableScramble(g_rx_vfo->channel.scrambler - 1);
-				BK4819_EnableScramble(2600 + ((g_rx_vfo->channel.scrambler - 1) * 100));
+			if (g_eeprom.config.setting.enable_scrambler)
+				BK4819_set_scrambler(g_rx_vfo->channel.scrambler);
 			else
-				BK4819_DisableScramble();
+				BK4819_set_scrambler(0);
 		}
 	}
 	#ifdef ENABLE_NOAA

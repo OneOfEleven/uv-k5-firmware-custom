@@ -194,7 +194,6 @@ extern const char         g_sub_menu_rx_tx[4][6];
 #endif
 extern const char         g_sub_menu_bat_text[3][8];
 extern const char         g_sub_menu_dis_en[2][9];
-extern const char         g_sub_menu_scrambler[16][7];
 #ifdef ENABLE_SIDE_BUTT_MENU
 	extern const char     g_sub_menu_side_butt[9][16];
 #endif

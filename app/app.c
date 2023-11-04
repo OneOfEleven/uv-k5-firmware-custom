@@ -2713,11 +2713,10 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 
 						BK4819_ExitDTMF_TX(false);
 
-						if (g_current_vfo->channel.scrambler == 0 || !g_eeprom.config.setting.enable_scrambler)
-							BK4819_DisableScramble();
+						if (g_eeprom.config.setting.enable_scrambler)
+							BK4819_set_scrambler(g_current_vfo->channel.scrambler);
 						else
-							//BK4819_EnableScramble(g_current_vfo->channel.scrambler - 1);
-							BK4819_EnableScramble(2600 + ((g_current_vfo->channel.scrambler - 1) * 100));
+							BK4819_set_scrambler(0);
 					}
 				}
 				else
@@ -2727,7 +2726,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 					}
 
-					BK4819_DisableScramble();
+					BK4819_set_scrambler(0);
 
 					if (Code == 0xFE)
 						BK4819_TransmitTone(g_eeprom.config.setting.dtmf.side_tone, 1750);

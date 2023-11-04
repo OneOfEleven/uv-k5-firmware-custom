@@ -367,26 +367,6 @@ const char g_sub_menu_dis_en[2][9] =
 	"ENABLED"
 };
 
-const char g_sub_menu_scrambler[16][7] =
-{
-	"OFF",     // 0
-	"2600Hz",
-	"2700Hz",
-	"2800Hz",
-	"2900Hz",
-	"3000Hz",
-	"3100Hz",
-	"3200Hz",
-	"3300Hz",
-	"3400Hz",
-	"3500Hz",  // 10
-	"3600Hz",
-	"3700Hz",
-	"3800Hz",
-	"3900Hz",
-	"4000Hz"   // 15
-};
-
 #ifdef ENABLE_SIDE_BUTT_MENU
 const char g_sub_menu_side_butt[9][16] =
 //const char g_sub_menu_side_butt[10][16] =
@@ -708,14 +688,16 @@ void UI_DisplayMenu(void)
 
 		case MENU_SCRAMBLER:
 			strcpy(str, "INVERT\n");
-			strcat(str, g_sub_menu_scrambler[g_sub_menu_selection]);
+			if (g_sub_menu_selection == 0)
+				strcat(str, "OFF");
+			else
+				sprintf(str + strlen(str), "%uHz", 2600 + ((g_sub_menu_selection - 1) * 50));
 
 			#if 1
-				if (g_sub_menu_selection > 0 && g_eeprom.config.setting.enable_scrambler)
-//					BK4819_EnableScramble(g_sub_menu_selection - 1);
-					BK4819_EnableScramble(2600 + ((g_sub_menu_selection - 1) * 100));
+				if (g_eeprom.config.setting.enable_scrambler)
+					BK4819_set_scrambler(g_sub_menu_selection);
 				else
-					BK4819_DisableScramble();
+					BK4819_set_scrambler(0);
 			#endif
 			channel_setting = true;
 			break;

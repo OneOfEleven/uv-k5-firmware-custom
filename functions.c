@@ -233,8 +233,7 @@ void FUNCTION_Select(function_type_t Function)
 				}
 			#endif
 
-			if (g_current_vfo->channel.scrambler == 0 || !g_eeprom.config.setting.enable_scrambler)
-				BK4819_DisableScramble();
+			BK4819_set_scrambler(0);
 
 			RADIO_enableTX(false);
 
@@ -301,11 +300,8 @@ void FUNCTION_Select(function_type_t Function)
 				(1u  <<  1) |    // enable  TX DSP
 				(0u  <<  0));    // disable RX DSP
 */
-			if (g_current_vfo->channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
-			{
-//				BK4819_EnableScramble(g_current_vfo->channel.scrambler - 1);
-				BK4819_EnableScramble(2600 + ((g_current_vfo->channel.scrambler - 1) * 100));
-			}
+			if (g_eeprom.config.setting.enable_scrambler)
+				BK4819_set_scrambler(g_current_vfo->channel.scrambler);
 			
 			break;
 

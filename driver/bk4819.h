@@ -94,9 +94,8 @@ void     BK4819_SetupSquelch(
 void     BK4819_SetAF(BK4819_af_type_t AF);
 void     BK4819_RX_TurnOn(void);
 void     BK4819_set_rf_filter_path(uint32_t Frequency);
-void     BK4819_DisableScramble(void);
-//void   BK4819_EnableScramble(const uint8_t Type);
-void     BK4819_EnableScramble(const uint16_t freq);
+
+void     BK4819_set_scrambler(const int index);
 
 bool     BK4819_CompanderEnabled(void);
 void     BK4819_SetCompander(const unsigned int mode);
