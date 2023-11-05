@@ -98,6 +98,8 @@ void toggle_chan_scanlist(void)
 			g_tx_vfo->channel_attributes.scanlist1 = 1;
 	}
 
+	g_eeprom.config.channel_attributes[g_tx_vfo->channel_save] = g_tx_vfo->channel_attributes;
+
 	SETTINGS_save_chan_attribs_name(g_tx_vfo->channel_save, g_tx_vfo);
 
 	g_vfo_configure_mode = VFO_CONFIGURE;
