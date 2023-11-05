@@ -637,11 +637,14 @@ void SEARCH_Start(void)
 		g_search_css_state = SEARCH_CSS_STATE_OFF;
 		g_search_frequency = 0xFFFFFFFF;
 
-#if 1
-		// this is why it needs such a strong signal
-		BK4819_set_rf_filter_path(0xFFFFFFFF);  // disable the LNA filter paths - why it needs a strong signal
-#else
+#ifdef ENABLE_FREQ_SEARCH_LNA
+		// 1of11
+		// still requires strong signal >= -40dBm at LNA input, but MUCH more sensitive that QS way
 		BK4819_set_rf_filter_path(g_rx_vfo->p_rx->frequency);  // lets have a play !
+#else
+		// QS
+		// this is why it needs such a strong signal
+		BK4819_set_rf_filter_path(0xFFFFFFFF);  // disable the LNA filter paths
 #endif
 
 		BK4819_EnableFrequencyScan();

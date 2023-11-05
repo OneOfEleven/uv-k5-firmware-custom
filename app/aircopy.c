@@ -164,7 +164,7 @@ void AIRCOPY_start_fsk_tx(const int request_block_num)
 	//          0 = enable
 	//          1 = disable
 	//
-//	BK4819_WriteRegister(0x2B, (1u << 2) | (1u << 0));  // try to improve the TX waveform
+//	BK4819_write_reg(0x2B, (1u << 2) | (1u << 0));  // try to improve the TX waveform
 
 	// REG_59
 	//
@@ -218,21 +218,21 @@ void AIRCOPY_start_fsk_tx(const int request_block_num)
 				(0u <<  0);    // 0 ~ 7    ???
 
 	// set the packet size
-	BK4819_WriteRegister(0x5D, (((tx_size * 2) - 1) << 8));
+	BK4819_write_reg(0x5D, (((tx_size * 2) - 1) << 8));
 
 	// clear TX fifo
-	BK4819_WriteRegister(0x59, (1u << 15) | fsk_reg59);
-	BK4819_WriteRegister(0x59, fsk_reg59);
+	BK4819_write_reg(0x59, (1u << 15) | fsk_reg59);
+	BK4819_write_reg(0x59, fsk_reg59);
 
 	// load the packet
 	for (k = 0; k < tx_size; k++)
-		BK4819_WriteRegister(0x5F, g_fsk_buffer[k]);
+		BK4819_write_reg(0x5F, g_fsk_buffer[k]);
 
 	// enable tx interrupt(s)
-	BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
+	BK4819_write_reg(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
 
 	// enable scramble, enable TX
-	BK4819_WriteRegister(0x59, (1u << 13) | (1u << 11) | fsk_reg59);
+	BK4819_write_reg(0x59, (1u << 13) | (1u << 11) | fsk_reg59);
 }
 
 void AIRCOPY_stop_fsk_tx(void)
@@ -250,7 +250,7 @@ void AIRCOPY_stop_fsk_tx(void)
 	BK4819_reset_fsk();
 
 	// restore TX/RX filtering
-	BK4819_WriteRegister(0x2B, 0);
+	BK4819_write_reg(0x2B, 0);
 
 	if (g_aircopy_state == AIRCOPY_TX)
 	{
@@ -303,10 +303,10 @@ void AIRCOPY_process_fsk_tx_10ms(void)
 
 	if (--g_fsk_tx_timeout_10ms > 0)
 	{	// still TX'ing
-		if ((BK4819_ReadRegister(0x0C) & (1u << 0)) == 0)
+		if ((BK4819_read_reg(0x0C) & (1u << 0)) == 0)
 			return;
-		BK4819_WriteRegister(0x02, 0);
-		interrupt_bits = BK4819_ReadRegister(0x02);
+		BK4819_write_reg(0x02, 0);
+		interrupt_bits = BK4819_read_reg(0x02);
 		if ((interrupt_bits & BK4819_REG_02_FSK_TX_FINISHED) == 0)
 			return;            // TX not yet finished
 	}
@@ -378,7 +378,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	//
 	// <2:0> 0 ???
 	//
-	status = BK4819_ReadRegister(0x59);
+	status = BK4819_read_reg(0x59);
 
 	if (status & (1u << 11) || g_fsk_tx_timeout_10ms > 0)
 		return;   // FSK TX is busy
@@ -390,13 +390,13 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		BK4819_start_aircopy_fsk_rx((g_aircopy_state == AIRCOPY_TX) ? AIRCOPY_REQ_PACKET_SIZE : AIRCOPY_DATA_PACKET_SIZE);
 	}
 
-	status = BK4819_ReadRegister(0x0C);
+	status = BK4819_read_reg(0x0C);
 	if ((status & (1u << 0)) == 0)
 		return;                                                // no flagged interrupts
 
 	// read the interrupt flags
-	BK4819_WriteRegister(0x02, 0);                             // clear them
-	interrupt_bits = BK4819_ReadRegister(0x02);
+	BK4819_write_reg(0x02, 0);                             // clear them
+	interrupt_bits = BK4819_read_reg(0x02);
 
 	if (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC)
 		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);    // LED on
@@ -410,10 +410,10 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);        // LED on
 
 	{	// fetch RX'ed data
-		const unsigned int count = BK4819_ReadRegister(0x5E) & (7u << 0); // almost full threshold
+		const unsigned int count = BK4819_read_reg(0x5E) & (7u << 0); // almost full threshold
 		for (i = 0; i < count; i++)
 		{
-			const uint16_t word = BK4819_ReadRegister(0x5F);
+			const uint16_t word = BK4819_read_reg(0x5F);
 
 			if (g_fsk_write_index < ARRAY_SIZE(g_fsk_buffer))
 				g_fsk_buffer[g_fsk_write_index++] = word;
@@ -438,7 +438,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	//
 	// <3:0>   ???
 	//
-	status = BK4819_ReadRegister(0x0B);
+	status = BK4819_read_reg(0x0B);
 
 	// check to see if it's a REQ/ACK packet
 	if (g_fsk_write_index == req_ack_size)
@@ -636,10 +636,10 @@ send_req:
 	while (g_fsk_tx_timeout_10ms-- > 0)
 	{
 		SYSTEM_DelayMs(5);
-		if (BK4819_ReadRegister(0x0C) & (1u << 0))
+		if (BK4819_read_reg(0x0C) & (1u << 0))
 		{	// we have interrupt flags
-			BK4819_WriteRegister(0x02, 0);
-			const uint16_t interrupt_bits = BK4819_ReadRegister(0x02);
+			BK4819_write_reg(0x02, 0);
+			const uint16_t interrupt_bits = BK4819_read_reg(0x02);
 			if (interrupt_bits & BK4819_REG_02_FSK_TX_FINISHED)
 				g_fsk_tx_timeout_10ms = 0;       // TX is complete
 		}

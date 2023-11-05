@@ -77,6 +77,7 @@ ENABLE_DTMF_CALL_FLASH_LIGHT     := 1       flash the flash light LED when a DTM
 ENABLE_FLASH_LIGHT_SOS_TONE      := 1       also do SOS in morse
 ENABLE_SHOW_CHARGE_LEVEL         := 0       show the charge level when the radio is on charge
 ENABLE_REVERSE_BAT_SYMBOL        := 1       mirror the battery symbol on the status bar (+ pole on the right)
+ENABLE_FREQ_SEARCH_LNA           := 0       keep this disabled
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0       timeout if FREQ not found when using F+4 search function
 ENABLE_CODE_SEARCH_TIMEOUT       := 0       timeout if CTCSS/CDCSS not found when using F+* search function
 ENABLE_SCAN_IGNORE_LIST          := 0       ignore selected frequencies when scanning - add freqs to list with short */scan button when scanning, remove freq from list with long press MENU when not scanning

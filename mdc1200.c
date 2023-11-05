@@ -626,8 +626,8 @@ uint8_t  mdc1200_rx_ready_tick_500ms;
 
 void MDC1200_process_rx(const uint16_t interrupt_bits)
 {
-	const uint16_t rx_sync_flags   = BK4819_ReadRegister(0x0B);
-	const uint16_t fsk_reg59       = BK4819_ReadRegister(0x59) & ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));
+	const uint16_t rx_sync_flags   = BK4819_read_reg(0x0B);
+	const uint16_t fsk_reg59       = BK4819_read_reg(0x59) & ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));
 
 	const bool rx_sync             = (interrupt_bits & BK4819_REG_02_FSK_RX_SYNC) ? true : false;
 	const bool rx_sync_neg         = (rx_sync_flags & (1u << 7)) ? true : false;
@@ -677,17 +677,17 @@ void MDC1200_process_rx(const uint16_t interrupt_bits)
 	if (rx_fifo_almost_full)
 	{
 		unsigned int i;
-		const unsigned int count = BK4819_ReadRegister(0x5E) & (7u << 0);  // almost full threshold
+		const unsigned int count = BK4819_read_reg(0x5E) & (7u << 0);  // almost full threshold
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			const unsigned int packet_size = 1 + (BK4819_ReadRegister(0x5D) >> 8);
+			const unsigned int packet_size = 1 + (BK4819_read_reg(0x5D) >> 8);
 			UART_printf("mdc1200 full %2u %2u %2u ", mdc1200_rx_buffer_index, count, packet_size);
 		#endif
 
 		// fetch received packet data
 		for (i = 0; i < count; i++)
 		{
-			const uint16_t word = BK4819_ReadRegister(0x5F) ^ (rx_sync_neg ? 0xFFFF : 0x0000);
+			const uint16_t word = BK4819_read_reg(0x5F) ^ (rx_sync_neg ? 0xFFFF : 0x0000);
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_printf(" %04X", word);
@@ -706,8 +706,8 @@ void MDC1200_process_rx(const uint16_t interrupt_bits)
 
 		if (mdc1200_rx_buffer_index >= sizeof(mdc1200_rx_buffer))
 		{
-			BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
-			BK4819_WriteRegister(0x59, (1u << 12) | fsk_reg59);
+			BK4819_write_reg(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
+			BK4819_write_reg(0x59, (1u << 12) | fsk_reg59);
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			{
@@ -750,8 +750,8 @@ void MDC1200_process_rx(const uint16_t interrupt_bits)
 //		if (!g_squelch_open)
 //			BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // LED off
 
-		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
-		BK4819_WriteRegister(0x59, (1u << 12) | fsk_reg59);
+		BK4819_write_reg(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
+		BK4819_write_reg(0x59, (1u << 12) | fsk_reg59);
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			UART_SendText("mdc1200 fin\r\n");

@@ -93,8 +93,8 @@ void AUDIO_set_mod_mode(const unsigned int mode)
 
 void AUDIO_PlayBeep(beep_type_t Beep)
 {
-	const uint16_t tone_val = BK4819_ReadRegister(0x71);
-//	const uint16_t af_val   = BK4819_ReadRegister(0x47);
+	const uint16_t tone_val = BK4819_read_reg(0x71);
+//	const uint16_t af_val   = BK4819_read_reg(0x47);
 	uint16_t       ToneFrequency;
 	uint16_t       Duration;
 
@@ -238,7 +238,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 	BK4819_TurnsOffTones_TurnsOnRX();
 	SYSTEM_DelayMs(2);
 
-	BK4819_WriteRegister(0x71, tone_val);
+	BK4819_write_reg(0x71, tone_val);
 
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)

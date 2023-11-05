@@ -266,19 +266,15 @@ void FUNCTION_Select(function_type_t Function)
 			#ifdef ENABLE_MDC1200
 				if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)
 				{
-					BK4819_WriteRegister(0x30,
-						(1u  << 15) |    // enable  VCO calibration
-						(1u  << 14) |    // enable something or other
-						(0u  << 10) |    // diable  RX link
-						(1u  <<  9) |    // enable  AF DAC
-						(1u  <<  8) |    // enable  DISC mode, what's DISC mode ?
-						(15u <<  4) |    // enable  PLL/VCO
-						(1u  <<  3) |    // enable  PA gain
-						(0u  <<  2) |    // disable MIC ADC
-						(1u  <<  1) |    // enable  TX DSP
-						(0u  <<  0));    // disable RX DSP
+					BK4819_StartTone1(880, 50, false);
 					SYSTEM_DelayMs(120);
+					BK4819_StopTones(true);
+
 					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.config.setting.mdc1200_id);
+
+					BK4819_StartTone1(880, 50, false);
+					SYSTEM_DelayMs(120);
+					BK4819_StopTones(true);
 				}
 				else
 			#endif
@@ -288,7 +284,7 @@ void FUNCTION_Select(function_type_t Function)
 				}
 			}
 /*			
-			BK4819_WriteRegister(0x30,
+			BK4819_write_reg(0x30,
 				(1u  << 15) |    // enable  VCO calibration
 				(1u  << 14) |    // enable  something or other
 				(0u  << 10) |    // diable  RX link

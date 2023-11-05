@@ -62,10 +62,10 @@ typedef enum BK4819_CSS_scan_result_e BK4819_CSS_scan_result_t;
 extern bool g_rx_idle_mode;
 
 void     BK4819_Init(void);
-uint16_t BK4819_ReadRegister(const uint8_t Register);
-void     BK4819_WriteRegister(const uint8_t Register, uint16_t Data);
-void     BK4819_WriteU8(uint8_t Data);
-void     BK4819_WriteU16(uint16_t Data);
+uint16_t BK4819_read_reg(const uint8_t Register);
+void     BK4819_write_reg(const uint8_t Register, uint16_t Data);
+void     BK4819_write_8(uint8_t Data);
+void     BK4819_write_16(uint16_t Data);
 
 void     BK4819_EnableAFC(void);
 void     BK4819_DisableAFC(void);
@@ -96,7 +96,7 @@ void     BK4819_SetupSquelch(
 
 void     BK4819_SetAF(BK4819_af_type_t AF);
 void     BK4819_RX_TurnOn(void);
-void     BK4819_set_rf_filter_path(uint32_t Frequency);
+void     BK4819_set_rf_filter_path(const uint32_t Frequency);
 
 void     BK4819_set_scrambler(const int index);
 

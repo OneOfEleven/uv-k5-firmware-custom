@@ -358,7 +358,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		else
 		{  // don't do agc in FM mode
 			BK4819_DisableAGC();
-			BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
+			BK4819_write_reg(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
 		}
 	#else
 		if (p_vfo->am_mode > 0)
@@ -368,7 +368,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		else
 		{  // don't do agc in FM mode
 			BK4819_DisableAGC();
-			BK4819_WriteRegister(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
+			BK4819_write_reg(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
 		}
 	#endif
 
@@ -402,7 +402,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 		BK4819_EnableVox(threshold_enable, threshold_disable);
 
-		BK4819_WriteRegister(0x3F, BK4819_ReadRegister(0x3F) | BK4819_REG_3F_VOX_FOUND | BK4819_REG_3F_VOX_LOST);
+		BK4819_write_reg(0x3F, BK4819_read_reg(0x3F) | BK4819_REG_3F_VOX_FOUND | BK4819_REG_3F_VOX_LOST);
 	}
 #endif
 
@@ -428,6 +428,25 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 	}
 	else
 	{	// squelch >= 1
+
+		// my calibration data
+		//
+		// bands 4567
+		// 0A 4B 53 56 59 5C 5F 62 64 66 FF FF FF FF FF FF   // open rssi
+		// 05 46 50 53 56 59 5C 5F 62 64 FF FF FF FF FF FF   // close rssi
+		// 5A 2D 29 26 23 20 1D 1A 17 14 FF FF FF FF FF FF   // open noise
+		// 64 30 2D 29 26 23 20 1D 1A 17 FF FF FF FF FF FF   // close noise
+		// 5A 14 11 0E 0B 08 03 02 02 02 FF FF FF FF FF FF   // open glitch
+		// 64 11 0E 0B 08 05 05 04 04 04 FF FF FF FF FF FF   // close glitch
+		//           
+		// bands 123
+		// 32 68 6B 6E 6F 72 75 77 79 7B FF FF FF FF FF FF   // open rssi
+		// 28 64 67 6A 6C 6E 71 73 76 78 FF FF FF FF FF FF   // close rssi
+		// 41 32 2D 28 24 21 1E 1A 17 16 FF FF FF FF FF FF   // open noise
+		// 46 37 32 2D 28 25 22 1E 1B 19 FF FF FF FF FF FF   // close noise
+		// 5A 19 0F 0A 09 08 07 06 05 04 FF FF FF FF FF FF   // open glitch
+		// 64 1E 14 0F 0D 0C 0B 0A 09 08 FF FF FF FF FF FF   // close glitch
+
 		unsigned int band = (unsigned int)FREQUENCY_GetBand(p_vfo->p_rx->frequency);
 		band = (band < BAND4_174MHz) ? 1 : 0;
 
@@ -665,8 +684,8 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			break;
 	}
 
-	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x30,
+	BK4819_write_reg(0x30, 0);
+	BK4819_write_reg(0x30,
 		BK4819_REG_30_ENABLE_VCO_CALIB |
 //		BK4819_REG_30_ENABLE_UNKNOWN   |
 		BK4819_REG_30_ENABLE_RX_LINK   |
@@ -685,13 +704,13 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 	while (1)
 	{	// wait for interrupts to clear
-		const uint16_t int_bits = BK4819_ReadRegister(0x0C);
+		const uint16_t int_bits = BK4819_read_reg(0x0C);
 		if ((int_bits & (1u << 0)) == 0)
 			break;
-		BK4819_WriteRegister(0x02, 0);   // clear the interrupt bits
+		BK4819_write_reg(0x02, 0);   // clear the interrupt bits
 		SYSTEM_DelayMs(1);
 	}
-	BK4819_WriteRegister(0x3F, 0);       // disable interrupts
+	BK4819_write_reg(0x3F, 0);       // disable interrupts
 
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_noaa_mode)
@@ -714,11 +733,11 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	// AF RX Gain and DAC
 //	if (g_rx_vfo->channel.am_mode > 0)
 //	{
-//		BK4819_WriteRegister(0x48, 0xB3A8);   // 1011 0011 1010 1000
+//		BK4819_write_reg(0x48, 0xB3A8);   // 1011 0011 1010 1000
 //	}
 //	else
 	{
-		BK4819_WriteRegister(0x48,
+		BK4819_write_reg(0x48,
 			(11u << 12)                        |     // ??? .. 0 ~ 15, doesn't seem to make any difference
 			( 0u << 10)                        |     // AF Rx Gain-1
 			(g_eeprom.calib.volume_gain << 4) |     // AF Rx Gain-2
@@ -840,7 +859,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	#endif
 
 	// enable BK4819 interrupts
-	BK4819_WriteRegister(0x3F, interrupt_mask);
+	BK4819_write_reg(0x3F, interrupt_mask);
 
 	FUNCTION_Init();
 
@@ -1193,7 +1212,15 @@ void RADIO_tx_eot(void)
 //	if (g_eeprom.config.setting.roger_mode == ROGER_MODE_MDC)
 	if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_EOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)
 	{
+//		BK4819_StartTone1(880, 50, false);
+//		SYSTEM_DelayMs(120);
+//		BK4819_StopTones(true);
+
 		BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID, 0x00, g_eeprom.config.setting.mdc1200_id);
+
+		BK4819_StartTone1(880, 50, false);
+		SYSTEM_DelayMs(120);
+		BK4819_StopTones(true);
 	}
 	else
 #endif

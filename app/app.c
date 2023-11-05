@@ -162,10 +162,10 @@ done:
 
 		#ifdef ENABLE_MDC1200
 		{	// reset the FSK receiver
-			//const uint16_t fsk_reg59 = BK4819_ReadRegister(0x59) & ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));
+			//const uint16_t fsk_reg59 = BK4819_read_reg(0x59) & ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));
 			//	BK4819_enable_mdc1200_rx(true);
-			//BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
-			//BK4819_WriteRegister(0x59, (1u << 12) | fsk_reg59);
+			//BK4819_write_reg(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
+			//BK4819_write_reg(0x59, (1u << 12) | fsk_reg59);
 		}
 		#endif
 	}
@@ -529,11 +529,11 @@ bool APP_start_listening(void)
 	// AF gain - original QS values
 //	if (g_rx_vfo->channel.am_mode > 0)
 //	{
-//		BK4819_WriteRegister(0x48, 0xB3A8);   // 1011 0011 1010 1000
+//		BK4819_write_reg(0x48, 0xB3A8);   // 1011 0011 1010 1000
 //	}
 //	else
 	{
-		BK4819_WriteRegister(0x48,
+		BK4819_write_reg(0x48,
 			(11u << 12)                        |     // ??? .. 0 ~ 15, doesn't seem to make any difference
 			( 0u << 10)                        |     // AF Rx Gain-1
 			(g_eeprom.calib.volume_gain << 4) |     // AF Rx Gain-2
@@ -910,12 +910,12 @@ void APP_process_radio_interrupts(void)
 
 		uint16_t int_bits;
 
-		const uint16_t reg_c = BK4819_ReadRegister(0x0C);
+		const uint16_t reg_c = BK4819_read_reg(0x0C);
 		if ((reg_c & 1u) == 0)
 			break;
 
-		BK4819_WriteRegister(0x02, 0);
-		int_bits = BK4819_ReadRegister(0x02);
+		BK4819_write_reg(0x02, 0);
+		int_bits = BK4819_read_reg(0x02);
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			#ifdef ENABLE_AIRCOPY

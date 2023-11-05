@@ -216,7 +216,7 @@ void Main(void)
 	#endif
 
 	#if defined(ENABLE_UART)
-		UART_printf("BK4819  id %04X  rev %04X\r\n", BK4819_ReadRegister(0x00), BK4819_ReadRegister(0x01));
+		UART_printf("BK4819  id %04X  rev %04X\r\n", BK4819_read_reg(0x00), BK4819_read_reg(0x01));
 		#ifdef ENABLE_FMRADIO
 			UART_printf("BK1080  id %04X  rev %04X\r\n", BK1080_ReadRegister(0x01), BK1080_ReadRegister(0x00));
 		#endif

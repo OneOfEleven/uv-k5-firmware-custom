@@ -57,11 +57,11 @@ void BK4819_Init(void)
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 
 	// reset the chip
-	BK4819_WriteRegister(0x00, (1u << 15));
-	BK4819_WriteRegister(0x00, 0);
+	BK4819_write_reg(0x00, (1u << 15));
+	BK4819_write_reg(0x00, 0);
 
-	BK4819_WriteRegister(0x37, 0x1D0F);
-	BK4819_WriteRegister(0x36, 0x0022);
+	BK4819_write_reg(0x37, 0x1D0F);
+	BK4819_write_reg(0x36, 0x0022);
 
 #ifdef ENABLE_AM_FIX
 	BK4819_DisableAGC();
@@ -89,72 +89,70 @@ void BK4819_Init(void)
 	//         15 = max
 	//          0 = min
 	//
-	BK4819_WriteRegister(0x48,	//  0xB3A8);     // 1011 00 111010 1000
+	BK4819_write_reg(0x48,	//  0xB3A8);     // 1011 00 111010 1000
 		(11u << 12) |     // ??? 0..15
 		( 0u << 10) |     // AF Rx Gain-1
 		(58u <<  4) |     // AF Rx Gain-2
 		( 8u <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
 
 	// squelch mode
-//	BK4819_WriteRegister(0x77, 0x88EF);     // rssi + noise + glitch .. RT-890
-//	BK4819_WriteRegister(0x77, 0xA8EF);     // rssi + noise + glitch .. default
-	BK4819_WriteRegister(0x77, 0xAAEF);     // rssi + glitch
-//	BK4819_WriteRegister(0x77, 0xCCEF);     // rssi + noise
-//	BK4819_WriteRegister(0x77, 0xFFEF);     // rssi
+//	BK4819_write_reg(0x77, 0x88EF);     // rssi + noise + glitch .. RT-890
+//	BK4819_write_reg(0x77, 0xA8EF);     // rssi + noise + glitch .. default
+	BK4819_write_reg(0x77, 0xAAEF);     // rssi + glitch
+//	BK4819_write_reg(0x77, 0xCCEF);     // rssi + noise
+//	BK4819_write_reg(0x77, 0xFFEF);     // rssi
 
 	BK4819_config_sub_audible();
-	
+
 	const uint8_t dtmf_coeffs[] = {111, 107, 103, 98, 80, 71, 58, 44, 65, 55, 37, 23, 228, 203, 181, 159};
 	for (unsigned int i = 0; i < ARRAY_SIZE(dtmf_coeffs); i++)
-		BK4819_WriteRegister(0x09, (i << 12) | dtmf_coeffs[i]);
+		BK4819_write_reg(0x09, (i << 12) | dtmf_coeffs[i]);
 
-	BK4819_WriteRegister(0x1F, 0x5454);  // 0101 0100 01 01 0100
-	BK4819_WriteRegister(0x3E, 41015);   // band selection threshold = VCO max frequency (Hz) / 96 / 640
-	BK4819_WriteRegister(0x33, 0x9000);  // 1001 0000 0000 0000 .. GPIO
-	BK4819_WriteRegister(0x3F, 0);       // disable interrupts
+	BK4819_write_reg(0x1F, 0x5454);  // 0101 0100 01 01 0100
+	BK4819_write_reg(0x3E, 41015);   // band selection threshold = VCO max frequency (Hz) / 96 / 640
+	BK4819_write_reg(0x33, 0x9000);  // 1001 0000 0000 0000 .. GPIO
+	BK4819_write_reg(0x3F, 0);       // disable interrupts
 
 #if 0
 	// RT-890
 
-//	BK4819_WriteRegister(0x37, 0x1D0F);
+//	BK4819_write_reg(0x37, 0x1D0F);
 
 //	DisableAGC(0);
 
-	BK4819_WriteRegister(0x13, 0x03BE);
-	BK4819_WriteRegister(0x12, 0x037B);
-	BK4819_WriteRegister(0x11, 0x027B);
-	BK4819_WriteRegister(0x10, 0x007A);
-	BK4819_WriteRegister(0x14, 0x0019);
-	BK4819_WriteRegister(0x49, 0x2A38);
-	BK4819_WriteRegister(0x7B, 0x8420);
+	BK4819_write_reg(0x13, 0x03BE);
+	BK4819_write_reg(0x12, 0x037B);
+	BK4819_write_reg(0x11, 0x027B);
+	BK4819_write_reg(0x10, 0x007A);
+	BK4819_write_reg(0x14, 0x0019);
+	BK4819_write_reg(0x49, 0x2A38);
+	BK4819_write_reg(0x7B, 0x8420);
 
-	BK4819_WriteRegister(0x1E, 0x4C58);  // ???
-	BK4819_WriteRegister(0x2A, 0x4F18);  // ???
-	BK4819_WriteRegister(0x53, 0xE678);  // ???
-	BK4819_WriteRegister(0x2C, 0x5705);  // ???
-	BK4819_WriteRegister(0x4B, 0x7102);  // AF gains
-	BK4819_WriteRegister(0x26, 0x13A0);  // ???
+	BK4819_write_reg(0x1E, 0x4C58);  // ???
+	BK4819_write_reg(0x2A, 0x4F18);  // ???
+	BK4819_write_reg(0x53, 0xE678);  // ???
+	BK4819_write_reg(0x2C, 0x5705);  // ???
+	BK4819_write_reg(0x4B, 0x7102);  // AF gains
+	BK4819_write_reg(0x26, 0x13A0);  // ???
 #endif
 }
 
-static uint16_t BK4819_ReadU16(void)
+static uint16_t BK4819_read_16(void)
 {
 	unsigned int i;
-	uint16_t     Value;
+	uint16_t     Value = 0;
 
 	PORTCON_PORTC_IE = (PORTCON_PORTC_IE & ~PORTCON_PORTC_IE_C2_MASK) | PORTCON_PORTC_IE_C2_BITS_ENABLE;
 	GPIOC->DIR = (GPIOC->DIR & ~GPIO_DIR_2_MASK) | GPIO_DIR_2_BITS_INPUT;
-	SYSTICK_Delay250ns(4);
-
-	Value = 0;
+	SYSTICK_Delay250ns(1);  // 4
 	for (i = 0; i < 16; i++)
 	{
 		Value <<= 1;
 		Value |= GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-		SYSTICK_Delay250ns(4);
+		SYSTICK_Delay250ns(1);  // 4
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-		SYSTICK_Delay250ns(4);
+		SYSTICK_Delay250ns(1);  // 4
 	}
 	PORTCON_PORTC_IE = (PORTCON_PORTC_IE & ~PORTCON_PORTC_IE_C2_MASK) | PORTCON_PORTC_IE_C2_BITS_DISABLE;
 	GPIOC->DIR = (GPIOC->DIR & ~GPIO_DIR_2_MASK) | GPIO_DIR_2_BITS_OUTPUT;
@@ -162,43 +160,37 @@ static uint16_t BK4819_ReadU16(void)
 	return Value;
 }
 
-uint16_t BK4819_ReadRegister(const uint8_t Register)
+uint16_t BK4819_read_reg(const uint8_t Register)
 {
 	uint16_t Value;
-
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-
-	SYSTICK_Delay250ns(4);
-
+	SYSTICK_Delay250ns(1);  // 4
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
-	BK4819_WriteU8(Register | 0x80);
-	Value = BK4819_ReadU16();
+	BK4819_write_8(Register | 0x80);
+	Value = BK4819_read_16();
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
-
-	SYSTICK_Delay250ns(4);
-
+	SYSTICK_Delay250ns(1);  // 4
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-
 	return Value;
 }
 
-void BK4819_WriteRegister(const uint8_t Register, uint16_t Data)
+void BK4819_write_reg(const uint8_t Register, uint16_t Data)
 {
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-	SYSTICK_Delay250ns(4);
+	SYSTICK_Delay250ns(1);  // 4
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
-	BK4819_WriteU8(Register);
-	BK4819_WriteU16(Data);
+	BK4819_write_8(Register);
+	BK4819_write_16(Data);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
-	SYSTICK_Delay250ns(4);
+	SYSTICK_Delay250ns(1);  // 4
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 }
 
-void BK4819_WriteU8(uint8_t Data)
+void BK4819_write_8(uint8_t Data)
 {
 	unsigned int i;
 
@@ -209,22 +201,18 @@ void BK4819_WriteU8(uint8_t Data)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 		else
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-
-		SYSTICK_Delay250ns(4);
+		SYSTICK_Delay250ns(1);  // 4
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-		SYSTICK_Delay250ns(4);
-
+		SYSTICK_Delay250ns(1);  // 4
 		Data <<= 1;
-
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-		SYSTICK_Delay250ns(4);
+		SYSTICK_Delay250ns(1);  // 4
 	}
 }
 
-void BK4819_WriteU16(uint16_t Data)
+void BK4819_write_16(uint16_t Data)
 {
 	unsigned int i;
-
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
 	for (i = 0; i < 16; i++)
 	{
@@ -232,25 +220,23 @@ void BK4819_WriteU16(uint16_t Data)
 			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
 		else
 			GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SDA);
-
-		SYSTICK_Delay250ns(4);
+		SYSTICK_Delay250ns(1);  // 4
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-
 		Data <<= 1;
-
-		SYSTICK_Delay250ns(4);
+		SYSTICK_Delay250ns(1);  // 4
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
-		SYSTICK_Delay250ns(4);
+		SYSTICK_Delay250ns(1);  // 4
 	}
 }
+
 void BK4819_EnableAFC(void)
 {
-	BK4819_WriteRegister(0x73, (0u << 11) | (0u << 4));
+	BK4819_write_reg(0x73, (0u << 11) | (0u << 4));
 }
 
 void BK4819_DisableAFC(void)
 {
-	BK4819_WriteRegister(0x73, (0u << 11) | (1u << 4));
+	BK4819_write_reg(0x73, (0u << 11) | (1u << 4));
 }
 
 void BK4819_DisableAGC(void)
@@ -269,7 +255,7 @@ void BK4819_DisableAGC(void)
 	// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
 	// 000=Bypass DC filter;
 	//
-	BK4819_WriteRegister(0x7E,  // 0x302E   0 011 000000 101 110
+	BK4819_write_reg(0x7E,  // 0x302E   0 011 000000 101 110
 //		(1u << 15) |      // 0  AGC fix mode
 		(0u << 15) |      // 0  AGC fix mode
 		(3u << 12) |      // 3  AGC fix index
@@ -314,15 +300,15 @@ void BK4819_DisableAGC(void)
 	//         1 = -27dB
 	//         0 = -33dB
 	//
-	BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
-	BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
-	BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
-	BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
-	BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
+	BK4819_write_reg(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
+	BK4819_write_reg(0x12, 0x037B);  // 000000 11 011 11 011
+	BK4819_write_reg(0x11, 0x027B);  // 000000 10 011 11 011
+	BK4819_write_reg(0x10, 0x007A);  // 000000 00 011 11 010
+	BK4819_write_reg(0x14, 0x0019);  // 000000 00 000 11 001
 
 	// ???
-	BK4819_WriteRegister(0x49, 0x2A38);
-	BK4819_WriteRegister(0x7B, 0x8420);
+	BK4819_write_reg(0x49, 0x2A38);
+	BK4819_write_reg(0x7B, 0x8420);
 }
 
 void BK4819_EnableAGC(void)
@@ -344,7 +330,7 @@ void BK4819_EnableAGC(void)
 	// <2:0> 0b110 DC Filter Band Width for Rx (IF In).
 	// 000=Bypass DC filter;
 
-	BK4819_WriteRegister(0x7E,
+	BK4819_write_reg(0x7E,
 		(0u << 15) |      // 0  AGC fix mode
 		(3u << 12) |      // 3  AGC fix index
 		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
@@ -360,20 +346,20 @@ void BK4819_EnableAGC(void)
 	// <7:0> 0xFF LNA Peak RSSI
 	//
 	// TBR: Using S9+30 (173) and S9 (143) as suggested values
-	BK4819_WriteRegister(0x62, (173u << 8) | (143u << 0));
+	BK4819_write_reg(0x62, (173u << 8) | (143u << 0));
 
 	// AGC auto-adjusts the following LNA values, no need to set them ourselves
-	//BK4819_WriteRegister(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
-	//BK4819_WriteRegister(0x12, 0x037B);  // 000000 11 011 11 011
-	//BK4819_WriteRegister(0x11, 0x027B);  // 000000 10 011 11 011
-	//BK4819_WriteRegister(0x10, 0x007A);  // 000000 00 011 11 010
-	//BK4819_WriteRegister(0x14, 0x0019);  // 000000 00 000 11 001
+	//BK4819_write_reg(0x13, (3u << 8) | (5u << 5) | (3u << 3) | (6u << 0));  // 000000 11 101 11 110
+	//BK4819_write_reg(0x12, 0x037B);  // 000000 11 011 11 011
+	//BK4819_write_reg(0x11, 0x027B);  // 000000 10 011 11 011
+	//BK4819_write_reg(0x10, 0x007A);  // 000000 00 011 11 010
+	//BK4819_write_reg(0x14, 0x0019);  // 000000 00 000 11 001
 
-	BK4819_WriteRegister(0x49, 0x2A38);
-	BK4819_WriteRegister(0x7B, 0x8420);
+	BK4819_write_reg(0x49, 0x2A38);
+	BK4819_write_reg(0x7B, 0x8420);
 
 	for (unsigned int i = 0; i < 8; i++)
-		BK4819_WriteRegister(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));
+		BK4819_write_reg(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));
 }
 
 void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
@@ -383,7 +369,7 @@ void BK4819_set_GPIO_pin(bk4819_gpio_pin_t Pin, bool bSet)
 	else
 		g_bk4819_gpio_out_state &= ~(0x40u >> Pin);
 
-	BK4819_WriteRegister(0x33, g_bk4819_gpio_out_state);
+	BK4819_write_reg(0x33, g_bk4819_gpio_out_state);
 }
 
 void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
@@ -399,25 +385,25 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
 		VoxDisableThreshold = 2047;
 
 	// 0xA000 is undocumented
-	BK4819_WriteRegister(0x46, (20u << 11) | VoxEnableThreshold); // ???, amp threshold for vox on
+	BK4819_write_reg(0x46, (20u << 11) | VoxEnableThreshold); // ???, amp threshold for vox on
 
-	BK4819_WriteRegister(0x79, (3u << 11) | VoxDisableThreshold); // vox det interval time, amp threshold for vox off
+	BK4819_write_reg(0x79, (3u << 11) | VoxDisableThreshold); // vox det interval time, amp threshold for vox off
 
 	// Bottom 12 bits are undocumented, 15:12 vox disable delay *128ms
-	BK4819_WriteRegister(0x7A, (2u << 12) | 0x089A); // vox disable delay = 128*5 = 640ms
+	BK4819_write_reg(0x7A, (2u << 12) | 0x089A); // vox disable delay = 128*5 = 640ms
 	// 0010 100010011010
 
 	// Enable VOX
-	BK4819_WriteRegister(0x31, BK4819_ReadRegister(0x31) | (1u << 2));
+	BK4819_write_reg(0x31, BK4819_read_reg(0x31) | (1u << 2));
 }
 
 void BK4819_set_TX_deviation(const bool narrow)
 {
-	const uint8_t scrambler = (BK4819_ReadRegister(0x31) >> 1) & 1u;
+	const uint8_t scrambler = (BK4819_read_reg(0x31) >> 1) & 1u;
 	uint16_t deviation = narrow ? 900 : 1232;  // 0 ~ 4095
 	if (scrambler)
 		deviation -= 200;
-	BK4819_WriteRegister(0x40, (3u << 12) | deviation);
+	BK4819_write_reg(0x40, (3u << 12) | deviation);
 }
 
 void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth)
@@ -447,7 +433,7 @@ void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth)
 	//         7 = 4.5  kHz
 	// if <5> == 1, RF filter bandwidth * 2
 	//
-	// <8:6>   1 AFTxLPF2 filter Band Width
+	// <8:6>   1 AF-TX-LPF-2 filter band width
 	//         1 = 2.5  kHz (for 12.5k channel space)
 	//         2 = 2.75 kHz
 	//         0 = 3.0  kHz (for 25k   channel space)
@@ -473,50 +459,50 @@ void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth)
 	uint16_t val;
 
 	m_bandwidth = Bandwidth;
-	
+
 	// when received signal is weak, the RX bandwidth is reduced
 
 	switch (Bandwidth)
 	{
 		default:
-		case BK4819_FILTER_BW_WIDE:	// 25kHz
+		case BK4819_FILTER_BW_WIDE:		// 25kHz
 			val =                // 0x3028);         // 0 011 000 000 10 1 0 00
-				(0u << 15) |     //  0
-				(4u << 12) |     // *3 RF filter bandwidth
-				(2u <<  9) |     // *0 RF filter bandwidth when signal is weak
-				(6u <<  6) |     // *0 AFTxLPF2 filter Band Width
-				(2u <<  4) |     //  2 BW Mode Selection
-				(1u <<  3) |     //  1
-				(0u <<  2) |     //  0 Gain after FM Demodulation
-				(0u <<  0);      //  0
+				(0u << 15) |     // 0
+				(4u << 12) |     // 3 RF filter bandwidth
+				(2u <<  9) |     // 0 RF filter bandwidth when signal is weak
+				(3u <<  6) |     // 0 AF-TX-LPF-2 filter band width
+				(2u <<  4) |     // 2 BW Mode Selection
+				(1u <<  3) |     // 1
+				(0u <<  2) |     // 0 Gain after FM Demodulation
+				(0u <<  0);      // 0
 			break;
 
 		case BK4819_FILTER_BW_NARROW:	// 12.5kHz
 			val =
-				(0u << 15) |     //  0
-				(4u << 12) |     // *4 RF filter bandwidth
-				(2u <<  9) |     // *0 RF filter bandwidth when signal is weak
-				(0u <<  6) |     // *1 AFTxLPF2 filter Band Width
-				(0u <<  4) |     //  0 BW Mode Selection
-				(1u <<  3) |     //  1
-				(0u <<  2) |     //  0 Gain after FM Demodulation
-				(0u <<  0);      //  0
+				(0u << 15) |     // 0
+				(4u << 12) |     // 4 RF filter bandwidth
+				(2u <<  9) |     // 0 RF filter bandwidth when signal is weak
+				(2u <<  6) |     // 1 AF-TX-LPF-2 filter Band Width
+				(0u <<  4) |     // 0 BW Mode Selection
+				(1u <<  3) |     // 1
+				(0u <<  2) |     // 0 Gain after FM Demodulation
+				(0u <<  0);      // 0
 			break;
 
 		case BK4819_FILTER_BW_NARROWER:	// 6.25kHz
 			val =
-				(0u << 15) |     //  0
-				(3u << 12) |     //  3 RF filter bandwidth
-				(2u <<  9) |     // *0 RF filter bandwidth when signal is weak
-				(1u <<  6) |     //  1 AFTxLPF2 filter Band Width
-				(1u <<  4) |     //  1 BW Mode Selection
-				(1u <<  3) |     //  1
-				(0u <<  2) |     //  0 Gain after FM Demodulation
-				(0u <<  0);      //  0
+				(0u << 15) |     // 0
+				(3u << 12) |     // 3 RF filter bandwidth
+				(2u <<  9) |     // 0 RF filter bandwidth when signal is weak
+				(1u <<  6) |     // 1 AF-TX-LPF-2 filter Band Width
+				(1u <<  4) |     // 1 BW Mode Selection
+				(1u <<  3) |     // 1
+				(0u <<  2) |     // 0 Gain after FM Demodulation
+				(0u <<  0);      // 0
 			break;
 	}
 
-	BK4819_WriteRegister(0x43, val);
+	BK4819_write_reg(0x43, val);
 }
 
 void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
@@ -540,19 +526,19 @@ void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
 	//                                                                         280MHz     gain 1 = 1  gain 2 = 0  gain 1 = 4  gain 2 = 2
 	const uint8_t gain   = (frequency == 0) ? 0 : (frequency < rf_filter_transition_freq) ? (1u << 3) | (0u << 0) : (4u << 3) | (2u << 0);
 	const uint8_t enable = 1;
-	BK4819_WriteRegister(0x36, ((uint16_t)bias << 8) | ((uint16_t)enable << 7) | ((uint16_t)gain << 0));
+	BK4819_write_reg(0x36, ((uint16_t)bias << 8) | ((uint16_t)enable << 7) | ((uint16_t)gain << 0));
 }
 
 void BK4819_set_rf_frequency(const uint32_t frequency, const bool trigger_update)
 {
-	BK4819_WriteRegister(0x38, (frequency >>  0) & 0xFFFF);
-	BK4819_WriteRegister(0x39, (frequency >> 16) & 0xFFFF);
+	BK4819_write_reg(0x38, (frequency >>  0) & 0xFFFF);
+	BK4819_write_reg(0x39, (frequency >> 16) & 0xFFFF);
 
 	if (trigger_update)
 	{	// trigger a PLL/VCO update
-		const uint16_t reg = BK4819_ReadRegister(0x30);
-		BK4819_WriteRegister(0x30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
-		BK4819_WriteRegister(0x30, reg);
+		const uint16_t reg = BK4819_read_reg(0x30);
+		BK4819_write_reg(0x30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
+		BK4819_write_reg(0x30, reg);
 	}
 }
 
@@ -580,13 +566,13 @@ void BK4819_SetupSquelch(
 	// <6:0>  0 TONE2/FSK tuning
 	//        0 ~ 127
 	//
-	BK4819_WriteRegister(0x70, 0);
+	BK4819_write_reg(0x70, 0);
 
 	// Glitch threshold for Squelch = close
 	//
 	// 0 ~ 255
 	//
-	BK4819_WriteRegister(0x4D, 0xA000 | squelch_close_glitch_thresh);
+	BK4819_write_reg(0x4D, 0xA000 | squelch_close_glitch_thresh);
 
 	// REG_4E
 	//
@@ -603,7 +589,7 @@ void BK4819_SetupSquelch(
 	// <7:0>   8 Glitch threshold for Squelch = open
 	//         0 ~ 255
 	//
-	BK4819_WriteRegister(0x4E,  // 01 101 11 1 00000000
+	BK4819_write_reg(0x4E,  // 01 101 11 1 00000000
 //	#ifndef ENABLE_FASTER_CHANNEL_SCAN
 		// original (*)
 		(1u << 14) |                  // 1 ???
@@ -628,7 +614,7 @@ void BK4819_SetupSquelch(
 	// <6:0>  46 Ex-noise threshold for Squelch = open
 	//        0 ~ 127
 	//
-	BK4819_WriteRegister(0x4F, ((uint16_t)squelch_close_noise_thresh << 8) | squelch_open_noise_thresh);
+	BK4819_write_reg(0x4F, ((uint16_t)squelch_close_noise_thresh << 8) | squelch_open_noise_thresh);
 
 	// REG_78
 	//
@@ -636,7 +622,7 @@ void BK4819_SetupSquelch(
 	//
 	// <7:0>  70 RSSI threshold for Squelch = close   0.5dB/step
 	//
-	BK4819_WriteRegister(0x78, ((uint16_t)squelch_open_rssi_thresh   << 8) | squelch_close_rssi_thresh);
+	BK4819_write_reg(0x78, ((uint16_t)squelch_open_rssi_thresh   << 8) | squelch_close_rssi_thresh);
 
 	BK4819_SetAF(BK4819_AF_MUTE);
 
@@ -645,9 +631,9 @@ void BK4819_SetupSquelch(
 
 void BK4819_SetAF(BK4819_af_type_t AF)
 {
-	BK4819_WriteRegister(0x47, 0);
-//	BK4819_WriteRegister(0x47, 0x6040 | (AF << 8));   // 0110 0000 0100 0000
-	BK4819_WriteRegister(0x47, (1u << 14) | (1u << 13) | ((AF & 15u) << 8) | (1u << 6));
+	BK4819_write_reg(0x47, 0);
+//	BK4819_write_reg(0x47, 0x6040 | (AF << 8));   // 0110 0000 0100 0000
+	BK4819_write_reg(0x47, (1u << 14) | (1u << 13) | ((AF & 15u) << 8) | (1u << 6));
 }
 
 void BK4819_RX_TurnOn(void)
@@ -666,10 +652,10 @@ void BK4819_RX_TurnOn(void)
 	// Enable  XTAL
 	// Enable  Band Gap
 	//
-	BK4819_WriteRegister(0x37, 0x1F0F);  // 0001 1111 0000 1111
+	BK4819_write_reg(0x37, 0x1F0F);  // 0001 1111 0000 1111
 
-	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x30, 
+	BK4819_write_reg(0x30, 0);
+	BK4819_write_reg(0x30,
 		BK4819_REG_30_ENABLE_VCO_CALIB |
 //		BK4819_REG_30_ENABLE_UNKNOWN   |
 		BK4819_REG_30_ENABLE_RX_LINK   |
@@ -683,20 +669,21 @@ void BK4819_RX_TurnOn(void)
 	0);
 }
 
-void BK4819_set_rf_filter_path(uint32_t Frequency)
+void BK4819_set_rf_filter_path(const uint32_t Frequency)
 {
+	if (Frequency == 0 || Frequency == 0xFFFFFFFF)
+	{	// OFF
+		BK4819_set_GPIO_pin(BK4819_GPIO4_PIN32_VHF_LNA, false);
+		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31_UHF_LNA, false);
+	}
+	else
 	if (Frequency < rf_filter_transition_freq)
 	{	// VHF
 		BK4819_set_GPIO_pin(BK4819_GPIO4_PIN32_VHF_LNA, true);
 		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31_UHF_LNA, false);
 	}
 	else
-	if (Frequency == 0xFFFFFFFF)
-	{	// OFF
-		BK4819_set_GPIO_pin(BK4819_GPIO4_PIN32_VHF_LNA, false);
-		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31_UHF_LNA, false);
-	}
-	else
+//	if (Frequency >= rf_filter_transition_freq)
 	{	// UHF
 		BK4819_set_GPIO_pin(BK4819_GPIO4_PIN32_VHF_LNA, false);
 		BK4819_set_GPIO_pin(BK4819_GPIO3_PIN31_UHF_LNA, true);
@@ -705,10 +692,10 @@ void BK4819_set_rf_filter_path(uint32_t Frequency)
 
 void BK4819_set_scrambler(const int index)
 {
-	const uint16_t Value = BK4819_ReadRegister(0x31);
+	const uint16_t Value = BK4819_read_reg(0x31);
 	if (index <= 0)
 	{	// disable
-		BK4819_WriteRegister(0x31, Value & ~(1u << 1));
+		BK4819_write_reg(0x31, Value & ~(1u << 1));
 	}
 	else
 	{	// enable
@@ -716,14 +703,14 @@ void BK4819_set_scrambler(const int index)
 		if (freq > 12000)
 			freq = 12000;
 
-		BK4819_WriteRegister(0x31, Value | (1u << 1));   // enable
-		BK4819_WriteRegister(0x71, scale_freq(freq));
+		BK4819_write_reg(0x31, Value | (1u << 1));   // enable
+		BK4819_write_reg(0x71, scale_freq(freq));
 	}
 }
 
 bool BK4819_CompanderEnabled(void)
 {
-	return (BK4819_ReadRegister(0x31) & (1u << 3)) ? true : false;
+	return (BK4819_read_reg(0x31) & (1u << 3)) ? true : false;
 }
 
 void BK4819_SetCompander(const unsigned int mode)
@@ -733,11 +720,11 @@ void BK4819_SetCompander(const unsigned int mode)
 	// mode 2 .. RX
 	// mode 3 .. TX and RX
 
-	const uint16_t r31 = BK4819_ReadRegister(0x31);
+	const uint16_t r31 = BK4819_read_reg(0x31);
 
 	if (mode == 0)
 	{	// disable
-		BK4819_WriteRegister(0x31, r31 & ~(1u << 3));
+		BK4819_write_reg(0x31, r31 & ~(1u << 3));
 		return;
 	}
 
@@ -754,7 +741,7 @@ void BK4819_SetCompander(const unsigned int mode)
 	// <6:0>   64 Compress (AF Tx) noise point (dB)
 	//
 	const uint16_t compress_ratio = (mode == 1 || mode >= 3) ? 2 : 0;  // 2:1
-	BK4819_WriteRegister(0x29, // (BK4819_ReadRegister(0x29) & ~(3u << 14)) | (compress_ratio << 14));
+	BK4819_write_reg(0x29, // (BK4819_read_reg(0x29) & ~(3u << 14)) | (compress_ratio << 14));
 		(compress_ratio << 14) |
 		(86u            <<  7) |   // compress 0dB
 		(64u            <<  0));   // compress noise dB
@@ -772,30 +759,30 @@ void BK4819_SetCompander(const unsigned int mode)
 	// <6:0>   56 Expander (AF Rx) noise point (dB)
 	//
 	const uint16_t expand_ratio = (mode >= 2) ? 1 : 0;   // 1:2
-	BK4819_WriteRegister(0x28, // (BK4819_ReadRegister(0x28) & ~(3u << 14)) | (expand_ratio << 14));
+	BK4819_write_reg(0x28, // (BK4819_read_reg(0x28) & ~(3u << 14)) | (expand_ratio << 14));
 		(expand_ratio << 14) |
 		(86u          <<  7) |   // expander 0dB
 		(56u          <<  0));   // expander noise dB
 
 	// enable
-	BK4819_WriteRegister(0x31, r31 | (1u << 3));
+	BK4819_write_reg(0x31, r31 | (1u << 3));
 }
 
 void BK4819_DisableVox(void)
 {
-	const uint16_t Value = BK4819_ReadRegister(0x31);
-	BK4819_WriteRegister(0x31, Value & 0xFFFB);
+	const uint16_t Value = BK4819_read_reg(0x31);
+	BK4819_write_reg(0x31, Value & 0xFFFB);
 }
 
 void BK4819_DisableDTMF(void)
 {
-	BK4819_WriteRegister(0x24, 0);
+	BK4819_write_reg(0x24, 0);
 }
 
 void BK4819_EnableDTMF(void)
 {
 	// no idea what this does
-	BK4819_WriteRegister(0x21, 0x06D8);        // 0000 0110 1101 1000
+	BK4819_write_reg(0x21, 0x06D8);        // 0000 0110 1101 1000
 
 	// REG_24
 	//
@@ -818,7 +805,7 @@ void BK4819_EnableDTMF(void)
 //	const uint16_t threshold = 24;    // default, but doesn't decode non-QS radios
 	const uint16_t threshold = 130;   // but 128 ~ 247 does
 //	const uint16_t threshold =  8;    // 0 ~ 63 ? .. doesn't work with A and B's :(
-	BK4819_WriteRegister(0x24,                      // 1 00011000 1 1 1 1110
+	BK4819_write_reg(0x24,                      // 1 00011000 1 1 1 1110
 		(1u        << BK4819_REG_24_SHIFT_UNKNOWN_15) |
 		(threshold << BK4819_REG_24_SHIFT_THRESHOLD)  |      // 0 ~ 255
 		(1u        << BK4819_REG_24_SHIFT_UNKNOWN_6)  |
@@ -831,41 +818,49 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 {
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	SYSTEM_DelayMs(2);
-	
+
 //	BK4819_SetAF(BK4819_AF_MUTE);
 	BK4819_SetAF(BK4819_AF_BEEP);
 //	BK4819_SetAF(BK4819_AF_TONE);
 
 	BK4819_EnterTxMute();
 
-	BK4819_WriteRegister(0x70, BK4819_REG_70_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+	BK4819_write_reg(0x70, BK4819_REG_70_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
-	BK4819_WriteRegister(0x30, 0);
+	BK4819_write_reg(0x30, 0);
 
 	if (!tx)
 	{
-		BK4819_WriteRegister(0x30,
+		BK4819_write_reg(0x30,
+//			BK4819_REG_30_ENABLE_VCO_CALIB |
+//			BK4819_REG_30_ENABLE_UNKNOWN   |
+//			BK4819_REG_30_ENABLE_RX_LINK   |
 			BK4819_REG_30_ENABLE_AF_DAC    |
 			BK4819_REG_30_ENABLE_DISC_MODE |
-			BK4819_REG_30_ENABLE_TX_DSP);
-	}
-	else
-	{
-		BK4819_WriteRegister(0x30,
-			BK4819_REG_30_ENABLE_VCO_CALIB |
-			BK4819_REG_30_ENABLE_UNKNOWN   |
-//			BK4819_REG_30_ENABLE_RX_LINK   |
-			BK4819_REG_30_ENABLE_AF_DAC    |  //
-			BK4819_REG_30_ENABLE_DISC_MODE |  //
-			BK4819_REG_30_ENABLE_PLL_VCO   |
-			BK4819_REG_30_ENABLE_PA_GAIN   |
+//			BK4819_REG_30_ENABLE_PLL_VCO   |
+//			BK4819_REG_30_ENABLE_PA_GAIN   |
 //			BK4819_REG_30_ENABLE_MIC_ADC   |
-			BK4819_REG_30_ENABLE_TX_DSP    |  //
+			BK4819_REG_30_ENABLE_TX_DSP    |
 //			BK4819_REG_30_ENABLE_RX_DSP    |
 		0);
 	}
-	
-	BK4819_WriteRegister(0x71, scale_freq(frequency));
+	else
+	{
+		BK4819_write_reg(0x30,
+			BK4819_REG_30_ENABLE_VCO_CALIB |
+			BK4819_REG_30_ENABLE_UNKNOWN   |
+//			BK4819_REG_30_ENABLE_RX_LINK   |
+			BK4819_REG_30_ENABLE_AF_DAC    |
+			BK4819_REG_30_ENABLE_DISC_MODE |
+			BK4819_REG_30_ENABLE_PLL_VCO   |
+			BK4819_REG_30_ENABLE_PA_GAIN   |
+//			BK4819_REG_30_ENABLE_MIC_ADC   |
+			BK4819_REG_30_ENABLE_TX_DSP    |
+//			BK4819_REG_30_ENABLE_RX_DSP    |
+		0);
+	}
+
+	BK4819_write_reg(0x71, scale_freq(frequency));
 
 	BK4819_ExitTxMute();
 
@@ -883,27 +878,12 @@ void BK4819_StopTones(const bool tx)
 
 	BK4819_EnterTxMute();
 
-	BK4819_WriteRegister(0x70, 0);
+	BK4819_write_reg(0x70, 0);
 
-	BK4819_WriteRegister(0x30, 0);
-	if (tx)
-	{		
-		BK4819_WriteRegister(0x30, 
-			BK4819_REG_30_ENABLE_VCO_CALIB |
-			BK4819_REG_30_ENABLE_UNKNOWN   |
-//			BK4819_REG_30_ENABLE_RX_LINK   |
-			BK4819_REG_30_ENABLE_AF_DAC    |
-			BK4819_REG_30_ENABLE_DISC_MODE |
-			BK4819_REG_30_ENABLE_PLL_VCO   |
-			BK4819_REG_30_ENABLE_PA_GAIN   |
-			BK4819_REG_30_ENABLE_MIC_ADC   |
-			BK4819_REG_30_ENABLE_TX_DSP    |
-//			BK4819_REG_30_ENABLE_RX_DSP    |
-		0);
-	}
-	else
-	{		
-		BK4819_WriteRegister(0x30, 
+	BK4819_write_reg(0x30, 0);
+	if (!tx)
+	{
+		BK4819_write_reg(0x30,
 			BK4819_REG_30_ENABLE_VCO_CALIB |
 //			BK4819_REG_30_ENABLE_UNKNOWN   |
 			BK4819_REG_30_ENABLE_RX_LINK   |
@@ -916,23 +896,32 @@ void BK4819_StopTones(const bool tx)
 			BK4819_REG_30_ENABLE_RX_DSP    |
 		0);
 	}
+	else
+	{
+		BK4819_write_reg(0x30,
+			BK4819_REG_30_ENABLE_VCO_CALIB |
+			BK4819_REG_30_ENABLE_UNKNOWN   |
+//			BK4819_REG_30_ENABLE_RX_LINK   |
+			BK4819_REG_30_ENABLE_AF_DAC    |
+			BK4819_REG_30_ENABLE_DISC_MODE |
+			BK4819_REG_30_ENABLE_PLL_VCO   |
+			BK4819_REG_30_ENABLE_PA_GAIN   |
+			BK4819_REG_30_ENABLE_MIC_ADC   |
+			BK4819_REG_30_ENABLE_TX_DSP    |
+//			BK4819_REG_30_ENABLE_RX_DSP    |
+		0);
+	}
 
 	BK4819_ExitTxMute();
-
-//	if (g_squelch_open || g_monitor_enabled)
-//	{
-//		SYSTEM_DelayMs(2);
-//		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-//	}
 }
 
 void BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level)
 {
-	const uint16_t prev_af = BK4819_ReadRegister(0x47);
+	const uint16_t prev_af = BK4819_read_reg(0x47);
 	BK4819_StartTone1(tone_Hz, level, g_current_function == FUNCTION_TRANSMIT);
 	SYSTEM_DelayMs(delay - 2);
 	BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
-	BK4819_WriteRegister(0x47, prev_af);
+	BK4819_write_reg(0x47, prev_af);
 }
 
 void BK4819_PlayRoger(void)
@@ -946,29 +935,29 @@ void BK4819_PlayRoger(void)
 		const uint32_t tone2_Hz = 1310;
 	#endif
 
-	const uint16_t prev_af = BK4819_ReadRegister(0x47);
+	const uint16_t prev_af = BK4819_read_reg(0x47);
 	BK4819_StartTone1(tone1_Hz, 96, true);
 	SYSTEM_DelayMs(80 - 2);
 	BK4819_StartTone1(tone2_Hz, 96, true);
 	SYSTEM_DelayMs(80);
 	BK4819_StopTones(true);
-	BK4819_WriteRegister(0x47, prev_af);
+	BK4819_write_reg(0x47, prev_af);
 }
 
 void BK4819_EnterTxMute(void)
 {
-	BK4819_WriteRegister(0x50, 0xBB20);
+	BK4819_write_reg(0x50, 0xBB20);
 }
 
 void BK4819_ExitTxMute(void)
 {
-	BK4819_WriteRegister(0x50, 0x3B20);   // 0011 1011 0010 0000
+	BK4819_write_reg(0x50, 0x3B20);   // 0011 1011 0010 0000
 }
 
 void BK4819_Sleep(void)
 {
-	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x37, 0x1D00);  // 0 0 0111 0 1 0000 0 0 0 0
+	BK4819_write_reg(0x30, 0);
+	BK4819_write_reg(0x37, 0x1D00);  // 0 0 0111 0 1 0000 0 0 0 0
 }
 
 void BK4819_setTxAudio(const unsigned int mode)
@@ -978,15 +967,15 @@ void BK4819_setTxAudio(const unsigned int mode)
 		case 0:
 			break;
 		case 1:
-			BK4819_WriteRegister(0x53,0xE678); // ???
-			BK4819_WriteRegister(0x4B,0x7102); // enable TX audio AGC
-			BK4819_WriteRegister(0x27,0x7430); // ???
-//			BK4819_WriteRegister(0x29,0xAB2A);
+			BK4819_write_reg(0x53,0xE678); // ???
+			BK4819_write_reg(0x4B,0x7102); // enable TX audio AGC
+			BK4819_write_reg(0x27,0x7430); // ???
+//			BK4819_write_reg(0x29,0xAB2A);
 			break;
 		case 2:
-			BK4819_WriteRegister(0x4B,0x7120); // disable TX audio AGC
-			BK4819_WriteRegister(0x27,0xC430); // ???
-//			BK4819_WriteRegister(0x29,0xAB20);
+			BK4819_write_reg(0x4B,0x7120); // disable TX audio AGC
+			BK4819_write_reg(0x27,0xC430); // ???
+//			BK4819_write_reg(0x29,0xAB20);
 			break;
 	}
 }
@@ -995,25 +984,25 @@ void BK4819_set_mic_gain(unsigned int level)
 {
 	if (level > 31)
 		level = 31;
-	
-	// mic gain 0.5dB/step 0 to 31
-	BK4819_WriteRegister(0x7D, 0xE940 | level);
 
-//	BK4819_WriteRegister(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable  .. doesn't work
-//	BK4819_WriteRegister(0x19, BK4819_ReadRegister(0x19) & ~(1u << 15));  // enable mic AGC
+	// mic gain 0.5dB/step 0 to 31
+	BK4819_write_reg(0x7D, 0xE940 | level);
+
+//	BK4819_write_reg(0x19, 0x1041);  // 0001 0000 0100 0001 <15> MIC AGC  1 = disable  0 = enable  .. doesn't work
+//	BK4819_write_reg(0x19, BK4819_read_reg(0x19) & ~(1u << 15));  // enable mic AGC
 
 //	BK4819_setTxAudio(1);
 }
 
 void BK4819_TurnsOffTones_TurnsOnRX(void)
 {
-	BK4819_WriteRegister(0x70, 0);
+	BK4819_write_reg(0x70, 0);
 	BK4819_SetAF(BK4819_AF_MUTE);
 
 	BK4819_ExitTxMute();
 
-	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x30,
+	BK4819_write_reg(0x30, 0);
+	BK4819_write_reg(0x30,
 		BK4819_REG_30_ENABLE_VCO_CALIB |
 //		BK4819_REG_30_ENABLE_UNKNOWN   |
 		BK4819_REG_30_ENABLE_RX_LINK   |
@@ -1029,7 +1018,7 @@ void BK4819_TurnsOffTones_TurnsOnRX(void)
 
 void BK4819_Idle(void)
 {
-	BK4819_WriteRegister(0x30, 0);
+	BK4819_write_reg(0x30, 0);
 }
 /*
 void BK4819_ExitBypass(void)
@@ -1062,7 +1051,7 @@ void BK4819_ExitBypass(void)
 	//         0 ~ 7
 	//         0 = bypass DC filter
 	//
-	BK4819_WriteRegister(0x7E, // 0x302E);   // 0 011 000000 101 110
+	BK4819_write_reg(0x7E, // 0x302E);   // 0 011 000000 101 110
 		(0u << 15) |      // 0  AGC fix mode
 		(3u << 12) |      // 3  AGC fix index
 		(5u <<  3) |      // 5  DC Filter band width for Tx (MIC In)
@@ -1076,8 +1065,8 @@ void BK4819_PrepareTransmit(void)
 
 	BK4819_config_sub_audible();
 
-	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x30, 
+	BK4819_write_reg(0x30, 0);
+	BK4819_write_reg(0x30,
 		BK4819_REG_30_ENABLE_VCO_CALIB |
 		BK4819_REG_30_ENABLE_UNKNOWN   |
 //		BK4819_REG_30_ENABLE_RX_LINK   |
@@ -1106,7 +1095,7 @@ void BK4819_EnterDTMF_TX(bool bLocalLoopback)
 	BK4819_EnterTxMute();
 	BK4819_SetAF(bLocalLoopback ? BK4819_AF_BEEP : BK4819_AF_MUTE);
 
-	BK4819_WriteRegister(0x70,
+	BK4819_write_reg(0x70,
 		BK4819_REG_70_MASK_ENABLE_TONE1                |
 		(83u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN) |
 		BK4819_REG_70_MASK_ENABLE_TONE2                |
@@ -1119,10 +1108,10 @@ void BK4819_ExitDTMF_TX(bool bKeep)
 {
 	BK4819_EnterTxMute();
 	BK4819_SetAF(BK4819_AF_MUTE);
-	BK4819_WriteRegister(0x70, 0);
+	BK4819_write_reg(0x70, 0);
 	BK4819_DisableDTMF();
 
-	BK4819_WriteRegister(0x30, 
+	BK4819_write_reg(0x30,
 		BK4819_REG_30_ENABLE_VCO_CALIB |
 		BK4819_REG_30_ENABLE_UNKNOWN   |
 //		BK4819_REG_30_ENABLE_RX_LINK   |
@@ -1141,7 +1130,7 @@ void BK4819_ExitDTMF_TX(bool bKeep)
 
 void BK4819_EnableTXLink(void)
 {
-	BK4819_WriteRegister(0x30, 
+	BK4819_write_reg(0x30,
 		BK4819_REG_30_ENABLE_VCO_CALIB |
 		BK4819_REG_30_ENABLE_UNKNOWN   |
 //		BK4819_REG_30_ENABLE_RX_LINK   |
@@ -1202,8 +1191,8 @@ void BK4819_PlayDTMF(char Code)
 
     if (index < 16)
     {
-    	BK4819_WriteRegister(0x71, scale_freq(tones[0][index]));
-    	BK4819_WriteRegister(0x72, scale_freq(tones[1][index]));
+    	BK4819_write_reg(0x71, scale_freq(tones[0][index]));
+    	BK4819_write_reg(0x72, scale_freq(tones[1][index]));
     }
 }
 
@@ -1254,10 +1243,10 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency)
 	//
 	// set the tone amplitude
 	//
-//	BK4819_WriteRegister(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (96u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-	BK4819_WriteRegister(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (28u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+//	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (96u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (28u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
-	BK4819_WriteRegister(0x71, scale_freq(Frequency));
+	BK4819_write_reg(0x71, scale_freq(Frequency));
 
 	BK4819_SetAF(bLocalLoopback ? BK4819_AF_BEEP : BK4819_AF_MUTE);
 
@@ -1270,7 +1259,7 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency)
 
 void BK4819_disable_sub_audible(void)
 {
-	BK4819_WriteRegister(0x51, 0);
+	BK4819_write_reg(0x51, 0);
 }
 
 void BK4819_config_sub_audible(void)
@@ -1279,7 +1268,7 @@ void BK4819_config_sub_audible(void)
 //		BK4819_gen_tail(2);    // 180 deg
 //	#else
 //		BK4819_gen_tail(4);
-		BK4819_WriteRegister(0x52, (0u << 15) | (0u << 13) | (0u << 12) | (10u << 6) | (15u << 0)); // 0x028F);  // 0 00 0 001010 001111
+		BK4819_write_reg(0x52, (0u << 15) | (0u << 13) | (0u << 12) | (10u << 6) | (15u << 0)); // 0x028F);  // 0 00 0 001010 001111
 //	#endif
 }
 
@@ -1308,9 +1297,9 @@ void BK4819_set_tail_detection(const uint32_t freq_10Hz)
 	//                          freq(Hz) * 20.97152 for XTAL 12.8M/19.2M/25.6M/38.4M
 	//
 	#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
-		BK4819_WriteRegister(0x07, (0u << 13) | (((freq_10Hz * 206488u) + 50000u) / 100000u));
+		BK4819_write_reg(0x07, (0u << 13) | (((freq_10Hz * 206488u) + 50000u) / 100000u));
 	#else
-		BK4819_WriteRegister(0x07, (1u << 13) | ((253910 + (freq_10Hz / 2)) / freq_10Hz));  // with rounding
+		BK4819_write_reg(0x07, (1u << 13) | ((253910 + (freq_10Hz / 2)) / freq_10Hz));  // with rounding
 	#endif
 }
 
@@ -1371,7 +1360,7 @@ void BK4819_gen_tail(const unsigned int tail)
 			break;
 	}
 
-	BK4819_WriteRegister(0x52,
+	BK4819_write_reg(0x52,
 		(tail_phase_shift            << 15) |
 		(ctcss_tail_mode_selection   << 13) |
 		(ctcss_detect_threshold_mode << 12) |
@@ -1381,7 +1370,7 @@ void BK4819_gen_tail(const unsigned int tail)
 
 void BK4819_set_CDCSS_code(const uint32_t control_word)
 {
-	BK4819_WriteRegister(0x51,
+	BK4819_write_reg(0x51,
 		( 1u << 15) |     // TX CTCSS/CDCSS               1 = enable    0 = disable
 		( 0u << 14) |     // GPIO input for CDCSS         0 = normal (for BK4819v3)
 		( 0u << 13) |     // TX CDCSS code                1 = negative  0 = positive
@@ -1414,21 +1403,21 @@ void BK4819_set_CDCSS_code(const uint32_t control_word)
 	//                          freq(Hz) * 20.64888 for XTAL 13M/26M or
 	//                          freq(Hz) * 20.97152 for XTAL 12.8M/19.2M/25.6M/38.4M
 	//
-	BK4819_WriteRegister(0x07, (0u << 13) | 2775u);
+	BK4819_write_reg(0x07, (0u << 13) | 2775u);
 
 	// REG_08 <15:0> <15> = 1 for CDCSS high 12bit
 	//               <15> = 0 for CDCSS low  12bit
 	// <11:0> = CDCSShigh/low 12bit code
 	//
-	BK4819_WriteRegister(0x08, (0u << 15) | ((control_word >>  0) & 0x0FFF)); // LS 12-bits
-	BK4819_WriteRegister(0x08, (1u << 15) | ((control_word >> 12) & 0x0FFF)); // MS 12-bits
+	BK4819_write_reg(0x08, (0u << 15) | ((control_word >>  0) & 0x0FFF)); // LS 12-bits
+	BK4819_write_reg(0x08, (1u << 15) | ((control_word >> 12) & 0x0FFF)); // MS 12-bits
 }
 
 void BK4819_set_CTCSS_freq(const uint32_t control_word)
 {
 	if (control_word == 0)
 	{	// NOAA 1050Hz tone stuff
-		BK4819_WriteRegister(0x51,
+		BK4819_write_reg(0x51,
 			( 1u << 15) |     // TX CTCSS/CDCSS               1 = enable    0 = disable
 			( 0u << 14) |     // GPIO input for CDCSS         0 = normal (for BK4819v3)
 			( 0u << 13) |     // TX CDCSS code                1 = negative  0 = positive
@@ -1442,7 +1431,7 @@ void BK4819_set_CTCSS_freq(const uint32_t control_word)
 	}
 	else
 	{	// normal CTCSS
-		BK4819_WriteRegister(0x51,
+		BK4819_write_reg(0x51,
 			( 1u << 15) |     // TX CTCSS/CDCSS               1 = enable    0 = disable
 			( 0u << 14) |     // GPIO input for CDCSS         0 = normal (for BK4819v3)
 			( 0u << 13) |     // TX CDCSS code                1 = negative  0 = positive
@@ -1477,9 +1466,9 @@ void BK4819_set_CTCSS_freq(const uint32_t control_word)
 	//                          freq(Hz) * 20.97152 for XTAL 12.8M/19.2M/25.6M/38.4M
 	//
 	#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
-		BK4819_WriteRegister(0x07, (0u << 13) | (((control_word * 206488u) + 50000u) / 100000u));
+		BK4819_write_reg(0x07, (0u << 13) | (((control_word * 206488u) + 50000u) / 100000u));
 	#else
-		BK4819_WriteRegister(0x07, (1u << 13) | ((253910 + (control_word / 2)) / control_word));
+		BK4819_write_reg(0x07, (1u << 13) | ((253910 + (control_word / 2)) / control_word));
 	#endif
 }
 
@@ -1487,7 +1476,7 @@ void BK4819_enable_CDCSS_tail(void)
 {
 	BK4819_gen_tail(0);                  // CTC134
 
-	BK4819_WriteRegister(0x51,           // 0x804A);  // 1 0 0 0 0 0 0 0 0 1001010
+	BK4819_write_reg(0x51,           // 0x804A);  // 1 0 0 0 0 0 0 0 0 1001010
 		( 1u << 15) |     // TX CTCSS/CDCSS               1 = enable    0 = disable
 		( 0u << 14) |     // GPIO0 input for CDCSS        0 = normal (for BK4819v3)
 		( 0u << 13) |     // TX CDCSS code                1 = negative  0 = positive
@@ -1510,7 +1499,7 @@ void BK4819_enable_CTCSS_tail(void)
 		BK4819_gen_tail(4);       // 55Hz tone freq
 	#endif
 
-	BK4819_WriteRegister(0x51,           // 0x804A);  // 1 0 0 0 0 0 0 0 0 1001010
+	BK4819_write_reg(0x51,           // 0x804A);  // 1 0 0 0 0 0 0 0 0 1001010
 		( 1u << 15) |     // TX CTCSS/CDCSS               1 = enable    0 = disable
 		( 0u << 14) |     // GPIO0 input for CDCSS        0 = normal (for BK4819v3)
 		( 0u << 13) |     // TX CDCSS code                1 = negative  0 = positive
@@ -1525,27 +1514,27 @@ void BK4819_enable_CTCSS_tail(void)
 
 uint16_t BK4819_GetRSSI(void)
 {
-	return BK4819_ReadRegister(0x67) & 0x01FF;
+	return BK4819_read_reg(0x67) & 0x01FF;
 }
 
 uint8_t BK4819_GetGlitchIndicator(void)
 {
-	return BK4819_ReadRegister(0x63) & 0x00FF;
+	return BK4819_read_reg(0x63) & 0x00FF;
 }
 
 uint8_t BK4819_GetExNoiceIndicator(void)
 {
-	return BK4819_ReadRegister(0x65) & 0x007F;
+	return BK4819_read_reg(0x65) & 0x007F;
 }
 
 uint16_t BK4819_GetVoiceAmplitudeOut(void)
 {
-	return BK4819_ReadRegister(0x64);
+	return BK4819_read_reg(0x64);
 }
 
 uint8_t BK4819_GetAfTxRx(void)
 {
-	return BK4819_ReadRegister(0x6F) & 0x003F;
+	return BK4819_read_reg(0x6F) & 0x003F;
 }
 
 bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency)
@@ -1569,8 +1558,8 @@ bool BK4819_GetFrequencyScanResult(uint32_t *pFrequency)
 	// **********
 	// (REG_0D <10:0> << 16) | (REG_0E <15:0>) .. unit is 10Hz
 	//
-	const uint16_t high      = BK4819_ReadRegister(0x0D);
-	const uint16_t low       = BK4819_ReadRegister(0x0E);
+	const uint16_t high      = BK4819_read_reg(0x0D);
+	const uint16_t low       = BK4819_read_reg(0x0E);
 	const bool     finished  = ((high >> 15) & 1u) == 0;
 	*pFrequency              = ((uint32_t)(high & 0x07FF) << 16) | low;
 	return finished;
@@ -1608,17 +1597,17 @@ BK4819_CSS_scan_result_t BK4819_GetCxCSSScanResult(uint32_t *pCdcssFreq, uint16_
 	// <11:0> CDCSS Low 12 bits
 	//
 	//
-	const uint16_t High = BK4819_ReadRegister(0x69);
+	const uint16_t High = BK4819_read_reg(0x69);
 	uint16_t       Low;
 
 	if (((High >> 15) & 1u) == 0)
 	{	// CDCSS
-		Low         = BK4819_ReadRegister(0x6A);
+		Low         = BK4819_read_reg(0x6A);
 		*pCdcssFreq = ((uint32_t)(High & 0xFFF) << 12) | (Low & 0xFFF);
 		return BK4819_CSS_RESULT_CDCSS;
 	}
 
-	Low = BK4819_ReadRegister(0x68);
+	Low = BK4819_read_reg(0x68);
 	if (((Low >> 15) & 1u) == 0)
 	{	// CTCSS
 		*pCtcssFreq = ((uint32_t)(Low & 0x1FFF) * 4843) / 10000;
@@ -1644,7 +1633,7 @@ void BK4819_DisableFrequencyScan(void)
 	//         1 = enable
 	//         0 = disable
 	//
-	BK4819_WriteRegister(0x32, // 0x0244);    // 00 0000100100010 0
+	BK4819_write_reg(0x32, // 0x0244);    // 00 0000100100010 0
 		(  0u << 14) |          // 0 frequency scan Time
 		(290u <<  1) |          // ???
 		(  0u <<  0));          // 0 frequency scan enable
@@ -1666,7 +1655,7 @@ void BK4819_EnableFrequencyScan(void)
 	//         1 = enable
 	//         0 = disable
 	//
-	BK4819_WriteRegister(0x32, // 0x0245);   // 00 0000100100010 1
+	BK4819_write_reg(0x32, // 0x0245);   // 00 0000100100010 1
 		(  0u << 14) |          // 0 frequency scan time
 		(290u <<  1) |          // ???
 		(  1u <<  0));          // 1 frequency scan enable
@@ -1676,7 +1665,7 @@ void BK4819_set_scan_frequency(uint32_t Frequency)
 {
 	BK4819_set_rf_frequency(Frequency, false);
 
-	BK4819_WriteRegister(0x51,
+	BK4819_write_reg(0x51,
 		(0u << 15) |     // TX CTCSS/CDCSS               1 = enable    0 = disable
 		(0u << 14) |     // GPIO input for CDCSS         0 = normal (for BK4819v3)
 		(0u << 13) |     // TX CDCSS code                1 = negative  0 = positive
@@ -1694,27 +1683,27 @@ void BK4819_set_scan_frequency(uint32_t Frequency)
 void BK4819_StopScan(void)
 {
 	BK4819_DisableFrequencyScan();
-	BK4819_WriteRegister(0x30, 0);
+	BK4819_write_reg(0x30, 0);
 }
 
 uint8_t BK4819_GetDTMF_5TONE_Code(void)
 {
-	return (BK4819_ReadRegister(0x0B) >> 8) & 0x0F;
+	return (BK4819_read_reg(0x0B) >> 8) & 0x0F;
 }
 
 uint8_t BK4819_get_CDCSS_code_type(void)
 {
-	return (BK4819_ReadRegister(0x0C) >> 14) & 3u;
+	return (BK4819_read_reg(0x0C) >> 14) & 3u;
 }
 
 uint8_t BK4819_GetCTCShift(void)
 {
-	return (BK4819_ReadRegister(0x0C) >> 12) & 3u;
+	return (BK4819_read_reg(0x0C) >> 12) & 3u;
 }
 
 uint8_t BK4819_GetCTCType(void)
 {
-	return (BK4819_ReadRegister(0x0C) >> 10) & 3u;
+	return (BK4819_read_reg(0x0C) >> 10) & 3u;
 }
 
 void BK4819_reset_fsk(void)
@@ -1732,12 +1721,12 @@ void BK4819_reset_fsk(void)
 		(1u <<  3) |   // 0 or 1   sync length selection
 		(0u <<  0);    // 0 ~ 7    ???
 
-	BK4819_WriteRegister(0x3F, 0);  // disable interrupts
+	BK4819_write_reg(0x3F, 0);  // disable interrupts
 
-	BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59); // clear FIFO's
-	BK4819_WriteRegister(0x59, fsk_reg59);
+	BK4819_write_reg(0x59, (1u << 15) | (1u << 14) | fsk_reg59); // clear FIFO's
+	BK4819_write_reg(0x59, fsk_reg59);
 
-	BK4819_WriteRegister(0x30, 0);
+	BK4819_write_reg(0x30, 0);
 }
 
 #ifdef ENABLE_AIRCOPY
@@ -1763,7 +1752,7 @@ void BK4819_reset_fsk(void)
 		//
 		// enable tone-2, set gain
 		//
-		BK4819_WriteRegister(0x70,   // 0 0000000 1 1100000
+		BK4819_write_reg(0x70,   // 0 0000000 1 1100000
 			( 0u << 15) |
 			( 0u <<  8) |
 			( 1u <<  7) |
@@ -1778,11 +1767,11 @@ void BK4819_reset_fsk(void)
 		//
 		// tone-2 = 1200Hz
 		//
-		BK4819_WriteRegister(0x72, scale_freq(1200));
+		BK4819_write_reg(0x72, scale_freq(1200));
 
 		// aircopy is done in direct FM mode
 		//
-		BK4819_WriteRegister(0x58, // 0x00C1);   // 000 000 00 11 00 000 1
+		BK4819_write_reg(0x58, // 0x00C1);   // 000 000 00 11 00 000 1
 			(0u << 13) |		// 1 FSK TX mode selection
 								//   0 = FSK 1.2K and FSK 2.4K TX .. no tones, direct FM
 								//   1 = FFSK 1200 / 1800 TX
@@ -1841,7 +1830,7 @@ void BK4819_reset_fsk(void)
 		//
 		// Enable CRC among other things we don't know yet
 		//
-		BK4819_WriteRegister(0x5C, 0x5665);   // 010101100 1 100101
+		BK4819_write_reg(0x5C, 0x5665);   // 010101100 1 100101
 
 		// REG_5D
 		//
@@ -1852,7 +1841,7 @@ void BK4819_reset_fsk(void)
 		//
 		// <4:0>  0 ???
 		//
-		BK4819_WriteRegister(0x5D, ((packet_size - 1) << 8));
+		BK4819_write_reg(0x5D, ((packet_size - 1) << 8));
 	}
 
 	void BK4819_start_aircopy_fsk_rx(const unsigned int packet_size)
@@ -1861,18 +1850,18 @@ void BK4819_reset_fsk(void)
 
 		BK4819_reset_fsk();
 
-		BK4819_WriteRegister(0x02, 0);    // clear interrupt flags
+		BK4819_write_reg(0x02, 0);    // clear interrupt flags
 
 		// set the almost full threshold
-		BK4819_WriteRegister(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
+		BK4819_write_reg(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
 
 		// set the packet size
-		BK4819_WriteRegister(0x5D, ((packet_size - 1) << 8));
+		BK4819_write_reg(0x5D, ((packet_size - 1) << 8));
 
 		BK4819_RX_TurnOn();
 
-	//	BK4819_WriteRegister(0x3F,                             BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
-		BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
+	//	BK4819_write_reg(0x3F,                             BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
+		BK4819_write_reg(0x3F, BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
 
 		// REG_59
 		//
@@ -1924,8 +1913,8 @@ void BK4819_reset_fsk(void)
 					(1u <<  3) |   // 0 or 1   sync length selection
 					(0u <<  0);    // 0 ~ 7    ???
 
-		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);  // clear FIFO's
-		BK4819_WriteRegister(0x59, (1u << 13) | (1u << 12) | fsk_reg59);  // enable scrambler, enable RX
+		BK4819_write_reg(0x59, (1u << 15) | (1u << 14) | fsk_reg59);  // clear FIFO's
+		BK4819_write_reg(0x59, (1u << 13) | (1u << 12) | fsk_reg59);  // enable scrambler, enable RX
 	}
 #endif
 
@@ -2036,15 +2025,15 @@ void BK4819_reset_fsk(void)
 				(1u <<  3) |   // 0/1 sync length selection
 				(0u <<  0);    // 0 ~ 7  ???
 
-			BK4819_WriteRegister(0x70,
+			BK4819_write_reg(0x70,
 				( 0u << 15) |    // 0
 				( 0u <<  8) |    // 0
 				( 1u <<  7) |    // 1
 				(96u <<  0));    // 96
 
-			BK4819_WriteRegister(0x72, scale_freq(1200));
+			BK4819_write_reg(0x72, scale_freq(1200));
 
-			BK4819_WriteRegister(0x58,
+			BK4819_write_reg(0x58,
 				(1u << 13) |		// 1 FSK TX mode selection
 									//   0 = FSK 1.2K and FSK 2.4K TX .. no tones, direct FM
 									//   1 = FFSK 1200 / 1800 TX
@@ -2095,47 +2084,47 @@ void BK4819_reset_fsk(void)
 			//
 			// <15:8> sync byte 0
 			// < 7:0> sync byte 1
-//			BK4819_WriteRegister(0x5A, ((uint16_t)mdc1200_sync_suc_xor[0] << 8) | (mdc1200_sync_suc_xor[1] << 0));
-			BK4819_WriteRegister(0x5A, ((uint16_t)mdc1200_sync_suc_xor[1] << 8) | (mdc1200_sync_suc_xor[2] << 0));
+//			BK4819_write_reg(0x5A, ((uint16_t)mdc1200_sync_suc_xor[0] << 8) | (mdc1200_sync_suc_xor[1] << 0));
+			BK4819_write_reg(0x5A, ((uint16_t)mdc1200_sync_suc_xor[1] << 8) | (mdc1200_sync_suc_xor[2] << 0));
 
 			// REG_5B .. bytes 2 & 3 sync pattern
 			//
 			// <15:8> sync byte 2
 			// < 7:0> sync byte 3
-//			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[2] << 8) | (mdc1200_sync_suc_xor[3] << 0));
-			BK4819_WriteRegister(0x5B, ((uint16_t)mdc1200_sync_suc_xor[3] << 8) | (mdc1200_sync_suc_xor[4] << 0));
+//			BK4819_write_reg(0x5B, ((uint16_t)mdc1200_sync_suc_xor[2] << 8) | (mdc1200_sync_suc_xor[3] << 0));
+			BK4819_write_reg(0x5B, ((uint16_t)mdc1200_sync_suc_xor[3] << 8) | (mdc1200_sync_suc_xor[4] << 0));
 
 			// disable CRC
-			BK4819_WriteRegister(0x5C, 0x5625);   // 01010110 0 0 100101
-//			BK4819_WriteRegister(0x5C, 0xAA30);   // 10101010 0 0 110000
+			BK4819_write_reg(0x5C, 0x5625);   // 01010110 0 0 100101
+//			BK4819_write_reg(0x5C, 0xAA30);   // 10101010 0 0 110000
 
 			// set the almost full threshold
-			BK4819_WriteRegister(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
+			BK4819_write_reg(0x5E, (64u << 3) | (1u << 0));  // 0 ~ 127, 0 ~ 7
 
 			{	// packet size .. sync + 14 bytes - size of a single mdc1200 packet
 //				uint16_t size = 1 + (MDC1200_FEC_K * 2);
 				uint16_t size = 0 + (MDC1200_FEC_K * 2);
-//				size -= (fsk_reg59 & (1u << 3)) ? 4 : 2; 
+//				size -= (fsk_reg59 & (1u << 3)) ? 4 : 2;
 				size = ((size + 1) / 2) * 2;             // round up to even, else FSK RX doesn't work
-				BK4819_WriteRegister(0x5D, ((size - 1) << 8));
+				BK4819_write_reg(0x5D, ((size - 1) << 8));
 			}
-	
+
 			// clear FIFO's then enable RX
-			BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
-			BK4819_WriteRegister(0x59, (1u << 12) | fsk_reg59);
+			BK4819_write_reg(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
+			BK4819_write_reg(0x59, (1u << 12) | fsk_reg59);
 
 			// clear interrupt flags
-			BK4819_WriteRegister(0x02, 0);
+			BK4819_write_reg(0x02, 0);
 
 //			BK4819_RX_TurnOn();
 
 			// enable interrupts
-//			BK4819_WriteRegister(0x3F, BK4819_ReadRegister(0x3F) | BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
+//			BK4819_write_reg(0x3F, BK4819_read_reg(0x3F) | BK4819_REG_3F_FSK_RX_SYNC | BK4819_REG_3F_FSK_RX_FINISHED | BK4819_REG_3F_FSK_FIFO_ALMOST_FULL);
 		}
 		else
 		{
-			BK4819_WriteRegister(0x70, 0);
-			BK4819_WriteRegister(0x58, 0);
+			BK4819_write_reg(0x70, 0);
+			BK4819_write_reg(0x58, 0);
 		}
 	}
 
@@ -2148,9 +2137,9 @@ void BK4819_reset_fsk(void)
 		const unsigned int size = MDC1200_encode_single_packet(packet, op, arg, id);
 
 		//BK4819_ExitTxMute();
-		BK4819_WriteRegister(0x50, 0x3B20);  // 0011 1011 0010 0000
+		BK4819_write_reg(0x50, 0x3B20);  // 0011 1011 0010 0000
 
-		BK4819_WriteRegister(0x30, 
+		BK4819_write_reg(0x30,
 			BK4819_REG_30_ENABLE_VCO_CALIB |
 			BK4819_REG_30_ENABLE_UNKNOWN   |
 //			BK4819_REG_30_ENABLE_RX_LINK   |
@@ -2178,11 +2167,11 @@ void BK4819_reset_fsk(void)
 		// <15>  TxCTCSS/CDCSS   0 = disable 1 = Enable
 		//
 		// turn off CTCSS/CDCSS during FFSK
-		const uint16_t css_val = BK4819_ReadRegister(0x51);
-		BK4819_WriteRegister(0x51, 0);
+		const uint16_t css_val = BK4819_read_reg(0x51);
+		BK4819_write_reg(0x51, 0);
 
 		// set the FM deviation level
-		const uint16_t dev_val = BK4819_ReadRegister(0x40);
+		const uint16_t dev_val = BK4819_read_reg(0x40);
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //			UART_printf("tx dev %04X\r\n", dev_val);
 		#endif
@@ -2194,10 +2183,10 @@ void BK4819_reset_fsk(void)
 				case BK4819_FILTER_BW_NARROW:   deviation =  850; break;
 				case BK4819_FILTER_BW_NARROWER: deviation =  750; break;
 			}
-			//BK4819_WriteRegister(0x40, (3u << 12) | (deviation & 0xfff));
-			BK4819_WriteRegister(0x40, (dev_val & 0xf000) | (deviation & 0xfff));
+			//BK4819_write_reg(0x40, (3u << 12) | (deviation & 0xfff));
+			BK4819_write_reg(0x40, (dev_val & 0xf000) | (deviation & 0xfff));
 		}
-		
+
 		// REG_2B   0
 		//
 		// <15> 1 Enable CTCSS/CDCSS DC cancellation after FM Demodulation   1 = enable 0 = disable
@@ -2211,15 +2200,15 @@ void BK4819_reset_fsk(void)
 		//
 		// disable the 300Hz HPF and FM pre-emphasis filter
 		//
-		const uint16_t filt_val = BK4819_ReadRegister(0x2B);
-		BK4819_WriteRegister(0x2B, (1u << 2) | (1u << 0));
+		const uint16_t filt_val = BK4819_read_reg(0x2B);
+		BK4819_write_reg(0x2B, (1u << 2) | (1u << 0));
 
 		// *******************************************
 		// setup the FFSK modem as best we can for MDC1200
-		
+
 		// MDC1200 uses 1200/1800 Hz FSK tone frequencies 1200 bits/s
 		//
-		BK4819_WriteRegister(0x58, // 0x37C3);   // 001 101 11 11 00 001 1
+		BK4819_write_reg(0x58, // 0x37C3);   // 001 101 11 11 00 001 1
 			(1u << 13) |		// 1 FSK TX mode selection
 								//   0 = FSK 1.2K and FSK 2.4K TX .. no tones, direct FM
 								//   1 = FFSK 1200/1800 TX
@@ -2274,7 +2263,7 @@ void BK4819_reset_fsk(void)
 		//
 		// tone-2 = 1200Hz
 		//
-		BK4819_WriteRegister(0x72, scale_freq(1200));
+		BK4819_write_reg(0x72, scale_freq(1200));
 
 		// REG_70
 		//
@@ -2293,7 +2282,7 @@ void BK4819_reset_fsk(void)
 		//
 		// enable tone-2, set gain
 		//
-		BK4819_WriteRegister(0x70,   // 0 0000000 1 1100000
+		BK4819_write_reg(0x70,   // 0 0000000 1 1100000
 			( 0u << 15) |    // 0
 			( 0u <<  8) |    // 0
 			( 1u <<  7) |    // 1
@@ -2336,21 +2325,21 @@ void BK4819_reset_fsk(void)
 					(0u <<  0);    // 0 ~ 7   ???
 
 		// Set packet length (not including pre-amble and sync bytes that we can't seem to disable)
-		BK4819_WriteRegister(0x5D, ((size - 1) << 8));
+		BK4819_write_reg(0x5D, ((size - 1) << 8));
 
 		// REG_5A
 		//
 		// <15:8> 0x55 FSK Sync Byte 0 (Sync Byte 0 first, then 1,2,3)
 		// <7:0>  0x55 FSK Sync Byte 1
 		//
-		BK4819_WriteRegister(0x5A, 0x0000);                   // bytes 1 & 2
+		BK4819_write_reg(0x5A, 0x0000);                   // bytes 1 & 2
 
 		// REG_5B
 		//
 		// <15:8> 0x55 FSK Sync Byte 2 (Sync Byte 0 first, then 1,2,3)
 		// <7:0>  0xAA FSK Sync Byte 3
 		//
-		BK4819_WriteRegister(0x5B, 0x0000);                   // bytes 2 & 3
+		BK4819_write_reg(0x5B, 0x0000);                   // bytes 2 & 3
 
 		// CRC setting (plus other stuff we don't know what)
 		//
@@ -2366,25 +2355,25 @@ void BK4819_reset_fsk(void)
 		//
 		// NB, this also affects TX pre-amble in some way
 		//
-		BK4819_WriteRegister(0x5C, 0x5625);   // 010101100 0 100101
-//		BK4819_WriteRegister(0x5C, 0xAA30);   // 101010100 0 110000
-//		BK4819_WriteRegister(0x5C, 0x0030);   // 000000000 0 110000
+		BK4819_write_reg(0x5C, 0x5625);   // 010101100 0 100101
+//		BK4819_write_reg(0x5C, 0xAA30);   // 101010100 0 110000
+//		BK4819_write_reg(0x5C, 0x0030);   // 000000000 0 110000
 
-		BK4819_WriteRegister(0x59, (1u << 15) | (1u << 14) | fsk_reg59);   // clear FIFO's
-		BK4819_WriteRegister(0x59, fsk_reg59);                             // release the FIFO reset
+		BK4819_write_reg(0x59, (1u << 15) | (1u << 14) | fsk_reg59);   // clear FIFO's
+		BK4819_write_reg(0x59, fsk_reg59);                             // release the FIFO reset
 
 		{	// load the entire packet data into the TX FIFO buffer
 			unsigned int i;
 			const uint16_t *p = (const uint16_t *)packet;
 			for (i = 0; i < (size / sizeof(p[0])); i++)
-				BK4819_WriteRegister(0x5F, p[i]);  // load 16-bits at a time
+				BK4819_write_reg(0x5F, p[i]);  // load 16-bits at a time
 		}
 
 		// enable tx interrupt
-		BK4819_WriteRegister(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
+		BK4819_write_reg(0x3F, BK4819_REG_3F_FSK_TX_FINISHED);
 
 		// enable FSK TX
-		BK4819_WriteRegister(0x59, (1u << 11) | fsk_reg59);
+		BK4819_write_reg(0x59, (1u << 11) | fsk_reg59);
 
 		{	// packet time is ..
 			// 173ms for PTT ID, acks, emergency
@@ -2397,10 +2386,10 @@ void BK4819_reset_fsk(void)
 			while (timeout-- > 0)
 			{
 				SYSTEM_DelayMs(4);
-				if (BK4819_ReadRegister(0x0C) & (1u << 0))
+				if (BK4819_read_reg(0x0C) & (1u << 0))
 				{	// we have interrupt flags
-					BK4819_WriteRegister(0x02, 0);
-					if (BK4819_ReadRegister(0x02) & BK4819_REG_02_FSK_TX_FINISHED)
+					BK4819_write_reg(0x02, 0);
+					if (BK4819_read_reg(0x02) & BK4819_REG_02_FSK_TX_FINISHED)
 						timeout = 0;       // TX is complete
 				}
 			}
@@ -2409,28 +2398,28 @@ void BK4819_reset_fsk(void)
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 		// disable FSK
-		BK4819_WriteRegister(0x59, fsk_reg59);
+		BK4819_write_reg(0x59, fsk_reg59);
 
-		BK4819_WriteRegister(0x3F, 0);   // disable interrupts
-		BK4819_WriteRegister(0x70, 0);
-		BK4819_WriteRegister(0x58, 0);
+		BK4819_write_reg(0x3F, 0);   // disable interrupts
+		BK4819_write_reg(0x70, 0);
+		BK4819_write_reg(0x58, 0);
 
 		// restore FM deviation level
-		BK4819_WriteRegister(0x40, dev_val);
+		BK4819_write_reg(0x40, dev_val);
 
 		// restore TX/RX filtering
-		BK4819_WriteRegister(0x2B, filt_val);
+		BK4819_write_reg(0x2B, filt_val);
 
 		// restore the CTCSS/CDCSS setting
-		BK4819_WriteRegister(0x51, css_val);
+		BK4819_write_reg(0x51, css_val);
 
 		//BK4819_EnterTxMute();
-		BK4819_WriteRegister(0x50, 0xBB20); // 1011 1011 0010 0000
+		BK4819_write_reg(0x50, 0xBB20); // 1011 1011 0010 0000
 
 		//BK4819_SetAF(BK4819_AF_MUTE);
-		BK4819_WriteRegister(0x47, (1u << 14) | (1u << 13) | (BK4819_AF_MUTE << 8) | (1u << 6));
+		BK4819_write_reg(0x47, (1u << 14) | (1u << 13) | (BK4819_AF_MUTE << 8) | (1u << 6));
 
-		BK4819_WriteRegister(0x30, 
+		BK4819_write_reg(0x30,
 			BK4819_REG_30_ENABLE_VCO_CALIB |
 			BK4819_REG_30_ENABLE_UNKNOWN   |
 //			BK4819_REG_30_ENABLE_RX_LINK   |
@@ -2444,14 +2433,14 @@ void BK4819_reset_fsk(void)
 		0);
 
 		//BK4819_ExitTxMute();
-		BK4819_WriteRegister(0x50, 0x3B20);  // 0011 1011 0010 0000
+		BK4819_write_reg(0x50, 0x3B20);  // 0011 1011 0010 0000
 	}
 #endif
 
 void BK4819_Enable_AfDac_DiscMode_TxDsp(void)
 {
-	BK4819_WriteRegister(0x30, 0);
-	BK4819_WriteRegister(0x30, 
+	BK4819_write_reg(0x30, 0);
+	BK4819_write_reg(0x30,
 //		BK4819_REG_30_ENABLE_VCO_CALIB |
 //		BK4819_REG_30_ENABLE_UNKNOWN   |
 //		BK4819_REG_30_ENABLE_RX_LINK   |
@@ -2467,12 +2456,12 @@ void BK4819_Enable_AfDac_DiscMode_TxDsp(void)
 
 void BK4819_GetVoxAmp(uint16_t *pResult)
 {
-	*pResult = BK4819_ReadRegister(0x64) & 0x7FFF;
+	*pResult = BK4819_read_reg(0x64) & 0x7FFF;
 }
 
 void BK4819_SetScrambleFrequencyControlWord(uint32_t Frequency)
 {
-	BK4819_WriteRegister(0x71, scale_freq(Frequency));
+	BK4819_write_reg(0x71, scale_freq(Frequency));
 }
 
 void BK4819_PlayDTMFEx(bool bLocalLoopback, char Code)
@@ -2480,7 +2469,7 @@ void BK4819_PlayDTMFEx(bool bLocalLoopback, char Code)
 	BK4819_EnableDTMF();
 	BK4819_EnterTxMute();
 	BK4819_SetAF(bLocalLoopback ? BK4819_AF_BEEP : BK4819_AF_MUTE);
-	BK4819_WriteRegister(0x70, 0xD3D3);  // 1101 0011 1101 0011
+	BK4819_write_reg(0x70, 0xD3D3);  // 1101 0011 1101 0011
 	BK4819_EnableTXLink();
 	SYSTEM_DelayMs(50);
 	BK4819_PlayDTMF(Code);

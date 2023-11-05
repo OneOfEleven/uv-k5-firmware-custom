@@ -14,14 +14,14 @@ ENABLE_LTO                       := 1
 ENABLE_UART                      := 1
 ENABLE_UART_DEBUG                := 0
 # AirCopy 2.5 kB
-ENABLE_AIRCOPY                   := 0
+ENABLE_AIRCOPY                   := 1
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
 # FM Radio 4.2 kB
 ENABLE_FMRADIO_64_76             := 0
 ENABLE_FMRADIO_76_90             := 0
 ENABLE_FMRADIO_76_108            := 0
-ENABLE_FMRADIO_875_108           := 1
+ENABLE_FMRADIO_875_108           := 0
 ENABLE_FMRADIO_64_108            := 0
 # NOAA 1.2 kB
 ENABLE_NOAA                      := 0
@@ -29,14 +29,14 @@ ENABLE_NOAA                      := 0
 ENABLE_VOICE                     := 0
 ENABLE_MUTE_RADIO_FOR_VOICE      := 0
 # Tx on Voice 1.0 kB
-ENABLE_VOX                       := 1
+ENABLE_VOX                       := 0
 ENABLE_VOX_MORE_SENSITIVE        := 1
 ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
 # Tx Alarm 600 B
 ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 0
 # MDC1200 2.8 kB
-ENABLE_MDC1200                   := 0
+ENABLE_MDC1200                   := 1
 ENABLE_MDC1200_SHOW_OP_ARG       := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 0
@@ -60,6 +60,7 @@ ENABLE_DTMF_CALL_FLASH_LIGHT     := 1
 ENABLE_FLASH_LIGHT_SOS_TONE      := 1
 ENABLE_SHOW_CHARGE_LEVEL         := 0
 ENABLE_REVERSE_BAT_SYMBOL        := 1
+ENABLE_FREQ_SEARCH_LNA           := 1
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
 ENABLE_SCAN_IGNORE_LIST          := 1
@@ -414,6 +415,9 @@ ifeq ($(ENABLE_SCAN_IGNORE_LIST),1)
 endif
 ifeq ($(ENABLE_KILL_REVIVE),1)
 	CFLAGS  += -DENABLE_KILL_REVIVE
+endif
+ifeq ($(ENABLE_FREQ_SEARCH_LNA),1)
+	CFLAGS  += -DENABLE_FREQ_SEARCH_LNA
 endif
 ifeq ($(ENABLE_FREQ_SEARCH_TIMEOUT),1)
 	CFLAGS  += -DENABLE_FREQ_SEARCH_TIMEOUT

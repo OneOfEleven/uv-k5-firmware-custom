@@ -382,8 +382,8 @@ void SETTINGS_read_eeprom(void)
 	g_eeprom.calib.volume_gain = (g_eeprom.calib.volume_gain < 64) ? g_eeprom.calib.volume_gain : 58;
 	g_eeprom.calib.dac_gain    = (g_eeprom.calib.dac_gain    < 16) ? g_eeprom.calib.dac_gain    : 8;
 
-	BK4819_WriteRegister(0x3B, 22656 + g_eeprom.calib.bk4819_xtal_freq_low);
-//	BK4819_WriteRegister(0x3C, g_eeprom.calib.BK4819_XTAL_FREQ_HIGH);
+	BK4819_write_reg(0x3B, 22656 + g_eeprom.calib.bk4819_xtal_freq_low);
+//	BK4819_write_reg(0x3C, g_eeprom.calib.BK4819_XTAL_FREQ_HIGH);
 
 	// ****************************************
 }
