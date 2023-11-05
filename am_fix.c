@@ -104,10 +104,10 @@ static const t_gain_table gain_table[] =
 	{0x005E, -50},         //   1 .. 0 2 3 6 .. -33dB -14dB  0dB  -3dB .. -50dB
 	{0x015E, -47},         //   2 .. 1 2 3 6 .. -30dB -14dB  0dB  -3dB .. -47dB
 	{0x025E, -41},         //   3 .. 2 2 3 6 .. -24dB -14dB  0dB  -3dB .. -41dB
-	{0x035E, -17}          //   4 .. 3 2 3 6 ..   0dB -14dB  0dB  -3dB .. -17dB original
+	{0x035E, -17}          //   4 .. 3 2 3 6 ..   0dB -14dB  0dB  -3dB .. -17dB
 };
 
-static const unsigned int original_index = 3;
+static const unsigned int original_index = 0;
 
 #else
 	{0x0000, -98},         //   1 .. 0 0 0 0 .. -33dB -24dB -8dB -33dB .. -98dB

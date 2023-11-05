@@ -1004,8 +1004,16 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 				uint32_t               freq  = g_tx_vfo->freq_config_rx.frequency;
 				const uint32_t         step  = g_tx_vfo->step_freq;
 				const frequency_band_t band  = FREQUENCY_GetBand(freq);
-				const uint32_t         upper = FREQ_BAND_TABLE[band].upper;
-				const uint32_t         lower = FREQ_BAND_TABLE[band].lower;
+				uint32_t               upper = FREQ_BAND_TABLE[band].upper;
+				uint32_t               lower = FREQ_BAND_TABLE[band].lower;
+
+				if (band == BAND2_108MHz)
+				{	// air band
+					if (freq < 11800000)
+						upper = 11800000;  // lower airband half
+					else
+						lower = 11800000;  // upper airband half
+				}
 
 				freq += step * direction;
 
@@ -1015,7 +1023,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 				while (freq < lower)
 					freq += upper - lower;
 
-				if (band == BAND2_108MHz)  // air band uses set channels. so round to those channels
+				if (band == BAND2_108MHz)  // air band uses set channels
 					freq = lower + ((((freq - lower) + (step / 2)) / step) * step);
 
 				if (FREQUENCY_rx_freq_check(freq) < 0)
@@ -1026,8 +1034,6 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 
 				g_tx_vfo->freq_config_rx.frequency = freq;
 
-				RADIO_ApplyOffset(g_tx_vfo, false);
-
 				// find the first channel that contains this frequency .. currently takes too long
 				//
 				//if (!key_held && key_pressed)
@@ -1037,6 +1043,9 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 					g_tx_vfo->freq_in_channel = 0xff;
 
 				#if 0
+					RADIO_ApplyOffset(g_tx_vfo, false);
+					RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
+
 					// original slow method
 					g_request_save_channel = 1;
 				#else
@@ -1053,12 +1062,14 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 							g_manual_scanning = true;
 							g_monitor_enabled = true;
 							GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-//							APP_start_listening();
 						}
 					#endif
 
 					BK4819_set_rf_frequency(freq, true);  // set the VCO/PLL
 					BK4819_set_rf_filter_path(freq);      // set the proper LNA/PA filter path
+
+					RADIO_ApplyOffset(g_tx_vfo, false);
+					RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
 				#endif
 
 				return;

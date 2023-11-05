@@ -647,11 +647,19 @@ void APP_stop_scan(void)
 
 static void APP_next_freq(void)
 {
-	uint32_t               freq  = g_rx_vfo->freq_config_rx.frequency;
-	const uint32_t         step  = g_rx_vfo->step_freq;
+	uint32_t               freq  = g_tx_vfo->freq_config_rx.frequency;
+	const uint32_t         step  = g_tx_vfo->step_freq;
 	const frequency_band_t band  = FREQUENCY_GetBand(freq);
-	const uint32_t         upper = FREQ_BAND_TABLE[band].upper;
-	const uint32_t         lower = FREQ_BAND_TABLE[band].lower;
+	uint32_t               upper = FREQ_BAND_TABLE[band].upper;
+	uint32_t               lower = FREQ_BAND_TABLE[band].lower;
+
+	if (band == BAND2_108MHz)
+	{	// air band
+		if (freq < 11800000)
+			upper = 11800000;  // lower airband half
+		else
+			lower = 11800000;  // upper airband half
+	}
 
 	#ifdef ENABLE_SCAN_IGNORE_LIST
 		do {
@@ -671,9 +679,9 @@ static void APP_next_freq(void)
 		} while (FI_freq_ignored(freq) >= 0);
 	#endif
 
-	g_rx_vfo->freq_in_channel = 0xff;
+	g_tx_vfo->freq_in_channel = 0xff;
 
-	g_rx_vfo->freq_config_rx.frequency = freq;
+	g_tx_vfo->freq_config_rx.frequency = freq;
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //		UART_printf("APP_next_freq %u %u\r\n", freq, new_band);
@@ -682,8 +690,8 @@ static void APP_next_freq(void)
 	#if 0
 		// original slower method
 
-		RADIO_ApplyOffset(g_rx_vfo, false);
-		RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
+		RADIO_ApplyOffset(g_tx_vfo, false);
+		RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
 
 		RADIO_setup_registers(true);
 
@@ -696,10 +704,11 @@ static void APP_next_freq(void)
 	#else
 		// don't need to go through all the other stuff .. speed things up !!
 
-//		RADIO_ApplyOffset(g_rx_vfo, false);
+		BK4819_set_rf_frequency(g_tx_vfo->freq_config_rx.frequency, true);
+		BK4819_set_rf_filter_path(g_tx_vfo->freq_config_rx.frequency);
 
-		BK4819_set_rf_frequency(g_rx_vfo->freq_config_rx.frequency, true);
-		BK4819_set_rf_filter_path(g_rx_vfo->freq_config_rx.frequency);
+		RADIO_ApplyOffset(g_tx_vfo, false);
+		RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
 			//g_scan_pause_tick_10ms = 10;   // 100ms
