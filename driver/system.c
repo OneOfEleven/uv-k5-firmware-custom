@@ -19,9 +19,9 @@
 #include "driver/system.h"
 #include "driver/systick.h"
 
-void SYSTEM_DelayMs(uint32_t Delay)
+void SYSTEM_DelayMs(const uint32_t Delay)
 {
-	SYSTICK_DelayUs(Delay * 1000);
+	SYSTICK_Delay250ns(Delay * 4000);
 }
 
 void SYSTEM_ConfigureClocks(void)

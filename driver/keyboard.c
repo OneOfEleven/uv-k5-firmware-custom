@@ -125,7 +125,7 @@ key_code_t KEYBOARD_Poll(void)
 		for (i = 0, k = 0, reg = 0; i < 3 && k < 8; i++, k++)
 		{
 			uint16_t reg2;
-			SYSTICK_DelayUs(1);
+			SYSTICK_Delay250ns(4);
 			reg2 = GPIOA->DATA;
 			if (reg != reg2)
 			{	// noise

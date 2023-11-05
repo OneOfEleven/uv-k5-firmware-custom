@@ -20,7 +20,6 @@
 #include <stdint.h>
 
 void SYSTICK_Init(void);
-void SYSTICK_DelayUs(const uint32_t Delay);
 void SYSTICK_Delay250ns(const uint32_t Delay);
 
 #endif
