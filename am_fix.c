@@ -28,7 +28,7 @@
 #include "functions.h"
 #include "misc.h"
 
-//#define SET_RSSI_COMP
+#define SET_RSSI_COMP
 
 typedef struct
 {
@@ -107,7 +107,7 @@ static const t_gain_table gain_table[] =
 	{0x035E, -17}          //   4 .. 3 2 3 6 ..   0dB -14dB  0dB  -3dB .. -17dB original
 };
 
-static const unsigned int original_index = 1;
+static const unsigned int original_index = 3;
 
 #else
 	{0x0000, -98},         //   1 .. 0 0 0 0 .. -33dB -24dB -8dB -33dB .. -98dB
