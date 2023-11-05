@@ -329,7 +329,6 @@ void SETTINGS_read_eeprom(void)
 	// EEPROM cleaning
 
 #if 1
-
 	memset(&g_eeprom.config.unused13, 0xff, sizeof(g_eeprom.config.unused13));
 
 	memset(&g_eeprom.unused, 0xff, sizeof(g_eeprom.unused));
@@ -347,38 +346,25 @@ void SETTINGS_read_eeprom(void)
 		{	// used channel
 			g_eeprom.config.channel_attributes[index].unused = 0x00;
 			memset(g_eeprom.config.channel_name[index].unused, 0x00, sizeof(g_eeprom.config.channel_name[index].unused));
+
+			// ensure the channel band attribute is correct
+			if (g_eeprom.config.channel[index].frequency > 0 && g_eeprom.config.channel[index].frequency < 0xffffffff)
+				g_eeprom.config.channel_attributes[index].band = FREQUENCY_GetBand(g_eeprom.config.channel[index].frequency);
 		}
 	}
 
-#endif
-
-#if 1
-	// ensure the channel band attribute is correct
-	for (index = 0; index < 200; index++)
-		if (g_eeprom.config.channel_attributes[index].band <= BAND7_470MHz &&
-		    g_eeprom.config.channel[index].frequency > 0 &&
-		    g_eeprom.config.channel[index].frequency < 0xffffffff)
-			g_eeprom.config.channel_attributes[index].band = FREQUENCY_GetBand(g_eeprom.config.channel[index].frequency);
-
-	// 0D60 .. force default VFO attributes
-	for (index = 0; index < 7; index++)
-		g_eeprom.config.channel_attributes[200 + index].attributes = 0xC0 | index;
-	g_eeprom.config.channel_attributes[200 + 7].attributes = 0x00;
-#endif
+	// force default VFO attributes
+	for (index = 200; index < 207; index++)
+		g_eeprom.config.channel_attributes[index].attributes = 0xC0 | (index - 200);
+	g_eeprom.config.channel_attributes[207].attributes = 0x00;
 
 	SETTINGS_save_attributes();
+#endif
 
 	// ****************************************
+	// eeprom calibration data
 
-	memset(&g_eeprom.calib.unused3, 0xff, sizeof(g_eeprom.calib.unused3));
-
-	memcpy(&g_eeprom_rssi_calib[0], &g_eeprom.calib.rssi_band_123, 8);
-	memcpy(&g_eeprom_rssi_calib[1], &g_eeprom_rssi_calib[0], 8);
-	memcpy(&g_eeprom_rssi_calib[2], &g_eeprom_rssi_calib[0], 8);
-	memcpy(&g_eeprom_rssi_calib[3], &g_eeprom.calib.rssi_band_4567, 8);
-	memcpy(&g_eeprom_rssi_calib[4], &g_eeprom_rssi_calib[3], 8);
-	memcpy(&g_eeprom_rssi_calib[5], &g_eeprom_rssi_calib[3], 8);
-	memcpy(&g_eeprom_rssi_calib[6], &g_eeprom_rssi_calib[3], 8);
+//	memset(&g_eeprom.calib.unused3, 0xff, sizeof(g_eeprom.calib.unused3));
 
 	if (g_eeprom.calib.battery[0] >= 5000)
 	{

@@ -455,9 +455,11 @@ typedef struct {
 		uint8_t unused6[6];                         // 0xff's
 	} __attribute__((packed)) squelch_band[2];      // 0 = bands 4567, 1 = bands 123
 
-	// 0x1EC0
-	uint16_t rssi_band_4567[4];                     // RSSI bargraph thresholds .. (dBm + 160) * 2
-	uint16_t rssi_band_123[4];                      // RSSI bargraph thresholds .. (dBm + 160) * 2
+	// 0x1EC0 .. mine = 006E 0078 0082 008C 0086 00AA 00CE 00F2
+	struct {	// RSSI bargraph thresholds .. (dBm + 160) * 2
+		uint16_t band_4567[4];                      //
+		uint16_t band_123[4];                       // 
+	} __attribute__((packed)) rssi_cal;
 
 	// 0x1ED0
 	struct

@@ -90,8 +90,6 @@ bool                  g_monitor_enabled;
 bool                  g_has_aes_key;
 uint32_t              g_challenge[4];
 
-uint16_t              g_eeprom_rssi_calib[7][4];
-
 volatile uint16_t     g_schedule_power_save_tick_10ms = battery_save_count_10ms;
 volatile bool         g_schedule_power_save;
 

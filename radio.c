@@ -350,9 +350,9 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	RADIO_ConfigureSquelchAndOutputPower(p_vfo);
 
 	#ifdef ENABLE_AM_FIX
+		AM_fix_reset(VFO);
 		if (p_vfo->channel.am_mode > 0 && g_eeprom.config.setting.am_fix)
 		{
-			AM_fix_reset(VFO);
 			AM_fix_10ms(VFO);
 		}
 		else

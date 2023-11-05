@@ -183,8 +183,6 @@ extern const uint32_t        g_default_aes_key[4];
 extern bool                  g_has_aes_key;
 extern uint32_t              g_challenge[4];
 
-extern uint16_t              g_eeprom_rssi_calib[7][4];
-
 extern volatile uint16_t     g_schedule_power_save_tick_10ms;
 extern volatile bool         g_schedule_power_save;
 

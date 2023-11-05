@@ -194,7 +194,6 @@ void toggle_chan_scanlist(void)
 
 void processFKeyFunction(const key_code_t Key)
 {
-	uint8_t Band;
 	uint8_t vfo = g_eeprom.config.setting.tx_vfo_num;
 
 	if (g_current_function == FUNCTION_TRANSMIT || g_current_display_screen == DISPLAY_MENU)
@@ -245,23 +244,28 @@ void processFKeyFunction(const key_code_t Key)
 
 			APP_stop_scan();
 
-			Band = g_tx_vfo->channel_attributes.band + 1;
-			if (g_eeprom.config.setting.enable_350 || Band != BAND5_350MHz)
 			{
-				if (Band > BAND7_470MHz)
-					Band = BAND1_50MHz;   // wrap-a-round
-			}
-			else
-				Band = BAND6_400MHz;      // jump to next band
-			g_tx_vfo->channel_attributes.band = Band;
+				unsigned int band = g_tx_vfo->channel_attributes.band;
 
-			g_eeprom.config.setting.indices.vfo[vfo].screen    = FREQ_CHANNEL_FIRST + Band;
-			g_eeprom.config.setting.indices.vfo[vfo].frequency = FREQ_CHANNEL_FIRST + Band;
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_printf("band %u\r\n", band);
+				#endif
+
+				if (++band > BAND7_470MHz)
+					band = BAND1_50MHz;
+				if (!g_eeprom.config.setting.enable_350 && band == BAND5_350MHz)
+					band = BAND6_400MHz;      // jump to next band
+				g_tx_vfo->channel_attributes.band = band;
+
+				g_eeprom.config.setting.indices.vfo[vfo].screen    = FREQ_CHANNEL_FIRST + band;
+				g_eeprom.config.setting.indices.vfo[vfo].frequency = FREQ_CHANNEL_FIRST + band;
+			}
 
 			g_request_save_vfo   = true;
 			g_vfo_configure_mode = VFO_CONFIGURE_RELOAD;
 
 			g_request_display_screen = DISPLAY_MAIN;
+
 			break;
 
 		case KEY_2:   // A/B
@@ -836,12 +840,12 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 
 		if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 		{	// RF scanning
-	
+
 			#ifdef ENABLE_SCAN_IGNORE_LIST
 				if (scanning_paused())
 				{
 					FI_add_freq_ignored(g_rx_vfo->freq_config_rx.frequency);
-			
+
 					// immediately continue the scan
 					g_scan_pause_tick_10ms = 0;
 					g_scan_pause_time_mode = false;
@@ -987,7 +991,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 				const frequency_band_t band  = FREQUENCY_GetBand(freq);
 				const uint32_t         upper = FREQ_BAND_TABLE[band].upper;
 				const uint32_t         lower = FREQ_BAND_TABLE[band].lower;
-			
+
 				freq += step * direction;
 
 				// wrap-a-round
