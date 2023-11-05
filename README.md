@@ -60,6 +60,7 @@ ENABLE_ALARM                     := 0       TX alarms
 ENABLE_1750HZ                    := 0       side key 1750Hz TX tone (older style repeater access)
 ENABLE_MDC1200                   := 0       enable MDC1200 TX/RX + menu TX option
 ENABLE_MDC1200_SHOW_OP_ARG       := 1       show RX opcode and argument values when MDC1200 is RX'ed
+ENABLE_MDC1200_SIDE_BEEP         := 1       enable short side tone/beep when MDC1200 is sent - so user knows when they can start taking after PTT pressed
 ENABLE_PWRON_PASSWORD            := 0       include power-on password code
 ENABLE_RESET_AES_KEY             := 1       '1' = reset/clear the AES key stored in the eeprom (only if it's set)
 ENABLE_BIG_FREQ                  := 0       big font frequencies (like original QS firmware)
