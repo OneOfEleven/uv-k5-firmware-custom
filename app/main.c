@@ -1102,7 +1102,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 		#ifdef ENABLE_NOAA
 			else
 			{
-				Channel = NOAA_CHANNEL_FIRST + NUMBER_AddWithWraparound(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen - NOAA_CHANNEL_FIRST, Direction, 0, 9);
+				Channel = NOAA_CHANNEL_FIRST + NUMBER_AddWithWraparound(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen - NOAA_CHANNEL_FIRST, direction, 0, 9);
 				g_eeprom.config.setting.indices.noaa_channel[g_eeprom.config.setting.tx_vfo_num] = Channel;
 				g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen   = Channel;
 			}
