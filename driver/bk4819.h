@@ -67,6 +67,9 @@ void     BK4819_WriteRegister(const uint8_t Register, uint16_t Data);
 void     BK4819_WriteU8(uint8_t Data);
 void     BK4819_WriteU16(uint16_t Data);
 
+void     BK4819_EnableAFC(void);
+void     BK4819_DisableAFC(void);
+
 void     BK4819_DisableAGC(void);
 void     BK4819_EnableAGC(void);
 
@@ -79,7 +82,7 @@ void     BK4819_EnableVox(uint16_t Vox1Threshold, uint16_t Vox0Threshold);
 
 void     BK4819_set_TX_deviation(const bool narrow);
 
-void     BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth, const bool weak_no_different);
+void     BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth);
 
 void     BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency);
 void     BK4819_set_rf_frequency(const uint32_t frequency, const bool trigger_update);
