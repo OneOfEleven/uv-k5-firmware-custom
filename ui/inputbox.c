@@ -17,8 +17,8 @@
 #include "misc.h"
 #include "ui/inputbox.h"
 
-char    g_input_box[8];
-uint8_t g_input_box_index;
+unsigned int g_input_box_index;
+char         g_input_box[8];
 
 uint32_t INPUTBOX_value(void)
 {
@@ -56,4 +56,3 @@ void INPUTBOX_append(const key_code_t Digit)
 
 	#pragma GCC diagnostic pop
 }
-

@@ -444,6 +444,10 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 	g_key_input_count_down = key_input_timeout_500ms;
 
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("key0 %u\r\n", Key);
+	#endif
+
 	if (key_held)
 	{	// key held down
 
@@ -483,7 +487,10 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		return;
 	}
 
-	if (g_scan_state_dir != SCAN_STATE_DIR_OFF || g_current_function == FUNCTION_TRANSMIT)
+	if (g_current_function == FUNCTION_TRANSMIT)
+		return;
+
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{
 		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
@@ -493,16 +500,20 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 	INPUTBOX_append(Key);
 
-	UI_DisplayMain();
+//	UI_DisplayMain();
 
-//	g_request_display_screen = DISPLAY_MAIN;
+	g_request_display_screen = DISPLAY_MAIN;
 
 	if (IS_USER_CHANNEL(g_tx_vfo->channel_save))
 	{	// user is entering channel number
 
-		uint16_t Channel;
+		const unsigned int chan = ((g_input_box[0] * 100) + (g_input_box[1] * 10) + g_input_box[2]) - 1;
 
-		if (g_input_box_index != 3)
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("key2 %u %u\r\n", chan, g_input_box_index);
+	#endif
+
+		if (g_input_box_index < 3)
 		{
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = (voice_id_t)Key;
@@ -512,9 +523,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 		g_input_box_index = 0;
 
-		Channel = ((g_input_box[0] * 100) + (g_input_box[1] * 10) + g_input_box[2]) - 1;
-
-		if (!RADIO_CheckValidChannel(Channel, false, 0))
+		if (!RADIO_CheckValidChannel(chan, false, 0))
 		{
 			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
@@ -524,8 +533,8 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			g_another_voice_id = (voice_id_t)Key;
 		#endif
 
-		g_eeprom.config.setting.indices.vfo[vfo].user   = (uint8_t)Channel;
-		g_eeprom.config.setting.indices.vfo[vfo].screen = (uint8_t)Channel;
+		g_eeprom.config.setting.indices.vfo[vfo].user   = chan;
+		g_eeprom.config.setting.indices.vfo[vfo].screen = chan;
 		g_request_save_vfo            = true;
 		g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
 
@@ -536,7 +545,13 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 	if (IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
 	{	// user is entering a frequency
 
-		uint32_t Frequency;
+		uint32_t freq;
+
+		NUMBER_Get(g_input_box, &freq);
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("key2 %u %u\r\n", freq, g_input_box_index);
+	#endif
 
 		if (g_input_box_index < 6)
 		{
@@ -548,23 +563,21 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 		g_input_box_index = 0;
 
-		NUMBER_Get(g_input_box, &Frequency);
-
 		// clamp the frequency entered to some valid value
-		if (Frequency < FREQ_BAND_TABLE[0].lower)
-			Frequency = FREQ_BAND_TABLE[0].lower;
+		if (freq < FREQ_BAND_TABLE[0].lower)
+			freq = FREQ_BAND_TABLE[0].lower;
 		else
-		if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
+		if (freq >= BX4819_BAND1.upper && freq < BX4819_BAND2.lower)
 		{
 			const uint32_t center = (BX4819_BAND1.upper + BX4819_BAND2.lower) / 2;
-			Frequency = (Frequency < center) ? BX4819_BAND1.upper : BX4819_BAND2.lower;
+			freq = (freq < center) ? BX4819_BAND1.upper : BX4819_BAND2.lower;
 		}
 		else
-		if (Frequency > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
-			Frequency = FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper;
+		if (freq > FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper)
+			freq = FREQ_BAND_TABLE[ARRAY_SIZE(FREQ_BAND_TABLE) - 1].upper;
 
 		{
-			const frequency_band_t band = FREQUENCY_GetBand(Frequency);
+			const frequency_band_t band = FREQUENCY_GetBand(freq);
 
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = (voice_id_t)Key;
@@ -582,21 +595,21 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			}
 
 			#if 0
-				Frequency += g_tx_vfo->step_freq / 2; // for rounding to nearest step size
-				Frequency = FREQUENCY_floor_to_step(Frequency, g_tx_vfo->step_freq, FREQ_BAND_TABLE[g_tx_vfo->channel_attributes.band].lower, FREQ_BAND_TABLE[g_tx_vfo->channel_attributes.band].upper);
+				freq += g_tx_vfo->step_freq / 2; // for rounding to nearest step size
+				freq = FREQUENCY_floor_to_step(freq, g_tx_vfo->step_freq, FREQ_BAND_TABLE[g_tx_vfo->channel_attributes.band].lower, FREQ_BAND_TABLE[g_tx_vfo->channel_attributes.band].upper);
 			#endif
 
-			if (Frequency >= BX4819_BAND1.upper && Frequency < BX4819_BAND2.lower)
+			if (freq >= BX4819_BAND1.upper && freq < BX4819_BAND2.lower)
 			{	// clamp the frequency to the limit
 				const uint32_t center = (BX4819_BAND1.upper + BX4819_BAND2.lower) / 2;
-				Frequency = (Frequency < center) ? BX4819_BAND1.upper - g_tx_vfo->step_freq : BX4819_BAND2.lower;
+				freq = (freq < center) ? BX4819_BAND1.upper - g_tx_vfo->step_freq : BX4819_BAND2.lower;
 			}
 
-			g_tx_vfo->freq_config_rx.frequency = Frequency;
-			g_tx_vfo->freq_config_tx.frequency = Frequency;
+			g_tx_vfo->freq_config_rx.frequency = freq;
+			g_tx_vfo->freq_config_tx.frequency = freq;
 
 			// find the first channel that contains this frequency
-			g_tx_vfo->freq_in_channel = SETTINGS_find_channel(Frequency);
+			g_tx_vfo->freq_in_channel = SETTINGS_find_channel(freq);
 
 			g_request_save_channel = 1;
 			g_vfo_configure_mode   = VFO_CONFIGURE;

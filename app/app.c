@@ -1233,6 +1233,11 @@ void APP_check_keys(void)
 	// *****************
 	// PTT is treated completely separately from all the other buttons
 
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		if (g_input_box_index > 0)
+//			UART_printf("1 index %u %u\r\n", g_input_box_index, g_flash_light_blink_tick_10ms);
+	#endif
+
 	if (ptt_pressed)
 	{	// PTT pressed
 
@@ -1262,23 +1267,27 @@ void APP_check_keys(void)
 	else
 	{	// PTT released
 
-		#ifdef ENABLE_KILL_REVIVE
-			if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0 || !g_eeprom.config.setting.tx_enable || g_eeprom.config.setting.radio_disabled)
-		#else
-			if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0 || !g_eeprom.config.setting.tx_enable)
-		#endif
+		if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0)
 		{
-			if (--g_ptt_debounce <= 0)
-			{	// stop TX'ing
-
-				g_ptt_is_pressed   = false;
-				g_ptt_was_released = true;
-				g_ptt_debounce     = 0;
-
-				APP_process_key(KEY_PTT, false, false);
+//			if (g_ptt_debounce > 0)
+			{
+				if (--g_ptt_debounce <= 0)
+				{	// stop TX'ing
+	
+					g_ptt_is_pressed   = false;
+					g_ptt_was_released = true;
+					g_ptt_debounce     = 0;
+	
+					APP_process_key(KEY_PTT, false, false);
+				}
 			}
 		}
 	}
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		if (g_input_box_index > 0)
+//			UART_printf("2 index %u %u\r\n", g_input_box_index, g_flash_light_blink_tick_10ms);
+	#endif
 
 	// *****************
 	// button processing (non-PTT)
@@ -1326,6 +1335,7 @@ void APP_check_keys(void)
 //					g_update_display      = true;
 				}
 			}
+
 			if (g_key_debounce_repeat > 0)
 				g_key_debounce_repeat--;
 		}
@@ -2503,9 +2513,9 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 	g_schedule_power_save_tick_10ms = battery_save_count_10ms;
 
 	#ifdef ENABLE_KEYLOCK
-	// keep the auto keylock at bay
-	if (g_eeprom.config.setting.auto_key_lock != 0)
-		g_key_lock_tick_500ms = key_lock_timeout_500ms;
+		// keep the auto keylock at bay
+		if (g_eeprom.config.setting.auto_key_lock != 0)
+			g_key_lock_tick_500ms = key_lock_timeout_500ms;
 	#endif
 
 	if (g_fkey_pressed && (Key == KEY_PTT || Key == KEY_EXIT || Key == KEY_SIDE1 || Key == KEY_SIDE2))
@@ -2560,10 +2570,6 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 		}
 	}
 #endif
-
-	// key beep
-//	if (Key != KEY_PTT && !key_held && key_pressed)
-//		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
 	// ********************
 
