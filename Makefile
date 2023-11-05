@@ -15,7 +15,7 @@ ENABLE_UART                      := 1
 ENABLE_UART_DEBUG                := 0
 # AirCopy 2.5 kB
 ENABLE_AIRCOPY                   := 0
-ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
+ENABLE_AIRCOPY_REMEMBER_FREQ     := 0
 ENABLE_AIRCOPY_RX_REBOOT         := 0
 # FM Radio 4.2 kB
 ENABLE_FMRADIO_64_76             := 0
@@ -29,36 +29,36 @@ ENABLE_NOAA                      := 0
 ENABLE_VOICE                     := 0
 ENABLE_MUTE_RADIO_FOR_VOICE      := 0
 # Tx on Voice 1.0 kB
-ENABLE_VOX                       := 1
-ENABLE_VOX_MORE_SENSITIVE        := 1
-ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
+ENABLE_VOX                       := 0
+ENABLE_VOX_MORE_SENSITIVE        := 0
+ENABLE_REDUCE_LOW_MID_TX_POWER   := 0
 # Tx Alarm 600 B
 ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 0
 # MDC1200 2.8 kB
-ENABLE_MDC1200                   := 0
+ENABLE_MDC1200                   := 1
 ENABLE_MDC1200_SHOW_OP_ARG       := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 0
 ENABLE_BIG_FREQ                  := 0
 # smaa bolf 580 B
-ENABLE_SMALL_BOLD                := 1
+ENABLE_SMALL_BOLD                := 0
 # smallest font 2 kB
 ENABLE_SMALLEST_FONT             := 0
 # trim trailing 44 B
 ENABLE_TRIM_TRAILING_ZEROS       := 0
 ENABLE_KEEP_MEM_NAME             := 1
 ENABLE_WIDE_RX                   := 1
-ENABLE_TX_WHEN_AM                := 0
+ENABLE_TX_WHEN_AM                := 1
 # Freq calibration 188 B
 ENABLE_F_CAL_MENU                := 0
-ENABLE_TX_UNLOCK                 := 0
+ENABLE_TX_UNLOCK                 := 1
 ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1
-ENABLE_CONTRAST                  := 0
+ENABLE_CONTRAST                  := 1
 ENABLE_BOOT_BEEPS                := 0
 ENABLE_DTMF_CALL_FLASH_LIGHT     := 1
 ENABLE_FLASH_LIGHT_SOS_TONE      := 1
-ENABLE_SHOW_CHARGE_LEVEL         := 0
+ENABLE_SHOW_CHARGE_LEVEL         := 1
 ENABLE_REVERSE_BAT_SYMBOL        := 1
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
@@ -78,7 +78,7 @@ ENABLE_RX_SIGNAL_BAR             := 1
 # Tx Audio Bar 300 B
 ENABLE_TX_AUDIO_BAR              := 0
 # Side Button Menu 300 B
-ENABLE_SIDE_BUTT_MENU            := 0
+ENABLE_SIDE_BUTT_MENU            := 1
 # Key Lock 400 B
 ENABLE_KEYLOCK                   := 0
 ENABLE_PANADAPTER                := 0
