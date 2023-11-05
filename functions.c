@@ -267,7 +267,7 @@ void FUNCTION_Select(function_type_t Function)
 				if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)
 				{
 					#ifdef ENABLE_MDC1200_SIDE_BEEP
-						BK4819_StartTone1(880, 50, false);
+						BK4819_StartTone1(880, 20, false);
 						SYSTEM_DelayMs(120);
 						BK4819_StopTones(true);
 					#endif
@@ -275,7 +275,7 @@ void FUNCTION_Select(function_type_t Function)
 					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.config.setting.mdc1200_id);
 
 					#ifdef ENABLE_MDC1200_SIDE_BEEP
-						BK4819_StartTone1(880, 50, false);
+						BK4819_StartTone1(880, 20, false);
 						SYSTEM_DelayMs(120);
 						BK4819_StopTones(true);
 					#endif
