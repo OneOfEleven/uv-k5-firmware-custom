@@ -1951,6 +1951,20 @@ void APP_time_slice_500ms(void)
 		return;
 	}
 
+	if (g_current_function == FUNCTION_TRANSMIT)
+	{
+		if (g_tx_timer_tick_500ms < 6)
+		{	// <= 3 seconds left
+			if (g_tx_timer_tick_500ms & 1u)
+				BK4819_start_tone(880, 10, true, true);
+			else
+				BK4819_stop_tones(true);
+		}
+
+		if (g_tx_timer_tick_500ms & 1u)
+			g_update_display = true;
+	}
+
 	if (g_update_screen_tick_500ms > 0)
 	{	// update display once every 500ms
 		if (--g_update_screen_tick_500ms == 0)
@@ -1992,20 +2006,6 @@ void APP_time_slice_500ms(void)
 				}
 			}
 		}
-	}
-
-	if (g_current_function == FUNCTION_TRANSMIT)
-	{
-		if (g_tx_timer_tick_500ms < 6)
-		{	// <= 3 seconds left
-			if (g_tx_timer_tick_500ms & 1u)
-				BK4819_start_tone(880, 10, true, false);
-			else
-				BK4819_stop_tones(true);
-		}
-
-		if (g_tx_timer_tick_500ms & 1u)
-			g_update_display = true;
 	}
 
 	if (g_menu_tick_10ms > 0)
