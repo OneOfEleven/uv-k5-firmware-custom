@@ -719,7 +719,9 @@ void UI_DisplayMain(void)
 					big_freq(frequency, x, line);
 				#else
 
-					const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
+					#ifdef ENABLE_SHOW_FREQS_CHAN
+						const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
+					#endif
 
 					sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
 					#ifdef ENABLE_TRIM_TRAILING_ZEROS
