@@ -166,6 +166,7 @@ To compile directly in windows without the need of a linux virtual machine:
 ```
 1. Download and install "gcc-arm-none-eabi-10.3-2021.10-win32.exe" from https://developer.arm.com/downloads/-/gnu-rm
 2. Download and install "gnu_make-3.81.exe" from https://gnuwin32.sourceforge.net/packages/make.htm
+3. If need be (probably not), also download Dependency.zip that includes the library files from https://gnuwin32.sourceforge.net/packages/make.htm
 
 3. You may need to (I didn't) manualy add gcc path to your OS environment PATH.
    ie add C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2021.10\bin
