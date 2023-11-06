@@ -816,19 +816,16 @@ void BK4819_EnableDTMF(void)
 
 void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_unmute)
 {
+//	(void)tx_unmute;
+
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-	SYSTEM_DelayMs(2);
 
-//	BK4819_SetAF(BK4819_AF_MUTE);
-	BK4819_SetAF(BK4819_AF_BEEP);
-//	BK4819_SetAF(BK4819_AF_TONE);
+	SYSTEM_DelayMs(1);
 
-	BK4819_EnterTxMute();
+	// mute TX
+	BK4819_write_reg(0x50, (1u << 15) | 0x3B20);
 
-	if (level > 0)
-		BK4819_write_reg(0x70, BK4819_REG_70_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-	else
-		BK4819_write_reg(0x70, 0);
+	BK4819_write_reg(0x70, BK4819_REG_70_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
 	BK4819_write_reg(0x30, 0);
 
@@ -865,23 +862,29 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 
 	BK4819_write_reg(0x71, scale_freq(frequency));
 
+	SYSTEM_DelayMs(1);
+
+//	BK4819_SetAF(tx ? BK4819_AF_BEEP : BK4819_AF_TONE);
+	BK4819_SetAF(BK4819_AF_TONE);  // RX
+//	BK4819_SetAF(BK4819_AF_BEEP);  // TX
+
 	if (tx_unmute)
-		BK4819_ExitTxMute();
+		BK4819_write_reg(0x50, 0x3B20);   // 0011 1011 0010 0000
 
-	SYSTEM_DelayMs(2);
-
-	if (!tx && level > 0)
-		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 }
 
 void BK4819_StopTones(const bool tx)
 {
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-	SYSTEM_DelayMs(2);
+
+	SYSTEM_DelayMs(1);
 
 	BK4819_SetAF(BK4819_AF_MUTE);
 
-	BK4819_EnterTxMute();
+//	BK4819_EnterTxMute();
+
+	SYSTEM_DelayMs(1);
 
 	BK4819_write_reg(0x70, 0);
 
@@ -916,6 +919,8 @@ void BK4819_StopTones(const bool tx)
 //			BK4819_REG_30_ENABLE_RX_DSP    |
 		0);
 	}
+
+	SYSTEM_DelayMs(1);
 
 	BK4819_ExitTxMute();
 }

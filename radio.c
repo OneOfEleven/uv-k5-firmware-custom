@@ -1215,7 +1215,7 @@ void RADIO_tx_eot(void)
 		BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID, 0x00, g_eeprom.config.setting.mdc1200_id, false);
 
 		#ifdef ENABLE_MDC1200_SIDE_BEEP
-			BK4819_StartTone1(880, 30, true, false);
+			BK4819_StartTone1(880, 10, true, false);
 			SYSTEM_DelayMs(120);
 			BK4819_StopTones(true);
 		#endif

@@ -173,7 +173,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			break;
 	}
 
-	BK4819_StartTone1(ToneFrequency, 96, false, false);
+	BK4819_StartTone1(ToneFrequency, 10, false, false);
 
 	SYSTEM_DelayMs(2);
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
