@@ -169,7 +169,9 @@ void Main(void)
 
 	BOARD_PORTCON_Init();
 	BOARD_GPIO_Init();
+#if defined(ENABLE_AIRCOPY) || defined(ENABLE_UART) || defined(ENABLE_MDC1200)
 	CRC_Init();
+#endif
 	#ifdef ENABLE_UART
 		UART_Init();
 	#endif
