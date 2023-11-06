@@ -32,6 +32,15 @@ uint8_t g_frame_buffer[7][128];
 	uint8_t contrast = 31;  // 0 ~ 63
 #endif
 
+static void ST7565_WriteByte(uint8_t Value);
+
+static inline void ST7565_LowLevelWrite(uint8_t Value)
+{
+        /* Wait for space in the fifo */
+        while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
+        SPI0->WDR = Value;
+}
+
 void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const unsigned int Size, const uint8_t *pBitmap)
 {
 	unsigned int i;
@@ -46,16 +55,14 @@ void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const u
 	{
 		for (i = 0; i < Size; i++)
 		{
-			while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-			SPI0->WDR = pBitmap[i];
+                    ST7565_LowLevelWrite(pBitmap[i]);
 		}
 	}
 	else
 	{
 		for (i = 0; i < Size; i++)
 		{
-			while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-			SPI0->WDR = 0;
+                    ST7565_LowLevelWrite(0);
 		}
 	}
 
@@ -83,8 +90,7 @@ void ST7565_BlitFullScreen(void)
 		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
 		for (Column = 0; Column < ARRAY_SIZE(g_frame_buffer[0]); Column++)
 		{
-			while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-			SPI0->WDR = g_frame_buffer[Line][Column];
+                    ST7565_LowLevelWrite(g_frame_buffer[Line][Column]);
 		}
 		SPI_WaitForUndocumentedTxFifoStatusBit();
 	}
@@ -114,8 +120,7 @@ void ST7565_BlitStatusLine(void)
 
 	for (i = 0; i < ARRAY_SIZE(g_status_line); i++)
 	{
-		while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-		SPI0->WDR = g_status_line[i];
+                ST7565_LowLevelWrite(g_status_line[i]);
 	}
 
 	SPI_WaitForUndocumentedTxFifoStatusBit();
@@ -140,8 +145,7 @@ void ST7565_FillScreen(const uint8_t Value)
 		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
 		for (j = 0; j < 132; j++)
 		{
-			while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-			SPI0->WDR = Value;
+                        ST7565_LowLevelWrite(Value);
 		}
 		SPI_WaitForUndocumentedTxFifoStatusBit();
 	}
@@ -226,20 +230,16 @@ void ST7565_HardwareReset(void)
 void ST7565_SelectColumnAndLine(const uint8_t Column, const uint8_t Line)
 {
 	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-	while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-	SPI0->WDR = Line + 176;
-	while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-	SPI0->WDR = ((Column >> 4) & 0x0F) | 0x10;
-	while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-	SPI0->WDR = ((Column >> 0) & 0x0F);
+        ST7565_LowLevelWrite(Line + 0xB0);
+        ST7565_LowLevelWrite(((Column >> 4) & 0x0F) | 0x10);
+        ST7565_LowLevelWrite((Column >> 0) & 0x0F);
 	SPI_WaitForUndocumentedTxFifoStatusBit();
 }
 
-void ST7565_WriteByte(const uint8_t Value)
+static void ST7565_WriteByte(uint8_t Value)
 {
 	GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-	while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-	SPI0->WDR = Value;
+        ST7565_LowLevelWrite(Value);
 }
 
 #ifdef ENABLE_CONTRAST

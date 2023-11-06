@@ -33,11 +33,9 @@ void    ST7565_FillScreen(const uint8_t Value);
 void    ST7565_Init(const bool full);
 void    ST7565_HardwareReset(void);
 void    ST7565_SelectColumnAndLine(const uint8_t Column, const uint8_t Line);
-void    ST7565_WriteByte(const uint8_t Value);
 #ifdef ENABLE_CONTRAST
 	void    ST7565_SetContrast(const uint8_t value);
 	uint8_t ST7565_GetContrast(void);
 #endif
-
 #endif
 
