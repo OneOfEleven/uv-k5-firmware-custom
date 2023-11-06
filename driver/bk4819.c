@@ -814,7 +814,7 @@ void BK4819_EnableDTMF(void)
 		(15u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
 }
 
-void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool tx)
+void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_unmute)
 {
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	SYSTEM_DelayMs(2);
@@ -825,7 +825,10 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 
 	BK4819_EnterTxMute();
 
-	BK4819_write_reg(0x70, BK4819_REG_70_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+	if (level > 0)
+		BK4819_write_reg(0x70, BK4819_REG_70_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+	else
+		BK4819_write_reg(0x70, 0);
 
 	BK4819_write_reg(0x30, 0);
 
@@ -862,10 +865,12 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 
 	BK4819_write_reg(0x71, scale_freq(frequency));
 
-	BK4819_ExitTxMute();
+	if (tx_unmute)
+		BK4819_ExitTxMute();
 
 	SYSTEM_DelayMs(2);
-	if (!tx)
+
+	if (!tx && level > 0)
 		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 }
 
@@ -918,7 +923,7 @@ void BK4819_StopTones(const bool tx)
 void BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level)
 {
 	const uint16_t prev_af = BK4819_read_reg(0x47);
-	BK4819_StartTone1(tone_Hz, level, g_current_function == FUNCTION_TRANSMIT);
+	BK4819_StartTone1(tone_Hz, level, g_current_function == FUNCTION_TRANSMIT, true);
 	SYSTEM_DelayMs(delay - 2);
 	BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
 	BK4819_write_reg(0x47, prev_af);
@@ -936,9 +941,9 @@ void BK4819_PlayRoger(void)
 	#endif
 
 	const uint16_t prev_af = BK4819_read_reg(0x47);
-	BK4819_StartTone1(tone1_Hz, 96, true);
+	BK4819_StartTone1(tone1_Hz, 96, true, true);
 	SYSTEM_DelayMs(80 - 2);
-	BK4819_StartTone1(tone2_Hz, 96, true);
+	BK4819_StartTone1(tone2_Hz, 96, true, true);
 	SYSTEM_DelayMs(80);
 	BK4819_StopTones(true);
 	BK4819_write_reg(0x47, prev_af);
@@ -2128,7 +2133,7 @@ void BK4819_reset_fsk(void)
 		}
 	}
 
-	void BK4819_send_MDC1200(const uint8_t op, const uint8_t arg, const uint16_t id)
+	void BK4819_send_MDC1200(const uint8_t op, const uint8_t arg, const uint16_t id, const bool long_preamble)
 	{
 		uint16_t fsk_reg59;
 		uint8_t  packet[42];
@@ -2320,10 +2325,11 @@ void BK4819_reset_fsk(void)
 					(0u << 10) |   // 0/1     1 = invert data when RX
 					(0u <<  9) |   // 0/1     1 = invert data when TX
 					(0u <<  8) |   // 0/1     ???
-					(3u <<  4) |   // 0 ~ 15  preamble length .. bit toggling
+					(0u <<  4) |   // 0 ~ 15  preamble length .. bit toggling
 					(1u <<  3) |   // 0/1     sync length
 					(0u <<  0);    // 0 ~ 7   ???
-
+		fsk_reg59 |= long_preamble ? 15u << 4 : 3u << 4; 
+			
 		// Set packet length (not including pre-amble and sync bytes that we can't seem to disable)
 		BK4819_write_reg(0x5D, ((size - 1) << 8));
 

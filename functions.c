@@ -220,7 +220,7 @@ void FUNCTION_Select(function_type_t Function)
 					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 					SYSTEM_DelayMs(2);
-					BK4819_StartTone1(500, 28, g_current_function == FUNCTION_TRANSMIT);
+					BK4819_StartTone1(500, 28, g_current_function == FUNCTION_TRANSMIT, true);
 					SYSTEM_DelayMs(2);
 
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -267,15 +267,16 @@ void FUNCTION_Select(function_type_t Function)
 				if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)
 				{
 					#ifdef ENABLE_MDC1200_SIDE_BEEP
-						BK4819_StartTone1(880, 20, false);
-						SYSTEM_DelayMs(120);
-						BK4819_StopTones(true);
+//						BK4819_StartTone1(880, 20, true, false);
+//						SYSTEM_DelayMs(120);
+//						BK4819_StopTones(true);
 					#endif
+					SYSTEM_DelayMs(30);
 
-					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.config.setting.mdc1200_id);
+					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.config.setting.mdc1200_id, true);
 
 					#ifdef ENABLE_MDC1200_SIDE_BEEP
-						BK4819_StartTone1(880, 20, false);
+						BK4819_StartTone1(880, 20, true, false);
 						SYSTEM_DelayMs(120);
 						BK4819_StopTones(true);
 					#endif
@@ -287,19 +288,7 @@ void FUNCTION_Select(function_type_t Function)
 					BK4819_PlayTone(APOLLO_TONE1_HZ, APOLLO_TONE_MS, 0);
 				}
 			}
-/*			
-			BK4819_write_reg(0x30,
-				(1u  << 15) |    // enable  VCO calibration
-				(1u  << 14) |    // enable  something or other
-				(0u  << 10) |    // diable  RX link
-				(1u  <<  9) |    // enable  AF DAC
-				(1u  <<  8) |    // enable  DISC mode, what's DISC mode ?
-				(15u <<  4) |    // enable  PLL/VCO
-				(1u  <<  3) |    // enable  PA gain
-				(1u  <<  2) |    // enable  MIC ADC
-				(1u  <<  1) |    // enable  TX DSP
-				(0u  <<  0));    // disable RX DSP
-*/
+
 			if (g_eeprom.config.setting.enable_scrambler)
 				BK4819_set_scrambler(g_current_vfo->channel.scrambler);
 			

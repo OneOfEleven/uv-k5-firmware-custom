@@ -106,7 +106,7 @@ void     BK4819_SetCompander(const unsigned int mode);
 void     BK4819_DisableVox(void);
 void     BK4819_DisableDTMF(void);
 void     BK4819_EnableDTMF(void);
-void     BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool tx);
+void     BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_unmute);
 void     BK4819_StopTones(const bool tx);
 void     BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level);
 void     BK4819_EnterTxMute(void);
@@ -165,7 +165,7 @@ void     BK4819_PlayRoger(void);
 
 #ifdef ENABLE_MDC1200
 	void BK4819_enable_mdc1200_rx(const bool enable);
-	void BK4819_send_MDC1200(const uint8_t op, const uint8_t arg, const uint16_t id);
+	void BK4819_send_MDC1200(const uint8_t op, const uint8_t arg, const uint16_t id, const bool long_preamble);
 #endif
 
 void     BK4819_Enable_AfDac_DiscMode_TxDsp(void);
