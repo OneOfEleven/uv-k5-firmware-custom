@@ -814,9 +814,9 @@ void BK4819_EnableDTMF(void)
 		(15u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
 }
 
-void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_unmute)
+void BK4819_start_tone(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_mute)
 {
-//	(void)tx_unmute;
+	SYSTEM_DelayMs(1);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
@@ -868,14 +868,18 @@ void BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const
 	BK4819_SetAF(BK4819_AF_TONE);  // RX
 //	BK4819_SetAF(BK4819_AF_BEEP);  // TX
 
-	if (tx_unmute)
+	if (!tx_mute)
 		BK4819_write_reg(0x50, 0x3B20);   // 0011 1011 0010 0000
 
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
+	SYSTEM_DelayMs(1);
 }
 
-void BK4819_StopTones(const bool tx)
+void BK4819_stop_tones(const bool tx)
 {
+	SYSTEM_DelayMs(1);
+
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	SYSTEM_DelayMs(1);
@@ -923,34 +927,37 @@ void BK4819_StopTones(const bool tx)
 	SYSTEM_DelayMs(1);
 
 	BK4819_ExitTxMute();
+
+	SYSTEM_DelayMs(1);
 }
 
-void BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level)
+void BK4819_PlayRoger(const unsigned int type)
 {
-	const uint16_t prev_af = BK4819_read_reg(0x47);
-	BK4819_StartTone1(tone_Hz, level, g_current_function == FUNCTION_TRANSMIT, true);
-	SYSTEM_DelayMs(delay - 2);
-	BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
-	BK4819_write_reg(0x47, prev_af);
-}
+	uint32_t tone1_Hz;
+	uint32_t tone2_Hz;
 
-void BK4819_PlayRoger(void)
-{
-	#if 0
-		const uint32_t tone1_Hz = 500;
-		const uint32_t tone2_Hz = 700;
-	#else
-		// motorola
-		const uint32_t tone1_Hz = 1540;
-		const uint32_t tone2_Hz = 1310;
-	#endif
+	switch (type)
+	{
+		case 1:
+			tone1_Hz = 1540;
+			tone2_Hz = 1310;
+			break;
+		case 2:
+			tone1_Hz = 500;
+			tone2_Hz = 700;
+			break;
+		default:
+			return;
+	}
 
 	const uint16_t prev_af = BK4819_read_reg(0x47);
-	BK4819_StartTone1(tone1_Hz, 96, true, true);
-	SYSTEM_DelayMs(80 - 2);
-	BK4819_StartTone1(tone2_Hz, 96, true, true);
-	SYSTEM_DelayMs(80);
-	BK4819_StopTones(true);
+
+	BK4819_start_tone(tone1_Hz, 10, true, false);
+	SYSTEM_DelayMs(150);
+	BK4819_write_reg(0x71, scale_freq(tone2_Hz));
+	SYSTEM_DelayMs(150);
+	BK4819_stop_tones(true);
+
 	BK4819_write_reg(0x47, prev_af);
 }
 

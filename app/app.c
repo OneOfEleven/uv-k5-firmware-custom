@@ -1562,7 +1562,7 @@ void APP_process_flash_light_10ms(void)
 						GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);
 						#ifdef ENABLE_FLASH_LIGHT_SOS_TONE
 							if (!g_squelch_open && !g_monitor_enabled && !GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER))
-								BK4819_StartTone1(880, 50, g_current_function == FUNCTION_TRANSMIT, true);
+								BK4819_start_tone(880, 70, g_current_function == FUNCTION_TRANSMIT, false);
 						#endif
 					}
 				}
@@ -1573,7 +1573,7 @@ void APP_process_flash_light_10ms(void)
 						GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT); // OFF
 						#ifdef ENABLE_FLASH_LIGHT_SOS_TONE
 							if (!g_squelch_open && !g_monitor_enabled && GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER))
-								BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
+								BK4819_stop_tones(g_current_function == FUNCTION_TRANSMIT);
 						#endif
 					}
 				}

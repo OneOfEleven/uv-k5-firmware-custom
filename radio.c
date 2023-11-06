@@ -1203,28 +1203,29 @@ void RADIO_tx_eot(void)
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	}
 	else
-	if (g_eeprom.config.setting.roger_mode == ROGER_MODE_ROGER)
-	{
-		BK4819_PlayRoger();
-	}
-	else
 #ifdef ENABLE_MDC1200
-//	if (g_eeprom.config.setting.roger_mode == ROGER_MODE_MDC)
 	if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_EOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)
 	{
 		BK4819_send_MDC1200(MDC1200_OP_CODE_POST_ID, 0x00, g_eeprom.config.setting.mdc1200_id, false);
 
 		#ifdef ENABLE_MDC1200_SIDE_BEEP
-			BK4819_StartTone1(880, 10, true, false);
+			BK4819_start_tone(880, 10, true, true);
 			SYSTEM_DelayMs(120);
-			BK4819_StopTones(true);
+			BK4819_stop_tones(true);
 		#endif
 	}
 	else
 #endif
 	if (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 	{
-		BK4819_PlayTone(APOLLO_TONE2_HZ, APOLLO_TONE_MS, 28);
+		BK4819_start_tone(APOLLO_TONE2_HZ, 28, true, false);
+		SYSTEM_DelayMs(APOLLO_TONE_MS);
+		BK4819_stop_tones(true);
+	}
+	else
+	if (g_eeprom.config.setting.roger_mode != ROGER_MODE_OFF)
+	{
+		BK4819_PlayRoger(g_eeprom.config.setting.roger_mode);
 	}
 
 	BK4819_ExitDTMF_TX(true);

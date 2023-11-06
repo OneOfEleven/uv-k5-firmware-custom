@@ -185,7 +185,7 @@ extern const char         g_sub_menu_ptt_id[5][16];
 	extern const char     g_sub_menu_mdc1200_mode[4][8];
 #endif
 extern const char         g_sub_menu_pwr_on_msg[4][14];
-extern const char         g_sub_menu_roger_mode[2][16];
+extern const char         g_sub_menu_roger_mode[3][15];
 extern const char         g_sub_menu_reset[2][4];
 extern const char         g_sub_menu_backlight[8][7];
 extern const char         g_sub_menu_rx_tx[4][6];

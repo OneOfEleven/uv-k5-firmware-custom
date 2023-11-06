@@ -311,11 +311,11 @@ const char g_sub_menu_pwr_on_msg[4][14] =
 	"NONE"
 };
 
-const char g_sub_menu_roger_mode[2][16] =
+const char g_sub_menu_roger_mode[3][15] =
 {
 	"OFF",
-	"TX END\nROGER",
-//	"TX END\nMDC1200"
+	"TX END\nROGER 1",
+	"TX END\nROGER 2"
 };
 
 const char g_sub_menu_reset[2][4] =

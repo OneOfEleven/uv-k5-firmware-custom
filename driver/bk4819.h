@@ -104,15 +104,20 @@ bool     BK4819_CompanderEnabled(void);
 void     BK4819_SetCompander(const unsigned int mode);
 
 void     BK4819_DisableVox(void);
+
 void     BK4819_DisableDTMF(void);
 void     BK4819_EnableDTMF(void);
-void     BK4819_StartTone1(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_unmute);
-void     BK4819_StopTones(const bool tx);
-void     BK4819_PlayTone(const unsigned int tone_Hz, const unsigned int delay, const unsigned int level);
+
+void     BK4819_start_tone(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_mute);
+void     BK4819_stop_tones(const bool tx);
+
 void     BK4819_EnterTxMute(void);
 void     BK4819_ExitTxMute(void);
+
 void     BK4819_set_mic_gain(unsigned int level);
+
 void     BK4819_Sleep(void);
+
 void     BK4819_TurnsOffTones_TurnsOnRX(void);
 
 #ifdef ENABLE_AIRCOPY
@@ -161,7 +166,7 @@ uint8_t  BK4819_get_CDCSS_code_type(void);
 uint8_t  BK4819_GetCTCShift(void);
 uint8_t  BK4819_GetCTCType(void);
 
-void     BK4819_PlayRoger(void);
+void     BK4819_PlayRoger(const unsigned int type);
 
 #ifdef ENABLE_MDC1200
 	void BK4819_enable_mdc1200_rx(const bool enable);

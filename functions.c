@@ -220,7 +220,7 @@ void FUNCTION_Select(function_type_t Function)
 					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 					SYSTEM_DelayMs(2);
-					BK4819_StartTone1(500, 28, g_current_function == FUNCTION_TRANSMIT, true);
+					BK4819_start_tone(500, 28, g_current_function == FUNCTION_TRANSMIT, false);
 					SYSTEM_DelayMs(2);
 
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -267,25 +267,27 @@ void FUNCTION_Select(function_type_t Function)
 				if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)
 				{
 					#ifdef ENABLE_MDC1200_SIDE_BEEP
-//						BK4819_StartTone1(880, 10, true, false);
+//						BK4819_start_tone(880, 10, true, true);
 //						SYSTEM_DelayMs(120);
-//						BK4819_StopTones(true);
+//						BK4819_stop_tones(true);
 					#endif
 					SYSTEM_DelayMs(30);
 
 					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.config.setting.mdc1200_id, true);
 
 					#ifdef ENABLE_MDC1200_SIDE_BEEP
-						BK4819_StartTone1(880, 10, true, false);
+						BK4819_start_tone(880, 10, true, true);
 						SYSTEM_DelayMs(120);
-						BK4819_StopTones(true);
+						BK4819_stop_tones(true);
 					#endif
 				}
 				else
 			#endif
 				if (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 				{
-					BK4819_PlayTone(APOLLO_TONE1_HZ, APOLLO_TONE_MS, 0);
+					BK4819_start_tone(APOLLO_TONE1_HZ, 28, true, false);
+					SYSTEM_DelayMs(APOLLO_TONE_MS);
+					BK4819_stop_tones(true);
 				}
 			}
 

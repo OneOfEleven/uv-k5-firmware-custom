@@ -764,16 +764,6 @@ void MENU_AcceptSetting(void)
 
 		case MENU_ROGER_MODE:
 			g_eeprom.config.setting.roger_mode = g_sub_menu_selection;
-			if (g_eeprom.config.setting.roger_mode != ROGER_MODE_OFF)
-			{
-				if (g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN ||
-				    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_BOTH    ||
-				    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
-				{
-					g_tx_vfo->channel.dtmf_ptt_id_tx_mode = PTT_ID_OFF;  // // disable PTT ID tail
-					g_request_save_channel = 1;
-				}
-			}
 			break;
 
 		case MENU_MOD_MODE:

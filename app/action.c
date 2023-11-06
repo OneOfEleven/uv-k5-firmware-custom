@@ -65,7 +65,7 @@ static void ACTION_FlashLight(void)
 
 		case FLASHLIGHT_SOS:
 			#ifdef ENABLE_FLASH_LIGHT_SOS_TONE
-				BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
+				BK4819_stop_tones(g_current_function == FUNCTION_TRANSMIT);
 			#endif
 
 		// Fallthrough
@@ -104,7 +104,7 @@ void ACTION_Monitor(void)
 		g_beep_to_play    = BEEP_NONE;
 
 		if (!g_squelch_open && GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER))
-			BK4819_StopTones(g_current_function == FUNCTION_TRANSMIT);
+			BK4819_stop_tones(g_current_function == FUNCTION_TRANSMIT);
 
 		#ifdef ENABLE_NOAA
 //			if (g_rx_vfo->channel_save >= NOAA_CHANNEL_FIRST && g_noaa_mode)
