@@ -54,6 +54,22 @@ center_line_t g_center_line = CENTER_LINE_NONE;
 
 // ***************************************************************************
 
+void draw_small_antenna_bars(uint8_t *p, unsigned int level)
+{
+	unsigned int i;
+
+	if (level > 6)
+		level = 6;
+
+	memcpy(p, BITMAP_ANTENNA, ARRAY_SIZE(BITMAP_ANTENNA));
+
+	for (i = 1; i <= level; i++)
+	{
+		const char bar = (0xff << (6 - i)) & 0x7F;
+		memset(p + 2 + (i * 3), bar, 2);
+	}
+}
+
 void draw_bar(uint8_t *line, const int len, const int max_width)
 {
 	int i;
@@ -74,27 +90,6 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 					if (k < (i - 1))
 						line[k] = 0x7f;
 	#endif
-}
-
-void UI_drawBars(uint8_t *p, const unsigned int level)
-{
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-
-	switch (level)
-	{
-		default:
-		case 7: memcpy(p + 20, BITMAP_ANTENNA_LEVEL6, sizeof(BITMAP_ANTENNA_LEVEL6));
-		case 6: memcpy(p + 17, BITMAP_ANTENNA_LEVEL5, sizeof(BITMAP_ANTENNA_LEVEL5));
-		case 5: memcpy(p + 14, BITMAP_ANTENNA_LEVEL4, sizeof(BITMAP_ANTENNA_LEVEL4));
-		case 4: memcpy(p + 11, BITMAP_ANTENNA_LEVEL3, sizeof(BITMAP_ANTENNA_LEVEL3));
-		case 3: memcpy(p +  8, BITMAP_ANTENNA_LEVEL2, sizeof(BITMAP_ANTENNA_LEVEL2));
-		case 2: memcpy(p +  5, BITMAP_ANTENNA_LEVEL1, sizeof(BITMAP_ANTENNA_LEVEL1));
-		case 1: memcpy(p +  0, BITMAP_ANTENNA,        sizeof(BITMAP_ANTENNA)); break;
-		case 0: memset(p +  0, 0,                     sizeof(BITMAP_ANTENNA)); break;
-	}
-
-	#pragma GCC diagnostic pop
 }
 
 #ifdef ENABLE_TX_AUDIO_BAR
@@ -364,7 +359,7 @@ void UI_update_rssi(const int rssi, const unsigned int glitch, const unsigned in
 		if (rssi_level == 0)
 			pline = NULL;
 		else
-			UI_drawBars(pline, rssi_level);
+			draw_small_antenna_bars(pline, rssi_level);
 
 		ST7565_DrawLine(0, line, 23, pline);
 	}
@@ -723,14 +718,14 @@ void UI_DisplayMain(void)
 						//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
 						if (chan <= USER_CHANNEL_LAST)
 						{	// the frequency has a channel - show the channel name below the frequency
-	
+
 							// frequency
 							#ifdef ENABLE_SMALL_BOLD
 								UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
 							#else
 								UI_PrintStringSmall(str, x + 4, 0, line + 0);
 							#endif
-	
+
 							// name
 							SETTINGS_fetch_channel_name(str, chan);
 							if (str[0] == 0)
@@ -831,7 +826,7 @@ void UI_DisplayMain(void)
 					Level = g_vfo_rssi_bar_level[vfo_num];
 			}
 
-			UI_drawBars(p_line1 + LCD_WIDTH, Level);
+			draw_small_antenna_bars(p_line1 + LCD_WIDTH, Level);
 		}
 
 		// ************
