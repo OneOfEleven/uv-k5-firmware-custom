@@ -35,7 +35,7 @@ extern uint8_t         g_selected_code;
 
 extern vfo_state_t     g_vfo_state[2];
 
-bool     RADIO_CheckValidChannel(uint16_t ChNum, bool bCheckScanList, uint8_t RadioNum);
+bool     RADIO_channel_valid(uint16_t ChNum, bool bCheckScanList, uint8_t RadioNum);
 uint8_t  RADIO_FindNextChannel(uint8_t ChNum, scan_state_dir_t Direction, bool bCheckScanList, uint8_t RadioNum);
 void     RADIO_InitInfo(vfo_info_t *p_vfo, const uint8_t ChannelSave, const uint32_t Frequency);
 void     RADIO_configure_channel(const unsigned int VFO, const unsigned int configure);

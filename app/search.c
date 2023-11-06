@@ -91,7 +91,7 @@ static void SEARCH_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = (voice_id_t)Key;
 			#endif
-			g_search_show_chan_prefix = RADIO_CheckValidChannel(Channel, false, 0);
+			g_search_show_chan_prefix = RADIO_channel_valid(Channel, false, 0);
 			g_search_channel    = (uint8_t)Channel;
 			return;
 		}
@@ -194,7 +194,7 @@ static void SEARCH_Key_MENU(bool key_pressed, bool key_held)
 			if (g_tx_vfo->channel_save <= USER_CHANNEL_LAST)
 			{	// save to channel
 				g_search_channel = g_tx_vfo->channel_save;
-				g_search_show_chan_prefix = RADIO_CheckValidChannel(g_tx_vfo->channel_save, false, 0);
+				g_search_show_chan_prefix = RADIO_channel_valid(g_tx_vfo->channel_save, false, 0);
 				g_search_edit_state = SEARCH_EDIT_STATE_SAVE_CHAN;
 			}
 			else
@@ -336,7 +336,7 @@ static void SEARCH_Key_UP_DOWN(bool key_pressed, bool pKeyHeld, int8_t Direction
 	if (g_search_edit_state == SEARCH_EDIT_STATE_SAVE_CHAN)
 	{
 		g_search_channel          = NUMBER_AddWithWraparound(g_search_channel, Direction, 0, USER_CHANNEL_LAST);
-		g_search_show_chan_prefix = RADIO_CheckValidChannel(g_search_channel, false, 0);
+		g_search_show_chan_prefix = RADIO_channel_valid(g_search_channel, false, 0);
 		g_request_display_screen  = DISPLAY_SEARCH;
 	}
 	else

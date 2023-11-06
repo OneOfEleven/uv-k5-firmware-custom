@@ -54,7 +54,7 @@ dcs_code_type_t g_current_code_type;
 uint8_t         g_selected_code;
 vfo_state_t     g_vfo_state[2];
 
-bool RADIO_CheckValidChannel(uint16_t Channel, bool bCheckScanList, uint8_t VFO)
+bool RADIO_channel_valid(uint16_t Channel, bool bCheckScanList, uint8_t VFO)
 {	// return true if the channel appears valid
 
 	unsigned int   i;
@@ -112,7 +112,7 @@ uint8_t RADIO_FindNextChannel(uint8_t Channel, scan_state_dir_t Direction, bool 
 		if (Channel > USER_CHANNEL_LAST)
 			Channel = USER_CHANNEL_FIRST;
 
-		if (RADIO_CheckValidChannel(Channel, bCheckScanList, VFO))
+		if (RADIO_channel_valid(Channel, bCheckScanList, VFO))
 			return Channel;
 
 		Channel += Direction;

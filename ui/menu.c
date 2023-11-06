@@ -844,7 +844,7 @@ void UI_DisplayMenu(void)
 		case MENU_MEM_DEL:
 		{
 			char s[11];
-			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
+			const bool valid = RADIO_channel_valid(g_sub_menu_selection, false, 0);
 
 			UI_GenerateChannelStringEx(str, valid ? "CH-" : "", g_sub_menu_selection);
 
@@ -869,7 +869,7 @@ void UI_DisplayMenu(void)
 
 		case MENU_MEM_NAME:
 		{
-			const bool valid = RADIO_CheckValidChannel(g_sub_menu_selection, false, 0);
+			const bool valid = RADIO_channel_valid(g_sub_menu_selection, false, 0);
 			const unsigned int y = (!g_in_sub_menu || g_edit_index < 0) ? 1 : 0;
 
 			UI_GenerateChannelStringEx(str, valid ? "CH-" : "", g_sub_menu_selection);

@@ -524,22 +524,25 @@ void MENU_AcceptSetting(void)
 
 		case MENU_MEM_NAME:
 			{
-				const unsigned int chan       = g_sub_menu_selection;
-				t_channel_name     *chan_name = &g_eeprom.config.channel_name[chan];
-				int                 i;
+				const unsigned int chan      = g_sub_menu_selection;
+				t_channel_name    *chan_name = &g_eeprom.config.channel_name[chan];
+				int                i;
 
 				// trailing trim
 				for (i = 9; i >= 0; i--)
 				{
-					if (g_edit[i] != ' ' && g_edit[i] != '_' && g_edit[i] != 0x00 && g_edit[i] != 0xff)
+					if (g_edit[i] != ' ' && g_edit[i] != '_' && g_edit[i] != 0 && g_edit[i] != 0xff)
 						break;
 					g_edit[i] = ' ';
 				}
 
 				// save the channel name
-				memset(chan_name,       0,      sizeof(t_channel_name));
-				memcpy(chan_name->name, g_edit, sizeof(chan_name->name));
-				SETTINGS_save_chan_name(chan);
+				if (g_eeprom.config.channel_attributes[chan].band <= BAND7_470MHz)
+				{
+					memset(chan_name,       0,      sizeof(t_channel_name));
+					memcpy(chan_name->name, g_edit, sizeof(chan_name->name));
+					SETTINGS_save_chan_name(chan);
+				}
 			}
 
 			g_flag_reconfigure_vfos = true;
@@ -1619,7 +1622,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 
 		#if 1
 			if (g_menu_cursor == MENU_MEM_DEL || g_menu_cursor == MENU_MEM_NAME)
-				if (!RADIO_CheckValidChannel(g_sub_menu_selection, false, 0))
+				if (!RADIO_channel_valid(g_sub_menu_selection, false, 0))
 					return;  // invalid channel
 		#endif
 
@@ -1629,7 +1632,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 //		if (g_menu_cursor != MENU_DTMF_LIST)
 		{
 			g_input_box_index = 0;
-			g_edit_index        = -1;
+			g_edit_index      = -1;
 		}
 
 		return;
@@ -1639,7 +1642,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 	{
 		if (g_edit_index < 0)
 		{	// enter channel name edit mode
-			if (!RADIO_CheckValidChannel(g_sub_menu_selection, false, 0))
+			if (!RADIO_channel_valid(g_sub_menu_selection, false, 0))
 				return;
 
 			SETTINGS_fetch_channel_name(g_edit, g_sub_menu_selection);
@@ -1812,18 +1815,26 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 	{	// change the character
 		if (key_pressed && g_edit_index < 10 && Direction != 0)
 		{
-			const char   unwanted[] = "$%&!\"':;?^`|{}";
-			char         c          = g_edit[g_edit_index] + Direction;
-			unsigned int i          = 0;
-			while (i < sizeof(unwanted) && c >= 32 && c <= 126)
-			{
-				if (c == unwanted[i++])
-				{	// choose next character
-					c += Direction;
-					i = 0;
+			#if 0
+				const char   unwanted[] = "$%&!\"':;?^`|{}";
+				char         c          = g_edit[g_edit_index] + Direction;
+				unsigned int i          = 0;
+				while (i < sizeof(unwanted) && c >= 32 && c <= 126)
+				{
+					if (c == unwanted[i++])
+					{	// choose next character
+						c += Direction;
+						i = 0;
+					}
 				}
-			}
-			g_edit[g_edit_index] = (c < 32) ? 126 : (c > 126) ? 32 : c;
+				g_edit[g_edit_index] = (c < 32) ? 126 : (c > 126) ? 32 : c;
+			#else
+				// choose next character
+				char c = g_edit[g_edit_index] + Direction;
+				while (c < 32 || c > 126)
+					c += Direction;
+				g_edit[g_edit_index] = c;
+			#endif
 
 			g_request_display_screen = DISPLAY_MENU;
 		}

@@ -742,7 +742,7 @@ static void APP_next_channel(void)
 
 				if (chan1 >= 0)
 				{
-					if (RADIO_CheckValidChannel(chan1, false, 0))
+					if (RADIO_channel_valid(chan1, false, 0))
 					{
 						g_scan_current_scan_list = SCAN_NEXT_CHAN_SCANLIST1;
 						g_scan_next_channel      = chan1;
@@ -755,7 +755,7 @@ static void APP_next_channel(void)
 			case SCAN_NEXT_CHAN_SCANLIST2:
 				if (chan2 >= 0)
 				{
-					if (RADIO_CheckValidChannel(chan2, false, 0))
+					if (RADIO_channel_valid(chan2, false, 0))
 					{
 						g_scan_current_scan_list = SCAN_NEXT_CHAN_SCANLIST2;
 						g_scan_next_channel      = chan2;

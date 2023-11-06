@@ -164,7 +164,7 @@ void toggle_chan_scanlist(void)
 			{	// not found - find next free channel to save too
 				//for (chan = g_eeprom.config.setting.indices.vfo[vfo].screen; chan <= USER_CHANNEL_LAST; chan++)
 				for (chan = 0; chan <= USER_CHANNEL_LAST; chan++)
-					if (!RADIO_CheckValidChannel(chan, false, vfo))
+					if (!RADIO_channel_valid(chan, false, vfo))
 						break;
 			}
 
@@ -406,7 +406,7 @@ void processFKeyFunction(const key_code_t Key)
 
 		case KEY_9:    // CALL
 
-			if (!RADIO_CheckValidChannel(g_eeprom.config.setting.call1, false, 0))
+			if (!RADIO_channel_valid(g_eeprom.config.setting.call1, false, 0))
 			{
 				g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 				return;
@@ -521,7 +521,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 		g_input_box_index = 0;
 
-		if (!RADIO_CheckValidChannel(chan, false, 0))
+		if (!RADIO_channel_valid(chan, false, 0))
 		{
 			g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 			return;
