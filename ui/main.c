@@ -433,6 +433,7 @@ void UI_DisplayMain(void)
 			UI_PrintString("Long press #", 0, LCD_WIDTH, 1, 8);
 			UI_PrintString("to unlock",    0, LCD_WIDTH, 3, 8);
 			ST7565_BlitFullScreen();
+			g_center_line = CENTER_LINE_IN_USE;
 			return;
 		}
 	#endif
