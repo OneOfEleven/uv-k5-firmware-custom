@@ -696,9 +696,9 @@ void UI_DisplayMain(void)
 
 							// name
 							#ifdef ENABLE_SMALL_BOLD
-								UI_PrintStringSmallBold(str, x + 4, 0, line);
+								UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
 							#else
-								UI_PrintStringSmall(str, x + 4, 0, line);
+								UI_PrintStringSmall(str, x + 4, 0, line + 0);
 							#endif
 
 							// frequency
@@ -718,13 +718,35 @@ void UI_DisplayMain(void)
 				#ifdef ENABLE_BIG_FREQ
 					big_freq(frequency, x, line);
 				#else
-					// show the frequency in the main font
+
+					const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
 
 					sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
 					#ifdef ENABLE_TRIM_TRAILING_ZEROS
 						NUMBER_trim_trailing_zeros(str);
 					#endif
-					UI_PrintString(str, x, 0, line, 8);
+
+					//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
+					if (chan <= USER_CHANNEL_LAST)
+					{	// the frequency has a channel - show the channel name below the frequency
+
+						// frequency
+						#ifdef ENABLE_SMALL_BOLD
+							UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
+						#else
+							UI_PrintStringSmall(str, x + 4, 0, line + 0);
+						#endif
+
+						// name
+						SETTINGS_fetch_channel_name(str, chan);
+						if (str[0] == 0)
+							sprintf(str, "CH-%03u", 1 + chan);
+						UI_PrintStringSmall(str, x + 4, 0, line + 1);
+					}
+					else
+					{	// show the frequency in the main font
+						UI_PrintString(str, x, 0, line, 8);
+					}
 
 				#endif
 			}

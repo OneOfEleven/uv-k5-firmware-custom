@@ -13,7 +13,7 @@ extern const uint8_t BITMAP_BATTERY_LEVEL[17];
 extern const uint8_t BITMAP_USB_C[8];
 
 #ifdef ENABLE_KEYLOCK
-	extern const uint8_t BITMAP_KEYLOCK[6];
+	extern const uint8_t BITMAP_KEYLOCK[7];
 #endif
 
 extern const uint8_t BITMAP_F_KEY[6];
@@ -29,8 +29,8 @@ extern const uint8_t BITMAP_F_KEY[6];
 	extern const uint8_t BITMAP_XB[11];
 #endif
 
-extern const uint8_t BITMAP_TDR_RUNNING[11];
-extern const uint8_t BITMAP_TDR_HOLDING[11];
+extern const uint8_t BITMAP_TDR_RUNNING[12];
+extern const uint8_t BITMAP_TDR_HOLDING[12];
 
 #ifdef ENABLE_VOICE
 	extern const uint8_t BITMAP_VOICE_PROMPT[7];

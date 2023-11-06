@@ -32,11 +32,11 @@ const uint8_t BITMAP_POWERSAVE[8] =
 const uint8_t BITMAP_TX[8] =
 {	// "TX"
 	__extension__ 0b00000000,
-	__extension__ 0b00000001,
-	__extension__ 0b00000001,
-	__extension__ 0b01111111,
-	__extension__ 0b00000001,
-	__extension__ 0b00000001,
+	__extension__ 0b00000010,
+	__extension__ 0b00000010,
+	__extension__ 0b01111110,
+	__extension__ 0b00000010,
+	__extension__ 0b00000010,
 	__extension__ 0b00000000,
 	__extension__ 0b00000000
 };
@@ -112,14 +112,15 @@ const uint8_t BITMAP_USB_C[8] =
 };
 
 #ifdef ENABLE_KEYLOCK
-	const uint8_t BITMAP_KEYLOCK[6] =
+	const uint8_t BITMAP_KEYLOCK[7] =
 	{	// teeny weeny padlock symbol
 		__extension__ 0b00000000,
 		__extension__ 0b01111100,
 		__extension__ 0b01000110,
 		__extension__ 0b01000101,
 		__extension__ 0b01000110,
-		__extension__ 0b01111100
+		__extension__ 0b01111100,
+		__extension__ 0b00000000
 	};
 #endif
 
@@ -130,7 +131,7 @@ const uint8_t BITMAP_F_KEY[6] =
 	__extension__ 0b01111111,
 	__extension__ 0b00011011,
 	__extension__ 0b00011011,
-	__extension__ 0b00011011
+	__extension__ 0b00000011
 };
 
 #ifdef ENABLE_VOX
@@ -178,22 +179,22 @@ const uint8_t BITMAP_F_KEY[6] =
 	const uint8_t BITMAP_VOX_SMALL[17] =
 	{	// "vox"
 		__extension__ 0b00000000,
-		__extension__ 0b00000111,
-		__extension__ 0b00001000,
+		__extension__ 0b00001110,
 		__extension__ 0b00010000,
+		__extension__ 0b00100000,
+		__extension__ 0b00010000,
+		__extension__ 0b00001110,
+		__extension__ 0b00000000,
+		__extension__ 0b00011100,
+		__extension__ 0b00100010,
+		__extension__ 0b00100010,
+		__extension__ 0b00011100,
+		__extension__ 0b00000000,
+		__extension__ 0b00100010,
+		__extension__ 0b00010100,
 		__extension__ 0b00001000,
-		__extension__ 0b00000111,
-		__extension__ 0b00000000,
-		__extension__ 0b00001110,
-		__extension__ 0b00010001,
-		__extension__ 0b00010001,
-		__extension__ 0b00001110,
-		__extension__ 0b00000000,
-		__extension__ 0b00010001,
-		__extension__ 0b00001010,
-		__extension__ 0b00000100,
-		__extension__ 0b00001010,
-		__extension__ 0b00010001
+		__extension__ 0b00010100,
+		__extension__ 0b00100010
 	};
 #endif
 
@@ -231,34 +232,36 @@ const uint8_t BITMAP_F_KEY[6] =
 	};
 #endif
 
-const uint8_t BITMAP_TDR_RUNNING[11] =
+const uint8_t BITMAP_TDR_RUNNING[12] =
 {	// "DW"
 	__extension__ 0b00000000,
-	__extension__ 0b01111111,
-	__extension__ 0b01000001,
-	__extension__ 0b01000001,
-	__extension__ 0b00111110,
+	__extension__ 0b01111110,
+	__extension__ 0b01000010,
+	__extension__ 0b01000010,
+	__extension__ 0b00111100,
 	__extension__ 0b00000000,
-	__extension__ 0b01111111,
+	__extension__ 0b01111110,
 	__extension__ 0b00100000,
 	__extension__ 0b00011000,
 	__extension__ 0b00100000,
-	__extension__ 0b01111111
+	__extension__ 0b01111110,
+	__extension__ 0b00000000
 };
 
-const uint8_t BITMAP_TDR_HOLDING[11] =
+const uint8_t BITMAP_TDR_HOLDING[12] =
 {	// "--" .. DW on hold
 	__extension__ 0b00000000,
-	__extension__ 0b00001000,
-	__extension__ 0b00001000,
-	__extension__ 0b00001000,
-	__extension__ 0b00001000,
+	__extension__ 0b00010000,
+	__extension__ 0b00010000,
+	__extension__ 0b00010000,
+	__extension__ 0b00010000,
 	__extension__ 0b00000000,
-	__extension__ 0b00001000,
-	__extension__ 0b00001000,
-	__extension__ 0b00001000,
-	__extension__ 0b00001000,
-	__extension__ 0b00001000
+	__extension__ 0b00010000,
+	__extension__ 0b00010000,
+	__extension__ 0b00010000,
+	__extension__ 0b00010000,
+	__extension__ 0b00010000,
+	__extension__ 0b00000000
 };
 
 #ifdef ENABLE_VOICE
