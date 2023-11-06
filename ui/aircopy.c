@@ -19,6 +19,7 @@
 #include "external/printf/printf.h"
 #include "misc.h"
 #include "radio.h"
+#include "settings.h"
 #include "ui/aircopy.h"
 #include "ui/helper.h"
 #include "ui/inputbox.h"

@@ -24,6 +24,14 @@
 #include "dcs.h"
 #include "frequencies.h"
 
+enum mod_mode_e {
+	MOD_MODE_FM = 0,
+	MOD_MODE_AM,
+	MOD_MODE_DSB,
+	MOD_MODE_LEN
+};
+typedef enum mod_mode_e mod_mode_t;
+
 enum pwr_on_display_mode_e {
 	PWR_ON_DISPLAY_MODE_FULL_SCREEN = 0,
 	PWR_ON_DISPLAY_MODE_MESSAGE,
@@ -191,10 +199,10 @@ typedef struct {
 		uint8_t unused3:2;                   //
 	#endif
 	#if 0
-		uint8_t am_mode:1;                   //  FM/AM
+		uint8_t mod_mode:1;                  //  FM/AM
 		uint8_t unused4:3;                   //
 	#else                          
-		uint8_t am_mode:2;                   //  FM/AM/DSB
+		uint8_t mod_mode:2;                  //  FM/AM/DSB
 		uint8_t unused4:2;                   //
 	#endif
 	// [12]

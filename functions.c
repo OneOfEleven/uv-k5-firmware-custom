@@ -51,7 +51,7 @@ void FUNCTION_Init(void)
 	{
 		g_current_code_type = g_selected_code_type;
 		if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
-			g_current_code_type = (g_rx_vfo->channel.am_mode > 0) ? CODE_TYPE_NONE : g_rx_vfo->p_rx->code_type;
+			g_current_code_type = (g_rx_vfo->channel.mod_mode > 0) ? CODE_TYPE_NONE : g_rx_vfo->p_rx->code_type;
 	}
 	else
 		g_current_code_type = CODE_TYPE_CONTINUOUS_TONE;

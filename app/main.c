@@ -213,12 +213,8 @@ void processFKeyFunction(const key_code_t Key)
 
 			if (g_fkey_pressed)
 			{
-				#if 0
-					g_tx_vfo->channel.am_mode = (g_tx_vfo->am_mode + 1) & 1u;
-				#else
-					if (++g_tx_vfo->channel.am_mode >= 3)
-						g_tx_vfo->channel.am_mode = 0;
-				#endif
+				if (++g_tx_vfo->channel.mod_mode >= MOD_MODE_LEN)
+					g_tx_vfo->channel.mod_mode = 0;
 				g_request_save_channel = 1;
 			}
 			else

@@ -767,7 +767,7 @@ void MENU_AcceptSetting(void)
 			break;
 
 		case MENU_MOD_MODE:
-			g_tx_vfo->channel.am_mode = g_sub_menu_selection;
+			g_tx_vfo->channel.mod_mode = g_sub_menu_selection;
 			g_request_save_channel = 1;
 		return;
 /*
@@ -1234,7 +1234,7 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_MOD_MODE:
-			g_sub_menu_selection = g_tx_vfo->channel.am_mode;
+			g_sub_menu_selection = g_tx_vfo->channel.mod_mode;
 			break;
 /*
 #ifdef ENABLE_AM_FIX
@@ -1765,7 +1765,7 @@ static void MENU_Key_STAR(const bool key_pressed, const bool key_held)
 
 	RADIO_select_vfos();
 
-	if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_rx_vfo->channel.am_mode == 0)
+	if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_rx_vfo->channel.mod_mode == MOD_MODE_FM)
 	{
 		if (g_menu_cursor == MENU_RX_CTCSS || g_menu_cursor == MENU_RX_CDCSS)
 		{	// scan CTCSS or DCS to find the tone/code of the incoming signal

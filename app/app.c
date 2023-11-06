@@ -88,7 +88,7 @@ static void APP_update_rssi(const int vfo)
 
 	#ifdef ENABLE_AM_FIX
 		// add RF gain adjust compensation
-		if (g_current_vfo->channel.am_mode > 0 && g_eeprom.config.setting.am_fix)
+		if (g_current_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
 			rssi -= rssi_gain_diff[vfo];
 	#endif
 
@@ -527,7 +527,7 @@ bool APP_start_listening(void)
 	}
 
 	// AF gain - original QS values
-//	if (g_rx_vfo->channel.am_mode > 0)
+//	if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM)
 //	{
 //		BK4819_write_reg(0x48, 0xB3A8);   // 1011 0011 1010 1000
 //	}
@@ -550,12 +550,12 @@ bool APP_start_listening(void)
 	#ifdef ENABLE_VOICE
 		#ifdef MUTE_AUDIO_FOR_VOICE
 			if (g_voice_write_index == 0)
-				AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+				AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 		#else
-			AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+			AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 		#endif
 	#else
-		AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+		AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 	#endif
 
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -2385,7 +2385,7 @@ void APP_time_slice_10ms(void)
 	#endif
 
 	#ifdef ENABLE_AM_FIX
-		if (g_rx_vfo->channel.am_mode > 0 && g_eeprom.config.setting.am_fix)
+		if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
 			AM_fix_10ms(g_rx_vfo_num);
 	#endif
 

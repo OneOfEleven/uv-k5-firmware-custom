@@ -77,16 +77,15 @@
 
 beep_type_t g_beep_to_play = BEEP_NONE;
 
-void AUDIO_set_mod_mode(const unsigned int mode)
+void AUDIO_set_mod_mode(const mod_mode_t mode)
 {
 	BK4819_af_type_t af_mode;
 	switch (mode)
 	{			
 		default:
-		case 0: af_mode = BK4819_AF_FM; break;
-		case 1: af_mode = BK4819_AF_AM; break;
-		case 2: af_mode = BK4819_AF_BASEBAND1; break;
-		case 3: af_mode = BK4819_AF_BASEBAND2; break;
+		case MOD_MODE_FM: af_mode = BK4819_AF_FM; break;
+		case MOD_MODE_AM: af_mode = BK4819_AF_AM; break;
+		case MOD_MODE_DSB: af_mode = BK4819_AF_BASEBAND1; break;
 	}
 	BK4819_SetAF(af_mode);
 }
@@ -338,7 +337,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 			SYSTEM_DelayMs(Delay * 10);
 
 			if (g_current_function == FUNCTION_RECEIVE)
-				AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+				AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 			
 			#ifdef ENABLE_FMRADIO
 				if (g_fm_radio_mode)
@@ -486,7 +485,7 @@ void AUDIO_PlayBeep(beep_type_t Beep)
 		// unmute the radios audio
 
 		if (g_current_function == FUNCTION_RECEIVE)
-			AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+			AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 		
 		#ifdef ENABLE_FMRADIO
 			if (g_fm_radio_mode)

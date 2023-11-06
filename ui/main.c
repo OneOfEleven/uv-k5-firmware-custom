@@ -820,15 +820,15 @@ void UI_DisplayMain(void)
 		// ************
 
 		str[0] = '\0';
-		if (g_vfo_info[vfo_num].channel.am_mode > 0)
+		if (g_vfo_info[vfo_num].channel.mod_mode != MOD_MODE_FM)
 		{
-			//strcpy(str, g_sub_menu_mod_mode[g_vfo_info[vfo_num].channel.am_mode]);
-			switch (g_vfo_info[vfo_num].channel.am_mode)
+			//strcpy(str, g_sub_menu_mod_mode[g_vfo_info[vfo_num].channel.mod_mode]);
+			switch (g_vfo_info[vfo_num].channel.mod_mode)
 			{
 				default:
-				case 0: strcpy(str, "FM"); break;
-				case 1: strcpy(str, "AM"); break;
-				case 2: strcpy(str, "DS"); break;
+				case MOD_MODE_FM:  strcpy(str, "FM"); break;
+				case MOD_MODE_AM:  strcpy(str, "AM"); break;
+				case MOD_MODE_DSB: strcpy(str, "DS"); break;
 			}
 		}
 		else
@@ -844,7 +844,7 @@ void UI_DisplayMain(void)
 		#ifdef ENABLE_TX_WHEN_AM
 			if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
 		#else
-			if ((state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) && g_vfo_info[vfo_num].channel.am_mode == 0) // TX allowed only when FM
+			if ((state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) && g_vfo_info[vfo_num].channel.mod_mode == MOD_MODE_FM) // TX allowed only when FM
 		#endif
 		{
 			if (FREQUENCY_tx_freq_check(g_vfo_info[vfo_num].p_tx->frequency) == 0)
@@ -934,7 +934,7 @@ void UI_DisplayMain(void)
 
 		#if defined(ENABLE_AM_FIX) && defined(ENABLE_AM_FIX_SHOW_DATA)
 			// show the AM-FIX debug data
-			if (rx && g_vfo_info[g_rx_vfo_num].am_mode > 0 && g_eeprom.config.setting.am_fix)
+			if (rx && g_vfo_info[g_rx_vfo_num].mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
 			{
 				g_center_line = CENTER_LINE_AM_FIX_DATA;
 				AM_fix_print_data(g_rx_vfo_num, str);

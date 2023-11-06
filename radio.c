@@ -145,7 +145,7 @@ void RADIO_InitInfo(vfo_info_t *p_vfo, const uint8_t ChannelSave, const uint32_t
 	p_vfo->freq_in_channel              = 0xff;
 
 	if (ChannelSave == (FREQ_CHANNEL_FIRST + BAND2_108MHz))
-		p_vfo->channel.am_mode = 1;    // AM
+		p_vfo->channel.mod_mode = MOD_MODE_AM;
 
 	RADIO_ConfigureSquelchAndOutputPower(p_vfo);
 }
@@ -338,7 +338,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 //		EEPROM_ReadBuffer(0x0F50 + (channel * 16), p_vfo->channel_name, 10);	// only 10 bytes used
 		memcpy(p_vfo->channel_name.name, &g_eeprom.config.channel_name[channel].name, sizeof(p_vfo->channel_name.name));
 
-	if (p_vfo->channel.am_mode > 0)
+	if (p_vfo->channel.mod_mode != MOD_MODE_FM)
 	{	// freq/chan is in AM mode
 		// disable stuff, even though it can all still be used with AM ???
 		p_vfo->channel.scrambler            = 0;
@@ -351,7 +351,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 	#ifdef ENABLE_AM_FIX
 		AM_fix_reset(VFO);
-		if (p_vfo->channel.am_mode > 0 && g_eeprom.config.setting.am_fix)
+		if (p_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
 		{
 			AM_fix_10ms(VFO);
 		}
@@ -361,7 +361,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 			BK4819_write_reg(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
 		}
 	#else
-		if (p_vfo->am_mode > 0)
+		if (p_vfo->mod_mode != MOD_MODE_FM)
 		{
 			BK4819_EnableAGC();
 		}
@@ -661,7 +661,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 					BK4819_SetFilterBandwidth(Bandwidth);
 					BK4819_EnableAFC();
 				#else
-					if (g_rx_vfo->channel.am_mode > 1)
+					if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM)
 					{
 						BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER); // sideband
 						BK4819_DisableAFC();
@@ -726,7 +726,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
 	// AF RX Gain and DAC
-//	if (g_rx_vfo->channel.am_mode > 0)
+//	if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM)
 //	{
 //		BK4819_write_reg(0x48, 0xB3A8);   // 1011 0011 1010 1000
 //	}
@@ -748,12 +748,12 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			#ifdef ENABLE_VOICE
 				#ifdef MUTE_AUDIO_FOR_VOICE
 					if (g_voice_write_index == 0)
-						AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+						AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 				#else
-					AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+					AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 				#endif
 			#else
-				AUDIO_set_mod_mode(g_rx_vfo->channel.am_mode);
+				AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 			#endif
 		}
 	}
@@ -762,7 +762,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 	if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 	{
-		if (g_rx_vfo->channel.am_mode == 0)
+		if (g_rx_vfo->channel.mod_mode == MOD_MODE_FM)
 		{	// FM
 			uint8_t code_type = g_selected_code_type;
 			uint8_t code      = g_selected_code;
@@ -833,7 +833,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			#endif
 			g_eeprom.config.setting.vox_enabled &&
 			IS_NOT_NOAA_CHANNEL(g_current_vfo->channel_save) &&
-			g_current_vfo->channel.am_mode == 0)
+			g_current_vfo->channel.mod_mode == MOD_MODE_FM)
 		{
 			RADIO_enable_vox(g_eeprom.config.setting.vox_level);
 			interrupt_mask |= BK4819_REG_3F_VOX_FOUND | BK4819_REG_3F_VOX_LOST;
@@ -843,7 +843,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			BK4819_DisableVox();
 
 	// RX expander
-	BK4819_SetCompander((g_rx_vfo->channel.am_mode == 0 && g_rx_vfo->channel.compand >= 2) ? g_rx_vfo->channel.compand : 0);
+	BK4819_SetCompander((g_rx_vfo->channel.mod_mode == MOD_MODE_FM && g_rx_vfo->channel.compand >= 2) ? g_rx_vfo->channel.compand : 0);
 
 	BK4819_EnableDTMF();
 	interrupt_mask |= BK4819_REG_3F_DTMF_5TONE_FOUND;
@@ -932,7 +932,7 @@ void RADIO_enableTX(const bool fsk_tx)
 					BK4819_SetFilterBandwidth(Bandwidth);
 					BK4819_EnableAFC();
 				#else
-					if (g_current_vfo->channel.am_mode > 1)
+					if (g_current_vfo->channel.mod_mode == MOD_MODE_DSB)
 					{
 						BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER); // sideband
 						BK4819_DisableAFC();
@@ -954,7 +954,7 @@ void RADIO_enableTX(const bool fsk_tx)
 	// so MAKE SURE that DTMF is disabled - until needed
 	BK4819_DisableDTMF();
 
-	BK4819_SetCompander((!fsk_tx && g_rx_vfo->channel.am_mode == 0 && (g_rx_vfo->channel.compand == 1 || g_rx_vfo->channel.compand >= 3)) ? g_rx_vfo->channel.compand : 0);
+	BK4819_SetCompander((!fsk_tx && g_rx_vfo->channel.mod_mode == MOD_MODE_FM && (g_rx_vfo->channel.compand == 1 || g_rx_vfo->channel.compand >= 3)) ? g_rx_vfo->channel.compand : 0);
 
 	BK4819_set_rf_frequency(g_current_vfo->p_tx->frequency, false);
 	BK4819_set_rf_filter_path(g_current_vfo->p_tx->frequency);
@@ -1066,7 +1066,7 @@ void RADIO_PrepareTX(void)
  	g_current_vfo = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo : &g_vfo_info[g_eeprom.config.setting.tx_vfo_num];
 
 	#ifndef ENABLE_TX_WHEN_AM
-		if (g_current_vfo->channel.am_mode > 0)
+		if (g_current_vfo->channel.mod_mode != MOD_MODE_FM)
 		{	// not allowed to TX if not in FM mode
 			State = VFO_STATE_TX_DISABLE;
 		}
