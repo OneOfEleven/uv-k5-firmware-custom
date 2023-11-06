@@ -49,7 +49,6 @@ ENABLE_SMALL_BOLD                := 1
 ENABLE_SMALLEST_FONT             := 0
 # trim trailing 44 B
 ENABLE_TRIM_TRAILING_ZEROS       := 0
-ENABLE_KEEP_MEM_NAME             := 1
 ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
 # Freq calibration 188 B
@@ -376,9 +375,6 @@ ifeq ($(ENABLE_PWRON_PASSWORD),1)
 endif
 ifeq ($(ENABLE_RESET_AES_KEY),1)
 	CFLAGS  += -DENABLE_RESET_AES_KEY
-endif
-ifeq ($(ENABLE_KEEP_MEM_NAME),1)
-	CFLAGS  += -DENABLE_KEEP_MEM_NAME
 endif
 ifeq ($(ENABLE_WIDE_RX),1)
 	CFLAGS  += -DENABLE_WIDE_RX

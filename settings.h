@@ -578,6 +578,7 @@ void SETTINGS_write_eeprom_config(void);
 void SETTINGS_save_vfo_indices(void);
 void SETTINGS_save(void);
 void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, vfo_info_t *p_vfo, const unsigned int mode);
+void SETTINGS_save_chan_name(const unsigned int channel);
 void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_t *p_vfo);
 
 unsigned int SETTINGS_find_channel(const uint32_t frequency);

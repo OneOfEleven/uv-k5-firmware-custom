@@ -67,7 +67,6 @@ ENABLE_BIG_FREQ                  := 0       big font frequencies (like original 
 ENABLE_SHOW_FREQS_CHAN           := 1       show the channel name under the frequency if the frequency is found in a channel
 ENABLE_SMALL_BOLD                := 1       bold channel name/no. (when name + freq channel display mode)
 ENABLE_TRIM_TRAILING_ZEROS       := 1       trim away any trailing zeros on frequencies
-ENABLE_KEEP_MEM_NAME             := 1       maintain channel name when (re)saving memory channel
 ENABLE_WIDE_RX                   := 1       full 18MHz to 1300MHz RX (though front-end/PA not designed for full range)
 ENABLE_TX_WHEN_AM                := 0       allow TX (always FM) when RX is set to AM
 ENABLE_F_CAL_MENU                := 0       enable/disable the radios hidden frequency calibration menu

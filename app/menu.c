@@ -523,20 +523,25 @@ void MENU_AcceptSetting(void)
 			return;
 
 		case MENU_MEM_NAME:
-			{	// trailing trim
-				int i;
+			{
+				const unsigned int chan       = g_sub_menu_selection;
+				t_channel_name     *chan_name = &g_eeprom.config.channel_name[chan];
+				int                 i;
+
+				// trailing trim
 				for (i = 9; i >= 0; i--)
 				{
 					if (g_edit[i] != ' ' && g_edit[i] != '_' && g_edit[i] != 0x00 && g_edit[i] != 0xff)
 						break;
 					g_edit[i] = ' ';
 				}
+
+				// save the channel name
+				memset(chan_name,       0,      sizeof(t_channel_name));
+				memcpy(chan_name->name, g_edit, sizeof(chan_name->name));
+				SETTINGS_save_chan_name(chan);
 			}
 
-			// save the channel name
-			memset(&g_tx_vfo->channel_name, 0, sizeof(g_tx_vfo->channel_name));
-			memcpy(g_tx_vfo->channel_name.name, g_edit, sizeof(g_tx_vfo->channel_name.name));
-			SETTINGS_save_channel(g_sub_menu_selection, g_eeprom.config.setting.tx_vfo_num, g_tx_vfo, 3);
 			g_flag_reconfigure_vfos = true;
 			return;
 

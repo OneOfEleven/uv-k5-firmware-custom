@@ -403,18 +403,20 @@ void UI_DisplayMain(void)
 	#if !defined(ENABLE_BIG_FREQ) && defined(ENABLE_SMALLEST_FONT)
 		const unsigned int smallest_char_spacing = ARRAY_SIZE(g_font3x5[0]) + 1;
 	#endif
-	const unsigned int line0 = 0;  // text screen line
-	const unsigned int line1 = 4;
+	const unsigned int line0      = 0;  // text screen line
+	const unsigned int line1      = 4;
 	char               str[22];
-	unsigned int       vfo_num;
+	int                vfo_num;
+	int                single_vfo = -1;
+	int                channel    = g_eeprom.config.setting.tx_vfo_num;
 
 	g_center_line = CENTER_LINE_NONE;
 
-//	#ifdef SINGLE_VFO_CHAN
-//		const bool single_vfo = (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? true : false;
-//	#else
-		const bool single_vfo = false;
-//	#endif
+	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF && g_rx_vfo_is_active)
+		channel = g_rx_vfo_num;    // we're currently monitoring the other VFO
+
+	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
+		single_vfo = g_eeprom.config.setting.tx_vfo_num;
 
 	// clear the screen
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
@@ -425,6 +427,7 @@ void UI_DisplayMain(void)
 		UI_PrintString("UART", 0, LCD_WIDTH, 1, 8);
 		UI_PrintString("CONFIG COMMS", 0, LCD_WIDTH, 3, 8);
 		ST7565_BlitFullScreen();
+		g_center_line = CENTER_LINE_IN_USE;
 		return;
 	}
 
@@ -443,25 +446,13 @@ void UI_DisplayMain(void)
 	{
 		const unsigned int scrn_chan  = g_eeprom.config.setting.indices.vfo[vfo_num].screen;
 		const unsigned int line       = (vfo_num == 0) ? line0 : line1;
-		unsigned int       channel    = g_eeprom.config.setting.tx_vfo_num;
-//		unsigned int       tx_channel = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo_num : g_eeprom.config.setting.tx_vfo_num;
-		const bool         same_vfo   = (channel == vfo_num) ? true : false;
 		uint8_t           *p_line0    = g_frame_buffer[line + 0];
 		uint8_t           *p_line1    = g_frame_buffer[line + 1];
 		unsigned int       mode       = 0;
 		unsigned int       state;
 
-		if (single_vfo)
-		{	// we're in single VFO mode - screen is dedicated to just one VFO
-
-			if (!same_vfo)
-				continue;  // skip the unused vfo
-
-
-		}
-
-		if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF && g_rx_vfo_is_active)
-			channel = g_rx_vfo_num;    // we're currently monitoring the other VFO
+		if (single_vfo >= 0 && single_vfo != vfo_num)
+			continue;	// we're in single VFO mode - screen is dedicated to just one VFO
 
 		if (channel != vfo_num)
 		{
@@ -528,16 +519,16 @@ void UI_DisplayMain(void)
 			}
 
 			// highlight the selected/used VFO with a marker
-			if (!single_vfo && same_vfo)
-				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
-			else
+//			if (single_vfo < 0 && channel == vfo_num)
+//				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
+//			else
 			if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF)
 				memcpy(p_line0 + 0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
 		}
 		else
-		if (!single_vfo)
+		if (single_vfo < 0)
 		{	// highlight the selected/used VFO with a marker
-			if (same_vfo)
+			if (channel == vfo_num)
 				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
 			else
 			//if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF)
