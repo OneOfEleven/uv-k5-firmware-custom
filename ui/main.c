@@ -410,8 +410,8 @@ void UI_DisplayMain(void)
 	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF && g_rx_vfo_is_active)
 		channel = g_rx_vfo_num;    // we're currently monitoring the other VFO
 
-	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
-		single_vfo = g_eeprom.config.setting.tx_vfo_num;
+//	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
+//		single_vfo = g_eeprom.config.setting.tx_vfo_num;
 
 	// clear the screen
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
