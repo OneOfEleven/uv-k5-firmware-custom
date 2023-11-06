@@ -726,24 +726,26 @@ void UI_DisplayMain(void)
 						NUMBER_trim_trailing_zeros(str);
 					#endif
 
-					//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
-					if (chan <= USER_CHANNEL_LAST)
-					{	// the frequency has a channel - show the channel name below the frequency
-
-						// frequency
-						#ifdef ENABLE_SMALL_BOLD
-							UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
-						#else
-							UI_PrintStringSmall(str, x + 4, 0, line + 0);
-						#endif
-
-						// name
-						SETTINGS_fetch_channel_name(str, chan);
-						if (str[0] == 0)
-							sprintf(str, "CH-%03u", 1 + chan);
-						UI_PrintStringSmall(str, x + 4, 0, line + 1);
-					}
-					else
+					#ifdef ENABLE_SHOW_FREQS_CHAN
+						//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
+						if (chan <= USER_CHANNEL_LAST)
+						{	// the frequency has a channel - show the channel name below the frequency
+	
+							// frequency
+							#ifdef ENABLE_SMALL_BOLD
+								UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
+							#else
+								UI_PrintStringSmall(str, x + 4, 0, line + 0);
+							#endif
+	
+							// name
+							SETTINGS_fetch_channel_name(str, chan);
+							if (str[0] == 0)
+								sprintf(str, "CH-%03u", 1 + chan);
+							UI_PrintStringSmall(str, x + 4, 0, line + 1);
+						}
+						else
+					#endif
 					{	// show the frequency in the main font
 						UI_PrintString(str, x, 0, line, 8);
 					}
