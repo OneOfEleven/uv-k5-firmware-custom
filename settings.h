@@ -102,8 +102,8 @@ enum {
 #endif
 
 enum alarm_mode_e {
-	ALARM_MODE_SITE = 0,
-	ALARM_MODE_TONE
+	ALARM_MODE_SITE = 0,   // TX
+	ALARM_MODE_TONE        // don't TX
 };
 typedef enum alarm_mode_e alarm_mode_t;
 

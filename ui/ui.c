@@ -100,5 +100,5 @@ void GUI_SelectNextDisplay(gui_display_type_t Display)
 	}
 
 	g_current_display_screen = Display;
-	g_update_display    = true;
+	g_update_display         = true;
 }

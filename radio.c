@@ -619,11 +619,6 @@ void RADIO_ApplyOffset(vfo_info_t *p_vfo, const bool set_pees)
 	}
 }
 
-static void RADIO_SelectCurrentVfo(void)
-{
- 	g_current_vfo = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo : &g_vfo_info[g_eeprom.config.setting.tx_vfo_num];
-}
-
 void RADIO_select_vfos(void)
 {
 	g_eeprom.config.setting.tx_vfo_num = get_TX_VFO();
@@ -632,7 +627,7 @@ void RADIO_select_vfos(void)
 	g_tx_vfo = &g_vfo_info[g_eeprom.config.setting.tx_vfo_num];
 	g_rx_vfo = &g_vfo_info[g_rx_vfo_num];
 
-	RADIO_SelectCurrentVfo();
+ 	g_current_vfo = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo : &g_vfo_info[g_eeprom.config.setting.tx_vfo_num];
 }
 
 void RADIO_setup_registers(bool switch_to_function_foreground)
@@ -1031,6 +1026,20 @@ void RADIO_PrepareTX(void)
 {
 	vfo_state_t State = VFO_STATE_NORMAL;  // default to OK for TX
 
+	#ifdef ENABLE_ALARM
+		if (g_alarm_state == ALARM_STATE_TXALARM && g_eeprom.config.setting.alarm_mode != ALARM_MODE_TONE)
+		{	// enable the alarm tone but not the TX
+			
+			g_alarm_state = ALARM_STATE_ALARM;
+			GUI_DisplayScreen();
+			BK4819_start_tone(500, 28, g_current_function == FUNCTION_TRANSMIT, false);
+			SYSTEM_DelayMs(60);
+			BK4819_ExitTxMute();
+			g_alarm_tone_counter_10ms = 0;
+			return;
+		}
+	#endif
+
 	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
 	{	// dual-RX is enabled
 #if 0
@@ -1054,7 +1063,7 @@ void RADIO_PrepareTX(void)
 		g_update_status = true;
 	}
 
-	RADIO_SelectCurrentVfo();
+ 	g_current_vfo = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo : &g_vfo_info[g_eeprom.config.setting.tx_vfo_num];
 
 	#ifndef ENABLE_TX_WHEN_AM
 		if (g_current_vfo->channel.am_mode > 0)
@@ -1097,6 +1106,7 @@ void RADIO_PrepareTX(void)
 		return;
 	}
 
+	// ******************************
 	// TX is allowed
 
 	if (g_dtmf_reply_state == DTMF_REPLY_ANI)
@@ -1115,26 +1125,6 @@ void RADIO_PrepareTX(void)
 	}
 
 	FUNCTION_Select(FUNCTION_TRANSMIT);
-
-	g_tx_timer_tick_500ms = 0;    // no timeout
-
-	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
-		if (g_alarm_state == ALARM_STATE_OFF)
-	#endif
-	{
-		if (g_eeprom.config.setting.tx_timeout == 0)
-			g_tx_timer_tick_500ms = 60;   // 30 sec
-		else
-		if (g_eeprom.config.setting.tx_timeout < (ARRAY_SIZE(g_sub_menu_tx_timeout) - 1))
-			g_tx_timer_tick_500ms = 120 * g_eeprom.config.setting.tx_timeout;  // minutes
-		else
-			g_tx_timer_tick_500ms = 120 * 15;  // 15 minutes
-	}
-
-	g_tx_timeout_reached = false;
-	g_flag_end_tx        = false;
-	g_rtte_count_down    = 0;
-	g_dtmf_reply_state   = DTMF_REPLY_NONE;
 }
 
 void RADIO_enable_CxCSS_tail(void)

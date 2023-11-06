@@ -39,6 +39,7 @@
 #include "misc.h"
 #include "radio.h"
 #include "settings.h"
+#include "ui/menu.h"
 #include "ui/status.h"
 #include "ui/ui.h"
 
@@ -174,6 +175,26 @@ void FUNCTION_Select(function_type_t Function)
 				UART_SendText("func transmit\r\n");
 			#endif
 
+			g_tx_timer_tick_500ms = 0;
+			g_tx_timeout_reached  = false;
+			g_flag_end_tx         = false;
+		
+			g_rtte_count_down     = 0;
+			g_dtmf_reply_state    = DTMF_REPLY_NONE;
+		
+			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+				if (g_alarm_state == ALARM_STATE_OFF)
+			#endif
+			{
+				if (g_eeprom.config.setting.tx_timeout == 0)
+					g_tx_timer_tick_500ms = 60;   // 30 sec
+				else
+				if (g_eeprom.config.setting.tx_timeout < (ARRAY_SIZE(g_sub_menu_tx_timeout) - 1))
+					g_tx_timer_tick_500ms = 120 * g_eeprom.config.setting.tx_timeout;  // minutes
+				else
+					g_tx_timer_tick_500ms = 120 * 15;  // 15 minutes
+			}
+
 			if (g_eeprom.config.setting.backlight_on_tx_rx == 1 || g_eeprom.config.setting.backlight_on_tx_rx == 3)
 				backlight_turn_on(backlight_tx_rx_time_500ms);
 
@@ -209,30 +230,6 @@ void FUNCTION_Select(function_type_t Function)
 
 			GUI_DisplayScreen();
 
-			#ifdef ENABLE_ALARM
-				if (g_alarm_state == ALARM_STATE_TXALARM && g_eeprom.config.setting.alarm_mode != ALARM_MODE_TONE)
-				{	// enable the alarm tone but not the TX
-			
-					g_alarm_state = ALARM_STATE_ALARM;
-
-					GUI_DisplayScreen();
-
-					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-
-					SYSTEM_DelayMs(2);
-					BK4819_start_tone(500, 28, g_current_function == FUNCTION_TRANSMIT, false);
-					SYSTEM_DelayMs(2);
-
-					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-
-					SYSTEM_DelayMs(60);
-					BK4819_ExitTxMute();
-
-					g_alarm_tone_counter_10ms = 0;
-					break;
-				}
-			#endif
-
 			BK4819_set_scrambler(0);
 
 			RADIO_enableTX(false);
@@ -260,7 +257,6 @@ void FUNCTION_Select(function_type_t Function)
 				}
 				else
 			#endif
-
 			if (!DTMF_Reply())
 			{
 			#ifdef ENABLE_MDC1200

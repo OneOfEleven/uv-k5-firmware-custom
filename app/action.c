@@ -323,7 +323,7 @@ void ACTION_Scan(bool bRestart)
 	{
 		g_input_box_index = 0;
 
-		(void)b1750;  // stop unused compile warning
+		(void)b1750;  // stop compile warning
 		
 		#if defined(ENABLE_ALARM) && defined(ENABLE_TX1750)
 			g_alarm_state = b1750 ? ALARM_STATE_TX1750 : ALARM_STATE_TXALARM;
@@ -337,7 +337,7 @@ void ACTION_Scan(bool bRestart)
 
 		g_flag_prepare_tx = true;
 
-		if (g_current_display_screen != DISPLAY_MENU)     // 1of11 .. don't close the menu
+		if (g_current_display_screen != DISPLAY_MENU)
 			g_request_display_screen = DISPLAY_MAIN;
 	}
 #endif

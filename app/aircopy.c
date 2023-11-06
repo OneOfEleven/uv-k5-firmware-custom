@@ -671,6 +671,8 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 		INPUTBOX_append(Key);
 
+		NUMBER_Get(g_input_box, &Frequency);
+
 		g_request_display_screen = DISPLAY_AIRCOPY;
 
 		if (g_input_box_index < 6)
@@ -682,8 +684,6 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		}
 
 		g_input_box_index = 0;
-
-		NUMBER_Get(g_input_box, &Frequency);
 
 		for (i = 0; i < ARRAY_SIZE(FREQ_BAND_TABLE); i++)
 		{

@@ -1994,8 +1994,19 @@ void APP_time_slice_500ms(void)
 		}
 	}
 
-	if (g_current_function == FUNCTION_TRANSMIT && (g_tx_timer_tick_500ms & 1u))
-		g_update_display = true;
+	if (g_current_function == FUNCTION_TRANSMIT)
+	{
+		if (g_tx_timer_tick_500ms < 6)
+		{	// <= 3 seconds left
+			if (g_tx_timer_tick_500ms & 1u)
+				BK4819_start_tone(880, 10, true, false);
+			else
+				BK4819_stop_tones(true);
+		}
+
+		if (g_tx_timer_tick_500ms & 1u)
+			g_update_display = true;
+	}
 
 	if (g_menu_tick_10ms > 0)
 		if (--g_menu_tick_10ms == 0)
@@ -2289,75 +2300,6 @@ void APP_time_slice_10ms(void)
 {
 	g_flash_light_blink_tick_10ms++;
 
-	#ifdef ENABLE_AIRCOPY
-		if (g_current_display_screen == DISPLAY_AIRCOPY)
-		{	// we're in AIRCOPY mode
-
-			if (g_aircopy_state == AIRCOPY_TX)
-				AIRCOPY_process_fsk_tx_10ms();
-
-			AIRCOPY_process_fsk_rx_10ms();
-
-			APP_check_keys();
-
-			if (g_update_display)
-				GUI_DisplayScreen();
-
-			if (g_update_status)
-				UI_DisplayStatus(false);
-
-			return;
-		}
-	#endif
-
-	#ifdef ENABLE_UART
-		if (UART_IsCommandAvailable())
-		{
-			__disable_irq();
-			UART_HandleCommand();
-			__enable_irq();
-		}
-	#endif
-
-	if (g_current_function == FUNCTION_TRANSMIT && (g_tx_timeout_reached || g_serial_config_tick_500ms > 0))
-	{	// transmitter timed out or must de-key
-
-		g_tx_timeout_reached = false;
-		g_flag_end_tx        = true;
-
-		APP_end_tx();
-
-		AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
-
-		RADIO_set_vfo_state(VFO_STATE_TIMEOUT);
-
-		GUI_DisplayScreen();
-	}
-
-	#ifdef ENABLE_UART
-		if (g_serial_config_tick_500ms > 0)
-		{	// config upload/download is running
-			if (g_update_display)
-				GUI_DisplayScreen();
-			if (g_update_status)
-				UI_DisplayStatus(false);
-			return;
-		}
-	#endif
-
-	#ifdef ENABLE_AM_FIX
-		if (g_rx_vfo->channel.am_mode > 0 && g_eeprom.config.setting.am_fix)
-			AM_fix_10ms(g_rx_vfo_num);
-	#endif
-
-	#ifdef ENABLE_FMRADIO
-		if (g_flag_save_fm)
-		{
-			SETTINGS_save_fm();
-			g_flag_save_fm = false;
-		}
-	#endif
-
 	if (g_flag_save_vfo)
 	{
 		SETTINGS_save_vfo_indices();
@@ -2369,6 +2311,32 @@ void APP_time_slice_10ms(void)
 		SETTINGS_save();
 		g_flag_save_settings = false;
 	}
+
+	if (g_request_display_screen != DISPLAY_INVALID)
+	{
+		GUI_SelectNextDisplay(g_request_display_screen);
+		g_request_display_screen = DISPLAY_INVALID;
+	}
+
+	if (g_update_display)
+		GUI_DisplayScreen();
+
+	if (g_update_status)
+		UI_DisplayStatus(false);
+
+	#ifdef ENABLE_AIRCOPY
+		if (g_current_display_screen == DISPLAY_AIRCOPY)
+		{	// we're in AIRCOPY mode
+
+			if (g_aircopy_state == AIRCOPY_TX)
+				AIRCOPY_process_fsk_tx_10ms();
+
+			AIRCOPY_process_fsk_rx_10ms();
+
+			APP_check_keys();
+			return;
+		}
+	#endif
 
 	if (g_flag_save_channel)
 	{
@@ -2385,16 +2353,54 @@ void APP_time_slice_10ms(void)
 		GUI_SelectNextDisplay(DISPLAY_MAIN);
 	}
 
+	#ifdef ENABLE_UART
+		if (UART_IsCommandAvailable())
+		{
+			__disable_irq();
+			UART_HandleCommand();
+			__enable_irq();
+		}
+	#endif
+
+	if (g_current_function == FUNCTION_TRANSMIT && (g_tx_timeout_reached || g_serial_config_tick_500ms > 0))
+	{	// transmitter timed out or must de-key
+
+		BK4819_stop_tones(true);
+
+		g_tx_timeout_reached = false;
+		g_flag_end_tx        = true;
+
+		APP_end_tx();
+
+		AUDIO_PlayBeep(BEEP_880HZ_60MS_TRIPLE_BEEP);
+
+		RADIO_set_vfo_state(VFO_STATE_TIMEOUT);
+
+		GUI_DisplayScreen();
+	}
+
+	#ifdef ENABLE_UART
+		if (g_serial_config_tick_500ms > 0)
+			return;
+	#endif
+
+	#ifdef ENABLE_AM_FIX
+		if (g_rx_vfo->channel.am_mode > 0 && g_eeprom.config.setting.am_fix)
+			AM_fix_10ms(g_rx_vfo_num);
+	#endif
+
+	#ifdef ENABLE_FMRADIO
+		if (g_flag_save_fm)
+		{
+			SETTINGS_save_fm();
+			g_flag_save_fm = false;
+		}
+	#endif
+
 	if (g_reduced_service || g_serial_config_tick_500ms > 0)
 	{
 		if (g_current_function == FUNCTION_TRANSMIT)
 			g_tx_timeout_reached = true;
-
-		if (g_update_display)
-			GUI_DisplayScreen();
-
-		if (g_update_status)
-			UI_DisplayStatus(false);
 
 		return;
 	}
@@ -2426,12 +2432,6 @@ void APP_time_slice_10ms(void)
 			AUDIO_PlayQueuedVoice();
 		}
 	#endif
-
-	if (g_update_display)
-		GUI_DisplayScreen();
-
-	if (g_update_status)
-		UI_DisplayStatus(false);
 
 	APP_process_flash_light_10ms();
 
@@ -2958,9 +2958,4 @@ Skip:
 			g_another_voice_id = VOICE_ID_INVALID;
 		}
 	#endif
-
-	GUI_SelectNextDisplay(g_request_display_screen);
-
-	g_request_display_screen = DISPLAY_INVALID;
-	g_update_display         = true;
 }
