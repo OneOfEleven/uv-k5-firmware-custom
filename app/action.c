@@ -124,7 +124,7 @@ void ACTION_Monitor(void)
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 	
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-		g_scan_pause_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
+		g_scan_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
 
 	#ifdef g_power_save_expired
 		if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_noaa_mode)
@@ -230,7 +230,7 @@ void ACTION_Scan(bool bRestart)
 						// jump to the next channel
 						APP_channel_next(true, g_scan_state_dir);
 						
-						g_scan_pause_tick_10ms      = 0;
+						g_scan_tick_10ms      = 0;
 						g_scan_pause_time_mode = false;
 	
 						g_update_status = true;
@@ -261,7 +261,7 @@ void ACTION_Scan(bool bRestart)
 
 			APP_channel_next(true, SCAN_STATE_DIR_FORWARD);
 
-			g_scan_pause_tick_10ms      = 0;   // go NOW
+			g_scan_tick_10ms      = 0;   // go NOW
 			g_scan_pause_time_mode = false;
 			
 			#ifdef ENABLE_VOICE
@@ -292,7 +292,7 @@ void ACTION_Scan(bool bRestart)
 		// jump to the next channel
 		APP_channel_next(true, g_scan_state_dir);
 
-		g_scan_pause_tick_10ms      = 0;
+		g_scan_tick_10ms      = 0;
 		g_scan_pause_time_mode = false;
 
 		g_update_status = true;

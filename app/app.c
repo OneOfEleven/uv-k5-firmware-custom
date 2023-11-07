@@ -115,7 +115,7 @@ static void APP_check_for_new_receive(void)
 		if (g_css_scan_mode != CSS_SCAN_MODE_OFF && g_rx_reception_mode == RX_MODE_NONE)
 		{	// CTCSS/DTS scanning
 
-			g_scan_pause_tick_10ms = scan_pause_code_10ms;
+			g_scan_tick_10ms = scan_pause_code_10ms;
 			g_scan_pause_time_mode = false;
 			g_rx_reception_mode    = RX_MODE_DETECTED;
 		}
@@ -149,7 +149,7 @@ static void APP_check_for_new_receive(void)
 		if (g_rx_reception_mode != RX_MODE_NONE)
 			goto done;
 
-		g_scan_pause_tick_10ms = scan_pause_chan_10ms;
+		g_scan_tick_10ms = scan_pause_chan_10ms;
 		g_scan_pause_time_mode = false;
 	}
 
@@ -274,7 +274,7 @@ static void APP_process_rx(void)
 				case SCAN_RESUME_TIME:     // stay only for a limited time
 					break;
 				case SCAN_RESUME_CARRIER:  // stay untill the carrier goes away
-					g_scan_pause_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
+					g_scan_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
 					g_scan_pause_time_mode = false;
 					break;
 				case SCAN_RESUME_STOP:     // stop scan once we find any signal
@@ -438,7 +438,7 @@ Skip:
 			case SCAN_RESUME_TIME:     // stay only for a limited time
 				break;
 			case SCAN_RESUME_CARRIER:  // stay untill the carrier goes away
-				g_scan_pause_tick_10ms      = g_eeprom.config.setting.scan_hold_time * 50;
+				g_scan_tick_10ms      = g_eeprom.config.setting.scan_hold_time * 50;
 				g_scan_pause_time_mode = false;
 				break;
 			case SCAN_RESUME_STOP:     // stop scan once we find any signal
@@ -484,18 +484,18 @@ bool APP_start_listening(void)
 			case SCAN_RESUME_TIME:
 				if (!g_scan_pause_time_mode)
 				{
-					g_scan_pause_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
+					g_scan_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
 					g_scan_pause_time_mode = true;
 				}
 				break;
 
 			case SCAN_RESUME_CARRIER:
-				g_scan_pause_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
+				g_scan_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
 				g_scan_pause_time_mode = false;
 				break;
 
 			case SCAN_RESUME_STOP:
-				g_scan_pause_tick_10ms = 0;
+				g_scan_tick_10ms = 0;
 				g_scan_pause_time_mode = false;
 				break;
 		}
@@ -579,7 +579,7 @@ void APP_stop_scan(void)
 	g_scan_state_dir = SCAN_STATE_DIR_OFF;
 
 	if (g_scan_pause_time_mode ||
-		g_scan_pause_tick_10ms > (200 / 10) ||
+		g_scan_tick_10ms > (200 / 10) ||
 		g_monitor_enabled ||
 	    g_current_function == FUNCTION_RECEIVE ||
 	    g_current_function == FUNCTION_NEW_RECEIVE)
@@ -639,7 +639,7 @@ void APP_stop_scan(void)
 		g_another_voice_id = VOICE_ID_SCANNING_STOP;
 	#endif
 
-	g_scan_pause_tick_10ms      = 0;
+	g_scan_tick_10ms      = 0;
 	g_scan_pause_time_mode = false;
 
 	g_update_status = true;
@@ -696,9 +696,9 @@ static void APP_next_freq(void)
 		RADIO_setup_registers(true);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
-			g_scan_pause_tick_10ms = 10;   // 100ms
+			g_scan_tick_10ms = 10;   // 100ms
 		#else
-			g_scan_pause_tick_10ms = scan_pause_freq_10ms;
+			g_scan_tick_10ms = scan_pause_freq_10ms;
 		#endif
 
 	#else
@@ -711,10 +711,10 @@ static void APP_next_freq(void)
 		RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
-			//g_scan_pause_tick_10ms = 10;   // 100ms
-			g_scan_pause_tick_10ms = 6;    // 60ms
+			//g_scan_tick_10ms = 10;   // 100ms
+			g_scan_tick_10ms = 6;    // 60ms
 		#else
-			g_scan_pause_tick_10ms = scan_pause_freq_10ms;
+			g_scan_tick_10ms = scan_pause_freq_10ms;
 		#endif
 
 	#endif
@@ -821,9 +821,9 @@ static void APP_next_channel(void)
 	}
 
 	#ifdef ENABLE_FASTER_CHANNEL_SCAN
-		g_scan_pause_tick_10ms = 9;  // 90ms .. <= ~60ms it misses signals (squelch response and/or PLL lock time) ?
+		g_scan_tick_10ms = 9;  // 90ms .. <= ~60ms it misses signals (squelch response and/or PLL lock time) ?
 	#else
-		g_scan_pause_tick_10ms = scan_pause_chan_10ms;
+		g_scan_tick_10ms = scan_pause_chan_10ms;
 	#endif
 
 	g_scan_pause_time_mode = false;
@@ -1108,6 +1108,8 @@ void APP_end_tx(void)
 {	// back to RX mode
 
 	RADIO_tx_eot();
+
+	ST7565_Init(false);
 
 	if (g_current_vfo->p_tx->code_type != CODE_TYPE_NONE)
 	{	// CTCSS/CDCSS is enabled
@@ -1527,7 +1529,7 @@ void APP_channel_next(const bool remember_current, const scan_state_dir_t scan_d
 		return;
 	}
 
-	g_scan_pause_tick_10ms      = scan_pause_css_10ms;
+	g_scan_tick_10ms      = scan_pause_css_10ms;
 	g_scan_pause_time_mode = false;
 	g_rx_reception_mode    = RX_MODE_NONE;
 }
@@ -1602,7 +1604,7 @@ void APP_process_scan(void)
 			APP_start_listening();
 		}
 		else
-		if (g_scan_pause_tick_10ms == 0)
+		if (g_scan_tick_10ms == 0)
 		{	// switch to next channel
 			g_scan_pause_time_mode = false;
 			g_rx_reception_mode    = RX_MODE_NONE;
@@ -1647,7 +1649,7 @@ void APP_process_scan(void)
 
 	}
 
-	if (g_css_scan_mode == CSS_SCAN_MODE_SCANNING && g_scan_pause_tick_10ms == 0)
+	if (g_css_scan_mode == CSS_SCAN_MODE_SCANNING && g_scan_tick_10ms == 0)
 		MENU_SelectNextCode();
 
 	#ifdef ENABLE_NOAA

@@ -75,7 +75,7 @@ void MENU_start_css_scan(int8_t Direction)
 
 	MENU_SelectNextCode();
 
-	g_scan_pause_tick_10ms = scan_pause_css_10ms;
+	g_scan_tick_10ms = scan_pause_css_10ms;
 }
 
 void MENU_stop_css_scan(void)
@@ -923,7 +923,7 @@ void MENU_SelectNextCode(void)
 
 	RADIO_setup_registers(true);
 
-	g_scan_pause_tick_10ms = (g_selected_code_type == CODE_TYPE_CONTINUOUS_TONE) ? scan_pause_ctcss_10ms : scan_pause_cdcss_10ms;
+	g_scan_tick_10ms = (g_selected_code_type == CODE_TYPE_CONTINUOUS_TONE) ? scan_pause_ctcss_10ms : scan_pause_cdcss_10ms;
 
 	g_update_display = true;
 }

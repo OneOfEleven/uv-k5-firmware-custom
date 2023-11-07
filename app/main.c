@@ -50,10 +50,18 @@ bool g_manual_scanning;
 
 bool scanning_paused(void)
 {
-	if ((g_scan_state_dir != SCAN_STATE_DIR_OFF || g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF) &&
-	    g_scan_pause_tick_10ms > 0 && g_scan_pause_tick_10ms <= (200 / 10))
-	{	// scanning isn't paused
-		return false;
+	if (g_scan_state_dir != SCAN_STATE_DIR_OFF &&
+	    g_scan_tick_10ms > 0 &&
+	    g_scan_tick_10ms <= (400 / 10))         // 400ms
+	{
+		return false;	// busy RF scanning
+	}
+
+	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF &&
+	    g_dual_watch_tick_10ms > 0 &&
+	    g_dual_watch_tick_10ms <= (400 / 10))   // 400ms
+	{
+		return false;	// busy dual watch scanning
 	}
 
 	return true;
@@ -107,6 +115,7 @@ void toggle_chan_scanlist(void)
 }
 
 #ifdef ENABLE_COPY_CHAN_TO_VFO_TO_CHAN
+
 	void MAIN_copy_mem_vfo_mem(void)
 	{
 		//const unsigned int vfo = get_RX_VFO();
@@ -192,6 +201,7 @@ void toggle_chan_scanlist(void)
 			g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;
 		}
 	}
+
 #endif
 
 void processFKeyFunction(const key_code_t Key)
@@ -858,7 +868,7 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 					FI_add_freq_ignored(g_rx_vfo->freq_config_rx.frequency);
 
 					// immediately continue the scan
-					g_scan_pause_tick_10ms = 0;
+					g_scan_tick_10ms = 0;
 					g_scan_pause_time_mode = false;
 					g_squelch_open         = false;
 					g_rx_reception_mode    = RX_MODE_NONE;
@@ -1129,7 +1139,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 	APP_channel_next(false, direction);
 
 	// go NOW
-	g_scan_pause_tick_10ms = 0;
+	g_scan_tick_10ms = 0;
 	g_scan_pause_time_mode = false;
 	g_squelch_open         = false;
 	g_rx_reception_mode    = RX_MODE_NONE;

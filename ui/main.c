@@ -65,7 +65,7 @@ void draw_small_antenna_bars(uint8_t *p, unsigned int level)
 
 	for (i = 1; i <= level; i++)
 	{
-		const char bar = (0xff << (6 - i)) & 0x7F;
+		const uint8_t bar = (0xff << (6 - i)) & 0x7F;
 		memset(p + 2 + (i * 3), bar, 2);
 	}
 }
@@ -400,10 +400,10 @@ void UI_DisplayMain(void)
 	#endif
 	const unsigned int line0      = 0;  // text screen line
 	const unsigned int line1      = 4;
-	char               str[22];
-	int                vfo_num;
 	int                single_vfo = -1;
 	int                channel    = g_eeprom.config.setting.tx_vfo_num;
+	char               str[22];
+	int                vfo_num;
 
 	g_center_line = CENTER_LINE_NONE;
 
@@ -784,24 +784,38 @@ void UI_DisplayMain(void)
 			}
 			#else
 			{
-				const bool is_freq_chan       = IS_FREQ_CHANNEL(scrn_chan);
-				const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
-//				const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // currently way to slow
+				#ifdef ENABLE_SHOW_FREQS_CHAN
+					strcpy(str, "  ");
 
-				strcpy(str, "   ");
+					#ifdef ENABLE_SCAN_IGNORE_LIST
+						if (FI_freq_ignored(frequency) >= 0)
+							str[0] = 'I';  // frequency is in the ignore list
+					#endif
 
-				#ifdef ENABLE_SCAN_IGNORE_LIST
-					if (FI_freq_ignored(frequency) >= 0)
-						str[0] = 'I';  // frequency is in the ignore list
+					if (g_vfo_info[vfo_num].channel.compand)
+						str[1] = 'C';  // compander is enabled
+
+					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 2), 0, line + 1);
+				#else
+					const bool is_freq_chan       = IS_FREQ_CHANNEL(scrn_chan);
+					const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
+//					const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // currently way to slow
+
+					strcpy(str, "   ");
+
+					#ifdef ENABLE_SCAN_IGNORE_LIST
+						if (FI_freq_ignored(frequency) >= 0)
+							str[0] = 'I';  // frequency is in the ignore list
+					#endif
+
+					if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
+						str[1] = 'F';  // this VFO frequency is also found in a channel
+
+					if (g_vfo_info[vfo_num].channel.compand)
+						str[2] = 'C';  // compander is enabled
+
+					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
 				#endif
-
-				if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-					str[1] = 'F';  // this VFO frequency is also found in a channel
-
-				if (g_vfo_info[vfo_num].channel.compand)
-					str[2] = 'C';  // compander is enabled
-
-				UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
 			}
 			#endif
 		}
