@@ -50,8 +50,8 @@ extern const uint8_t BITMAP_ANTENNA[5];
 
 extern const uint8_t BITMAP_MARKER[8];
 
-extern const uint8_t BITMAP_VFO_DEFAULT[8];
-extern const uint8_t BITMAP_VFO_NOT_DEFAULT[8];
+extern const uint8_t BITMAP_VFO_DEFAULT[7];
+extern const uint8_t BITMAP_VFO_NOT_DEFAULT[7];
 
 extern const uint8_t BITMAP_SCANLIST1[6];
 extern const uint8_t BITMAP_SCANLIST2[6];

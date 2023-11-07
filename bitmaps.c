@@ -341,9 +341,8 @@ const uint8_t BITMAP_MARKER[8] =
 	__extension__ 0b00011000
 };
 
-const uint8_t BITMAP_VFO_DEFAULT[8] =
+const uint8_t BITMAP_VFO_DEFAULT[7] =
 {
-	__extension__ 0b00000000,
 	__extension__ 0b01111111,
 	__extension__ 0b01111111,
 	__extension__ 0b00111110,
@@ -353,12 +352,11 @@ const uint8_t BITMAP_VFO_DEFAULT[8] =
 	__extension__ 0b00001000
 };
 
-const uint8_t BITMAP_VFO_NOT_DEFAULT[8] =
+const uint8_t BITMAP_VFO_NOT_DEFAULT[7] =
 {
 	__extension__ 0b00000000,
-	__extension__ 0b01000001,
-	__extension__ 0b01000001,
-	__extension__ 0b00100010,
+	__extension__ 0b00000000,
+	__extension__ 0b00111110,
 	__extension__ 0b00100010,
 	__extension__ 0b00010100,
 	__extension__ 0b00010100,
