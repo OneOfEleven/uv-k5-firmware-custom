@@ -562,6 +562,8 @@ unsigned int SETTINGS_find_channel(const uint32_t frequency)
 			continue;
 		if (freq == frequency)
 			return chan;    // found it
+//		if (abs((int32_t)freq - frequency) < 5)
+//			return chan;    // found a very close match
 	}
 
 	return 0xffffffff;

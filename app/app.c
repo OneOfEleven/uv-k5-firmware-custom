@@ -865,7 +865,7 @@ static bool APP_toggle_dual_watch_vfo(void)
 		return false;
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_SendText("dual wot\r\n");
+//		UART_SendText("dual wot\r\n");
 	#endif
 
 	#ifdef ENABLE_NOAA
