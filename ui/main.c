@@ -516,16 +516,19 @@ void UI_DisplayMain(void)
 			}
 
 			// highlight the selected/used VFO with a marker
-//			if (single_vfo < 0 && current_vfo_num == vfo_num)
-//				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
-//			else
-			if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF)
-				memcpy(p_line0 + 0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
+			if (single_vfo < 0)
+			{
+				if (vfo_num == main_vfo_num)
+					memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
+				else
+				//if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF)
+					memcpy(p_line0 + 0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
+			}
 		}
 		else
 		if (single_vfo < 0)
 		{	// highlight the selected/used VFO with a marker
-			if (current_vfo_num == vfo_num && current_vfo_num == main_vfo_num)
+			if (vfo_num == main_vfo_num)
 				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
 			else
 			//if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF)
