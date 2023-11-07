@@ -398,17 +398,18 @@ void UI_DisplayMain(void)
 	#if !defined(ENABLE_BIG_FREQ) && defined(ENABLE_SMALLEST_FONT)
 		const unsigned int smallest_char_spacing = ARRAY_SIZE(g_font3x5[0]) + 1;
 	#endif
-	const unsigned int line0      = 0;  // text screen line
-	const unsigned int line1      = 4;
-	int                single_vfo = -1;
-	int                channel    = g_eeprom.config.setting.tx_vfo_num;
+	const unsigned int line0           = 0;  // text screen line
+	const unsigned int line1           = 4;
+	int                single_vfo      = -1;
+	int                main_vfo_num    = g_eeprom.config.setting.tx_vfo_num;
+	int                current_vfo_num = g_eeprom.config.setting.tx_vfo_num;
 	char               str[22];
 	int                vfo_num;
 
 	g_center_line = CENTER_LINE_NONE;
 
 	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF && g_rx_vfo_is_active)
-		channel = g_rx_vfo_num;    // we're currently monitoring the other VFO
+		current_vfo_num = g_rx_vfo_num;    // we're currently monitoring the other VFO
 
 //	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
 //		single_vfo = g_eeprom.config.setting.tx_vfo_num;
@@ -450,7 +451,7 @@ void UI_DisplayMain(void)
 		if (single_vfo >= 0 && single_vfo != vfo_num)
 			continue;	// we're in single VFO mode - screen is dedicated to just one VFO
 
-		if (channel != vfo_num)
+		if (current_vfo_num != vfo_num)
 		{
 			if (g_dtmf_call_state != DTMF_CALL_STATE_NONE || g_dtmf_is_tx || g_dtmf_input_mode)
 			{	// show DTMF stuff
@@ -515,7 +516,7 @@ void UI_DisplayMain(void)
 			}
 
 			// highlight the selected/used VFO with a marker
-//			if (single_vfo < 0 && channel == vfo_num)
+//			if (single_vfo < 0 && current_vfo_num == vfo_num)
 //				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
 //			else
 			if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF)
@@ -524,7 +525,7 @@ void UI_DisplayMain(void)
 		else
 		if (single_vfo < 0)
 		{	// highlight the selected/used VFO with a marker
-			if (channel == vfo_num)
+			if (current_vfo_num == vfo_num && current_vfo_num == main_vfo_num)
 				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
 			else
 			//if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF)
@@ -540,8 +541,8 @@ void UI_DisplayMain(void)
 				else
 			#endif
 			{
-				channel = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo_num : g_eeprom.config.setting.tx_vfo_num;
-				if (channel == vfo_num)
+				current_vfo_num = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo_num : g_eeprom.config.setting.tx_vfo_num;
+				if (current_vfo_num == vfo_num)
 				{	// show the TX symbol
 					mode = 1;
 					#ifdef ENABLE_SMALL_BOLD
@@ -633,8 +634,8 @@ void UI_DisplayMain(void)
 			uint32_t frequency = g_vfo_info[vfo_num].p_rx->frequency;
 			if (g_current_function == FUNCTION_TRANSMIT)
 			{	// transmitting
-				channel = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo_num : g_eeprom.config.setting.tx_vfo_num;
-				if (channel == vfo_num)
+				current_vfo_num = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo_num : g_eeprom.config.setting.tx_vfo_num;
+				if (current_vfo_num == vfo_num)
 					frequency = g_vfo_info[vfo_num].p_tx->frequency;
 			}
 
