@@ -632,7 +632,7 @@ void RADIO_select_vfos(void)
 
 void RADIO_setup_registers(bool switch_to_function_foreground)
 {
-	BK4819_filter_bandwidth_t Bandwidth = g_rx_vfo->channel.channel_bandwidth;
+	BK4819_filter_bandwidth_t Bandwidth = g_current_vfo->channel.channel_bandwidth;
 	uint16_t                  interrupt_mask;
 	uint32_t                  Frequency;
 
@@ -661,7 +661,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 					BK4819_SetFilterBandwidth(Bandwidth);
 					BK4819_EnableAFC();
 				#else
-					if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM)
+					if (g_current_vfo->channel.mod_mode != MOD_MODE_FM)
 					{
 						BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER); // sideband
 						BK4819_DisableAFC();
@@ -708,25 +708,25 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	BK4819_write_reg(0x3F, 0);       // disable interrupts
 
 	#ifdef ENABLE_NOAA
-		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_noaa_mode)
+		if (IS_NOAA_CHANNEL(g_current_vfo->channel_save) && g_noaa_mode)
 			Frequency = NOAA_FREQUENCY_TABLE[g_noaa_channel];
 		else
 	#endif
-			Frequency = g_rx_vfo->p_rx->frequency;
+			Frequency = g_current_vfo->p_rx->frequency;
 
 	BK4819_set_rf_frequency(Frequency, false);
 	BK4819_set_rf_filter_path(Frequency);
 
 	BK4819_SetupSquelch(
-		g_rx_vfo->squelch_open_rssi_thresh,    g_rx_vfo->squelch_close_rssi_thresh,
-		g_rx_vfo->squelch_open_noise_thresh,   g_rx_vfo->squelch_close_noise_thresh,
-		g_rx_vfo->squelch_close_glitch_thresh, g_rx_vfo->squelch_open_glitch_thresh);
+		g_current_vfo->squelch_open_rssi_thresh,    g_current_vfo->squelch_close_rssi_thresh,
+		g_current_vfo->squelch_open_noise_thresh,   g_current_vfo->squelch_close_noise_thresh,
+		g_current_vfo->squelch_close_glitch_thresh, g_current_vfo->squelch_open_glitch_thresh);
 
 	// enable the RX front end
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, true);
 
 	// AF RX Gain and DAC
-//	if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM)
+//	if (g_current_vfo->channel.mod_mode != MOD_MODE_FM)
 //	{
 //		BK4819_write_reg(0x48, 0xB3A8);   // 1011 0011 1010 1000
 //	}
@@ -748,29 +748,29 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			#ifdef ENABLE_VOICE
 				#ifdef MUTE_AUDIO_FOR_VOICE
 					if (g_voice_write_index == 0)
-						AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
+						AUDIO_set_mod_mode(g_current_vfo->channel.mod_mode);
 				#else
-					AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
+					AUDIO_set_mod_mode(g_current_vfo->channel.mod_mode);
 				#endif
 			#else
-				AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
+				AUDIO_set_mod_mode(g_current_vfo->channel.mod_mode);
 			#endif
 		}
 	}
 
 	interrupt_mask = BK4819_REG_3F_SQUELCH_FOUND | BK4819_REG_3F_SQUELCH_LOST;
 
-	if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
+	if (IS_NOT_NOAA_CHANNEL(g_current_vfo->channel_save))
 	{
-		if (g_rx_vfo->channel.mod_mode == MOD_MODE_FM)
+		if (g_current_vfo->channel.mod_mode == MOD_MODE_FM)
 		{	// FM
 			uint8_t code_type = g_selected_code_type;
 			uint8_t code      = g_selected_code;
 
 			if (g_css_scan_mode == CSS_SCAN_MODE_OFF)
 			{
-				code_type = g_rx_vfo->p_rx->code_type;
-				code      = g_rx_vfo->p_rx->code;
+				code_type = g_current_vfo->p_rx->code_type;
+				code      = g_current_vfo->p_rx->code;
 			}
 
 			switch (code_type)
@@ -812,7 +812,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			}
 
 			if (g_eeprom.config.setting.enable_scrambler)
-				BK4819_set_scrambler(g_rx_vfo->channel.scrambler);
+				BK4819_set_scrambler(g_current_vfo->channel.scrambler);
 			else
 				BK4819_set_scrambler(0);
 		}
@@ -843,7 +843,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			BK4819_DisableVox();
 
 	// RX expander
-	BK4819_SetCompander((g_rx_vfo->channel.mod_mode == MOD_MODE_FM && g_rx_vfo->channel.compand >= 2) ? g_rx_vfo->channel.compand : 0);
+	BK4819_SetCompander((g_current_vfo->channel.mod_mode == MOD_MODE_FM && g_current_vfo->channel.compand >= 2) ? g_current_vfo->channel.compand : 0);
 
 	BK4819_EnableDTMF();
 	interrupt_mask |= BK4819_REG_3F_DTMF_5TONE_FOUND;

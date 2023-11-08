@@ -474,10 +474,10 @@ bool APP_start_listening(void)
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{	// we're RF scanning
 
-		g_rx_vfo->freq_in_channel = 0xff;
+		g_current_vfo->freq_in_channel = 0xff;
 
 		if (IS_FREQ_CHANNEL(g_scan_next_channel))
-			g_rx_vfo->freq_in_channel = SETTINGS_find_channel(g_rx_vfo->freq_config_rx.frequency);
+			g_current_vfo->freq_in_channel = SETTINGS_find_channel(g_current_vfo->freq_config_rx.frequency);
 
 		switch (g_eeprom.config.setting.carrier_search_mode)
 		{
@@ -502,12 +502,12 @@ bool APP_start_listening(void)
 	}
 
 	#ifdef ENABLE_NOAA
-		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_noaa_mode)
+		if (IS_NOAA_CHANNEL(g_current_vfo->channel_save) && g_noaa_mode)
 		{
-			g_rx_vfo->channel_save        = g_noaa_channel + NOAA_CHANNEL_FIRST;
-			g_rx_vfo->p_rx->frequency     = NOAA_FREQUENCY_TABLE[g_noaa_channel];
-			g_rx_vfo->p_tx->frequency     = NOAA_FREQUENCY_TABLE[g_noaa_channel];
-			g_eeprom.config.setting.indices.vfo[chan].screen = g_rx_vfo->channel_save;
+			g_current_vfo->channel_save        = g_noaa_channel + NOAA_CHANNEL_FIRST;
+			g_current_vfo->p_rx->frequency     = NOAA_FREQUENCY_TABLE[g_noaa_channel];
+			g_current_vfo->p_tx->frequency     = NOAA_FREQUENCY_TABLE[g_noaa_channel];
+			g_eeprom.config.setting.indices.vfo[chan].screen = g_current_vfo->channel_save;
 			g_noaa_tick_10ms              = 5000 / 10;   // 5 sec
 			g_schedule_noaa               = false;
 		}
@@ -527,7 +527,7 @@ bool APP_start_listening(void)
 	}
 
 	// AF gain - original QS values
-//	if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM)
+//	if (g_current_vfo->channel.mod_mode != MOD_MODE_FM)
 //	{
 //		BK4819_write_reg(0x48, 0xB3A8);   // 1011 0011 1010 1000
 //	}
@@ -550,12 +550,16 @@ bool APP_start_listening(void)
 	#ifdef ENABLE_VOICE
 		#ifdef MUTE_AUDIO_FOR_VOICE
 			if (g_voice_write_index == 0)
-				AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
+				AUDIO_set_mod_mode(g_current_vfo->channel.mod_mode);
 		#else
-			AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
+			AUDIO_set_mod_mode(g_current_vfo->channel.mod_mode);
 		#endif
 	#else
-		AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
+		AUDIO_set_mod_mode(g_current_vfo->channel.mod_mode);
+	#endif
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("mode %u\r\n", g_current_vfo->channel.mod_mode);
 	#endif
 
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -1391,8 +1395,8 @@ void APP_check_keys(void)
 		{	// only the up and down keys are made repeatable
 
 			// key repeat max 10ms speed if user is moving up/down in freq/channel
-			const bool freq_chan = IS_FREQ_CHANNEL(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen);
-			const uint8_t repeat_10ms = (g_manual_scanning && g_monitor_enabled && freq_chan && g_current_display_screen == DISPLAY_MAIN) ? 1 : key_repeat_10ms;
+			const bool    freq_chan   = IS_FREQ_CHANNEL(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen);
+			const uint8_t repeat_10ms = (g_manual_scanning && g_monitor_enabled && freq_chan && g_current_display_screen == DISPLAY_MAIN) ? 2 : key_repeat_10ms;
 
 			if (++g_key_debounce_repeat >= (key_long_press_10ms + repeat_10ms))
 			{	// key repeat

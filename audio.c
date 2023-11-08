@@ -83,8 +83,8 @@ void AUDIO_set_mod_mode(const mod_mode_t mode)
 	switch (mode)
 	{			
 		default:
-		case MOD_MODE_FM: af_mode = BK4819_AF_FM; break;
-		case MOD_MODE_AM: af_mode = BK4819_AF_AM; break;
+		case MOD_MODE_FM:  af_mode = BK4819_AF_FM;        break;
+		case MOD_MODE_AM:  af_mode = BK4819_AF_AM;        break;
 		case MOD_MODE_DSB: af_mode = BK4819_AF_BASEBAND1; break;
 	}
 	BK4819_SetAF(af_mode);

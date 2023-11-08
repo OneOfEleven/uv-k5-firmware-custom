@@ -218,18 +218,26 @@ void processFKeyFunction(const key_code_t Key)
 	{
 		case KEY_0:   // FM
 
-			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-				APP_stop_scan();
-
 			if (g_fkey_pressed)
 			{
 				if (++g_tx_vfo->channel.mod_mode >= MOD_MODE_LEN)
 					g_tx_vfo->channel.mod_mode = 0;
-				g_request_save_channel = 1;
+
+				AUDIO_set_mod_mode(g_tx_vfo->channel.mod_mode);
+
+				if (IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
+					if (g_scan_state_dir == SCAN_STATE_DIR_OFF)
+						g_request_save_vfo = true;
+
+				g_request_display_screen = DISPLAY_MAIN;
 			}
 			else
 			{
+
 				#ifdef ENABLE_FMRADIO
+					if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
+						APP_stop_scan();
+
 					ACTION_FM();
 				#else
 
