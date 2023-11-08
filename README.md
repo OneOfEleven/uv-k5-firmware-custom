@@ -27,7 +27,7 @@ Need to find a suitable replacement for the two jack sockets to confirm this tho
 
 <p float="left">
 <img src="/images/jack_sockets_top.png" width=300 />
-<img src="/images/jack_sockets_bot.png" width=300 />
+<img src="/images/jack_sockets_bot.png" width=236 />
 </p>
 
 # Radio performance
