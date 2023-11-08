@@ -88,6 +88,10 @@ void AUDIO_set_mod_mode(const mod_mode_t mode)
 		case MOD_MODE_DSB: af_mode = BK4819_AF_BASEBAND1; break;
 	}
 	BK4819_SetAF(af_mode);
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("mode %u\r\n", mode);
+	#endif
 }
 
 void AUDIO_PlayBeep(beep_type_t Beep)

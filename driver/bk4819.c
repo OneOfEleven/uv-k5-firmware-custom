@@ -96,9 +96,9 @@ void BK4819_Init(void)
 		( 8u <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
 
 	// squelch mode
-//	BK4819_write_reg(0x77, 0x88EF);     // rssi + noise + glitch .. RT-890
+	BK4819_write_reg(0x77, 0x88EF);     // rssi + noise + glitch .. RT-890
 //	BK4819_write_reg(0x77, 0xA8EF);     // rssi + noise + glitch .. default
-	BK4819_write_reg(0x77, 0xAAEF);     // rssi + glitch
+//	BK4819_write_reg(0x77, 0xAAEF);     // rssi + glitch
 //	BK4819_write_reg(0x77, 0xCCEF);     // rssi + noise
 //	BK4819_write_reg(0x77, 0xFFEF);     // rssi
 
@@ -550,6 +550,13 @@ void BK4819_SetupSquelch(
 		uint8_t squelch_close_glitch_thresh,
 		uint8_t squelch_open_glitch_thresh)
 {
+	// squelch mode
+//	BK4819_write_reg(0x77, 0x88EF);     // rssi + noise + glitch .. RT-890
+//	BK4819_write_reg(0x77, 0xA8EF);     // rssi + noise + glitch .. default
+//	BK4819_write_reg(0x77, 0xAAEF);     // rssi + glitch
+//	BK4819_write_reg(0x77, 0xCCEF);     // rssi + noise
+//	BK4819_write_reg(0x77, 0xFFEF);     // rssi
+
 	// REG_70
 	//
 	// <15>   0 Enable TONE1
@@ -590,19 +597,19 @@ void BK4819_SetupSquelch(
 	//         0 ~ 255
 	//
 	BK4819_write_reg(0x4E,  // 01 101 11 1 00000000
-//	#ifndef ENABLE_FASTER_CHANNEL_SCAN
-		// original (*)
+	#ifndef ENABLE_FASTER_CHANNEL_SCAN
+		// original
 		(1u << 14) |                  // 1 ???
 		(5u << 11) |                  // 5  squelch = open  delay .. 0 ~ 7
-		(6u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
+		(3u <<  9) |                  // 3  squelch = close delay .. 0 ~ 3
 		squelch_open_glitch_thresh);  // 0 ~ 255
-//	#else
+	#else
 		// faster (but twitchier)
-//		(1u << 14) |                  //  1 ???
-//		(2u << 11) |                  // *5  squelch = open  delay .. 0 ~ 7
-//		(1u <<  9) |                  // *3  squelch = close delay .. 0 ~ 3
-//		squelch_open_glitch_thresh);  //  0 ~ 255
-//	#endif
+		(1u << 14) |                  // 1 ???
+		(2u << 11) |                  // 5  squelch = open  delay .. 0 ~ 7
+		(3u <<  9) |                  // 3  squelch = close delay .. 0 ~ 3
+		squelch_open_glitch_thresh);  // 0 ~ 255
+	#endif
 
 	// REG_4F
 	//

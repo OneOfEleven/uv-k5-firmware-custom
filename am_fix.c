@@ -327,7 +327,7 @@ void AM_fix_10ms(const int vfo)
 	// save the corrected RSSI level
 	#ifdef ENABLE_AM_FIX_SHOW_DATA
 	{
-		const int16_t new_rssi    = rssi - rssi_gain_diff[vfo];
+		const int16_t  new_rssi   = rssi - rssi_gain_diff[vfo];
 		const uint16_t new_glitch = BK4819_GetGlitchIndicator();
 		const uint16_t new_noise  = BK4819_GetExNoiceIndicator();
 

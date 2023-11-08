@@ -277,7 +277,7 @@ void ACTION_Scan(bool bRestart)
 		
 		APP_channel_next(true, SCAN_STATE_DIR_FORWARD);
 		
-		g_scan_tick_10ms      = 0;   // go NOW
+		g_scan_tick_10ms       = 0;   // go NOW
 		g_scan_pause_time_mode = false;
 		
 		#ifdef ENABLE_VOICE

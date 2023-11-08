@@ -80,7 +80,7 @@ const uint8_t orig_pga   = 6;   //  -3dB
 
 static void APP_process_key(const key_code_t Key, const bool key_pressed, const bool key_held);
 
-static void APP_update_rssi(const int vfo)
+static void APP_update_rssi(const int vfo, const bool force)
 {
 	int16_t rssi   = BK4819_GetRSSI();
 	uint8_t glitch = BK4819_GetGlitchIndicator();
@@ -92,7 +92,7 @@ static void APP_update_rssi(const int vfo)
 			rssi -= rssi_gain_diff[vfo];
 	#endif
 
-	if (g_current_rssi[vfo] == rssi)
+	if (g_current_rssi[vfo] == rssi && !force)
 		return;     // no change
 
 	g_current_rssi[vfo]   = rssi;
@@ -100,6 +100,8 @@ static void APP_update_rssi(const int vfo)
 	g_current_noise[vfo]  = noise;
 
 	UI_update_rssi(rssi, glitch, noise, vfo);
+
+	g_update_rssi = false;
 }
 
 static void APP_check_for_new_receive(void)
@@ -149,7 +151,7 @@ static void APP_check_for_new_receive(void)
 		if (g_rx_reception_mode != RX_MODE_NONE)
 			goto done;
 
-		g_scan_tick_10ms = scan_pause_chan_10ms;
+		g_scan_tick_10ms       = scan_pause_chan_10ms;
 		g_scan_pause_time_mode = false;
 	}
 
@@ -163,15 +165,15 @@ done:
 		#ifdef ENABLE_MDC1200
 		{	// reset the FSK receiver
 			//const uint16_t fsk_reg59 = BK4819_read_reg(0x59) & ~((1u << 15) | (1u << 14) | (1u << 12) | (1u << 11));
-			//	BK4819_enable_mdc1200_rx(true);
+			//BK4819_enable_mdc1200_rx(true);
 			//BK4819_write_reg(0x59, (1u << 15) | (1u << 14) | fsk_reg59);
 			//BK4819_write_reg(0x59, (1u << 12) | fsk_reg59);
 		}
 		#endif
 	}
-		APP_update_rssi(g_rx_vfo_num);
-		g_update_rssi = true;
-//	}
+
+	APP_update_rssi(g_rx_vfo_num, true);
+	g_update_rssi = true;
 }
 
 static void APP_process_new_receive(void)
@@ -259,6 +261,9 @@ static void APP_process_rx(void)
 {
 	end_of_rx_mode_t Mode = END_OF_RX_MODE_NONE;
 
+//	APP_update_rssi(g_rx_vfo_num);
+	g_update_rssi = true;
+
 	if (g_flag_tail_tone_elimination_complete)
 	{
 		Mode = END_OF_RX_MODE_END;
@@ -274,7 +279,7 @@ static void APP_process_rx(void)
 				case SCAN_RESUME_TIME:     // stay only for a limited time
 					break;
 				case SCAN_RESUME_CARRIER:  // stay untill the carrier goes away
-					g_scan_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
+					g_scan_tick_10ms       = g_eeprom.config.setting.scan_hold_time * 50;
 					g_scan_pause_time_mode = false;
 					break;
 				case SCAN_RESUME_STOP:     // stop scan once we find any signal
@@ -438,7 +443,7 @@ Skip:
 			case SCAN_RESUME_TIME:     // stay only for a limited time
 				break;
 			case SCAN_RESUME_CARRIER:  // stay untill the carrier goes away
-				g_scan_tick_10ms      = g_eeprom.config.setting.scan_hold_time * 50;
+				g_scan_tick_10ms       = g_eeprom.config.setting.scan_hold_time * 50;
 				g_scan_pause_time_mode = false;
 				break;
 			case SCAN_RESUME_STOP:     // stop scan once we find any signal
@@ -484,18 +489,18 @@ bool APP_start_listening(void)
 			case SCAN_RESUME_TIME:
 				if (!g_scan_pause_time_mode)
 				{
-					g_scan_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
+					g_scan_tick_10ms       = g_eeprom.config.setting.scan_hold_time * 50;
 					g_scan_pause_time_mode = true;
 				}
 				break;
 
 			case SCAN_RESUME_CARRIER:
-				g_scan_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
+				g_scan_tick_10ms       = g_eeprom.config.setting.scan_hold_time * 50;
 				g_scan_pause_time_mode = false;
 				break;
 
 			case SCAN_RESUME_STOP:
-				g_scan_tick_10ms = 0;
+				g_scan_tick_10ms       = 0;
 				g_scan_pause_time_mode = false;
 				break;
 		}
@@ -534,8 +539,8 @@ bool APP_start_listening(void)
 //	else
 	{
 		BK4819_write_reg(0x48,
-			(11u << 12)                        |     // ??? .. 0 ~ 15, doesn't seem to make any difference
-			( 0u << 10)                        |     // AF Rx Gain-1
+			(11u << 12)                       |     // ??? .. 0 ~ 15, doesn't seem to make any difference
+			( 0u << 10)                       |     // AF Rx Gain-1
 			(g_eeprom.calib.volume_gain << 4) |     // AF Rx Gain-2
 			(g_eeprom.calib.dac_gain    << 0));     // AF DAC Gain (after Gain-1 and Gain-2)
 	}
@@ -558,14 +563,12 @@ bool APP_start_listening(void)
 		AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 	#endif
 
-	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("mode %u\r\n", g_rx_vfo->channel.mod_mode);
-	#endif
-
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	if (g_current_display_screen != DISPLAY_MENU)
 		GUI_SelectNextDisplay(DISPLAY_MAIN);
+
+	APP_update_rssi(g_rx_vfo_num, true);
 
 	g_update_status  = true;
 	g_update_display = true;
@@ -1069,7 +1072,7 @@ void APP_process_radio_interrupts(void)
 				UART_SendText("sq close\r\n");
 			#endif
 
-			//APP_update_rssi(g_rx_vfo);
+			//APP_update_rssi(g_rx_vfo_num, false);
 			g_update_rssi = true;
 
 			g_update_display = true;
@@ -1083,7 +1086,7 @@ void APP_process_radio_interrupts(void)
 				UART_SendText("sq open\r\n");
 			#endif
 
-			//APP_update_rssi(g_rx_vfo_num);
+			//APP_update_rssi(g_rx_vfo_num, false);
 			g_update_rssi = true;
 
 			if (g_monitor_enabled)
@@ -1523,7 +1526,7 @@ void APP_channel_next(const bool remember_current, const scan_state_dir_t scan_d
 		return;
 	}
 
-	g_scan_tick_10ms      = scan_pause_css_10ms;
+	g_scan_tick_10ms       = scan_pause_css_10ms;
 	g_scan_pause_time_mode = false;
 	g_rx_reception_mode    = RX_MODE_NONE;
 }
@@ -1887,7 +1890,7 @@ void APP_process_power_save(void)
 		g_update_rssi)
 	{	// go back to sleep
 
-		APP_update_rssi(g_rx_vfo_num);
+		APP_update_rssi(g_rx_vfo_num, false);
 
 		// go back to sleep
 
@@ -2157,7 +2160,7 @@ void APP_time_slice_500ms(void)
 	}
 
 	if (g_current_function != FUNCTION_POWER_SAVE && g_current_function != FUNCTION_TRANSMIT)
-		APP_update_rssi(g_rx_vfo_num);
+		APP_update_rssi(g_rx_vfo_num, false);
 
 	if (g_low_battery)
 	{
@@ -2313,6 +2316,10 @@ void APP_time_slice_10ms(void)
 		GUI_SelectNextDisplay(g_request_display_screen);
 		g_request_display_screen = DISPLAY_INVALID;
 	}
+
+	// 1of11
+	if (g_update_rssi)
+		APP_update_rssi(g_rx_vfo_num, false);
 
 	if (g_update_display)
 		GUI_DisplayScreen();

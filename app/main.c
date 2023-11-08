@@ -51,20 +51,18 @@ bool g_manual_scanning;
 bool scanning_paused(void)
 {
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF &&
-	    g_scan_tick_10ms > 0 &&
-	    g_scan_tick_10ms <= (400 / 10))         // 400ms
+	    (g_scan_tick_10ms == 0 || g_scan_tick_10ms >= (400 / 10)))               // 400ms
 	{
-		return false;	// busy RF scanning
-	}
-	else
-	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF &&
-	    g_dual_watch_tick_10ms > 0 &&
-	    g_dual_watch_tick_10ms <= (400 / 10))   // 400ms
-	{
-		return false;	// busy dual watch scanning
+		return true;
 	}
 
-	return true;
+	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF &&
+	    (g_dual_watch_tick_10ms == 0 || g_dual_watch_tick_10ms >= (400 / 10)))   // 400ms
+	{
+		return true;
+	}
+
+	return (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF) ? true : false;
 }
 
 void toggle_chan_scanlist(void)
