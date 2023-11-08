@@ -199,6 +199,55 @@ uint32_t FREQUENCY_wrap_to_step_band(uint32_t freq, const uint32_t step_size, co
 	return freq;
 }
 
+#ifdef ENABLE_SCAN_RANGES
+	const freq_scan_range_table_t FREQ_SCAN_RANGE_TABLE[] =
+	{
+		{ 2696500,  2785600, 1000},
+		{ 2760125,  2800000, 1000},
+		{ 2600000,  2800000, 1000},
+		{ 2800000,  2970000, 1000},
+		{ 5000000,  5200000, 1000},
+		{ 5000000,  5400000, 1000},
+		{ 7000000,  7050000, 1250},
+		{10800000, 11800000, 2500},
+		{11800000, 13700000, 2500},
+		{14400000, 14600000, 1250},
+		{14400000, 14800000, 1250},
+		{15600000, 15800000, 2500},
+		{16200000, 17400000, 1250},
+		{21900000, 22500000, 1500},
+		{24000000, 39000000, 2500},
+		{43000000, 44000000, 1250},
+		{44600625, 44619376, 1250},
+//		{42000000, 45000000, 1500},
+		{44000000, 47000000, 1250}
+	};
+
+	void FREQUENCY_scan_range(const uint32_t freq, uint32_t *lower, uint32_t *upper, uint32_t *step_size)
+	{
+		const frequency_band_t band = FREQUENCY_GetBand(freq);
+		unsigned int i;
+	
+		for (i = 0; i < ARRAY_SIZE(FREQ_SCAN_RANGE_TABLE); i++)
+		{
+			const uint32_t _upper = FREQ_SCAN_RANGE_TABLE[i].upper;
+			const uint32_t _lower = FREQ_SCAN_RANGE_TABLE[i].lower;
+			if (freq >= _lower && freq < _upper)
+			{
+				if (upper)     *upper     = _upper;
+				if (lower)     *lower     = _lower;
+				if (step_size) *step_size = FREQ_SCAN_RANGE_TABLE[i].step_size;
+				return;
+			}
+		}
+
+		if (upper)     *upper     = FREQ_BAND_TABLE[band].upper;
+		if (lower)     *lower     = FREQ_BAND_TABLE[band].lower;
+//		if (step_size) *step_size = FREQ_BAND_TABLE[band].step_size;
+	}
+
+#endif
+
 int FREQUENCY_tx_freq_check(const uint32_t Frequency)
 {	// return '0' if TX frequency is allowed
 	// otherwise return '-1'

@@ -115,7 +115,7 @@ static void APP_check_for_new_receive(void)
 		if (g_css_scan_mode != CSS_SCAN_MODE_OFF && g_rx_reception_mode == RX_MODE_NONE)
 		{	// CTCSS/DTS scanning
 
-			g_scan_tick_10ms = scan_pause_code_10ms;
+			g_scan_tick_10ms       = scan_pause_code_10ms;
 			g_scan_pause_time_mode = false;
 			g_rx_reception_mode    = RX_MODE_DETECTED;
 		}
@@ -647,33 +647,23 @@ void APP_stop_scan(void)
 
 static void APP_next_freq(void)
 {
-	uint32_t               freq  = g_tx_vfo->freq_config_rx.frequency;
-	const uint32_t         step  = g_tx_vfo->step_freq;
-	const frequency_band_t band  = FREQUENCY_GetBand(freq);
-	uint32_t               upper = FREQ_BAND_TABLE[band].upper;
-	uint32_t               lower = FREQ_BAND_TABLE[band].lower;
-
-	if (band == BAND2_108MHz)
-	{	// air band
-		if (freq < 11800000)
-			upper = 11800000;  // lower airband half
-		else
-			lower = 11800000;  // upper airband half
-	}
+	uint32_t freq = g_tx_vfo->freq_config_rx.frequency;
 
 	#ifdef ENABLE_SCAN_IGNORE_LIST
 		do {
 	#endif
-			freq += step * g_scan_state_dir;
+			freq += g_scan_initial_step_size * g_scan_state_dir;
 
 			// wrap-a-round
-			while (freq >= upper)
-				freq -= upper - lower;
-			while (freq < lower)
-				freq += upper - lower;
+			while (freq >= g_scan_initial_upper)
+				freq -= g_scan_initial_upper - g_scan_initial_lower;
+			while (freq < g_scan_initial_lower)
+				freq += g_scan_initial_upper - g_scan_initial_lower;
 
-			if (band == BAND2_108MHz)  // air band uses set channels
-				freq = lower + ((((freq - lower) + (step / 2)) / step) * step);
+			// round
+			#ifdef ENABLE_SCAN_RANGES
+				freq = g_scan_initial_lower + ((((freq - g_scan_initial_lower) + (g_scan_initial_step_size / 2)) / g_scan_initial_step_size) * g_scan_initial_step_size);
+			#endif
 
 	#ifdef ENABLE_SCAN_IGNORE_LIST
 		} while (FI_freq_ignored(freq) >= 0);

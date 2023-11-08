@@ -201,6 +201,9 @@ void ACTION_Scan(bool bRestart)
 	if (g_current_display_screen != DISPLAY_SEARCH)
 	{	// not in freq/ctcss/cdcss search mode
 
+		if (IS_NOAA_CHANNEL(g_tx_vfo->channel_save))
+			return;
+
 		g_monitor_enabled = false;
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
@@ -211,70 +214,82 @@ void ACTION_Scan(bool bRestart)
 
 		RADIO_select_vfos();
 
-		if (IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
-		{
-			GUI_SelectNextDisplay(DISPLAY_MAIN);
-
-			if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
-			{	// currently scanning
+		GUI_SelectNextDisplay(DISPLAY_MAIN);
 		
-				if (g_scan_next_channel <= USER_CHANNEL_LAST)
-				{	// channel mode
-
-					if (g_eeprom.config.setting.scan_list_default < 2)
-					{	// keep scanning but toggle between scan lists
-
-						//g_eeprom.config.setting.scan_list_default = (g_eeprom.config.setting.scan_list_default + 1) % 3;
-						g_eeprom.config.setting.scan_list_default++;
-
-						// jump to the next channel
-						APP_channel_next(true, g_scan_state_dir);
-						
-						g_scan_tick_10ms      = 0;
-						g_scan_pause_time_mode = false;
-	
-						g_update_status = true;
-						return;
-					}
-
-					g_eeprom.config.setting.scan_list_default = 0;	// back to scan list 1 - the next time we start scanning
+		if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
+		{	// currently scanning
+		
+			if (g_scan_next_channel <= USER_CHANNEL_LAST)
+			{	// channel mode
+		
+				if (g_eeprom.config.setting.scan_list_default < 2)
+				{	// keep scanning but toggle between scan lists
+		
+					//g_eeprom.config.setting.scan_list_default = (g_eeprom.config.setting.scan_list_default + 1) % 3;
+					g_eeprom.config.setting.scan_list_default++;
+		
+					// jump to the next channel
+					APP_channel_next(true, g_scan_state_dir);
+					
+					g_scan_tick_10ms      = 0;
+					g_scan_pause_time_mode = false;
+		
+					g_update_status = true;
+					return;
 				}
-
-				// stop scanning
-			
-				APP_stop_scan();
-
-				g_request_display_screen = DISPLAY_MAIN;
-				return;
+		
+				g_eeprom.config.setting.scan_list_default = 0;	// back to scan list 1 - the next time we start scanning
 			}
+		
+			// *****************
+			// stop scanning
+		
+			APP_stop_scan();
+		
+			g_request_display_screen = DISPLAY_MAIN;
 
-			// start scanning
-	
-			#ifdef ENABLE_SCAN_IGNORE_LIST
-//				FI_clear_freq_ignored();
-			#endif
+			return;
+		}
 
-			g_monitor_enabled = false;
-			GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
-
-			RADIO_setup_registers(true);
-
-			APP_channel_next(true, SCAN_STATE_DIR_FORWARD);
-
-			g_scan_tick_10ms      = 0;   // go NOW
-			g_scan_pause_time_mode = false;
-			
-			#ifdef ENABLE_VOICE
-				AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
-				AUDIO_PlaySingleVoice(true);
-			#endif
-			
-			// clear the other vfo's rssi level (to hide the antenna symbol)
-			g_vfo_rssi_bar_level[(g_rx_vfo_num + 1) & 1u] = 0;
-			
-			g_update_status = true;
+		// **********************
+		// start scanning
+		
+		{
+			const uint32_t         freq = g_tx_vfo->freq_config_rx.frequency;
+			const frequency_band_t band = FREQUENCY_GetBand(freq);
+			g_scan_initial_upper        = FREQ_BAND_TABLE[band].upper;
+			g_scan_initial_lower        = FREQ_BAND_TABLE[band].lower;
+			g_scan_initial_step_size    = g_tx_vfo->step_freq;
 		}
 		
+		#ifdef ENABLE_SCAN_RANGES
+			if (IS_FREQ_CHANNEL(g_tx_vfo->channel_save))
+			{
+				const uint32_t freq = g_tx_vfo->freq_config_rx.frequency;
+				FREQUENCY_scan_range(freq, &g_scan_initial_lower, &g_scan_initial_upper, &g_scan_initial_step_size);
+			}
+		#endif
+		
+		g_monitor_enabled = false;
+		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+		
+		RADIO_setup_registers(true);
+		
+		APP_channel_next(true, SCAN_STATE_DIR_FORWARD);
+		
+		g_scan_tick_10ms      = 0;   // go NOW
+		g_scan_pause_time_mode = false;
+		
+		#ifdef ENABLE_VOICE
+			AUDIO_SetVoiceID(0, VOICE_ID_SCANNING_BEGIN);
+			AUDIO_PlaySingleVoice(true);
+		#endif
+		
+		// clear the other vfo's rssi level (to hide the antenna symbol)
+		g_vfo_rssi_bar_level[(g_rx_vfo_num + 1) & 1u] = 0;
+		
+		g_update_status = true;
+
 		return;
 	}
 

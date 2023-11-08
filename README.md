@@ -5,27 +5,20 @@ This repository is a cloned and customized version of DualTachyon's open firmwar
 https://github.com/DualTachyon/uv-k5-firmware .. a cool achievement !
 
 Use this firmware/code ENTIRELY at your own risk. This firmware is totally experimental, and at
-times will go completely tits up (ie, break your radio) - an entirely common occurance when playing
-around with experimental code.
+times will go completely tits up (break your radio).
 
 There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may
-even brick your radio(s), at which point, maybe find a quiet corner to sob your hert out in.
+even brick your radio(s).
 
-NO REFUNDS, ever !
+You're on your own.
  
+NO REFUNDS, ever !
+
 ## Radio performance
 
 Please note that the Quansheng UV-Kx radios are not professional quality transceivers, their
 performance is strictly limited. The RX front end has no track-tuned band pass filtering
 at all, and so are wide band/wide open to any and all signals over a large frequency range.
-
-Using the radio in high intensity RF environments will most likely make reception anything but
-easy (AM mode will suffer far more than FM ever will), the receiver simply doesn't have a
-great dynamic range, which results in distorted AM audio with stronger RX'ed signals.
-There is nothing more anyone can do in firmware/software to improve that, once the RX gain
-adjustment I do (AM fix) reaches the hardwares limit, your AM RX audio will be all but
-non-existant (just like Quansheng's firmware).
-On the other hand, FM RX audio will/should be fine.
 
 But, they are nice toys for the price, fun to play with.
 
@@ -81,7 +74,8 @@ ENABLE_REVERSE_BAT_SYMBOL        := 1       mirror the battery symbol on the sta
 ENABLE_FREQ_SEARCH_LNA           := 0       keep this disabled
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0       timeout if FREQ not found when using F+4 search function
 ENABLE_CODE_SEARCH_TIMEOUT       := 0       timeout if CTCSS/CDCSS not found when using F+* search function
-ENABLE_SCAN_IGNORE_LIST          := 0       ignore selected frequencies when scanning - add freqs to list with short */scan button when scanning, remove freq from list with long press MENU when not scanning
+ENABLE_SCAN_IGNORE_LIST          := 1       ignore selected frequencies when scanning - add freqs to list with short */scan button when scanning, remove freq from list with long press MENU when not scanning
+ENABLE_SCAN_RANGES               := 0       auto select frequency scan range depending on your initial frequency
 ENABLE_KILL_REVIVE               := 0       include kill and revive code
 ENABLE_AM_FIX                    := 1       dynamically adjust the front end gains when in AM mode to help prevent AM demodulator saturation, ignore the on-screen RSSI level (for now)
 ENABLE_AM_FIX_SHOW_DATA          := 1       show debug data for the AM fix (still tweaking it)

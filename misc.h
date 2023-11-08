@@ -274,12 +274,15 @@ extern bool                  g_flag_end_tx;
 extern uint16_t              g_low_battery_tick_10ms;
 extern reception_mode_t      g_rx_reception_mode;
 
+extern uint32_t              g_scan_initial_lower;
+extern uint32_t              g_scan_initial_upper;
+extern uint32_t              g_scan_initial_step_size;
 extern uint8_t               g_scan_next_channel;      //
 extern scan_next_chan_t      g_scan_current_scan_list; //
 extern uint8_t               g_scan_restore_channel;   // the channel   we were on before starting the RF scan
 extern uint32_t              g_scan_restore_frequency; // the frequency we were on before starting the RF scan
 extern bool                  g_scan_pause_time_mode;   // set if we stopped in SCAN_RESUME_TIME mode
-extern volatile uint16_t     g_scan_tick_10ms;        // ticks till we move to next channel/frequency
+extern volatile uint16_t     g_scan_tick_10ms;         // ticks till we move to next channel/frequency
 extern scan_state_dir_t      g_scan_state_dir;         // the direction we're scanning in
 
 extern uint8_t               g_rx_vfo_num;

@@ -134,13 +134,13 @@ void FUNCTION_Select(function_type_t Function)
 
 		case FUNCTION_NEW_RECEIVE:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("func new receive\r\n");
+				UART_printf("func new receive %u\r\n", g_rx_vfo->freq_config_rx.frequency);
 			#endif
 			break;
 			
 		case FUNCTION_RECEIVE:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("func receive\r\n");
+				UART_printf("func receive %u\r\n", g_rx_vfo->freq_config_rx.frequency);
 			#endif
 			break;
 
@@ -172,7 +172,7 @@ void FUNCTION_Select(function_type_t Function)
 
 		case FUNCTION_TRANSMIT:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("func transmit\r\n");
+				UART_printf("func transmit %u\r\n", g_tx_vfo->freq_config_tx.frequency);
 			#endif
 
 			g_tx_timer_tick_500ms = 0;

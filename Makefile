@@ -1,10 +1,8 @@
 
 # compile options (see README.md for descriptions)
+#
 # 0 = remove code
 # 1 = include code
-
-# When testing the extra options, be careful not to exceed the
-# 64 kB flash memory limit.
 
 ENABLE_CLANG                     := 0
 ENABLE_SWD                       := 0
@@ -12,16 +10,16 @@ ENABLE_OVERLAY                   := 0
 ENABLE_LTO                       := 1
 # UART Programming 2.9 kB
 ENABLE_UART                      := 1
-ENABLE_UART_DEBUG                := 1
+ENABLE_UART_DEBUG                := 0
 # AirCopy 2.5 kB
-ENABLE_AIRCOPY                   := 1
+ENABLE_AIRCOPY                   := 0
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
 ENABLE_AIRCOPY_RX_REBOOT         := 0
 # FM Radio 4.2 kB
 ENABLE_FMRADIO_64_76             := 0
 ENABLE_FMRADIO_76_90             := 0
 ENABLE_FMRADIO_76_108            := 0
-ENABLE_FMRADIO_875_108           := 0
+ENABLE_FMRADIO_875_108           := 1
 ENABLE_FMRADIO_64_108            := 0
 # NOAA 1.2 kB
 ENABLE_NOAA                      := 0
@@ -29,14 +27,14 @@ ENABLE_NOAA                      := 0
 ENABLE_VOICE                     := 0
 ENABLE_MUTE_RADIO_FOR_VOICE      := 0
 # Tx on Voice 1.0 kB
-ENABLE_VOX                       := 0
+ENABLE_VOX                       := 1
 ENABLE_VOX_MORE_SENSITIVE        := 1
 ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
 # Tx Alarm 600 B
 ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 0
 # MDC1200 2.8 kB
-ENABLE_MDC1200                   := 1
+ENABLE_MDC1200                   := 0
 ENABLE_MDC1200_SHOW_OP_ARG       := 1
 ENABLE_MDC1200_SIDE_BEEP         := 1
 ENABLE_PWRON_PASSWORD            := 0
@@ -58,13 +56,14 @@ ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1
 ENABLE_CONTRAST                  := 0
 ENABLE_BOOT_BEEPS                := 0
 ENABLE_DTMF_CALL_FLASH_LIGHT     := 1
-ENABLE_FLASH_LIGHT_SOS_TONE      := 1
+ENABLE_FLASH_LIGHT_SOS_TONE      := 0
 ENABLE_SHOW_CHARGE_LEVEL         := 0
 ENABLE_REVERSE_BAT_SYMBOL        := 1
 ENABLE_FREQ_SEARCH_LNA           := 1
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
 ENABLE_SCAN_IGNORE_LIST          := 1
+ENABLE_SCAN_RANGES               := 1
 # Kill and Revive 400 B
 ENABLE_KILL_REVIVE               := 0
 # AM Fix 800 B
@@ -76,7 +75,7 @@ ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
 ENABLE_FASTER_CHANNEL_SCAN       := 1
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
 # Rx Signal Bar 400 B
-ENABLE_RX_SIGNAL_BAR             := 1
+ENABLE_RX_SIGNAL_BAR             := 0
 # Tx Audio Bar 300 B
 ENABLE_TX_AUDIO_BAR              := 0
 # Side Button Menu 300 B
@@ -414,6 +413,9 @@ ifeq ($(ENABLE_CODE_SEARCH_TIMEOUT),1)
 endif
 ifeq ($(ENABLE_SCAN_IGNORE_LIST),1)
 	CFLAGS  += -DENABLE_SCAN_IGNORE_LIST
+endif
+ifeq ($(ENABLE_SCAN_RANGES),1)
+	CFLAGS  += -DENABLE_SCAN_RANGES
 endif
 ifeq ($(ENABLE_KILL_REVIVE),1)
 	CFLAGS  += -DENABLE_KILL_REVIVE

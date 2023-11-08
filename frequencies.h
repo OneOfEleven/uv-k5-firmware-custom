@@ -39,6 +39,12 @@ typedef struct {
 	const uint32_t upper;
 } freq_band_table_t;
 
+typedef struct {
+	const uint32_t lower;
+	const uint32_t upper;
+	const uint16_t step_size;
+} __attribute__((packed)) freq_scan_range_table_t;
+
 extern uint32_t g_aircopy_freq;
 
 extern const freq_band_table_t AIR_BAND;
@@ -95,6 +101,10 @@ uint32_t         FREQUENCY_wrap_to_step_band(uint32_t freq, const uint32_t step_
 
 int              FREQUENCY_tx_freq_check(const uint32_t Frequency);
 int              FREQUENCY_rx_freq_check(const uint32_t Frequency);
+
+#ifdef ENABLE_SCAN_RANGES
+	void FREQUENCY_scan_range(const uint32_t freq, uint32_t *lower, uint32_t *upper, uint32_t *step_size);
+#endif
 
 // ***********
 
