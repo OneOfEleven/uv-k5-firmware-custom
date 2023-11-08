@@ -56,7 +56,7 @@ bool scanning_paused(void)
 	{
 		return false;	// busy RF scanning
 	}
-
+	else
 	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF &&
 	    g_dual_watch_tick_10ms > 0 &&
 	    g_dual_watch_tick_10ms <= (400 / 10))   // 400ms
