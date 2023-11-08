@@ -11,10 +11,23 @@ There is absolutely no guarantee that it will work in any way shape or form on y
 even brick your radio(s).
 
 You're on your own.
- 
+
 NO REFUNDS, ever !
 
-## Radio performance
+## Observed radio boot problems
+
+After having two UV-K5(8) radios for a while now, and I don't know how many programming lead
+insertions/deinsertions (lots n lots!) both radios are now having trouble booting up into either
+the bootloader and/or the firmware.
+
+The reason appears to be something to do with the the 3.5mm/2.5mm mic jack sockets, most likely
+the internal contacts in either/both of the sockets.
+
+Need to find a suitable replacement for the two jack sockets to confirm this though.
+
+<img src="/images/jack_sockets.png" />
+
+# Radio performance
 
 Please note that the Quansheng UV-Kx radios are not professional quality transceivers, their
 performance is strictly limited. The RX front end has no track-tuned band pass filtering

@@ -706,7 +706,7 @@ static void APP_next_freq(void)
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
 			//g_scan_tick_10ms = 10;   // 100ms
-			g_scan_tick_10ms = 6;    // 60ms
+			g_scan_tick_10ms = 7;      // 70ms
 		#else
 			g_scan_tick_10ms = scan_pause_freq_10ms;
 		#endif
