@@ -25,7 +25,7 @@ the internal contacts in either/both of the sockets.
 
 Need to find a suitable replacement for the two jack sockets to confirm this though.
 
-<img src="/images/jack_sockets.png" />
+<img src="/images/jack_sockets.png" width=300 />
 
 # Radio performance
 
