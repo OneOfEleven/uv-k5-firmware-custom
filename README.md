@@ -20,14 +20,14 @@ After having two UV-K5(8) radios for a while now, and I don't know how many prog
 insertions/deinsertions (lots n lots!) both radios are now having trouble booting up into either
 the bootloader and/or the firmware.
 
-The reason appears to be something to do with the the 3.5mm/2.5mm mic jack sockets, most likely
-the internal contacts in either/both of the sockets.
+The reason appears to be something to do with the the 3.5mm/2.5mm mic jack sockets or the volume control pot, most
+likely the internal contacts in either/both of the sockets or the on/off contacts in the pot.
 
-Need to find a suitable replacement for the two jack sockets to confirm this though.
+Need to find matching replacements to confirm this though (or just short the terminals that are suppose to be shorted at power on.
 
 <p float="left">
-<img src="/images/jack_sockets_top.png" width=300 />
-<img src="/images/jack_sockets_bot.png" width=236 />
+<img src="/images/top.png" height=500 />
+<img src="/images/bot.png" height=500 />
 </p>
 
 # Radio performance
