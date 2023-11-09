@@ -1026,7 +1026,8 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 					g_scan_initial_step_size = g_tx_vfo->step_freq;
 
 					#ifdef ENABLE_SCAN_RANGES
-						//FREQUENCY_scan_range(freq, &g_scan_initial_lower, &g_scan_initial_upper, &g_scan_initial_step_size);
+						//if (g_eeprom.config.setting.scan_ranges_enable)
+						//	FREQUENCY_scan_range(freq, &g_scan_initial_lower, &g_scan_initial_upper, &g_scan_initial_step_size);
 					#endif
 				}
 

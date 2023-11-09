@@ -426,7 +426,10 @@ typedef struct {
 
 			uint8_t    scan_hold_time;        // ticks we stay paused for on an RX'ed signal when scanning
 
-			uint8_t    unused12[7];           // 0xff's
+			uint8_t    scan_ranges_enable:1;  // enable/disable auto scan ranges
+			uint8_t    unused11g:7;           // 0xff's
+
+			uint8_t    unused12[6];           // 0xff's
 		#endif
 	}  __attribute__((packed)) setting;
 

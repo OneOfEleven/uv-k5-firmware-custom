@@ -673,7 +673,8 @@ static void APP_next_freq(void)
 
 			// round
 			#ifdef ENABLE_SCAN_RANGES
-				freq = g_scan_initial_lower + ((((freq - g_scan_initial_lower) + (g_scan_initial_step_size / 2)) / g_scan_initial_step_size) * g_scan_initial_step_size);
+				if (g_eeprom.config.setting.scan_ranges_enable)
+					freq = g_scan_initial_lower + ((((freq - g_scan_initial_lower) + (g_scan_initial_step_size / 2)) / g_scan_initial_step_size) * g_scan_initial_step_size);
 			#endif
 
 	#ifdef ENABLE_SCAN_IGNORE_LIST

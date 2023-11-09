@@ -238,7 +238,10 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		case MENU_BUSY_CHAN_LOCK:
 		case MENU_BEEP:
 		#ifdef ENABLE_KEYLOCK
-		case MENU_AUTO_KEY_LOCK:
+			case MENU_AUTO_KEY_LOCK:
+		#endif
+		#ifdef ENABLE_SCAN_RANGES
+			case MENU_SCAN_RANGES:
 		#endif
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
@@ -630,6 +633,12 @@ void MENU_AcceptSetting(void)
 			g_eeprom.config.setting.auto_key_lock = g_sub_menu_selection;
 			g_key_lock_tick_500ms = key_lock_timeout_500ms;
 			break;
+		#endif
+
+		#ifdef ENABLE_SCAN_RANGES
+			case MENU_SCAN_RANGES:
+				g_eeprom.config.setting.scan_ranges_enable = g_sub_menu_selection;
+				break;
 		#endif
 
 		case MENU_S_ADD1:
@@ -1105,6 +1114,12 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_AUTO_KEY_LOCK:
 			g_sub_menu_selection = g_eeprom.config.setting.auto_key_lock;
 			break;
+		#endif
+
+		#ifdef ENABLE_SCAN_RANGES
+			case MENU_SCAN_RANGES:
+				g_sub_menu_selection = g_eeprom.config.setting.scan_ranges_enable;
+				break;
 		#endif
 
 		case MENU_S_ADD1:

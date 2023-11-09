@@ -85,6 +85,9 @@ const t_menu_item g_menu_list[] =
 #ifdef ENABLE_KEYLOCK
 	{"KeyLOC", VOICE_ID_INVALID,                       MENU_AUTO_KEY_LOCK         }, // was "AUTOLk"
 #endif
+#ifdef ENABLE_SCAN_RANGES
+	{"S RANG", VOICE_ID_INVALID,                       MENU_SCAN_RANGES           },
+#endif
 	{"S ADD1", VOICE_ID_INVALID,                       MENU_S_ADD1                },
 	{"S ADD2", VOICE_ID_INVALID,                       MENU_S_ADD2                },
 	{"STE",    VOICE_ID_INVALID,                       MENU_STE                   },
@@ -764,6 +767,9 @@ void UI_DisplayMenu(void)
 		#endif
 		#ifdef ENABLE_AM_FIX
 //			case MENU_AM_FIX:
+		#endif
+		#ifdef ENABLE_SCAN_RANGES
+			case MENU_SCAN_RANGES:
 		#endif
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
