@@ -86,7 +86,7 @@ const t_menu_item g_menu_list[] =
 	{"KeyLOC", VOICE_ID_INVALID,                       MENU_AUTO_KEY_LOCK         }, // was "AUTOLk"
 #endif
 #ifdef ENABLE_SCAN_RANGES
-	{"S RANG", VOICE_ID_INVALID,                       MENU_SCAN_RANGES           },
+	{"SRANGE", VOICE_ID_INVALID,                       MENU_SCAN_RANGES           },
 #endif
 	{"S ADD1", VOICE_ID_INVALID,                       MENU_S_ADD1                },
 	{"S ADD2", VOICE_ID_INVALID,                       MENU_S_ADD2                },

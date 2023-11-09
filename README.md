@@ -4,11 +4,9 @@ This repository is a cloned and customized version of DualTachyon's open firmwar
 
 https://github.com/DualTachyon/uv-k5-firmware .. a cool achievement !
 
-Use this firmware/code ENTIRELY at your own risk. This firmware is totally experimental, and at
-times will go completely tits up (break your radio).
+Use this firmware/code ENTIRELY at your own risk. This firmware is totally experimental, and at times will go completely tits up (break your radio).
 
-There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may
-even brick your radio(s).
+There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may even brick your radio(s).
 
 You're on your own.
 
@@ -16,12 +14,9 @@ NO REFUNDS, ever !
 
 ## Observed radio boot problems
 
-After having two UV-K5(8) radios for a while now, and I don't know how many programming lead
-insertions/deinsertions (lots n lots!) both radios are now having trouble booting up into either
-the bootloader and/or the firmware.
+After having two UV-K5(8) radios for a while now, and I don't know how many programming lead insertions/deinsertions (lots n lots!) both radios are now having trouble booting up into either the bootloader and/or the firmware.
 
-The reason appears to be something to do with the the 3.5mm/2.5mm mic jack sockets or the volume control pot, most
-likely the internal contacts in either/both of the sockets or the on/off contacts in the pot.
+I suspect the reason being something to do with the the 3.5mm/2.5mm mic jack sockets or the volume control pot, either that or broken throu-hole plating in the PCB or such like.
 
 Need to find matching replacements to confirm this though (or just temp short the terminals that are suppose to be shorted at power on).
 
@@ -32,16 +27,13 @@ Need to find matching replacements to confirm this though (or just temp short th
 
 # Radio performance
 
-Please note that the Quansheng UV-Kx radios are not professional quality transceivers, their
-performance is strictly limited. The RX front end has no track-tuned band pass filtering
-at all, and so are wide band/wide open to any and all signals over a large frequency range.
+Please note that the Quansheng UV-Kx radios are not professional quality transceivers, their performance is strictly limited. The RX front end has no track-tuned band pass filtering at all, and so are wide band/wide open to any and all signals over a large frequency range.
 
 But, they are nice toys for the price, fun to play with.
 
 # User customization
 
-You can customize the firmware by enabling/disabling various compile options, this allows
-us to remove certain firmware features in order to make room in the flash for others.
+You can customize the firmware by enabling/disabling various compile options, this allows us to remove certain firmware features in order to make room in the flash for others.
 You'll find the options at the top of "Makefile" ('0' = remove code, '1' = include code) ..
 
 ```
@@ -91,7 +83,7 @@ ENABLE_FREQ_SEARCH_LNA           := 0       keep this disabled
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0       timeout if FREQ not found when using F+4 search function
 ENABLE_CODE_SEARCH_TIMEOUT       := 0       timeout if CTCSS/CDCSS not found when using F+* search function
 ENABLE_SCAN_IGNORE_LIST          := 1       ignore selected frequencies when scanning - add freqs to list with short */scan button when scanning, remove freq from list with long press MENU when not scanning
-ENABLE_SCAN_RANGES               := 0       auto select frequency scan range depending on your initial frequency
+ENABLE_SCAN_RANGES               := 0       adds menu option to auto select frequency scan range/step depending on your initial frequency
 ENABLE_KILL_REVIVE               := 0       include kill and revive code
 ENABLE_AM_FIX                    := 1       dynamically adjust the front end gains when in AM mode to help prevent AM demodulator saturation, ignore the on-screen RSSI level (for now)
 ENABLE_AM_FIX_SHOW_DATA          := 1       show debug data for the AM fix (still tweaking it)
@@ -133,8 +125,7 @@ Press the Exit button at any time to cancel the edit and return to the main menu
 
 Sounds a lot/complicated but once you done it a couple of times you'll be fine (hopefully).
 
-When you're editing the name, you can enter digits (0 ~ 9) directly without having to use the up/down
-buttons to find them.
+When you're editing the name, you can enter digits (0 ~ 9) directly without having to use the up/down buttons to find them.
 
 # Some changes made from the Quansheng firmware
 
