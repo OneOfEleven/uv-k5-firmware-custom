@@ -23,7 +23,7 @@ the bootloader and/or the firmware.
 The reason appears to be something to do with the the 3.5mm/2.5mm mic jack sockets or the volume control pot, most
 likely the internal contacts in either/both of the sockets or the on/off contacts in the pot.
 
-Need to find matching replacements to confirm this though (or just short the terminals that are suppose to be shorted at power on.
+Need to find matching replacements to confirm this though (or just temp short the terminals that are suppose to be shorted at power on).
 
 <p float="left">
 <img src="/images/top.png" height=500 />
