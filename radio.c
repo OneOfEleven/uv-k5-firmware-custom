@@ -654,7 +654,8 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			#ifdef ENABLE_AM_FIX
 				#if 0
 					BK4819_SetFilterBandwidth(Bandwidth);
-					BK4819_EnableAFC();
+//					BK4819_EnableAFC();
+					BK4819_DisableAFC();
 				#else
 					if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM)
 					{
@@ -664,12 +665,14 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 					else
 					{
 						BK4819_SetFilterBandwidth(Bandwidth);
-						BK4819_EnableAFC();
-					}
+//						BK4819_EnableAFC();
+						BK4819_DisableAFC();
+				}
 				#endif
 			#else
 				BK4819_SetFilterBandwidth(Bandwidth, false);
-				BK4819_EnableAFC();
+//				BK4819_EnableAFC();
+				BK4819_DisableAFC();
 			#endif
 			break;
 	}
@@ -925,7 +928,8 @@ void RADIO_enableTX(const bool fsk_tx)
 			#ifdef ENABLE_AM_FIX
 				#if 0
 					BK4819_SetFilterBandwidth(Bandwidth);
-					BK4819_EnableAFC();
+//					BK4819_EnableAFC();
+					BK4819_DisableAFC();
 				#else
 					if (g_current_vfo->channel.mod_mode == MOD_MODE_DSB)
 					{
@@ -935,12 +939,14 @@ void RADIO_enableTX(const bool fsk_tx)
 					else
 					{
 						BK4819_SetFilterBandwidth(Bandwidth);
-						BK4819_EnableAFC();
+//						BK4819_EnableAFC();
+						BK4819_DisableAFC();
 					}
 				#endif
 			#else
 				BK4819_SetFilterBandwidth(Bandwidth);
-				BK4819_EnableAFC();
+//				BK4819_EnableAFC();
+				BK4819_DisableAFC();
 			#endif
 			break;
 	}
