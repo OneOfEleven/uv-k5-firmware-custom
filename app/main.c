@@ -142,8 +142,8 @@ void toggle_chan_scanlist(void)
 
 			RADIO_select_vfos();
 			RADIO_ApplyOffset(g_tx_vfo, false);
-			RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
-
+			RADIO_ConfigureSquelch(g_tx_vfo);
+//			RADIO_ConfigureTXPower(g_tx_vfo);
 			RADIO_setup_registers(true);
 
 			// find the first channel that contains this frequency
@@ -459,7 +459,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 	g_key_input_count_down = key_input_timeout_500ms;
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("key0 %u\r\n", Key);
+//		UART_printf("key0 %u\r\n", Key);
 	#endif
 
 	if (key_held)
@@ -524,7 +524,7 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		const unsigned int chan = ((g_input_box[0] * 100) + (g_input_box[1] * 10) + g_input_box[2]) - 1;
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("key2 %u %u\r\n", chan, g_input_box_index);
+//		UART_printf("key2 %u %u\r\n", chan, g_input_box_index);
 	#endif
 
 		if (g_input_box_index < 3)
@@ -564,10 +564,12 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		NUMBER_Get(g_input_box, &freq);
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("key2 %u %u\r\n", freq, g_input_box_index);
+//		UART_printf("key3 %u %u\r\n", freq, g_input_box_index);
 	#endif
 
-		if (g_input_box_index < 6)
+//		if (g_input_box_index < 6)
+//		if (g_input_box_index < 7)
+		if (g_input_box_index < 8)
 		{
 			#ifdef ENABLE_VOICE
 				g_another_voice_id = (voice_id_t)Key;
@@ -1063,7 +1065,8 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 
 				#if 0
 					RADIO_ApplyOffset(g_tx_vfo, false);
-					RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
+					RADIO_ConfigureSquelch(g_tx_vfo);
+//					RADIO_ConfigureTXPower(g_tx_vfo);
 
 					// original slow method
 					g_request_save_channel = 1;
@@ -1088,7 +1091,8 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 					BK4819_set_rf_filter_path(freq);      // set the proper LNA/PA filter path
 
 					RADIO_ApplyOffset(g_tx_vfo, false);
-					RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
+					RADIO_ConfigureSquelch(g_tx_vfo);
+//					RADIO_ConfigureTXPower(g_tx_vfo);
 				#endif
 
 				return;

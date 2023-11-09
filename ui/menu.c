@@ -558,8 +558,8 @@ void UI_DisplayMenu(void)
 				strcpy(str, "USE\nMAIN SQL");
 			else
 				sprintf(str, "%d", g_sub_menu_selection);
-//			g_tx_vfo->squelch_level = g_sub_menu_selection;
-//			RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
+			//g_tx_vfo->squelch_level = g_sub_menu_selection;
+			//RADIO_ConfigureSquelch(g_tx_vfo);
 			channel_setting = true;
 			break;
 

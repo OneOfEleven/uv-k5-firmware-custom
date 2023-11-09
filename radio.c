@@ -147,7 +147,8 @@ void RADIO_InitInfo(vfo_info_t *p_vfo, const uint8_t ChannelSave, const uint32_t
 	if (ChannelSave == (FREQ_CHANNEL_FIRST + BAND2_108MHz))
 		p_vfo->channel.mod_mode = MOD_MODE_AM;
 
-	RADIO_ConfigureSquelchAndOutputPower(p_vfo);
+	RADIO_ConfigureSquelch(p_vfo);
+//	RADIO_ConfigureTXPower(p_vfo);
 }
 
 void RADIO_configure_channel(const unsigned int VFO, const unsigned int configure)
@@ -347,7 +348,8 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		p_vfo->freq_config_tx.code_type     = CODE_TYPE_NONE;
 	}
 
-	RADIO_ConfigureSquelchAndOutputPower(p_vfo);
+	RADIO_ConfigureSquelch(p_vfo);
+//	RADIO_ConfigureTXPower(p_vfo);
 
 	#ifdef ENABLE_AM_FIX
 		AM_fix_reset(VFO);
@@ -406,11 +408,8 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 	}
 #endif
 
-void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
+void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 {
-	// *******************************
-	// squelch
-
 	const unsigned int squelch_level = (p_vfo->channel.squelch_level > 0) ? p_vfo->channel.squelch_level : g_eeprom.config.setting.squelch_level;
 
 	// note that 'noise' and 'glitch' values are inverted compared to 'rssi' values
@@ -529,55 +528,51 @@ void RADIO_ConfigureSquelchAndOutputPower(vfo_info_t *p_vfo)
 		p_vfo->squelch_open_glitch_thresh  = (glitch_open  > 255) ? 255 : (glitch_open  < 0) ? 0 : glitch_open;
 		p_vfo->squelch_close_glitch_thresh = (glitch_close > 255) ? 255 : (glitch_close < 0) ? 0 : glitch_close;
 	}
+}
 
-	// *******************************
-	// output power
+void RADIO_ConfigureTXPower(vfo_info_t *p_vfo)
+{
+	// my calibration data
+	//
+	// 1ED0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF ..  50 MHz
+	// 1EE0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 108 MHz
+	// 1EF0    5F 5F 5F   69 69 69   91 91 8F   FF FF FF FF FF FF FF .. 137 MHz
+	// 1F00    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 174 MHz
+	// 1F10    5A 5A 5A   64 64 64   82 82 82   FF FF FF FF FF FF FF .. 350 MHz
+	// 1F20    5A 5A 5A   64 64 64   8F 91 8A   FF FF FF FF FF FF FF .. 400 MHz
+	// 1F30    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 470 MHz
 
-	{
-		// my calibration data
-		//
-		// 1ED0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF ..  50 MHz
-		// 1EE0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 108 MHz
-		// 1EF0    5F 5F 5F   69 69 69   91 91 8F   FF FF FF FF FF FF FF .. 137 MHz
-		// 1F00    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 174 MHz
-		// 1F10    5A 5A 5A   64 64 64   82 82 82   FF FF FF FF FF FF FF .. 350 MHz
-		// 1F20    5A 5A 5A   64 64 64   8F 91 8A   FF FF FF FF FF FF FF .. 400 MHz
-		// 1F30    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 470 MHz
+	uint8_t tx_power[3];
+	const unsigned int band = (unsigned int)FREQUENCY_GetBand(p_vfo->p_tx->frequency);
 
-		uint8_t tx_power[3];
-		const unsigned int band = (unsigned int)FREQUENCY_GetBand(p_vfo->p_tx->frequency);
+//	EEPROM_ReadBuffer(0x1ED0 + (band * 16) + (p_vfo->output_power * 3), tx_power, 3);
+	memcpy(&tx_power, &g_eeprom.calib.tx_band_power[band].level[p_vfo->channel.tx_power], 3);
 
-//		EEPROM_ReadBuffer(0x1ED0 + (band * 16) + (p_vfo->output_power * 3), tx_power, 3);
-		memcpy(&tx_power, &g_eeprom.calib.tx_band_power[band].level[p_vfo->channel.tx_power], 3);
+	#ifdef ENABLE_REDUCE_LOW_MID_TX_POWER
+		// make low and mid even lower
+		if (p_vfo->channel.tx_power == OUTPUT_POWER_LOW)
+		{
+			tx_power[0] /= 5;    //tx_power[0] /= 8;
+			tx_power[1] /= 5;    //tx_power[1] /= 8;
+			tx_power[2] /= 5;    //tx_power[2] /= 8; get more low power
+		}
+		else
+		if (p_vfo->channel.tx_power == OUTPUT_POWER_MID)
+		{
+			tx_power[0] /= 3;    //tx_power[0] /= 5;
+			tx_power[1] /= 3;    //tx_power[1] /= 5;
+			tx_power[2] /= 3;    //tx_power[2] /= 5;   get more low power
+		}
+	#endif
 
-		#ifdef ENABLE_REDUCE_LOW_MID_TX_POWER
-			// make low and mid even lower
-			if (p_vfo->channel.tx_power == OUTPUT_POWER_LOW)
-			{
-				tx_power[0] /= 5;    //tx_power[0] /= 8;
-				tx_power[1] /= 5;    //tx_power[1] /= 8;
-				tx_power[2] /= 5;    //tx_power[2] /= 8; get more low power
-			}
-			else
-			if (p_vfo->channel.tx_power == OUTPUT_POWER_MID)
-			{
-				tx_power[0] /= 3;    //tx_power[0] /= 5;
-				tx_power[1] /= 3;    //tx_power[1] /= 5;
-				tx_power[2] /= 3;    //tx_power[2] /= 5;   get more low power
-			}
-		#endif
-
-		p_vfo->txp_calculated_setting = FREQUENCY_CalculateOutputPower(
-			tx_power[0],
-			tx_power[1],
-			tx_power[2],
-			FREQ_BAND_TABLE[band].lower,
-			(FREQ_BAND_TABLE[band].lower + FREQ_BAND_TABLE[band].upper) / 2,
-			FREQ_BAND_TABLE[band].upper,
-			p_vfo->p_tx->frequency);
-	}
-
-	// *******************************
+	p_vfo->txp_calculated_setting = FREQUENCY_CalculateOutputPower(
+		tx_power[0],
+		tx_power[1],
+		tx_power[2],
+		FREQ_BAND_TABLE[band].lower,
+		(FREQ_BAND_TABLE[band].lower + FREQ_BAND_TABLE[band].upper) / 2,
+		FREQ_BAND_TABLE[band].upper,
+		p_vfo->p_tx->frequency);
 }
 
 void RADIO_ApplyOffset(vfo_info_t *p_vfo, const bool set_pees)
@@ -956,10 +951,10 @@ void RADIO_enableTX(const bool fsk_tx)
 
 	BK4819_SetCompander((!fsk_tx && g_rx_vfo->channel.mod_mode == MOD_MODE_FM && (g_rx_vfo->channel.compand == 1 || g_rx_vfo->channel.compand >= 3)) ? g_rx_vfo->channel.compand : 0);
 
-	BK4819_set_rf_frequency(g_current_vfo->p_tx->frequency, false);
+	BK4819_set_rf_frequency(g_current_vfo->p_tx->frequency, true);
 	BK4819_set_rf_filter_path(g_current_vfo->p_tx->frequency);
-
 	BK4819_PrepareTransmit();
+	RADIO_ConfigureTXPower(g_current_vfo);
 	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, true);                // PA on
 	if (g_current_display_screen != DISPLAY_AIRCOPY)
 		BK4819_SetupPowerAmplifier(g_current_vfo->txp_calculated_setting, g_current_vfo->p_tx->frequency);

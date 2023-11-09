@@ -31,7 +31,8 @@ void UI_PrintStringSmall(const char *str, const unsigned int start, const unsign
 	void UI_PrintStringSmallest(const void *pString, unsigned int x, const unsigned int y, const bool statusbar, const bool fill);
 #endif
 void UI_PrintStringSmallBuffer(const char *pString, uint8_t *buffer);
-void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero, bool flag);
+void UI_DisplayFrequencyBig(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero, bool flag, unsigned int length);
+void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero, unsigned int length);
 void UI_DisplayFrequencySmall(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero);
 void UI_Displaysmall_digits(const uint8_t size, const char *str, const uint8_t x, const uint8_t y, const bool display_leading_zeros);
 

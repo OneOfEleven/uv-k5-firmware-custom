@@ -71,7 +71,7 @@ void UI_GenerateChannelStringEx(char *pString, const char *prefix, const uint8_t
 
 void UI_PrintString(const char *str, unsigned int x, const unsigned int end, const unsigned int line, const unsigned int width)
 {
-	const unsigned int length = strlen(str);
+	const unsigned int length    = strlen(str);
 	const unsigned int font_size = ARRAY_SIZE(g_font_big);
 	uint8_t           *f_buf1    = g_frame_buffer[line + 0];
 	uint8_t           *f_buf2    = g_frame_buffer[line + 1];
@@ -205,13 +205,12 @@ void UI_PrintStringSmallBuffer(const char *pString, uint8_t *buffer)
 	}
 }
 
-void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero, bool flag)
+void UI_DisplayFrequencyBig(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero, bool flag, unsigned int length)
 {
 	const unsigned int char_width  = 13;
 	uint8_t           *pFb0        = g_frame_buffer[Y] + X;
-	uint8_t           *pFb1        = pFb0 + 128;
+	uint8_t           *pFb1        = pFb0 + LCD_WIDTH;
 	bool               bCanDisplay = false;
-	unsigned int       len         = 6;
 	unsigned int       i           = 0;
 
 	// MHz
@@ -240,19 +239,22 @@ void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDispla
 	*pFb1 = 0x60; pFb0++; pFb1++;
 
 #ifdef ENABLE_TRIM_TRAILING_ZEROS
-	if (pDigits[len + 1] == 0 && pDigits[len + 2] == 0)
+	if (length == 6)
 	{
-		if (pDigits[len - 1] == 0)
+		if (pDigits[length + 1] == 0 && pDigits[length + 2] == 0)
 		{
-			len--;
-			if (pDigits[len - 1] == 0)
-				len--;
+			if (pDigits[length - 1] == 0)
+			{
+				length--;
+				if (pDigits[length - 1] == 0)
+					length--;
+			}
 		}
 	}
 #endif
 
-	// kHz
-	while (i < len)
+	// fractions
+	while (i < length)
 	{
 		const unsigned int Digit = pDigits[i++];
 		memcpy(pFb0, g_font_big_digits[Digit],              char_width);
@@ -260,6 +262,43 @@ void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDispla
 		pFb0 += char_width;
 		pFb1 += char_width;
 	}
+}
+
+void UI_DisplayFrequency(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero, unsigned int length)
+{
+	char         str[10];
+	bool         bCanDisplay = false;
+	unsigned int i           = 0;
+	unsigned int k           = 0;
+
+	// MHz
+	while (i < 3)
+	{
+		const unsigned int Digit = pDigits[i++];
+		if (bDisplayLeadingZero || bCanDisplay || Digit > 0)
+		{
+			bCanDisplay = true;
+			str[k++] = (Digit < 10) ? '0' + Digit : '_';
+		}
+	}
+
+	// decimal point
+	str[k++] = '.';
+
+	// fractions
+	while (i < length)
+	{
+		const unsigned int Digit = pDigits[i++];
+		str[k++] = (Digit < 10) ? '0' + Digit : '_';
+	}
+
+	str[k] = '\0';
+
+#ifdef ENABLE_TRIM_TRAILING_ZEROS
+//	NUMBER_trim_trailing_zeros(str);
+#endif
+
+	UI_PrintString(str, X, 0, Y, 8);
 }
 
 void UI_DisplayFrequencySmall(const char *pDigits, uint8_t X, uint8_t Y, bool bDisplayLeadingZero)

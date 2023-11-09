@@ -40,7 +40,7 @@ ENABLE_MDC1200_SIDE_BEEP         := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 0
 ENABLE_BIG_FREQ                  := 0
-ENABLE_SHOW_FREQS_CHAN           := 1
+ENABLE_SHOW_FREQS_CHAN           := 0
 # smaa bolf 580 B
 ENABLE_SMALL_BOLD                := 1
 # smallest font 2 kB

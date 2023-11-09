@@ -563,6 +563,10 @@ bool APP_start_listening(void)
 		AUDIO_set_mod_mode(g_rx_vfo->channel.mod_mode);
 	#endif
 
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("mode %u\r\n", g_rx_vfo->channel.mod_mode);
+	#endif
+
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	if (g_current_display_screen != DISPLAY_MENU)
@@ -600,7 +604,7 @@ void APP_stop_scan(void)
 	{	// revert to where we were when starting the scan
 
 		if (g_scan_next_channel <= USER_CHANNEL_LAST)
-		{	// we were channel hopping
+		{	// we were channel scanning
 
 			if (g_scan_restore_channel != 0xff)
 			{
@@ -608,7 +612,7 @@ void APP_stop_scan(void)
 				g_eeprom.config.setting.indices.vfo[g_rx_vfo_num].screen = g_scan_restore_channel;
 
 				RADIO_configure_channel(g_rx_vfo_num, VFO_CONFIGURE_RELOAD);
-
+				RADIO_ConfigureSquelch(g_rx_vfo);
 				RADIO_setup_registers(true);
 			}
 		}
@@ -622,7 +626,7 @@ void APP_stop_scan(void)
 			g_rx_vfo->freq_in_channel = SETTINGS_find_channel(g_rx_vfo->freq_config_rx.frequency);
 
 			RADIO_ApplyOffset(g_rx_vfo, false);
-			RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
+			RADIO_ConfigureSquelch(g_rx_vfo);
 			RADIO_setup_registers(true);
 		}
 
@@ -634,7 +638,7 @@ void APP_stop_scan(void)
 		if (g_rx_vfo->channel_save > USER_CHANNEL_LAST)
 		{	// frequency mode
 			RADIO_ApplyOffset(g_rx_vfo, false);
-			RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
+			RADIO_ConfigureSquelch(g_rx_vfo);
 			SETTINGS_save_channel(g_rx_vfo->channel_save, g_rx_vfo_num, g_rx_vfo, 1);
 			return;
 		}
@@ -688,8 +692,7 @@ static void APP_next_freq(void)
 		// original slower method
 
 		RADIO_ApplyOffset(g_tx_vfo, false);
-		RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
-
+//		RADIO_ConfigureSquelch(g_tx_vfo);
 		RADIO_setup_registers(true);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
@@ -705,7 +708,7 @@ static void APP_next_freq(void)
 		BK4819_set_rf_filter_path(g_tx_vfo->freq_config_rx.frequency);
 
 		RADIO_ApplyOffset(g_tx_vfo, false);
-		RADIO_ConfigureSquelchAndOutputPower(g_tx_vfo);
+//		RADIO_ConfigureSquelch(g_tx_vfo);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
 			//g_scan_tick_10ms = 10;   // 100ms
@@ -811,7 +814,6 @@ static void APP_next_channel(void)
 		g_eeprom.config.setting.indices.vfo[g_rx_vfo_num].screen = g_scan_next_channel;
 
 		RADIO_configure_channel(g_rx_vfo_num, VFO_CONFIGURE_RELOAD);
-
 		RADIO_setup_registers(true);
 
 		g_update_display = true;
@@ -1731,6 +1733,7 @@ void APP_process_transmit(void)
 					g_alarm_state = ALARM_STATE_ALARM;
 
 					RADIO_enable_CxCSS_tail();
+					RADIO_ConfigureTXPower(g_tx_vfo);
 					BK4819_SetupPowerAmplifier(0, 0);
 					BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);   // PA off
 					BK4819_Enable_AfDac_DiscMode_TxDsp();

@@ -60,7 +60,7 @@ void UI_DisplayAircopy(void)
 		const unsigned int x = 16;
 		
 		NUMBER_ToDigits(g_rx_vfo->freq_config_rx.frequency, str);
-		UI_DisplayFrequency(str, x, 2, 0, 0);
+		UI_DisplayFrequencyBig(str, x, 2, 0, 0, 6);
 		
 		// show the remaining 2 small frequency digits
 		#ifdef ENABLE_TRIM_TRAILING_ZEROS
@@ -80,7 +80,7 @@ void UI_DisplayAircopy(void)
 	}
 	else
 	{	// user is entering a new frequency
-		UI_DisplayFrequency(g_input_box, 16, 2, 1, 0);
+		UI_DisplayFrequencyBig(g_input_box, 16, 2, 1, 0, 6);
 	}
 
 	// **********************************

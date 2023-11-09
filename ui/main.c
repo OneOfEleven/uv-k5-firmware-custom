@@ -374,7 +374,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 	NUMBER_ToDigits(frequency, str);
 
 	// show the main large frequency digits
-	UI_DisplayFrequency(str, x, line, false, false);
+	UI_DisplayFrequencyBig(str, x, line, false, false, 6);
 
 	// show the remaining 2 small frequency digits
 	#ifdef ENABLE_TRIM_TRAILING_ZEROS
@@ -625,9 +625,10 @@ void UI_DisplayMain(void)
 		}
 		else
 		if (g_input_box_index > 0 && IS_FREQ_CHANNEL(scrn_chan) && g_eeprom.config.setting.tx_vfo_num == vfo_num)
-		{	// user entering a frequency
-			UI_DisplayFrequency(g_input_box, 32, line, true, false);
-
+		{	// user is entering a frequency
+//			UI_DisplayFrequencyBig(g_input_box, 32, line, true, false, 6);
+//			UI_DisplayFrequencyBig(g_input_box, 32, line, true, false, 7);
+			UI_DisplayFrequency(g_input_box, 32, line, true, 8);
 //			g_center_line = CENTER_LINE_IN_USE;
 		}
 		else
@@ -643,7 +644,7 @@ void UI_DisplayMain(void)
 			}
 
 			if (scrn_chan <= USER_CHANNEL_LAST)
-			{	// it's a channel
+			{	// a user channel
 
 				switch (g_eeprom.config.setting.channel_display_mode)
 				{
@@ -674,8 +675,9 @@ void UI_DisplayMain(void)
 
 						SETTINGS_fetch_channel_name(str, scrn_chan);
 						if (str[0] == 0)
-						{	// no channel name available, channel number instead
-							sprintf(str, "CH-%03u", 1 + scrn_chan);
+						{	// no channel name, use channel number
+//							sprintf(str, "CH-%03u", 1 + scrn_chan);
+							sprintf(str, "CH-%u", 1 + scrn_chan);
 						}
 
 						if (g_eeprom.config.setting.channel_display_mode == MDF_NAME)
@@ -693,7 +695,8 @@ void UI_DisplayMain(void)
 							#endif
 
 							// frequency
-							sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
+//							sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
+							sprintf(str, "%u.%05u", frequency / 100000, frequency % 100000);
 							#ifdef ENABLE_TRIM_TRAILING_ZEROS
 								NUMBER_trim_trailing_zeros(str);
 							#endif
@@ -714,7 +717,8 @@ void UI_DisplayMain(void)
 						const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
 					#endif
 
-					sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
+//					sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
+					sprintf(str, "%u.%05u", frequency / 100000, frequency % 100000);
 					#ifdef ENABLE_TRIM_TRAILING_ZEROS
 						NUMBER_trim_trailing_zeros(str);
 					#endif
@@ -731,10 +735,11 @@ void UI_DisplayMain(void)
 								UI_PrintStringSmall(str, x + 4, 0, line + 0);
 							#endif
 
-							// name
+							// channel name, if not then channel number
 							SETTINGS_fetch_channel_name(str, chan);
 							if (str[0] == 0)
-								sprintf(str, "CH-%03u", 1 + chan);
+//								sprintf(str, "CH-%03u", 1 + chan);
+								sprintf(str, "CH-%u", 1 + chan);
 							UI_PrintStringSmall(str, x + 4, 0, line + 1);
 						}
 						else
@@ -803,7 +808,7 @@ void UI_DisplayMain(void)
 				#else
 					const bool is_freq_chan       = IS_FREQ_CHANNEL(scrn_chan);
 					const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
-//					const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // currently way to slow
+//					const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
 
 					strcpy(str, "   ");
 
@@ -852,21 +857,20 @@ void UI_DisplayMain(void)
 
 		str[0] = '\0';
 		if (g_vfo_info[vfo_num].channel.mod_mode != MOD_MODE_FM)
-		{
-			//strcpy(str, g_sub_menu_mod_mode[g_vfo_info[vfo_num].channel.mod_mode]);
+		{	// show the modulation mode
 			switch (g_vfo_info[vfo_num].channel.mod_mode)
 			{
-				default:
-				case MOD_MODE_FM:  strcpy(str, "FM"); break;
+//				case MOD_MODE_FM:  strcpy(str, "FM"); break;
 				case MOD_MODE_AM:  strcpy(str, "AM"); break;
 				case MOD_MODE_DSB: strcpy(str, "DS"); break;
+				default:           strcpy(str, "??"); break;
 			}
 		}
 		else
-		{	// or show the CTCSS/DCS symbol
+		{	// or show the CTCSS/DCS symbol (when in FM mode)
 			const freq_config_t *pConfig = (mode == 1) ? g_vfo_info[vfo_num].p_tx : g_vfo_info[vfo_num].p_rx;
 			const unsigned int code_type = pConfig->code_type;
-			const char *code_list[] = {"", "CT", "DCS", "DCR"};
+			const char *code_list[] = {"", "CTC", "DCS", "DCR"};
 			if (code_type < ARRAY_SIZE(code_list))
 				strcpy(str, code_list[code_type]);
 		}
@@ -903,12 +907,9 @@ void UI_DisplayMain(void)
 			UI_PrintStringSmall("R", 62, 0, line + 2);
 
 		{	// show the narrow band symbol
-			str[0] = '\0';
+			strcpy(str, " ");
 			if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_NARROW)
-			{
 				str[0] = 'N';
-				str[1] = '\0';
-			}
 			UI_PrintStringSmall(str, 70, 0, line + 2);
 		}
 
@@ -919,7 +920,6 @@ void UI_DisplayMain(void)
 		#else
 			if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
 				UI_PrintStringSmall("DTMF", 78, 0, line + 2);
-				//UI_PrintStringSmall4x5("DTMF", 78, 0, line + 2);   // font table is currently wrong
 				//UI_PrintStringSmallest("DTMF", 78, (line + 2) * 8, false, true);
 		#endif
 
@@ -927,6 +927,8 @@ void UI_DisplayMain(void)
 		if (g_vfo_info[vfo_num].channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
 			UI_PrintStringSmall("SCR", 106, 0, line + 2);
 	}
+
+	// *************************************************
 
 	if (g_center_line == CENTER_LINE_NONE &&
 		g_current_display_screen == DISPLAY_MAIN &&

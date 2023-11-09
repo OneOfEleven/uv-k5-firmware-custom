@@ -705,7 +705,8 @@ static void AIRCOPY_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 				g_rx_vfo->freq_config_rx.frequency = Frequency;
 				g_rx_vfo->freq_config_tx.frequency = Frequency;
-				RADIO_ConfigureSquelchAndOutputPower(g_rx_vfo);
+				RADIO_ConfigureSquelch(g_rx_vfo);
+//				RADIO_ConfigureTXPower(g_rx_vfo);
 
 				g_current_vfo = g_rx_vfo;
 

@@ -202,8 +202,8 @@ uint32_t FREQUENCY_wrap_to_step_band(uint32_t freq, const uint32_t step_size, co
 #ifdef ENABLE_SCAN_RANGES
 	const freq_scan_range_table_t FREQ_SCAN_RANGE_TABLE[] =
 	{
-		{ 2696500,  2785600, 1000},
 		{ 2760125,  2800000, 1000},
+		{ 2696500,  2785600, 1000},
 		{ 2600000,  2800000, 1000},
 		{ 2800000,  2970000, 1000},
 		{ 5000000,  5200000, 1000},
@@ -219,7 +219,6 @@ uint32_t FREQUENCY_wrap_to_step_band(uint32_t freq, const uint32_t step_size, co
 		{24000000, 39000000, 2500},
 		{43000000, 44000000, 1250},
 		{44600625, 44619376, 1250},
-//		{42000000, 45000000, 1500},
 		{44000000, 47000000, 1250}
 	};
 
