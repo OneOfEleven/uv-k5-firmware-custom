@@ -16,7 +16,7 @@ NO REFUNDS, ever !
 
 After having two UV-K5(8) radios for a while now, and I don't know how many programming lead insertions/deinsertions (lots n lots!) both radios are now having trouble booting up into either the bootloader and/or the firmware.
 
-I suspect the reason being something to do with the the 3.5mm/2.5mm mic jack sockets or the volume control pot, either that or broken throu-hole plating in the PCB or such like.
+I suspect the reason being something to do with the the 3.5mm/2.5mm mic jack sockets or the volume control pot, either that or broken thru-hole plating in the PCB or such like.
 
 Need to find matching replacements to confirm this though (or just temp short the terminals that are suppose to be shorted at power on).
 
