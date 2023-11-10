@@ -1,9 +1,13 @@
 
+#include <stdlib.h>     // abs()
+
 #if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	#include "driver/uart.h"
 #endif
 #include "freq_ignore.h"
 #include "misc.h"
+
+//#define FI_CLOSE_ENOUGH_HZ   300
 
 // a list of frequencies to ignore/skip when scanning
 uint32_t ignore_frequencies[64];
@@ -21,53 +25,70 @@ void FI_clear_freq_ignored(void)
 int FI_freq_ignored(const uint32_t frequency)
 {	// return index of the ignored frequency
 
-	if (frequency == 0 || frequency == 0xffffffff || ignore_frequencies_count <= 0)
-		return -1;
+	#ifdef FI_CLOSE_ENOUGH_HZ
+		if (frequency <= FI_CLOSE_ENOUGH_HZ || frequency >= (0xffffffff - FI_CLOSE_ENOUGH_HZ) || ignore_frequencies_count <= 0)
+			return -1;   // invalid frequency
+	#else
+		if (frequency == 0 || frequency == 0xffffffff || ignore_frequencies_count <= 0)
+			return -1;   // invalid frequency
+	#endif
 
-	if (ignore_frequencies_count >= 8)
-	{	// binary search .. becomes much faster than sequencial search when the list is bigger
+	if (ignore_frequencies_count >= 20)
+	{	// binary search becomes faster than sequencial as the list grows beyound a certain size
 		int low = 0;
 		int high = ignore_frequencies_count;
+
 		while (low < high)
 		{
 			register int mid  = (low + high) / 2;
 			register uint32_t freq = ignore_frequencies[mid];
-			if (freq > frequency)
-				high = mid;
-			else
-			if (freq < frequency)
-				low = mid + 1;
-			else
-			{
+
+			#ifdef FI_CLOSE_ENOUGH_HZ
+				if (abs((int32_t)frequency - (int32_t)freq) <= FI_CLOSE_ENOUGH_HZ)
+			#else
+				if (frequency == freq)
+			#endif
+			{	// found it
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 					UART_printf("ignored bin %u %u\r\n", frequency, mid);
 				#endif
 				return mid;
 			}
+
+			if (freq > frequency)
+				high = mid;
+			else
+				low  = mid + 1;
 		}
 	}
 	else
 	{	// sequencial search
-		int i;
+		register int i;
 		for (i = 0; i < ignore_frequencies_count; i++)
 		{
 			register uint32_t freq = ignore_frequencies[i];
-			if (frequency == freq)
+
+			#ifdef FI_CLOSE_ENOUGH_HZ
+				if (abs((int32_t)frequency - (int32_t)freq) <= FI_CLOSE_ENOUGH_HZ)
+			#else
+				if (frequency == freq)
+			#endif
 			{	// found it
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 					UART_printf("ignored seq %u %u\r\n", frequency, i);
 				#endif
 				return i;
 			}
+
 			if (frequency < freq)
-				return -1;        // can exit loop early as the list is sorted by frequency
+				return -1;        // exit loop early as the list is sorted by frequency
 		}
 	}
 
 	return -1;    // not found
 }
 
-void FI_add_freq_ignored(const uint32_t frequency)
+bool FI_add_freq_ignored(const uint32_t frequency)
 {	// add a new frequency to the ignore list
 
 	int i;
@@ -76,31 +97,45 @@ void FI_add_freq_ignored(const uint32_t frequency)
 		UART_printf("ignore add %u\r\n", frequency);
 	#endif
 
-	if (frequency == 0 || frequency == 0xffffffff)
-		return;
+	#ifdef FI_CLOSE_ENOUGH_HZ
+		if (frequency <= FI_CLOSE_ENOUGH_HZ || frequency >= (0xffffffff - FI_CLOSE_ENOUGH_HZ))
+			return false;   // invalid frequency
+	#else
+		if (frequency == 0 || frequency == 0xffffffff)
+			return false;   // invalid frequency
+	#endif
 
 	if (ignore_frequencies_count >= (int)ARRAY_SIZE(ignore_frequencies))
 	{	// the list is full
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 			UART_SendText("ignore add full\r\n");
 		#endif
-		return;
+		return false;  // failed
 	}
 
 	for (i = 0; i < ignore_frequencies_count; i++)
 	{
 		register uint32_t freq = ignore_frequencies[i];
 
-		if (frequency == freq)
+		#ifdef FI_CLOSE_ENOUGH_HZ
+			if (abs((int32_t)frequency - (int32_t)freq) <= FI_CLOSE_ENOUGH_HZ)
+		#else
+			if (frequency == freq)
+		#endif
 		{	// already in the list
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_SendText("ignore add already\r\n");
 			#endif
-			return;
+			return true;
 		}
 
-		if (frequency < freq)
-			break;
+		#ifdef FI_CLOSE_ENOUGH_HZ
+			if (frequency < (freq + FI_CLOSE_ENOUGH_HZ))
+				break;        // exit loop early as the list is sorted by frequency
+		#else
+			if (frequency < freq)
+				break;        // exit loop early as the list is sorted by frequency
+		#endif
 	}
 
 	// found the location to store the new frequency - the list is kept sorted by frequency
@@ -117,6 +152,8 @@ void FI_add_freq_ignored(const uint32_t frequency)
 		for (i = 0; i < ignore_frequencies_count; i++)
 			UART_printf("%2u %10u\r\n", i, ignore_frequencies[i]);
 	#endif
+
+	return true;
 }
 
 void FI_sub_freq_ignored(const uint32_t frequency)
@@ -125,9 +162,6 @@ void FI_sub_freq_ignored(const uint32_t frequency)
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 		UART_printf("ignore sub %u\r\n", frequency);
 	#endif
-
-	if (frequency == 0 || frequency == 0xffffffff)
-		return;
 
 	int index = FI_freq_ignored(frequency);
 	if (index < 0)

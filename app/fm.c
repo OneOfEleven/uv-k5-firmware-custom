@@ -190,7 +190,7 @@ int FM_check_frequency_lock(const uint16_t frequency, const uint16_t lower_limit
 	if (afc_railed || snr < 2 || rssi < 10 || abs(freq_offset) > 250)
 		goto Bail;
 
-	if (frequency >= lower_limit && abs(((int)BK1080_freq_base - frequency)) == 1)
+	if (frequency >= lower_limit && abs(((int)BK1080_freq_base - (int)frequency)) == 1)
 		if (abs(BK1080_freq_offset) < 20)
 			goto Bail;
 

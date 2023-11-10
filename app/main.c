@@ -873,7 +873,8 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 			#ifdef ENABLE_SCAN_IGNORE_LIST
 				if (scanning_paused())
 				{
-					FI_add_freq_ignored(g_rx_vfo->freq_config_rx.frequency);
+					if (!FI_add_freq_ignored(g_rx_vfo->freq_config_rx.frequency))
+						g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;  // not added for some reason
 
 					// immediately continue the scan
 					g_scan_tick_10ms = 0;

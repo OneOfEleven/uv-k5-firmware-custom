@@ -18,11 +18,12 @@
 #define FREQ_IGNORE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef ENABLE_SCAN_IGNORE_LIST
 	void FI_clear_freq_ignored(void);
 	int  FI_freq_ignored(const uint32_t frequency);
-	void FI_add_freq_ignored(const uint32_t frequency);
+	bool FI_add_freq_ignored(const uint32_t frequency);
 	void FI_sub_freq_ignored(const uint32_t frequency);
 #endif
 
