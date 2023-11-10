@@ -625,7 +625,7 @@ void APP_stop_scan(void)
 			// find the first channel that contains this frequency
 			g_rx_vfo->freq_in_channel = SETTINGS_find_channel(g_rx_vfo->freq_config_rx.frequency);
 
-			RADIO_ApplyOffset(g_rx_vfo, false);
+			RADIO_apply_offset(g_rx_vfo, false);
 			RADIO_ConfigureSquelch(g_rx_vfo);
 			RADIO_setup_registers(true);
 		}
@@ -637,7 +637,7 @@ void APP_stop_scan(void)
 
 		if (g_rx_vfo->channel_save > USER_CHANNEL_LAST)
 		{	// frequency mode
-			RADIO_ApplyOffset(g_rx_vfo, false);
+			RADIO_apply_offset(g_rx_vfo, false);
 			RADIO_ConfigureSquelch(g_rx_vfo);
 			SETTINGS_save_channel(g_rx_vfo->channel_save, g_rx_vfo_num, g_rx_vfo, 1);
 			return;
@@ -692,8 +692,7 @@ static void APP_next_freq(void)
 	#if 0
 		// original slower method
 
-		RADIO_ApplyOffset(g_tx_vfo, false);
-//		RADIO_ConfigureSquelch(g_tx_vfo);
+		RADIO_apply_offset(g_tx_vfo, false);
 		RADIO_setup_registers(true);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
@@ -708,12 +707,11 @@ static void APP_next_freq(void)
 		BK4819_set_rf_frequency(g_tx_vfo->freq_config_rx.frequency, true);
 		BK4819_set_rf_filter_path(g_tx_vfo->freq_config_rx.frequency);
 
-		RADIO_ApplyOffset(g_tx_vfo, false);
-//		RADIO_ConfigureSquelch(g_tx_vfo);
+		RADIO_apply_offset(g_tx_vfo, false);
 
 		#ifdef ENABLE_FASTER_CHANNEL_SCAN
 			//g_scan_tick_10ms = 10;   // 100ms
-			g_scan_tick_10ms = 7;      // 70ms
+			g_scan_tick_10ms = 6;      // 60ms
 		#else
 			g_scan_tick_10ms = scan_pause_freq_10ms;
 		#endif
@@ -2163,8 +2161,8 @@ void APP_time_slice_500ms(void)
 		}
 	}
 
-	if (g_current_function != FUNCTION_POWER_SAVE && g_current_function != FUNCTION_TRANSMIT)
-		APP_update_rssi(g_rx_vfo_num, false);
+//	if (g_current_function != FUNCTION_POWER_SAVE && g_current_function != FUNCTION_TRANSMIT)
+//		APP_update_rssi(g_rx_vfo_num, false);
 
 	if (g_low_battery)
 	{
@@ -2321,10 +2319,6 @@ void APP_time_slice_10ms(void)
 		g_request_display_screen = DISPLAY_INVALID;
 	}
 
-	// 1of11
-	if (g_update_rssi)
-		APP_update_rssi(g_rx_vfo_num, false);
-
 	if (g_update_display)
 		GUI_DisplayScreen();
 
@@ -2419,10 +2413,18 @@ void APP_time_slice_10ms(void)
 			AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
 	#endif
 
+	// 1of11
+//	if (g_update_rssi)
+	if (g_current_function != FUNCTION_POWER_SAVE && g_current_function != FUNCTION_TRANSMIT)
+		if (!g_flag_save_channel)
+			APP_update_rssi(g_rx_vfo_num, false);
+
 	if (g_current_function != FUNCTION_POWER_SAVE || !g_rx_idle_mode)
 		APP_process_radio_interrupts();
 
 	APP_process_functions();
+
+	APP_process_flash_light_10ms();
 
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{	// transmitting
@@ -2439,8 +2441,6 @@ void APP_time_slice_10ms(void)
 			AUDIO_PlayQueuedVoice();
 		}
 	#endif
-
-	APP_process_flash_light_10ms();
 
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode && g_fm_radio_tick_500ms > 0)
@@ -2461,6 +2461,15 @@ void APP_time_slice_10ms(void)
 	APP_process_transmit();
 
 	#ifdef ENABLE_FMRADIO
+		if (g_fm_radio_mode && g_fm_restore_tick_10ms > 0)
+		{
+			if (--g_fm_restore_tick_10ms == 0)
+			{	// switch back to FM radio mode
+				FM_turn_on();
+				GUI_SelectNextDisplay(DISPLAY_FM);
+			}
+		}
+
 		if (g_fm_schedule                            &&
 			g_fm_scan_state_dir != FM_SCAN_STATE_DIR_OFF &&
 		   !g_monitor_enabled                        &&
@@ -2473,17 +2482,6 @@ void APP_time_slice_10ms(void)
 	#endif
 
 	APP_process_power_save();
-
-	#ifdef ENABLE_FMRADIO
-		if (g_fm_radio_mode && g_fm_restore_tick_10ms > 0)
-		{
-			if (--g_fm_restore_tick_10ms == 0)
-			{	// switch back to FM radio mode
-				FM_turn_on();
-				GUI_SelectNextDisplay(DISPLAY_FM);
-			}
-		}
-	#endif
 
 	APP_process_scan();
 
@@ -2820,7 +2818,7 @@ Skip:
 
 		MENU_AcceptSetting();
 
-		g_flag_refresh_menu   = true;
+		g_update_menu   = true;
 		g_flag_accept_setting = false;
 	}
 
@@ -2930,9 +2928,9 @@ Skip:
 		g_flag_reconfigure_vfos = false;
 	}
 
-	if (g_flag_refresh_menu)
+	if (g_update_menu)
 	{
-		g_flag_refresh_menu = false;
+		g_update_menu = false;
 		g_menu_tick_10ms   = menu_timeout_500ms;
 
 		MENU_ShowCurrentSetting();

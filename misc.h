@@ -243,7 +243,7 @@ extern bool                  g_request_save_settings;
 extern bool                  g_flag_prepare_tx;
 
 extern bool                  g_flag_accept_setting;   // accept menu setting
-extern bool                  g_flag_refresh_menu;  // refresh menu display
+extern bool                  g_update_menu;  // refresh menu display
 
 extern bool                  g_flag_save_vfo;
 extern bool                  g_flag_save_settings;

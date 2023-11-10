@@ -306,9 +306,9 @@ void BK4819_DisableAGC(void)
 	BK4819_write_reg(0x10, 0x007A);  // 000000 00 011 11 010
 	BK4819_write_reg(0x14, 0x0019);  // 000000 00 000 11 001
 
-	// ???
-	BK4819_write_reg(0x49, 0x2A38);
-	BK4819_write_reg(0x7B, 0x8420);
+	BK4819_write_reg(0x49, (0u << 14) | (84u << 7) | (56u << 0));  // 0x2A38 AGC thresholds
+
+	BK4819_write_reg(0x7B, 0x8420);  // RSSI table
 }
 
 void BK4819_EnableAGC(void)
@@ -355,8 +355,9 @@ void BK4819_EnableAGC(void)
 	//BK4819_write_reg(0x10, 0x007A);  // 000000 00 011 11 010
 	//BK4819_write_reg(0x14, 0x0019);  // 000000 00 000 11 001
 
-	BK4819_write_reg(0x49, 0x2A38);
-	BK4819_write_reg(0x7B, 0x8420);
+	BK4819_write_reg(0x49, (0u << 14) | (84u << 7) | (56u << 0));  // 0x2A38 AGC thresholds
+
+	BK4819_write_reg(0x7B, 0x8420);  // RSSI table
 
 	for (unsigned int i = 0; i < 8; i++)
 		BK4819_write_reg(0x06, ((i & 7u) << 13) | (0x4A << 7) | (0x36 << 0));

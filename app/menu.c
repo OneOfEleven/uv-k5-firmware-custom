@@ -1404,7 +1404,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 				if (value > 0 && value <= g_menu_list_count)
 				{
 					g_menu_cursor       = value - 1;
-					g_flag_refresh_menu = true;
+					g_update_menu = true;
 					return;
 				}
 
@@ -1421,7 +1421,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 				if (value > 0 && value <= g_menu_list_count)
 				{
 					g_menu_cursor       = value - 1;
-					g_flag_refresh_menu = true;
+					g_update_menu = true;
 					return;
 				}
 				break;
@@ -1581,7 +1581,7 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 				g_ask_for_confirmation = 0;
 				g_in_sub_menu       = false;
 				g_input_box_index      = 0;
-				g_flag_refresh_menu    = true;
+				g_update_menu    = true;
 
 				#ifdef ENABLE_VOICE
 					g_another_voice_id = VOICE_ID_CANCEL;
@@ -1884,7 +1884,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 	{
 		g_menu_cursor = NUMBER_AddWithWraparound(g_menu_cursor, -Direction, 0, g_menu_list_count - 1);
 
-		g_flag_refresh_menu = true;
+		g_update_menu = true;
 
 		g_request_display_screen = DISPLAY_MENU;
 

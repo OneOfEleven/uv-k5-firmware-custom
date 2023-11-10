@@ -85,6 +85,8 @@ const uint32_t        g_default_aes_key[4]             = {0x4AA5CC60, 0x0312CC5F
 
 const uint8_t         g_mic_gain_dB_2[5]               = {3, 8, 16, 24, 31};
 
+uint8_t               g_mic_sensitivity_tuning;
+
 bool                  g_monitor_enabled;
 
 bool                  g_has_aes_key;
@@ -118,10 +120,17 @@ uint8_t               g_key_input_count_down;
 	uint8_t           g_key_lock_tick_500ms;
 #endif
 uint8_t               g_rtte_count_down;
-bool                  g_password_locked;
+
 uint8_t               g_update_status;
+bool                  g_update_display;
+bool                  g_update_rssi;
+bool                  g_update_menu;
+
+bool                  g_password_locked;
+
 uint8_t               g_found_ctcss;
 uint8_t               g_found_cdcss;
+
 bool                  g_end_of_rx_detected_maybe;
 
 int16_t               g_vfo_rssi[2];
@@ -129,8 +138,6 @@ uint8_t               g_vfo_rssi_bar_level[2];
 
 uint8_t               g_reduced_service;
 uint8_t               g_battery_voltage_index;
-css_scan_mode_t       g_css_scan_mode;
-bool                  g_update_rssi;
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 	alarm_state_t     g_alarm_state;
 #endif
@@ -143,18 +150,18 @@ uint8_t               g_request_save_channel;
 bool                  g_request_save_settings;
 #ifdef ENABLE_FMRADIO
 	bool              g_request_save_fm;
+	bool              g_flag_save_fm;
 #endif
+
 bool                  g_flag_prepare_tx;
 
 bool                  g_flag_accept_setting;
-bool                  g_flag_refresh_menu;
 
 bool                  g_flag_save_vfo;
 bool                  g_flag_save_settings;
 bool                  g_flag_save_channel;
-#ifdef ENABLE_FMRADIO
-	bool              g_flag_save_fm;
-#endif
+
+css_scan_mode_t       g_css_scan_mode;
 
 bool                  g_cdcss_lost;
 uint8_t               g_cdcss_code_type;
@@ -162,23 +169,23 @@ bool                  g_ctcss_lost;
 bool                  g_cxcss_tail_found;
 uint8_t               g_ctcss_tail_phase_shift_rx;
 
-
 #ifdef ENABLE_VOX
 	bool              g_vox_lost;
 	bool              g_vox_audio_detected;
 	uint16_t          g_vox_resume_tick_10ms;
 	uint16_t          g_vox_pause_tick_10ms;
+	volatile uint16_t g_vox_stop_tick_10ms;
 #endif
 
 bool                  g_squelch_open;
+reception_mode_t      g_rx_reception_mode;
 
 uint8_t               g_flash_light_state;
 uint16_t              g_flash_light_blink_tick_10ms;
 
 bool                  g_flag_end_tx;
-uint16_t              g_low_battery_tick_10ms;
 
-reception_mode_t      g_rx_reception_mode;
+uint16_t              g_low_battery_tick_10ms;
 
 uint32_t              g_scan_initial_lower;
 uint32_t              g_scan_initial_upper;
@@ -198,6 +205,7 @@ bool                  g_rx_vfo_is_active;
 	uint16_t          g_alarm_tone_counter_10ms;
 	uint16_t          g_alarm_running_counter_10ms;
 #endif
+
 uint8_t               g_menu_list_count;
 
 uint8_t               g_backup_cross_vfo;
@@ -205,32 +213,27 @@ uint8_t               g_backup_cross_vfo;
 #ifdef ENABLE_NOAA
 	bool              g_noaa_mode;
 	uint8_t           g_noaa_channel;
+	volatile uint16_t g_noaa_tick_10ms;
+	volatile bool     g_schedule_noaa  = true;
 #endif
 
-bool                  g_update_display;
-
-bool                  g_unhide_hidden = false;
+bool                  g_unhide_hidden;
 
 volatile bool         g_next_time_slice;
+volatile bool         g_next_time_slice_40ms;
+
 volatile uint8_t      g_found_cdcss_tick_10ms;
 volatile uint8_t      g_found_ctcss_tick_10ms;
-#ifdef ENABLE_VOX
-	volatile uint16_t g_vox_stop_tick_10ms;
-#endif
-volatile bool         g_next_time_slice_40ms;
-#ifdef ENABLE_NOAA
-	volatile uint16_t g_noaa_tick_10ms = 0;
-	volatile bool     g_schedule_noaa       = true;
-#endif
+
 volatile bool         g_flag_tail_tone_elimination_complete;
 
 volatile uint16_t     g_boot_tick_10ms = 4000 / 10;   // 4 seconds
 
-int16_t               g_current_rssi[2]   = {0, 0};
-uint16_t              g_current_glitch[2] = {0, 0};
-uint16_t              g_current_noise[2]  = {0, 0};
+int16_t               g_current_rssi[2];
+uint16_t              g_current_glitch[2];
+uint16_t              g_current_noise[2];
 
-uint8_t               g_mic_sensitivity_tuning;
+// ***************************
 
 unsigned int get_RX_VFO(void)
 {

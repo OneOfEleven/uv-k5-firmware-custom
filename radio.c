@@ -331,7 +331,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		p_vfo->channel.tx_offset = FREQUENCY_floor_to_step(p_vfo->channel.tx_offset + (p_vfo->step_freq / 2), p_vfo->step_freq, 0, p_vfo->channel.tx_offset + p_vfo->step_freq);
 	}
 
-	RADIO_ApplyOffset(p_vfo, true);
+	RADIO_apply_offset(p_vfo, true);
 
 	// channel name
 	memset(&p_vfo->channel_name, 0, sizeof(p_vfo->channel_name));
@@ -575,7 +575,7 @@ void RADIO_ConfigureTXPower(vfo_info_t *p_vfo)
 		p_vfo->p_tx->frequency);
 }
 
-void RADIO_ApplyOffset(vfo_info_t *p_vfo, const bool set_pees)
+void RADIO_apply_offset(vfo_info_t *p_vfo, const bool set_pees)
 {
 	uint32_t Frequency = p_vfo->freq_config_rx.frequency;
 

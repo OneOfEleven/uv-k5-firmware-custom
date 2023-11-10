@@ -141,7 +141,7 @@ void toggle_chan_scanlist(void)
 			g_eeprom.config.setting.tx_vfo_num = vfo;
 
 			RADIO_select_vfos();
-			RADIO_ApplyOffset(g_tx_vfo, false);
+			RADIO_apply_offset(g_tx_vfo, false);
 			RADIO_ConfigureSquelch(g_tx_vfo);
 //			RADIO_ConfigureTXPower(g_tx_vfo);
 			RADIO_setup_registers(true);
@@ -186,7 +186,7 @@ void toggle_chan_scanlist(void)
 				#endif
 
 				g_sub_menu_selection = chan;
-				g_flag_refresh_menu  = false;
+				g_update_menu  = false;
 				g_current_display_screen  = DISPLAY_MENU;
 				g_update_display     = false;
 				UI_DisplayMenu();
@@ -820,7 +820,7 @@ void MAIN_Key_MENU(const bool key_pressed, const bool key_held)
 
 		if (flag)
 		{
-			g_flag_refresh_menu = true;
+			g_update_menu = true;
 			g_request_display_screen = DISPLAY_MENU;
 
 			#ifdef ENABLE_VOICE
@@ -962,7 +962,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 
 			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.config.setting.tx_vfo_num, g_tx_vfo, 1);
 
-			RADIO_ApplyOffset(g_tx_vfo, true);
+			RADIO_apply_offset(g_tx_vfo, true);
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //				UART_printf("save chan %u\r\n", g_rx_vfo->channel_save);
@@ -1065,7 +1065,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 					g_tx_vfo->freq_in_channel = 0xff;
 
 				#if 0
-					RADIO_ApplyOffset(g_tx_vfo, false);
+					RADIO_apply_offset(g_tx_vfo, false);
 					RADIO_ConfigureSquelch(g_tx_vfo);
 //					RADIO_ConfigureTXPower(g_tx_vfo);
 
@@ -1091,7 +1091,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 					BK4819_set_rf_frequency(freq, true);  // set the VCO/PLL
 					BK4819_set_rf_filter_path(freq);      // set the proper LNA/PA filter path
 
-					RADIO_ApplyOffset(g_tx_vfo, false);
+					RADIO_apply_offset(g_tx_vfo, false);
 					RADIO_ConfigureSquelch(g_tx_vfo);
 //					RADIO_ConfigureTXPower(g_tx_vfo);
 				#endif
