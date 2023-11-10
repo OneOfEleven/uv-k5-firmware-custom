@@ -2291,10 +2291,10 @@ void APP_time_slice_10ms(void)
 	   !g_ask_to_save &&
 	    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
 	    g_current_display_screen != DISPLAY_AIRCOPY)
-	{
-		if (g_current_display_screen != DISPLAY_MENU || g_menu_cursor != MENU_AUTO_BACKLITE) // don't turn off backlight if user is in backlight menu option
+	{	// don't turn off backlight if user is in backlight menu option
+		if (g_current_display_screen != DISPLAY_MENU || g_menu_cursor != MENU_AUTO_BACKLITE)
 			if (g_eeprom.config.setting.backlight_time < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
-				if (--g_backlight_tick_10ms <= 100)
+				if (--g_backlight_tick_10ms <= BACKLIGHT_MAX_BRIGHTNESS)
 					BACKLIGHT_set_brightness(g_backlight_tick_10ms);
 	}
 

@@ -33,8 +33,7 @@ void BACKLIGHT_init(void)
 	PORTCON_PORTB_SEL0 &= ~(PORTCON_PORTB_SEL0_B6_MASK);
 	PORTCON_PORTB_SEL0 |= PORTCON_PORTB_SEL0_B6_BITS_PWMP0_CH0;
 
-	PWM_PLUS0_GEN = PWMPLUS_GEN_CH0_OE_BITS_ENABLE | PWMPLUS_GEN_CH0_OUTINV_BITS_ENABLE;
-
+	PWM_PLUS0_GEN = PWMPLUS_GEN_CH0_OE_BITS_ENABLE  | PWMPLUS_GEN_CH0_OUTINV_BITS_ENABLE;
 	PWM_PLUS0_CFG = PWMPLUS_CFG_CNT_REP_BITS_ENABLE | PWMPLUS_CFG_COUNTER_EN_BITS_ENABLE;
 }
 
@@ -63,16 +62,13 @@ void BACKLIGHT_set_brightness(unsigned int brightness)
 	if (brightness > BACKLIGHT_MAX_BRIGHTNESS)
 		brightness = BACKLIGHT_MAX_BRIGHTNESS;
 
-	// non-linear 0 ~ 1023
 	PWM_PLUS0_CH0_COMP = (1023ul * brightness * brightness * brightness) / (BACKLIGHT_MAX_BRIGHTNESS * BACKLIGHT_MAX_BRIGHTNESS * BACKLIGHT_MAX_BRIGHTNESS);
 	//PWM_PLUS0_SWLOAD = 1;
-
-//	g_backlight_on = (brightness > 0) ? true : false;
 }
 
 void BACKLIGHT_turn_on(const unsigned int min_secs)
 {
-	const uint16_t min_ticks = min_secs * 100;
+	const uint16_t min_ticks = 100u * min_secs;
 	if (min_ticks > 0)
 	{
 		if (g_backlight_tick_10ms < min_ticks)
@@ -82,13 +78,17 @@ void BACKLIGHT_turn_on(const unsigned int min_secs)
 	else
 	if (g_eeprom.config.setting.backlight_time > 0)
 	{
-		BACKLIGHT_set_brightness(BACKLIGHT_MAX_BRIGHTNESS);
 		g_backlight_tick_10ms = BACKLIGHT_ticks();
+		BACKLIGHT_set_brightness(BACKLIGHT_MAX_BRIGHTNESS);
 	}
 }
 
 void BACKLIGHT_turn_off(void)
 {
-	g_backlight_tick_10ms = 0;
-	BACKLIGHT_set_brightness(0);
+	if (g_backlight_tick_10ms > BACKLIGHT_MAX_BRIGHTNESS)
+		g_backlight_tick_10ms = BACKLIGHT_MAX_BRIGHTNESS;
+
+//	g_backlight_tick_10ms = 0;
+
+	BACKLIGHT_set_brightness(g_backlight_tick_10ms);
 }
