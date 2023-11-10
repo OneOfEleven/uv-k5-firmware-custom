@@ -5,7 +5,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
- 
+
  /*
  * Modified by Arm
  */
@@ -334,7 +334,7 @@ void USART_GetDefaultConfig(usart_config_t *config)
  /*!
  * brief Sets the USART instance baud rate.
  *
- * This function configures the USART module baud rate. 
+ * This function configures the USART module baud rate.
  *
  *  USART_SetBaudRate(USART1, 115200U, 20000000U);
  * endcode
@@ -363,12 +363,12 @@ status_t USART_SetBaudRate(USART_Type *base, uint32_t baudrate_Bps, uint32_t src
 
     flexcomm_idx = FLEXCOMM_GetInstance(base);
     flexcomm_clock   = CLOCK_GetFlexCommInputClock(flexcomm_idx);
-    if (flexcomm_clock != 48000000U)
+    if (flexcomm_clock != CPU_CLOCK_HZ)
     {
         /* FlexComm input clock must be 48000000 */
         return kStatus_USART_BaudrateNotSupport;
     }
-  
+
     /* Calculate fixed point divider (12 LSBs are fractional part) */
     div = (uint32_t)(((uint64_t)flexcomm_clock << FRACT_BITS) / (uint64_t)baudrate_Bps);
 
@@ -376,7 +376,7 @@ status_t USART_SetBaudRate(USART_Type *base, uint32_t baudrate_Bps, uint32_t src
     {
         return kStatus_USART_BaudrateNotSupport;
     }
-  
+
     br_div_best = 0U;
     if ((div & ((1 << FRACT_BITS) - 1U)) == 0U)
     {

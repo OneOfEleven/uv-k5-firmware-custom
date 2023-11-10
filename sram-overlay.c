@@ -23,7 +23,7 @@
 static volatile uint32_t *pFlash = 0;
 uint32_t                  overlay_FLASH_MainClock;
 uint32_t                  overlay_FLASH_ClockMultiplier;
-uint32_t                  overlay_0x20000478;         // Nothing is using this???
+//uint32_t                  overlay_0x20000478;         // Nothing is using this???
 
 void overlay_FLASH_RebootToBootloader(void)
 {
@@ -86,7 +86,6 @@ void overlay_FLASH_Unlock(void)
 
 uint32_t overlay_FLASH_ReadByAHB(uint32_t Offset)
 {
-
 	return pFlash[(Offset & ~3U) / 4];
 }
 

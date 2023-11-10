@@ -51,8 +51,8 @@
 		FLASH_ConfigureTrimValues();
 		SYSTEM_ConfigureClocks();
 
-		overlay_FLASH_MainClock       = 48000000;
-		overlay_FLASH_ClockMultiplier = 48;
+		overlay_FLASH_MainClock       = CPU_CLOCK_HZ;
+		overlay_FLASH_ClockMultiplier = CPU_CLOCK_HZ / 1000000;
 
 		FLASH_Init(FLASH_READ_MODE_2_CYCLE);
 	}

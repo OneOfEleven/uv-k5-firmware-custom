@@ -258,6 +258,8 @@ endif
 
 CFLAGS =
 
+CFLAGS += -DCPU_CLOCK_HZ=48000000
+
 ifeq ($(ENABLE_CLANG),0)
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
 	CFLAGS += -Os -Werror -mcpu=cortex-m0 -freorder-blocks-algorithm=stc -std=c11 -MMD

@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include "driver/flash.h"
 
 extern uint32_t overlay_FLASH_MainClock __attribute__((section(".srambss")));
