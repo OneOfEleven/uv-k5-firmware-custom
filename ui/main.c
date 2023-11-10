@@ -870,7 +870,7 @@ void UI_DisplayMain(void)
 		{	// or show the CTCSS/DCS symbol (when in FM mode)
 			const freq_config_t *pConfig = (mode == 1) ? g_vfo_info[vfo_num].p_tx : g_vfo_info[vfo_num].p_rx;
 			const unsigned int code_type = pConfig->code_type;
-			const char *code_list[] = {"", "CTC", "DCS", "DCR"};
+			const char *code_list[] = {"FM", "CTC", "DCS", "DCR"};
 			if (code_type < ARRAY_SIZE(code_list))
 				strcpy(str, code_list[code_type]);
 		}
@@ -906,12 +906,14 @@ void UI_DisplayMain(void)
 		if (g_vfo_info[vfo_num].channel.frequency_reverse)
 			UI_PrintStringSmall("R", 62, 0, line + 2);
 
-		{	// show the narrow band symbol
-			strcpy(str, " ");
-			if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_NARROW)
-				str[0] = 'N';
-			UI_PrintStringSmall(str, 70, 0, line + 2);
-		}
+		// show the narrow band symbol
+		strcpy(str, " ");
+		if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_WIDE)
+			str[0] = 'W';
+		else
+		if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_NARROW)
+			str[0] = 'N';
+		UI_PrintStringSmall(str, 70, 0, line + 2);
 
 		// show the DTMF decoding symbol
 		#ifdef ENABLE_KILL_REVIVE
