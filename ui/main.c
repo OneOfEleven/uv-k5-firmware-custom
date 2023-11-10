@@ -419,7 +419,7 @@ void UI_DisplayMain(void)
 
 	if (g_serial_config_tick_500ms > 0)
 	{
-		backlight_turn_on(10);		// 5 seconds
+		BACKLIGHT_turn_on(100 * 5);		// 5 seconds
 		UI_PrintString("UART", 0, LCD_WIDTH, 1, 8);
 		UI_PrintString("CONFIG COMMS", 0, LCD_WIDTH, 3, 8);
 		ST7565_BlitFullScreen();
@@ -430,7 +430,7 @@ void UI_DisplayMain(void)
 	#ifdef ENABLE_KEYLOCK
 		if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
 		{	// tell user how to unlock the keyboard
-			backlight_turn_on(10);     // 5 seconds
+			BACKLIGHT_turn_on(100 * 5);     // 5 seconds
 			UI_PrintString("Long press #", 0, LCD_WIDTH, 1, 8);
 			UI_PrintString("to unlock",    0, LCD_WIDTH, 3, 8);
 			ST7565_BlitFullScreen();
@@ -860,7 +860,7 @@ void UI_DisplayMain(void)
 		{	// show the modulation mode
 			switch (g_vfo_info[vfo_num].channel.mod_mode)
 			{
-//				case MOD_MODE_FM:  strcpy(str, "FM"); break;
+				//case MOD_MODE_FM:  strcpy(str, "FM"); break;
 				case MOD_MODE_AM:  strcpy(str, "AM"); break;
 				case MOD_MODE_DSB: strcpy(str, "DS"); break;
 				default:           strcpy(str, "??"); break;

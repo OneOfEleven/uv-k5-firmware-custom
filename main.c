@@ -63,7 +63,7 @@ void MAIN_DisplayReleaseKeys(void)
 	ST7565_BlitStatusLine();  // blank status line
 	ST7565_BlitFullScreen();
 
-	GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // backlight on
+	BACKLIGHT_turn_on(0);
 }
 
 void MAIN_DisplayPowerOn(void)
@@ -146,7 +146,7 @@ void MAIN_DisplayPowerOn(void)
 	}
 
 	if (g_eeprom.config.setting.power_on_display_mode != PWR_ON_DISPLAY_MODE_NONE)
-		backlight_turn_on(0);   // turn the back light on
+		BACKLIGHT_turn_on(0);   // turn the back light on
 }
 
 void Main(void)
@@ -163,7 +163,8 @@ void Main(void)
 		| SYSCON_DEV_CLK_GATE_SPI0_BITS_ENABLE
 		| SYSCON_DEV_CLK_GATE_SARADC_BITS_ENABLE
 		| SYSCON_DEV_CLK_GATE_CRC_BITS_ENABLE
-		| SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE;
+		| SYSCON_DEV_CLK_GATE_AES_BITS_ENABLE
+		| SYSCON_DEV_CLK_GATE_PWM_PLUS0_BITS_ENABLE;
 
 	SYSTICK_Init();
 
@@ -178,6 +179,7 @@ void Main(void)
 	#ifdef ENABLE_FMRADIO
 		BK1080_Init(0, false);
 	#endif
+	BACKLIGHT_init();
 
 	// ***************************
 
@@ -271,15 +273,15 @@ void Main(void)
 		FUNCTION_Select(FUNCTION_POWER_SAVE);
 
 		if (g_eeprom.config.setting.backlight_time < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
-			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);   // turn the backlight OFF
+			BACKLIGHT_turn_off();
 		else
-			backlight_turn_on(0);                               // turn the backlight ON
+			BACKLIGHT_turn_on(0);                               // turn the backlight ON
 
 		g_reduced_service = true;
 	}
 	else
 	{
-		backlight_turn_on(0);
+		BACKLIGHT_turn_on(0);
 
 		MAIN_DisplayPowerOn();
 

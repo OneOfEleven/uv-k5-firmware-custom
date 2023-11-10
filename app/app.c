@@ -324,7 +324,7 @@ static void APP_process_rx(void)
 	if (g_squelch_open || g_monitor_enabled)
 	{
 		if (g_eeprom.config.setting.backlight_on_tx_rx >= 2)
-			backlight_turn_on(backlight_tx_rx_time_500ms); // keep the backlight on while we're receiving
+			BACKLIGHT_turn_on(backlight_tx_rx_time_10ms); // keep the backlight on while we're receiving
 
 		if (!g_end_of_rx_detected_maybe && IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 		{
@@ -467,7 +467,7 @@ bool APP_start_listening(void)
 		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
 
 	if (g_eeprom.config.setting.backlight_on_tx_rx >= 2)
-		backlight_turn_on(backlight_tx_rx_time_500ms);
+		BACKLIGHT_turn_on(backlight_tx_rx_time_10ms);
 
 	#ifdef ENABLE_MDC1200
 //		MDC1200_reset_rx();
@@ -1780,7 +1780,7 @@ void APP_process_functions(void)
 
 		case FUNCTION_TRANSMIT:
 			if (g_eeprom.config.setting.backlight_on_tx_rx == 1 || g_eeprom.config.setting.backlight_on_tx_rx == 3)
-				backlight_turn_on(backlight_tx_rx_time_500ms);
+				BACKLIGHT_turn_on(backlight_tx_rx_time_10ms);
 			break;
 
 		case FUNCTION_NEW_RECEIVE:
@@ -2025,17 +2025,6 @@ void APP_time_slice_500ms(void)
 //			g_update_display = true;  // can't do this if not FM scanning, it causes audio clicks
 	#endif
 
-	if (g_backlight_tick_500ms > 0 &&
-	   !g_ask_to_save &&
-	    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
-	    g_current_display_screen != DISPLAY_AIRCOPY)
-	{
-		if (g_current_display_screen != DISPLAY_MENU || g_menu_cursor != MENU_AUTO_BACKLITE) // don't turn off backlight if user is in backlight menu option
-			if (--g_backlight_tick_500ms == 0)
-				if (g_eeprom.config.setting.backlight_time < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
-					GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);   // turn backlight off
-	}
-
 	if (g_reduced_service)
 	{
 		BOARD_ADC_GetBatteryInfo(&g_usb_current_voltage, &g_usb_current);
@@ -2104,10 +2093,7 @@ void APP_time_slice_500ms(void)
 				g_menu_tick_10ms = 0;
 
 				if (g_eeprom.config.setting.backlight_time == 0)
-				{
-					g_backlight_tick_500ms = 0;
-					GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
-				}
+					BACKLIGHT_turn_off();
 
 				if (g_input_box_index > 0 || g_dtmf_input_mode)
 					AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
@@ -2204,7 +2190,7 @@ void APP_time_slice_500ms(void)
 						ST7565_HardwareReset();
 
 						if (g_eeprom.config.setting.backlight_time < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
-							GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  // turn the backlight off
+							BACKLIGHT_turn_off();
 					}
 					#ifdef ENABLE_VOICE
 						else
@@ -2300,6 +2286,17 @@ void APP_time_slice_500ms(void)
 void APP_time_slice_10ms(void)
 {
 	g_flash_light_blink_tick_10ms++;
+
+	if (g_backlight_tick_10ms > 0 &&
+	   !g_ask_to_save &&
+	    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
+	    g_current_display_screen != DISPLAY_AIRCOPY)
+	{
+		if (g_current_display_screen != DISPLAY_MENU || g_menu_cursor != MENU_AUTO_BACKLITE) // don't turn off backlight if user is in backlight menu option
+			if (g_eeprom.config.setting.backlight_time < (ARRAY_SIZE(g_sub_menu_backlight) - 1))
+				if (--g_backlight_tick_10ms <= 100)
+					BACKLIGHT_set_brightness(g_backlight_tick_10ms);
+	}
 
 	if (g_flag_save_vfo)
 	{
@@ -2502,13 +2499,13 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 		RADIO_set_vfo_state(VFO_STATE_NORMAL);
 #if 0
 	// remember the current backlight state (on / off)
-	const bool backlight_was_on = GPIO_CheckBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
+	const bool backlight_was_on = g_backlight_on;
 
 	if (Key == KEY_EXIT && !backlight_was_on && g_eeprom.config.setting.backlight_time > 0)
 	{	// just turn the back light on for now so the user can see what's what
 		if (!key_pressed && !key_held)
 		{	// key has been released
-			backlight_turn_on(0);
+			BACKLIGHT_turn_on(0);
 		}
 		g_beep_to_play = BEEP_NONE;
 		return;
@@ -2518,7 +2515,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 	// turn the backlight on
 	if (key_pressed)
 		if (Key != KEY_PTT)
-			backlight_turn_on(0);
+			BACKLIGHT_turn_on(0);
 
 	if (g_current_function == FUNCTION_POWER_SAVE)
 		FUNCTION_Select(FUNCTION_FOREGROUND);

@@ -1060,9 +1060,7 @@ void MENU_ShowCurrentSetting(void)
 
 		case MENU_AUTO_BACKLITE:
 			g_sub_menu_selection = g_eeprom.config.setting.backlight_time;
-
-			g_backlight_tick_500ms = 0;
-			GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);  	// turn the backlight ON while in backlight menu
+			BACKLIGHT_turn_on(0);
 			break;
 
 		case MENU_AUTO_BACKLITE_ON_TX_RX:
@@ -1603,10 +1601,7 @@ static void MENU_Key_EXIT(bool key_pressed, bool key_held)
 		g_request_display_screen = DISPLAY_MAIN;
 
 		if (g_eeprom.config.setting.backlight_time == 0)
-		{
-			g_backlight_tick_500ms = 0;
-			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
-		}
+			BACKLIGHT_turn_off();
 	}
 	else
 	{
@@ -1889,10 +1884,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 		g_request_display_screen = DISPLAY_MENU;
 
 		if (g_menu_cursor != MENU_AUTO_BACKLITE && g_eeprom.config.setting.backlight_time == 0)
-		{
-			g_backlight_tick_500ms = 0;
-			GPIO_ClearBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);	// turn the backlight OFF
-		}
+			BACKLIGHT_turn_off();
 
 		return;
 	}

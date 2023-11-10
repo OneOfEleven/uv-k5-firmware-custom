@@ -14,15 +14,32 @@
  *     limitations under the License.
  */
 
+#include "backlight.h"
 #include "bsp/dp32g030/gpio.h"
-#include "driver/backlight.h"
+#include "bsp/dp32g030/pwmplus.h"
+#include "bsp/dp32g030/portcon.h"
 #include "driver/gpio.h"
 #include "settings.h"
 
-// this is decremented once every 500ms
-uint16_t g_backlight_tick_500ms = 0;
+uint16_t g_backlight_tick_10ms;
+bool     g_backlight_on;
 
-uint16_t backlight_ticks(void)
+void BACKLIGHT_init(void)
+{
+	// 48MHz / 94 / 1024 ~ 500Hz
+	const uint32_t PWM_FREQUENCY_HZ =  1000;
+	PWM_PLUS0_CLKSRC |= ((48000000 / 1024 / PWM_FREQUENCY_HZ) << 16);
+	PWM_PLUS0_PERIOD = 1023;
+
+	PORTCON_PORTB_SEL0 &= ~(PORTCON_PORTB_SEL0_B6_MASK);
+	PORTCON_PORTB_SEL0 |= PORTCON_PORTB_SEL0_B6_BITS_PWMP0_CH0;
+
+	PWM_PLUS0_GEN = PWMPLUS_GEN_CH0_OE_BITS_ENABLE | PWMPLUS_GEN_CH0_OUTINV_BITS_ENABLE;
+
+	PWM_PLUS0_CFG = PWMPLUS_CFG_CNT_REP_BITS_ENABLE | PWMPLUS_CFG_COUNTER_EN_BITS_ENABLE;
+}
+
+uint16_t BACKLIGHT_ticks(void)
 {
 	uint16_t ticks = 0;
 	switch (g_eeprom.config.setting.backlight_time)
@@ -34,21 +51,38 @@ uint16_t backlight_ticks(void)
 		case 5: ticks = 60 * 2; break;  // 2 min
 		case 6: ticks = 60 * 4; break;  // 4 min
 	}
-	return ticks * 2;
+	return ticks * 100;
 }
 
-void backlight_turn_on(const uint16_t min_ticks)
+void BACKLIGHT_set_brightness(unsigned int brightness)
+{
+	brightness = (brightness > BACKLIGHT_MAX_BRIGHTNESS) ? BACKLIGHT_MAX_BRIGHTNESS : brightness;
+
+	// non-linear
+	PWM_PLUS0_CH0_COMP = (1023ul * brightness * brightness) / (BACKLIGHT_MAX_BRIGHTNESS * BACKLIGHT_MAX_BRIGHTNESS);
+	//PWM_PLUS0_SWLOAD = 1;
+
+	g_backlight_on = (brightness > 0) ? true : false;
+}
+
+void BACKLIGHT_turn_on(const uint16_t min_ticks)
 {
 	if (min_ticks > 0)
 	{
-		if (g_backlight_tick_500ms < min_ticks)
-			g_backlight_tick_500ms = min_ticks;
-		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
+		if (g_backlight_tick_10ms < min_ticks)
+			g_backlight_tick_10ms = min_ticks;
+		BACKLIGHT_set_brightness(BACKLIGHT_MAX_BRIGHTNESS);
 	}
 	else
 	if (g_eeprom.config.setting.backlight_time > 0)
 	{
-		GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_BACKLIGHT);
-		g_backlight_tick_500ms = backlight_ticks();
+		BACKLIGHT_set_brightness(BACKLIGHT_MAX_BRIGHTNESS);
+		g_backlight_tick_10ms = BACKLIGHT_ticks();
 	}
+}
+
+void BACKLIGHT_turn_off(void)
+{
+	g_backlight_tick_10ms = 0;
+	BACKLIGHT_set_brightness(0);
 }

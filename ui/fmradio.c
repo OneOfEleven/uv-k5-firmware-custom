@@ -36,7 +36,7 @@ void UI_DisplayFM(void)
 	#ifdef ENABLE_KEYLOCK
 	if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
 	{	// tell user how to unlock the keyboard
-		backlight_turn_on(0);
+		BACKLIGHT_turn_on(0);
 		UI_PrintString("Long press #", 0, LCD_WIDTH - 1, 1, 8);
 		UI_PrintString("to unlock",    0, LCD_WIDTH - 1, 3, 8);
 		ST7565_BlitFullScreen();

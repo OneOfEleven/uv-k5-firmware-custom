@@ -18,11 +18,18 @@
 #define DRIVER_BACKLIGHT_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
-extern uint16_t g_backlight_tick_500ms;
+#define BACKLIGHT_MAX_BRIGHTNESS  100
 
-uint16_t backlight_ticks(void);
-void     backlight_turn_on(const uint16_t min_ticks);
+extern uint16_t g_backlight_tick_10ms;
+extern bool     g_backlight_on;
+
+void     BACKLIGHT_init(void);
+uint16_t BACKLIGHT_ticks(void);
+void     BACKLIGHT_set_brightness(unsigned int brightness);
+void     BACKLIGHT_turn_on(const uint16_t min_ticks);
+void     BACKLIGHT_turn_off(void);
 
 #endif
 
