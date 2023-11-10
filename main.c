@@ -188,6 +188,10 @@ void Main(void)
 	#if defined(ENABLE_UART)
 		UART_SendText(UART_Version_str);
 		UART_SendText("\r\n");
+		{
+			//const unsigned long *unique = (const unsigned long *)0x1FFFF7E8;  // STM32 M0
+			//UART_printf("serial num %08X %08X %08X\r\n", unique[0], unique[1], unique[2]);
+		}
 	#endif
 
 	BootMode = BOOT_GetMode();

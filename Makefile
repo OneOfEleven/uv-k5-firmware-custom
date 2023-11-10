@@ -258,8 +258,6 @@ endif
 
 CFLAGS =
 
-CFLAGS += -DCPU_CLOCK_HZ=48000000
-
 ifeq ($(ENABLE_CLANG),0)
 	#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
 	CFLAGS += -Os -Werror -mcpu=cortex-m0 -freorder-blocks-algorithm=stc -std=c11 -MMD
@@ -281,6 +279,8 @@ endif
 # catch any and all warnings
 # better to bust than add new bugs
 CFLAGS += -Wall -Wextra -Wpedantic
+
+CFLAGS += -DCPU_CLOCK_HZ=48000000
 
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
