@@ -196,7 +196,7 @@ void FUNCTION_Select(function_type_t Function)
 			}
 
 			if (g_eeprom.config.setting.backlight_on_tx_rx == 1 || g_eeprom.config.setting.backlight_on_tx_rx == 3)
-				BACKLIGHT_turn_on(backlight_tx_rx_time_10ms);
+				BACKLIGHT_turn_on(backlight_tx_rx_time_secs);
 
 			if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
 			{	// dual-RX is enabled

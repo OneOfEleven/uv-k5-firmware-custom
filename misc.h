@@ -126,7 +126,7 @@ extern const uint16_t        fm_play_noscan_10ms;
 extern const uint8_t         menu_timeout_500ms;
 extern const uint16_t        menu_timeout_long_500ms;
 
-extern const uint16_t        backlight_tx_rx_time_10ms;
+extern const uint16_t        backlight_tx_rx_time_secs;
 
 extern const uint8_t         dtmf_rx_live_timeout_500ms;
 extern const uint8_t         dtmf_rx_timeout_500ms;

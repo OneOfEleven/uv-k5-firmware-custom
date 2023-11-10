@@ -324,7 +324,7 @@ static void APP_process_rx(void)
 	if (g_squelch_open || g_monitor_enabled)
 	{
 		if (g_eeprom.config.setting.backlight_on_tx_rx >= 2)
-			BACKLIGHT_turn_on(backlight_tx_rx_time_10ms); // keep the backlight on while we're receiving
+			BACKLIGHT_turn_on(backlight_tx_rx_time_secs); // keep the backlight on while we're receiving
 
 		if (!g_end_of_rx_detected_maybe && IS_NOT_NOAA_CHANNEL(g_rx_vfo->channel_save))
 		{
@@ -467,7 +467,7 @@ bool APP_start_listening(void)
 		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
 
 	if (g_eeprom.config.setting.backlight_on_tx_rx >= 2)
-		BACKLIGHT_turn_on(backlight_tx_rx_time_10ms);
+		BACKLIGHT_turn_on(backlight_tx_rx_time_secs);
 
 	#ifdef ENABLE_MDC1200
 //		MDC1200_reset_rx();
@@ -1282,11 +1282,11 @@ void APP_check_keys(void)
 			{
 				if (--g_ptt_debounce <= 0)
 				{	// stop TX'ing
-	
+
 					g_ptt_is_pressed   = false;
 					g_ptt_was_released = true;
 					g_ptt_debounce     = 0;
-	
+
 					APP_process_key(KEY_PTT, false, false);
 				}
 			}
@@ -1780,7 +1780,7 @@ void APP_process_functions(void)
 
 		case FUNCTION_TRANSMIT:
 			if (g_eeprom.config.setting.backlight_on_tx_rx == 1 || g_eeprom.config.setting.backlight_on_tx_rx == 3)
-				BACKLIGHT_turn_on(backlight_tx_rx_time_10ms);
+				BACKLIGHT_turn_on(backlight_tx_rx_time_secs);
 			break;
 
 		case FUNCTION_NEW_RECEIVE:
@@ -2497,11 +2497,10 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 	// reset the state so as to remove it from the screen
 	if (Key != KEY_INVALID && Key != KEY_PTT)
 		RADIO_set_vfo_state(VFO_STATE_NORMAL);
-#if 0
-	// remember the current backlight state (on / off)
-	const bool backlight_was_on = g_backlight_on;
 
-	if (Key == KEY_EXIT && !backlight_was_on && g_eeprom.config.setting.backlight_time > 0)
+#if 1
+	// remember the current backlight state (on / off)
+	if (Key == KEY_EXIT && !BACKLIGHT_is_on() && g_eeprom.config.setting.backlight_time > 0)
 	{	// just turn the back light on for now so the user can see what's what
 		if (!key_pressed && !key_held)
 		{	// key has been released

@@ -31,7 +31,7 @@ const uint16_t        fm_play_noscan_10ms              =  1200 / 10;    // 1.2 s
 const uint8_t         menu_timeout_500ms               =  30000 / 500;  // 30 seconds
 const uint16_t        menu_timeout_long_500ms          = 120000 / 500;  // 2 minutes
 
-const uint16_t        backlight_tx_rx_time_10ms        =  10000 / 10;  // 10 seconds
+const uint16_t        backlight_tx_rx_time_secs        =  10;           // 10 seconds
 
 const uint8_t         dtmf_rx_live_timeout_500ms       =   6000 / 500;  // 6 seconds live decoder on screen
 const uint8_t         dtmf_rx_timeout_500ms            =  10000 / 500;  // 10 seconds till we wipe the DTMF receiver

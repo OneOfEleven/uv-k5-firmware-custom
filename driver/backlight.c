@@ -22,13 +22,12 @@
 #include "settings.h"
 
 uint16_t g_backlight_tick_10ms;
-bool     g_backlight_on;
 
 void BACKLIGHT_init(void)
 {
 	// 48MHz / 94 / 1024 ~ 500Hz
 	const uint32_t PWM_FREQUENCY_HZ =  1000;
-	PWM_PLUS0_CLKSRC |= ((CPU_CLOCK_HZ / 1024 / PWM_FREQUENCY_HZ) << 16);
+	PWM_PLUS0_CLKSRC |= (CPU_CLOCK_HZ / 1024 / PWM_FREQUENCY_HZ) << 16;
 	PWM_PLUS0_PERIOD = 1023;
 
 	PORTCON_PORTB_SEL0 &= ~(PORTCON_PORTB_SEL0_B6_MASK);
@@ -44,29 +43,36 @@ uint16_t BACKLIGHT_ticks(void)
 	uint16_t ticks = 0;
 	switch (g_eeprom.config.setting.backlight_time)
 	{
-		case 1:	ticks =  5;     break;  // 5 sec
-		case 2:	ticks = 10;     break;  // 10 sec
-		case 3: ticks = 20;     break;  // 20 sec
-		case 4: ticks = 60;     break;  // 1 min
-		case 5: ticks = 60 * 2; break;  // 2 min
-		case 6: ticks = 60 * 4; break;  // 4 min
+		case 1:	ticks =   5; break;  // 5 sec
+		case 2:	ticks =  10; break;  // 10 sec
+		case 3: ticks =  20; break;  // 20 sec
+		case 4: ticks =  60; break;  // 1 min
+		case 5: ticks = 120; break;  // 2 min
+		case 6: ticks = 240; break;  // 4 min
 	}
 	return ticks * 100;
 }
 
-void BACKLIGHT_set_brightness(unsigned int brightness)
+bool BACKLIGHT_is_on(void)
 {
-	brightness = (brightness > BACKLIGHT_MAX_BRIGHTNESS) ? BACKLIGHT_MAX_BRIGHTNESS : brightness;
-
-	// non-linear
-	PWM_PLUS0_CH0_COMP = (1023ul * brightness * brightness) / (BACKLIGHT_MAX_BRIGHTNESS * BACKLIGHT_MAX_BRIGHTNESS);
-	//PWM_PLUS0_SWLOAD = 1;
-
-	g_backlight_on = (brightness > 0) ? true : false;
+	return (PWM_PLUS0_CH0_COMP > 0) ? true : false;
 }
 
-void BACKLIGHT_turn_on(const uint16_t min_ticks)
+void BACKLIGHT_set_brightness(unsigned int brightness)
 {
+	if (brightness > BACKLIGHT_MAX_BRIGHTNESS)
+		brightness = BACKLIGHT_MAX_BRIGHTNESS;
+
+	// non-linear 0 ~ 1023
+	PWM_PLUS0_CH0_COMP = (1023ul * brightness * brightness * brightness) / (BACKLIGHT_MAX_BRIGHTNESS * BACKLIGHT_MAX_BRIGHTNESS * BACKLIGHT_MAX_BRIGHTNESS);
+	//PWM_PLUS0_SWLOAD = 1;
+
+//	g_backlight_on = (brightness > 0) ? true : false;
+}
+
+void BACKLIGHT_turn_on(const unsigned int min_secs)
+{
+	const uint16_t min_ticks = min_secs * 100;
 	if (min_ticks > 0)
 	{
 		if (g_backlight_tick_10ms < min_ticks)
