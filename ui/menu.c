@@ -761,16 +761,29 @@ void UI_DisplayMenu(void)
 
 		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
+				strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
+				break;
 		#endif
+
 		#ifdef ENABLE_RX_SIGNAL_BAR
 			case MENU_RX_BAR:
+				strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
+				break;
 		#endif
+
 		#ifdef ENABLE_AM_FIX
 //			case MENU_AM_FIX:
+				strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
+				break;
 		#endif
+
 		#ifdef ENABLE_SCAN_RANGES
 			case MENU_SCAN_RANGES:
+				strcpy(str, "SCAN\nRANGES\n");
+				strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
+				break;
 		#endif
+
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
 			strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
