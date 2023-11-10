@@ -66,8 +66,7 @@ const uint16_t        scan_pause_cdcss_10ms            =    300 / 10;   // 300ms
 const uint16_t        scan_pause_freq_10ms             =    100 / 10;   // 100ms
 const uint16_t        scan_pause_chan_10ms             =    200 / 10;   // 200ms
 
-const uint16_t        battery_save_count_10ms          =  10000 / 10;   // 10 seconds
-
+const uint16_t        power_save_pause_10ms            =  10000 / 10;   // 10 seconds
 const uint16_t        power_save1_10ms                 =    100 / 10;   // 100ms
 const uint16_t        power_save2_10ms                 =    200 / 10;   // 200ms
 
@@ -92,9 +91,8 @@ bool                  g_monitor_enabled;
 bool                  g_has_aes_key;
 uint32_t              g_challenge[4];
 
-volatile uint16_t     g_schedule_power_save_tick_10ms = battery_save_count_10ms;
-volatile bool         g_schedule_power_save;
-
+volatile uint16_t     g_power_save_pause_tick_10ms = power_save_pause_10ms;
+volatile bool         g_power_save_pause_done;
 volatile bool         g_power_save_expired;
 
 volatile uint16_t     g_dual_watch_tick_10ms;

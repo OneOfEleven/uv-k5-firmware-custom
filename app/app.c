@@ -1842,15 +1842,15 @@ void APP_process_power_save(void)
 		if (g_current_function == FUNCTION_POWER_SAVE)
 			FUNCTION_Select(FUNCTION_RECEIVE);   // come out of power save mode
 
-		g_schedule_power_save_tick_10ms = battery_save_count_10ms;  // stay out of power save mode
+		g_power_save_pause_tick_10ms = power_save_pause_10ms;  // stay out of power save mode
 	}
 	else
-	if (g_schedule_power_save)
+	if (g_power_save_pause_done)
 	{	// enter power save
 		FUNCTION_Select(FUNCTION_POWER_SAVE);
 	}
 
-	g_schedule_power_save = false;
+	g_power_save_pause_done = false;
 
 	// **************************
 
@@ -2524,7 +2524,8 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 		FUNCTION_Select(FUNCTION_FOREGROUND);
 
 	// stay awake - for now
-	g_schedule_power_save_tick_10ms = battery_save_count_10ms;
+	g_power_save_pause_tick_10ms = power_save_pause_10ms;
+	g_power_save_pause_done      = false;
 
 	#ifdef ENABLE_KEYLOCK
 		// keep the auto keylock at bay

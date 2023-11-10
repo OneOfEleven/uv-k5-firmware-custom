@@ -73,7 +73,7 @@ void SystickHandler(void)
 	DECREMENT(g_found_ctcss_tick_10ms);
 
 	if (g_current_function == FUNCTION_FOREGROUND)
-		DECREMENT_AND_TRIGGER(g_schedule_power_save_tick_10ms, g_schedule_power_save);
+		DECREMENT_AND_TRIGGER(g_power_save_pause_tick_10ms, g_power_save_pause_done);
 
 	if (g_current_function == FUNCTION_POWER_SAVE)
 		DECREMENT_AND_TRIGGER(g_power_save_tick_10ms, g_power_save_expired);

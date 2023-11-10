@@ -148,7 +148,7 @@ extern const uint8_t         key_repeat_10ms;
 extern const uint16_t        search_freq_css_10ms;
 extern const uint16_t        search_10ms;
 
-extern const uint16_t        battery_save_count_10ms;
+extern const uint16_t        power_save_pause_10ms;
 
 extern const uint16_t        power_save1_10ms;
 extern const uint16_t        power_save2_10ms;
@@ -183,9 +183,8 @@ extern const uint32_t        g_default_aes_key[4];
 extern bool                  g_has_aes_key;
 extern uint32_t              g_challenge[4];
 
-extern volatile uint16_t     g_schedule_power_save_tick_10ms;
-extern volatile bool         g_schedule_power_save;
-
+extern volatile uint16_t     g_power_save_pause_tick_10ms;
+extern volatile bool         g_power_save_pause_done;
 extern volatile bool         g_power_save_expired;
 
 extern volatile uint16_t     g_dual_watch_tick_10ms;

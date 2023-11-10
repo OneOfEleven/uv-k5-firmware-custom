@@ -300,8 +300,8 @@ void FUNCTION_Select(function_type_t Function)
 			break;
 	}
 
-	g_schedule_power_save_tick_10ms = battery_save_count_10ms;
-	g_schedule_power_save          = false;
+	g_power_save_pause_tick_10ms = power_save_pause_10ms;
+	g_power_save_pause_done      = false;
 
 	#ifdef ENABLE_FMRADIO
 		g_fm_restore_tick_10ms = 0;
