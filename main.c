@@ -175,11 +175,11 @@ void Main(void)
 		UART_Init();
 	#endif
 	BOARD_ADC_Init();
+	BACKLIGHT_init();
 	ST7565_Init(true);
 	#ifdef ENABLE_FMRADIO
 		BK1080_Init(0, false);
 	#endif
-	BACKLIGHT_init();
 
 	// ***************************
 

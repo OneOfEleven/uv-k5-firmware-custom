@@ -858,13 +858,10 @@ void UI_DisplayMain(void)
 		str[0] = '\0';
 		if (g_vfo_info[vfo_num].channel.mod_mode != MOD_MODE_FM)
 		{	// show the modulation mode
-			switch (g_vfo_info[vfo_num].channel.mod_mode)
-			{
-				//case MOD_MODE_FM:  strcpy(str, "FM"); break;
-				case MOD_MODE_AM:  strcpy(str, "AM"); break;
-				case MOD_MODE_DSB: strcpy(str, "DS"); break;
-				default:           strcpy(str, "??"); break;
-			}
+			const char *mode_list[] = {"FM", "AM", "SB", "??"};
+			const unsigned int mode = g_vfo_info[vfo_num].channel.mod_mode;
+			if (mode < ARRAY_SIZE(mode_list))
+				strcpy(str, mode_list[mode]);
 		}
 		else
 		{	// or show the CTCSS/DCS symbol (when in FM mode)
