@@ -1033,9 +1033,6 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 						//	freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
 						//}
 					#endif
-
-//					if (band == BAND2_108MHz)
-//						freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
 				}
 
 				freq += g_scan_initial_step_size * direction;
@@ -1056,7 +1053,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 					//	freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
 				#endif
 
-				if (band == BAND2_108MHz)
+				if (band == BAND2_108MHz)   // cope with the 8.333kHz step size
 					freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
 
 				if (FREQUENCY_rx_freq_check(freq) < 0)
