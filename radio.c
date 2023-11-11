@@ -437,7 +437,7 @@ void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 		// 64 30 2D 29 26 23 20 1D 1A 17 FF FF FF FF FF FF   // close noise
 		// 5A 14 11 0E 0B 08 03 02 02 02 FF FF FF FF FF FF   // open glitch
 		// 64 11 0E 0B 08 05 05 04 04 04 FF FF FF FF FF FF   // close glitch
-		//           
+		//
 		// bands 123
 		// 32 68 6B 6E 6F 72 75 77 79 7B FF FF FF FF FF FF   // open rssi
 		// 28 64 67 6A 6C 6E 71 73 76 78 FF FF FF FF FF FF   // close rssi
@@ -625,6 +625,44 @@ void RADIO_select_vfos(void)
  	g_current_vfo = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo : &g_vfo_info[g_eeprom.config.setting.tx_vfo_num];
 }
 
+BK4819_filter_bandwidth_t RADIO_set_bandwidth(BK4819_filter_bandwidth_t bandwidth, const int mode)
+{
+	switch (bandwidth)
+	{
+		default:
+			bandwidth = BK4819_FILTER_BW_WIDE;
+
+			// Fallthrough
+
+		case BK4819_FILTER_BW_WIDE:
+		case BK4819_FILTER_BW_NARROW:
+		case BK4819_FILTER_BW_NARROWER:
+			break;
+	}
+
+	switch (mode)
+	{
+		case MOD_MODE_FM:
+			//BK4819_set_AFC(2);
+			BK4819_set_AFC(0);
+			break;
+
+		case MOD_MODE_AM:
+			//BK4819_set_AFC(2);
+			BK4819_set_AFC(0);
+			break;
+
+		case MOD_MODE_DSB:
+			bandwidth = BK4819_FILTER_BW_NARROWER;
+			BK4819_set_AFC(0);
+			break;
+	}
+
+	BK4819_SetFilterBandwidth(bandwidth);
+
+	return bandwidth;
+}
+
 void RADIO_setup_registers(bool switch_to_function_foreground)
 {
 	BK4819_filter_bandwidth_t Bandwidth = g_rx_vfo->channel.channel_bandwidth;
@@ -642,40 +680,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	// turn green LED off
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
-	switch (Bandwidth)
-	{
-		default:
-			Bandwidth = BK4819_FILTER_BW_WIDE;
-
-			// Fallthrough
-
-		case BK4819_FILTER_BW_WIDE:
-		case BK4819_FILTER_BW_NARROW:
-			#ifdef ENABLE_AM_FIX
-				#if 0
-					BK4819_SetFilterBandwidth(Bandwidth);
-//					BK4819_EnableAFC();
-					BK4819_DisableAFC();
-				#else
-					if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM)
-					{
-						BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER); // sideband
-						BK4819_DisableAFC();
-					}
-					else
-					{
-						BK4819_SetFilterBandwidth(Bandwidth);
-//						BK4819_EnableAFC();
-						BK4819_DisableAFC();
-				}
-				#endif
-			#else
-				BK4819_SetFilterBandwidth(Bandwidth, false);
-//				BK4819_EnableAFC();
-				BK4819_DisableAFC();
-			#endif
-			break;
-	}
+	Bandwidth = RADIO_set_bandwidth(Bandwidth, g_rx_vfo->channel.mod_mode);
 
 	BK4819_write_reg(0x30, 0);
 	BK4819_write_reg(0x30,
@@ -916,40 +921,7 @@ void RADIO_enableTX(const bool fsk_tx)
 
 	BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
 
-	switch (Bandwidth)
-	{
-		default:
-			Bandwidth = BK4819_FILTER_BW_WIDE;
-
-			// Fallthrough
-
-		case BK4819_FILTER_BW_WIDE:
-		case BK4819_FILTER_BW_NARROW:
-			#ifdef ENABLE_AM_FIX
-				#if 0
-					BK4819_SetFilterBandwidth(Bandwidth);
-//					BK4819_EnableAFC();
-					BK4819_DisableAFC();
-				#else
-					if (g_current_vfo->channel.mod_mode == MOD_MODE_DSB)
-					{
-						BK4819_SetFilterBandwidth(BK4819_FILTER_BW_NARROWER); // sideband
-						BK4819_DisableAFC();
-					}
-					else
-					{
-						BK4819_SetFilterBandwidth(Bandwidth);
-//						BK4819_EnableAFC();
-						BK4819_DisableAFC();
-					}
-				#endif
-			#else
-				BK4819_SetFilterBandwidth(Bandwidth);
-//				BK4819_EnableAFC();
-				BK4819_DisableAFC();
-			#endif
-			break;
-	}
+	Bandwidth = RADIO_set_bandwidth(Bandwidth, g_current_vfo->channel.mod_mode);
 
 	// if DTMF is enabled when TX'ing, it changes the TX audio filtering ! .. 1of11
 	// so MAKE SURE that DTMF is disabled - until needed
@@ -1030,7 +1002,7 @@ void RADIO_PrepareTX(void)
 	#ifdef ENABLE_ALARM
 		if (g_alarm_state == ALARM_STATE_TXALARM && g_eeprom.config.setting.alarm_mode != ALARM_MODE_TONE)
 		{	// enable the alarm tone but not the TX
-			
+
 			g_alarm_state = ALARM_STATE_ALARM;
 			GUI_DisplayScreen();
 			BK4819_start_tone(500, 28, g_current_function == FUNCTION_TRANSMIT, false);

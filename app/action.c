@@ -265,8 +265,9 @@ void ACTION_Scan(bool bRestart)
 		#ifdef ENABLE_SCAN_RANGES
 			if (IS_FREQ_CHANNEL(g_tx_vfo->channel_save) && g_eeprom.config.setting.scan_ranges_enable)
 			{
-				const uint32_t freq = g_tx_vfo->freq_config_rx.frequency;
+				uint32_t freq = g_tx_vfo->freq_config_rx.frequency;
 				FREQUENCY_scan_range(freq, &g_scan_initial_lower, &g_scan_initial_upper, &g_scan_initial_step_size);
+//				freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);			}
 			}
 		#endif
 		

@@ -229,14 +229,19 @@ void BK4819_write_16(uint16_t Data)
 	}
 }
 
-void BK4819_EnableAFC(void)
+void BK4819_set_AFC(unsigned int level)
 {
-	BK4819_write_reg(0x73, (0u << 11) | (0u << 4));
+	if (level > 8)
+		level = 8;
+
+	if (level == 0)
+		BK4819_write_reg(0x73, BK4819_read_reg(0x73) | (1u << 4));  // disable
+	else
+		BK4819_write_reg(0x73, ((8u - level) << 11) | (0u << 4));
 }
 
 void BK4819_DisableAFC(void)
 {
-	BK4819_write_reg(0x73, (0u << 11) | (1u << 4));
 }
 
 void BK4819_DisableAGC(void)

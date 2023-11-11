@@ -67,8 +67,7 @@ void     BK4819_write_reg(const uint8_t Register, uint16_t Data);
 void     BK4819_write_8(uint8_t Data);
 void     BK4819_write_16(uint16_t Data);
 
-void     BK4819_EnableAFC(void);
-void     BK4819_DisableAFC(void);
+void     BK4819_set_AFC(unsigned int level);
 
 void     BK4819_DisableAGC(void);
 void     BK4819_EnableAGC(void);

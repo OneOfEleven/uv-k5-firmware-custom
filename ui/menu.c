@@ -717,6 +717,7 @@ void UI_DisplayMenu(void)
 		case MENU_AUTO_BACKLITE:
 			strcpy(str, "BACKLITE\n");
 			strcat(str, g_sub_menu_backlight[g_sub_menu_selection]);
+			BACKLIGHT_turn_on(5);
 			break;
 
 		case MENU_AUTO_BACKLITE_ON_TX_RX:
@@ -989,7 +990,7 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_ANI_ID:
-			strcpy(str, "YOUR ID\n");
+			strcpy(str, "DTMF ID\n");
 			strcat(str, g_eeprom.config.setting.dtmf.ani_id);
 			break;
 

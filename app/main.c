@@ -1016,11 +1016,11 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 			if (IS_FREQ_CHANNEL(Channel))
 			{	// frequency mode
 
-				uint32_t freq = g_tx_vfo->freq_config_rx.frequency;
+				uint32_t               freq = g_tx_vfo->freq_config_rx.frequency;
+				const frequency_band_t band = FREQUENCY_GetBand(freq);
 
 				if (key_pressed && !key_held)
 				{	// just pressed
-					const frequency_band_t band  = FREQUENCY_GetBand(freq);
 
 					g_scan_initial_upper     = FREQ_BAND_TABLE[band].upper;
 					g_scan_initial_lower     = FREQ_BAND_TABLE[band].lower;
@@ -1028,8 +1028,14 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 
 					#ifdef ENABLE_SCAN_RANGES
 						//if (g_eeprom.config.setting.scan_ranges_enable)
+						//{
 						//	FREQUENCY_scan_range(freq, &g_scan_initial_lower, &g_scan_initial_upper, &g_scan_initial_step_size);
+						//	freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
+						//}
 					#endif
+
+//					if (band == BAND2_108MHz)
+//						freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
 				}
 
 				freq += g_scan_initial_step_size * direction;
@@ -1046,8 +1052,12 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 				// round
 				#ifdef ENABLE_SCAN_RANGES
 					//if (key_held)
-					//	freq = g_scan_initial_lower + ((((freq - g_scan_initial_lower) + (g_scan_initial_step_size / 2)) / g_scan_initial_step_size) * g_scan_initial_step_size);
+					//	//freq = g_scan_initial_lower + ((((freq - g_scan_initial_lower) + (g_scan_initial_step_size / 2)) / g_scan_initial_step_size) * g_scan_initial_step_size);
+					//	freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
 				#endif
+
+				if (band == BAND2_108MHz)
+					freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
 
 				if (FREQUENCY_rx_freq_check(freq) < 0)
 				{	// frequency not allowed

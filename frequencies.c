@@ -168,34 +168,32 @@ uint32_t FREQUENCY_floor_to_step(uint32_t freq, const uint32_t step_size, const 
 
 	if (delta < step_size)
 		return lower;
-		
+
 	if (step_size == 833)
 	{
-		uint32_t           base  =  (delta / 2500) * 2500;	// 25kHz step
-		const unsigned int index = ((delta - base) % 2500) / step_size;
-
-		if (index == 2)
+		uint32_t       base  =  (delta / 2500) * 2500;	// 25kHz step
+		const uint32_t index = ((delta - base) % 2500) / step_size;
+		if (index >= 2)
 			base++;
-
 		freq = lower + base + (step_size * index);
 	}
 	else
 		freq = lower + ((delta / step_size) * step_size);
-	
+
 	return freq;
 }
 
 uint32_t FREQUENCY_wrap_to_step_band(uint32_t freq, const uint32_t step_size, const unsigned int band)
 {
-	const uint32_t upper = FREQ_BAND_TABLE[band].upper; 
-	const uint32_t lower = FREQ_BAND_TABLE[band].lower; 
-	
+	const uint32_t upper = FREQ_BAND_TABLE[band].upper;
+	const uint32_t lower = FREQ_BAND_TABLE[band].lower;
+
 	if (freq < lower)
 		return FREQUENCY_floor_to_step(upper, step_size, lower, upper);
-	
+
 	if (freq >= upper)
 		freq = lower;
-	
+
 	return freq;
 }
 
@@ -227,7 +225,7 @@ uint32_t FREQUENCY_wrap_to_step_band(uint32_t freq, const uint32_t step_size, co
 	{
 		const frequency_band_t band = FREQUENCY_GetBand(freq);
 		unsigned int i;
-	
+
 		for (i = 0; i < ARRAY_SIZE(FREQ_SCAN_RANGE_TABLE); i++)
 		{
 			const uint32_t _upper = FREQ_SCAN_RANGE_TABLE[i].upper;

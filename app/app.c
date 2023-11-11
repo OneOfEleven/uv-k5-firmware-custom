@@ -180,6 +180,9 @@ static void APP_process_new_receive(void)
 {
 	bool flag;
 
+	if (!g_squelch_open)
+		BK4819_set_AFC(0);
+
 	if (!g_squelch_open && !g_monitor_enabled)
 	{	// squelch is closed
 
@@ -190,9 +193,22 @@ static void APP_process_new_receive(void)
 		{
 			FUNCTION_Select(FUNCTION_FOREGROUND);
 			g_update_display = true;
+//			g_update_status  = true;
 		}
 
 		return;
+	}
+
+	switch (g_rx_vfo->channel.mod_mode)
+	{
+		case MOD_MODE_FM:
+		case MOD_MODE_AM:
+			BK4819_set_AFC(2);
+			break;
+		default:
+		case MOD_MODE_DSB:
+			BK4819_set_AFC(0);
+			break;
 	}
 
 	flag = (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_current_code_type == CODE_TYPE_NONE);
@@ -220,7 +236,7 @@ static void APP_process_new_receive(void)
 		return;
 
 	if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
-	{	// not code scanning
+	{	// not scanning
 
 		#ifdef ENABLE_KILL_REVIVE
 			if (g_rx_vfo->channel.dtmf_decoding_enable || g_eeprom.config.setting.radio_disabled)
@@ -240,7 +256,6 @@ static void APP_process_new_receive(void)
 
 					g_update_status  = true;
 					g_update_display = true;
-
 					return;
 				}
 			}
@@ -263,6 +278,9 @@ static void APP_process_rx(void)
 
 //	APP_update_rssi(g_rx_vfo_num);
 	g_update_rssi = true;
+
+//	if (!g_squelch_open)
+//		BK4819_set_AFC(0);
 
 	if (g_flag_tail_tone_elimination_complete)
 	{
@@ -476,6 +494,18 @@ bool APP_start_listening(void)
 	// clear the other vfo's rssi level (to hide the antenna symbol)
 	g_vfo_rssi_bar_level[(chan + 1) & 1u] = 0;
 
+	switch (g_rx_vfo->channel.mod_mode)
+	{
+		case MOD_MODE_FM:
+		case MOD_MODE_AM:
+			BK4819_set_AFC(2);
+			break;
+		default:
+		case MOD_MODE_DSB:
+			BK4819_set_AFC(0);
+			break;
+	}
+
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF)
 	{	// we're RF scanning
 
@@ -674,7 +704,10 @@ static void APP_next_freq(void)
 			// round
 			#ifdef ENABLE_SCAN_RANGES
 				if (g_eeprom.config.setting.scan_ranges_enable)
-					freq = g_scan_initial_lower + ((((freq - g_scan_initial_lower) + (g_scan_initial_step_size / 2)) / g_scan_initial_step_size) * g_scan_initial_step_size);
+					//freq = g_scan_initial_lower + ((((freq - g_scan_initial_lower) + (g_scan_initial_step_size / 2)) / g_scan_initial_step_size) * g_scan_initial_step_size);
+					freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
+			#else
+				//freq = FREQUENCY_floor_to_step(freq, g_scan_initial_step_size, g_scan_initial_lower, g_scan_initial_upper);
 			#endif
 
 	#ifdef ENABLE_SCAN_IGNORE_LIST

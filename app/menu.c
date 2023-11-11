@@ -1060,7 +1060,8 @@ void MENU_ShowCurrentSetting(void)
 
 		case MENU_AUTO_BACKLITE:
 			g_sub_menu_selection = g_eeprom.config.setting.backlight_time;
-			BACKLIGHT_turn_on(0);
+//			BACKLIGHT_turn_on(0);
+			BACKLIGHT_turn_on(5);
 			break;
 
 		case MENU_AUTO_BACKLITE_ON_TX_RX:
