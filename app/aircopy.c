@@ -336,7 +336,7 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 	uint16_t           crc1;
 	uint16_t           crc2;
 	uint16_t           eeprom_addr;
-	uint16_t          *data;
+	uint8_t           *data;
 	unsigned int       block_num;
 	bool               req_ack_packet = false;
 	unsigned int       i;
@@ -505,8 +505,8 @@ void AIRCOPY_process_fsk_rx_10ms(void)
 		return;
 	}
 
-	eeprom_addr =  g_fsk_buffer[1];
-	data        = &g_fsk_buffer[2];
+	eeprom_addr = g_fsk_buffer[1];
+	data        = (uint8_t *)&g_fsk_buffer[2];
 
 	block_num = eeprom_addr / block_size;
 

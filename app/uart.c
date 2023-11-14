@@ -348,7 +348,7 @@ static void cmd_051D(const uint8_t *pBuffer)
 					if (!is_locked)
 						reload_eeprom = true;
 			#else
-				if (Offset == 0x0F30)
+				if (Offset == 0x0F30 || Offset == 0x0F38)
 					memset(data, 0xff, 8);   // wipe the AES key
 			#endif
 

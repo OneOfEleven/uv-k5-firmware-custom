@@ -186,60 +186,83 @@ typedef struct {
 	uint8_t  rx_ctcss_cdcss_code;            //
 	// [9]
 	uint8_t  tx_ctcss_cdcss_code;            //
+
 	// [10]
-	uint8_t  rx_ctcss_cdcss_type:2;          //
-	uint8_t  unused1:2;                      //
-	uint8_t  tx_ctcss_cdcss_type:2;          //
-	uint8_t  unused2:2;                      //
+	struct {
+		uint8_t  rx_ctcss_cdcss_type:2;          //
+		uint8_t  unused1:2;                      //
+		uint8_t  tx_ctcss_cdcss_type:2;          //
+		uint8_t  unused2:2;                      //
+	};
+
 	// [11]
-	uint8_t  tx_offset_dir:2;                //
-	#ifdef ENABLE_MDC1200
-		uint8_t mdc1200_mode:2;              //
-	#else
-		uint8_t unused3:2;                   //
-	#endif
-	#if 0
-		uint8_t mod_mode:1;                  //  FM/AM
-		uint8_t unused4:3;                   //
-	#else                          
-		uint8_t mod_mode:2;                  //  FM/AM/DSB
-		uint8_t unused4:2;                   //
-	#endif
+	struct {
+		uint8_t  tx_offset_dir:2;                //
+
+		#ifdef ENABLE_MDC1200
+			uint8_t mdc1200_mode:2;              //
+		#else
+			uint8_t unused3:2;                   //
+		#endif
+
+		#if 0
+			uint8_t mod_mode:1;                  //  FM/AM
+			uint8_t unused4:3;                   //
+		#else
+			uint8_t mod_mode:2;                  //  FM/AM/DSB
+			uint8_t unused4:2;                   //
+		#endif
+	};
+
 	// [12]
-	uint8_t  frequency_reverse:1;            // reverse repeater
-	uint8_t  channel_bandwidth:1;            // wide/narrow
-	uint8_t  tx_power:2;                     // 0, 1 or 2 .. L, M or H
-	uint8_t  busy_channel_lock:1;            //
-	#if 0
-		// QS
-		uint8_t unused5:3;                   //
-	#else
-		// 1of11
-		uint8_t unused5:1;                   //
-		uint8_t compand:2;                   // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
-	#endif
+	struct {
+		uint8_t  frequency_reverse:1;        // reverse repeater
+		uint8_t  channel_bandwidth:1;        // wide/narrow
+		uint8_t  tx_power:2;                 // 0, 1 or 2 .. L, M or H
+		uint8_t  busy_channel_lock:1;        //
+
+		#if 0
+			// QS
+			uint8_t unused5:3;               //
+		#else
+			// 1of11
+			uint8_t unused5:1;               //
+			uint8_t compand:2;               // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
+		#endif
+	};
+
 	// [13]
-	uint8_t  dtmf_decoding_enable:1;         //
-	uint8_t  dtmf_ptt_id_tx_mode:3;          //
-	#if 0
-		// QS
-		uint8_t unused6:4;                   //
-	#else
-		// 1of11
-		uint8_t squelch_level:4;             // 0 ~ 9 per channel squelch, 0 = use main squelch level
-	#endif
+	struct {
+		uint8_t  dtmf_decoding_enable:1;     //
+		uint8_t  dtmf_ptt_id_tx_mode:3;      //
+
+		#if 0
+			// QS
+			uint8_t unused6:4;               //
+		#else
+			// 1of11
+			uint8_t squelch_level:4;         // 0 ~ 9 per channel squelch, 0 = use main squelch level
+		#endif
+	};
+
 	// [14]
 	uint8_t  step_setting;                   //
+
 	// [15]
 	#if 0
 		// QS
-		uint8_t scrambler:4;                 //
-		uint8_t unused7:4;                   //
+		struct {
+			uint8_t scrambler:4;             //
+			uint8_t unused7:4;               //
+		};
 	#else
 		// 1of11
-		uint8_t scrambler:5;                 // more scrambler frequencies
-		uint8_t unused7:3;                   //
+		struct {
+			uint8_t scrambler:5;             // more scrambler frequencies
+			uint8_t unused7:3;               //
+		};
 	#endif
+
 } __attribute__((packed)) t_channel;         //
 
 typedef union {
@@ -399,38 +422,56 @@ typedef struct {
 
 		// 0x0F40
 		uint8_t        freq_lock;                       //
-		uint8_t        enable_tx_350:1;                 // 1 = 350MHz ~ 400MHz TX is enabled
-		uint8_t        unused11a:7;                     //
-		uint8_t        radio_disabled:1;                // 1 = radio is disabled
-		uint8_t        unused11b:7;                     //
-		uint8_t        enable_tx_200:1;                 // 1 = 174MHz ~ 350MHz TX enabled
-		uint8_t        unused11c:7;                     //
-		uint8_t        enable_tx_470:1;                 // 1 = >= 470MHz TX enabled
-		uint8_t        unused11d:7;                     //
-		uint8_t        enable_350:1;                    // 1 = 350HMz ~ 400MHz enabled
-		uint8_t        unused11e:7;                     //
-		uint8_t        enable_scrambler:1;              //
-		uint8_t        enable_rssi_bar:1;               // 1of11
-		uint8_t        unused11f:6;                     //
+		struct {
+			uint8_t    enable_tx_350:1;                 // 1 = 350MHz ~ 400MHz TX is enabled
+			uint8_t    unused11a:7;                     //
+		};
+		struct {
+			uint8_t    radio_disabled:1;                // 1 = radio is disabled
+			uint8_t    unused11b:7;                     //
+		};
+		struct {
+			uint8_t    enable_tx_200:1;                 // 1 = 174MHz ~ 350MHz TX enabled
+			uint8_t    unused11c:7;                     //
+		};
+		struct {
+			uint8_t    enable_tx_470:1;                 // 1 = >= 470MHz TX enabled
+			uint8_t    unused11d:7;                     //
+		};
+		struct {
+			uint8_t    enable_350:1;                    // 1 = 350HMz ~ 400MHz enabled
+			uint8_t    unused11e:7;                     //
+		};
+		struct {
+			uint8_t    enable_scrambler:1;              //
+			uint8_t    enable_rssi_bar:1;               // 1of11
+			uint8_t    unused11f:6;                     //
+		};
+
 		#if 0
 			// QS
 			uint8_t    unused12[9];                     // 0xff's
 		#else
 			// 1of11
-			uint8_t    tx_enable:1;           // 0 = completely disable TX, 1 = allow TX
-			uint8_t    dtmf_live_decoder:1;   // 1 = enable on-screen live DTMF decoder
-			uint8_t    battery_text:2;        // 0 = no battery text, 1 = voltage, 2 = percent .. on the status bar
-			uint8_t    mic_bar:1;             // 1 = on-screen TX audio level
-			uint8_t    am_fix:1;              // 1 = enable RX AM fix
-			uint8_t    backlight_on_tx_rx:2;  // 0 = no backlight when TX/RX, 1 = when TX, 2 = when RX, 3 = both RX/TX
+			struct {
+				uint8_t tx_enable:1;                 // 0 = completely disable TX, 1 = allow TX
+				uint8_t dtmf_live_decoder:1;         // 1 = enable on-screen live DTMF decoder
+				uint8_t battery_text:2;              // 0 = no battery text, 1 = voltage, 2 = percent .. on the status bar
+				uint8_t mic_bar:1;                   // 1 = on-screen TX audio level
+				uint8_t am_fix:1;                    // 1 = enable RX AM fix
+				uint8_t backlight_on_tx_rx:2;        // 0 = no backlight when TX/RX, 1 = when TX, 2 = when RX, 3 = both RX/TX
+			};
 
-			uint8_t    scan_hold_time;        // ticks we stay paused for on an RX'ed signal when scanning
+			uint8_t     scan_hold_time;                  // ticks we stay paused for on an RX'ed signal when scanning
 
-			uint8_t    scan_ranges_enable:1;  // enable/disable auto scan ranges
-			uint8_t    unused11g:7;           // 0xff's
+			struct {
+				uint8_t scan_ranges_enable:1;        // enable/disable auto scan ranges
+				uint8_t unused11g:7;                 // 0xff's
+			};
 
-			uint8_t    unused12[6];           // 0xff's
+			uint8_t     unused12[6];                 // 0xff's
 		#endif
+
 	}  __attribute__((packed)) setting;
 
 	// 0x0F50
@@ -469,7 +510,7 @@ typedef struct {
 	// 0x1EC0 .. mine = 006E 0078 0082 008C 0086 00AA 00CE 00F2
 	struct {	// RSSI bargraph thresholds .. (dBm + 160) * 2
 		uint16_t band_4567[4];                      //
-		uint16_t band_123[4];                       // 
+		uint16_t band_123[4];                       //
 	} __attribute__((packed)) rssi_cal;
 
 	// 0x1ED0
