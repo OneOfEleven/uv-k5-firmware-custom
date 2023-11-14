@@ -158,41 +158,27 @@ uint32_t FREQUENCY_floor_to_step(uint32_t freq, const uint32_t step_size, const 
 {
 	uint32_t delta;
 
+	if (upper > lower && upper != 0xffffffff)
+		if (freq > (upper - 1))
+			freq =  upper - 1;
+
 	if (freq <= lower)
 		return lower;
 
-	if (freq > (upper - 1))
-		freq =  upper - 1;
-
 	delta = freq - lower;
 
-	if (delta < step_size)
-		return lower;
-
-	if (step_size == 833)
-	{
-		uint32_t       base  =  (delta / 2500) * 2500;	// 25kHz step
-		const uint32_t index = ((delta - base) % 2500) / step_size;
-		if (index >= 2)
+	if (step_size == 833)  // 8.33 ~ 25/3
+	{	// long winded because 8.33 is not exactly 25/3
+		uint32_t base  =  (delta / 2500) * 2500;
+		uint32_t index = ((delta - base) % 2500) / step_size;
+		if (index == 2)
 			base++;
 		freq = lower + base + (step_size * index);
 	}
 	else
+	{
 		freq = lower + ((delta / step_size) * step_size);
-
-	return freq;
-}
-
-uint32_t FREQUENCY_wrap_to_step_band(uint32_t freq, const uint32_t step_size, const unsigned int band)
-{
-	const uint32_t upper = FREQ_BAND_TABLE[band].upper;
-	const uint32_t lower = FREQ_BAND_TABLE[band].lower;
-
-	if (freq < lower)
-		return FREQUENCY_floor_to_step(upper, step_size, lower, upper);
-
-	if (freq >= upper)
-		freq = lower;
+	}
 
 	return freq;
 }

@@ -63,7 +63,7 @@ enum step_setting_e {
 	STEP_12_5kHz,
 	STEP_25_0kHz,
 	STEP_8_33kHz,
-	
+
 	STEP_10Hz,
 	STEP_50Hz,
 	STEP_100Hz,
@@ -97,7 +97,6 @@ frequency_band_t FREQUENCY_GetBand(uint32_t Frequency);
 uint8_t          FREQUENCY_CalculateOutputPower(uint8_t TxpLow, uint8_t TxpMid, uint8_t TxpHigh, int32_t LowerLimit, int32_t Middle, int32_t UpperLimit, int32_t Frequency);
 
 uint32_t         FREQUENCY_floor_to_step(uint32_t freq, const uint32_t step_size, const uint32_t lower, const uint32_t upper);
-uint32_t         FREQUENCY_wrap_to_step_band(uint32_t freq, const uint32_t step_size, const unsigned int band);
 
 int              FREQUENCY_tx_freq_check(const uint32_t Frequency);
 int              FREQUENCY_rx_freq_check(const uint32_t Frequency);
