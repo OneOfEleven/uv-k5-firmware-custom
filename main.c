@@ -202,6 +202,7 @@ void Main(void)
 		 BootMode != BOOT_MODE_NORMAL)
 	{
 		MAIN_DisplayReleaseKeys();
+		BACKLIGHT_turn_on(0);    // turn the backlight ON
 	}
 	else
 	{
