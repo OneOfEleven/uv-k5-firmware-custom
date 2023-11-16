@@ -208,9 +208,9 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 				const int          s0_dBm       = -147;                  // S0 .. base level
 
 				const int          s9_dBm       = s0_dBm + (6 * 9);      // S9 .. 6dB/S-Point
-				const int          bar_max_dBm  = s9_dBm + 60;           // S9+60dB
+				const int          bar_max_dBm  = s9_dBm + 80;           // S9+80dB
 //				const int          bar_min_dBm  = s0_dBm + (6 * 0);      // S0
-				const int          bar_min_dBm  = s0_dBm + (6 * 4);      // S4
+				const int          bar_min_dBm  = s0_dBm + (6 * 2);      // S2
 
 				// ************
 
