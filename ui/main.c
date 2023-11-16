@@ -47,8 +47,8 @@
 //const int     rssi_offset_band_123  = 0;
 //const int     rssi_offset_band_4567 = 0;
 
-const int     rssi_offset_band_123  = -16;
-const int     rssi_offset_band_4567 = 24;
+const int     rssi_offset_band_123  = -44;
+const int     rssi_offset_band_4567 = -18;
 
 center_line_t g_center_line = CENTER_LINE_NONE;
 
