@@ -1038,8 +1038,8 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 				freq += g_scan_initial_step_size * direction;
 
 				// wrap-a-round
-				if (key_held)
-				{	// key is held down
+//				if (key_held)
+				{
 					while (freq >= g_scan_initial_upper)
 						freq -= g_scan_initial_upper - g_scan_initial_lower;
 					while (freq < g_scan_initial_lower)
