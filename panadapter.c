@@ -119,8 +119,9 @@ bool PAN_process_10ms(void)
 		if (++g_panadapter_rssi_index >= (int)ARRAY_SIZE(g_panadapter_rssi))
 			g_panadapter_rssi_index = 0;
 
-		// switch back to the VFO frequency once every 16 frequency steps
-		g_panadapter_vfo_mode = ((g_panadapter_rssi_index & 15u) == 0) ? 1 : 0;
+		// switch back to the VFO frequency once every 16 frequency steps .. if in FM mode
+		if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
+			g_panadapter_vfo_mode = ((g_panadapter_rssi_index & 15u) == 0) ? 1 : 0;
 	}
 	else
 	if (++g_panadapter_vfo_mode >= 8)
