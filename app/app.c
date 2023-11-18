@@ -1930,16 +1930,21 @@ void APP_process_power_save(void)
 		g_update_rssi)
 	{	// go back to sleep
 
-		APP_update_rssi(g_rx_vfo_num, false);
+		#ifdef ENABLE_PANADAPTER
+			if (!g_eeprom.config.setting.panadapter)
+		#endif
+		{
+			APP_update_rssi(g_rx_vfo_num, false);
 
-		// go back to sleep
+			// go back to sleep
 
-		g_power_save_tick_10ms = g_eeprom.config.setting.battery_save_ratio * 10;
-		g_rx_idle_mode         = true;
+			g_power_save_tick_10ms = g_eeprom.config.setting.battery_save_ratio * 10;
+			g_rx_idle_mode         = true;
 
-		BK4819_DisableVox();
-		BK4819_Sleep();
-		BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
+			BK4819_DisableVox();
+			BK4819_Sleep();
+			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
+		}
 	}
 	else
 	if (APP_toggle_dual_watch_vfo())
@@ -2422,7 +2427,10 @@ void APP_time_slice_10ms(void)
 
 	#ifdef ENABLE_AM_FIX
 		if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
-			AM_fix_10ms(g_rx_vfo_num);
+			#ifdef ENABLE_PANADAPTER
+				if (!g_eeprom.config.setting.panadapter || g_panadapter_vfo_mode > 0)
+			#endif
+					AM_fix_10ms(g_rx_vfo_num);
 	#endif
 
 	#ifdef ENABLE_FMRADIO
@@ -2452,7 +2460,10 @@ void APP_time_slice_10ms(void)
 //	if (g_update_rssi)
 	if (g_current_function != FUNCTION_POWER_SAVE && g_current_function != FUNCTION_TRANSMIT)
 		if (!g_flag_save_channel)
-			APP_update_rssi(g_rx_vfo_num, false);
+			#ifdef ENABLE_PANADAPTER
+				if (!g_eeprom.config.setting.panadapter || g_panadapter_vfo_mode > 0)
+			#endif
+					APP_update_rssi(g_rx_vfo_num, false);
 
 	if (g_current_function != FUNCTION_POWER_SAVE || !g_rx_idle_mode)
 		APP_process_radio_interrupts();
