@@ -321,6 +321,11 @@ extern volatile uint16_t     g_boot_tick_10ms;
 
 extern uint8_t               g_mic_sensitivity_tuning;
 
+extern const uint8_t         g_orig_lnas;
+extern const uint8_t         g_orig_lna;
+extern const uint8_t         g_orig_mixer;
+extern const uint8_t         g_orig_pga;
+
 unsigned int get_TX_VFO(void);
 unsigned int get_RX_VFO(void);
 void         NUMBER_Get(char *pDigits, uint32_t *pInteger);

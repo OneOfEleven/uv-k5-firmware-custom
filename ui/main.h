@@ -35,6 +35,9 @@ extern center_line_t g_center_line;
 	bool UI_DisplayAudioBar(const bool now);
 #endif
 void UI_update_rssi(const int rssi, const unsigned int glitch, const unsigned int noise, const unsigned int vfo);
+#ifdef ENABLE_PANADAPTER
+	void UI_DisplayMain_pan(const bool now);
+#endif
 void UI_DisplayMain(void);
 
 #endif

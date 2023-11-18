@@ -1,6 +1,4 @@
 
-#include <stdlib.h>     // abs()
-
 #if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 	#include "driver/uart.h"
 #endif

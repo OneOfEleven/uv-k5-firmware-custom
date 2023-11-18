@@ -95,7 +95,7 @@ ENABLE_RX_SIGNAL_BAR             := 1       enable a menu option for showing an 
 ENABLE_TX_AUDIO_BAR              := 1       enable a menu option for showing a TX audio level bar
 ENABLE_SIDE_BUTT_MENU            := 1       enable menu option for configuring the programmable side buttons
 ENABLE_KEYLOCK                   := 1       enable keylock menu option + keylock code
-#ENABLE_PANADAPTER               := 0       not yet implemented - spectrum/pan-adapter
+ENABLE_PANADAPTER                := 1       TEST ONLY  centered on the selected VFO RX frequency, only shows if dual-watch is disabled
 #ENABLE_SINGLE_VFO_CHAN          := 0       not yet implemented - single VFO on display when possible
 ```
 

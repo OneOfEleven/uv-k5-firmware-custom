@@ -231,6 +231,13 @@ int16_t               g_current_rssi[2];
 uint16_t              g_current_glitch[2];
 uint16_t              g_current_noise[2];
 
+// original QS front end register settings
+// 0x03BE   00000 011 101 11 110
+const uint8_t         g_orig_lnas  = 3;   //   0dB
+const uint8_t         g_orig_lna   = 5;   //  -4dB
+const uint8_t         g_orig_mixer = 3;   //   0dB
+const uint8_t         g_orig_pga   = 6;   //  -3dB
+
 // ***************************
 
 unsigned int get_RX_VFO(void)

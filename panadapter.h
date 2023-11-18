@@ -1,4 +1,4 @@
-/* Copyright 2023 Dual Tachyon
+/* Copyright 2023 One of Eleven
  * https://github.com/DualTachyon
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,24 @@
  *     limitations under the License.
  */
 
-#ifndef APP_APP_H
-#define APP_APP_H
+#ifndef PANADAPTER_H
+#define PANADAPTER_H
 
+#include <stdint.h>
 #include <stdbool.h>
 
-#include "functions.h"
-#include "frequencies.h"
-#include "radio.h"
+#include "driver/st7565.h"
 
-void     APP_end_tx(void);
-void     APP_stop_scan(void);
-void     APP_channel_next(const bool remember_current, const scan_state_dir_t scan_direction);
-bool     APP_start_listening(void);
-void     APP_time_slice_10ms(void);
-void     APP_time_slice_500ms(void);
+// number of bins either side of the VFO RX frequency
+#define PANADAPTER_BINS   ((LCD_WIDTH / 2) - 1)
+
+extern bool    g_pan_enabled;
+extern uint8_t g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
+extern int     g_panadapter_vfo_mode;
+
+void PAN_clear(void);
+void PAN_enable(const bool enable);
+bool PAN_process_10ms(void);
 
 #endif
 

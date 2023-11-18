@@ -362,9 +362,17 @@ typedef struct {
 		uint32_t       power_on_password;               //
 		#ifdef ENABLE_MDC1200
 			uint16_t   mdc1200_id;                      // 1of11
-			uint8_t    unused6[2];                      // 0xff's
+			uint8_t    unused6[1];                      // 0xff's
 		#else
-			uint8_t    unused6[4];                      // 0xff's
+			uint8_t    unused6[3];                      // 0xff's
+		#endif
+		#ifdef ENABLE_PANADAPTER
+			struct {
+				uint8_t panadapter:1;                   // 1 = enable panadapter
+				uint8_t unused6a:7;                     // 0xff
+			};
+		#else
+			uint8_t     unused6a;                       // 0xff
 		#endif
 
 		// 0x0EA0

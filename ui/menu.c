@@ -94,6 +94,9 @@ const t_menu_item g_menu_list[] =
 	{"RP STE", VOICE_ID_INVALID,                       MENU_RP_STE                },
 	{"MIC GN", VOICE_ID_INVALID,                       MENU_MIC_GAIN              },
 	{"COMPND", VOICE_ID_INVALID,                       MENU_COMPAND               },
+#ifdef ENABLE_PANADAPTER
+	{"PANA",   VOICE_ID_INVALID,                       MENU_PANADAPTER            },
+#endif
 #ifdef ENABLE_TX_AUDIO_BAR
 	{"Tx BAR", VOICE_ID_INVALID,                       MENU_TX_BAR                },
 #endif
@@ -757,6 +760,12 @@ void UI_DisplayMenu(void)
 				sprintf(str + strlen(str), "%d", g_sub_menu_selection);
 				ST7565_SetContrast(g_sub_menu_selection);
 				g_update_display = true;
+				break;
+		#endif
+
+		#ifdef ENABLE_PANADAPTER
+			case MENU_PANADAPTER:
+				strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
 				break;
 		#endif
 

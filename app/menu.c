@@ -43,6 +43,9 @@
 #include "ui/inputbox.h"
 #include "ui/menu.h"
 #include "ui/menu.h"
+#ifdef ENABLE_PANADAPTER
+	#include "panadapter.h"
+#endif
 #include "radio.h"
 #include "settings.h"
 #include "ui/ui.h"
@@ -228,6 +231,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		#ifdef ENABLE_AM_FIX
 //			case MENU_AM_FIX:
+		#endif
+		#ifdef ENABLE_PANADAPTER
+			case MENU_PANADAPTER:
 		#endif
 		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
@@ -670,6 +676,13 @@ void MENU_AcceptSetting(void)
 			g_flag_reconfigure_vfos = true;
 			break;
 
+		#ifdef ENABLE_PANADAPTER
+			case MENU_PANADAPTER:
+				g_eeprom.config.setting.panadapter = g_sub_menu_selection;
+				PAN_enable((g_eeprom.config.setting.panadapter != 0) ? true : false);
+				break;
+		#endif
+
 		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
 				g_eeprom.config.setting.mic_bar = g_sub_menu_selection;
@@ -1095,11 +1108,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.config.setting.tx_timeout;
 			break;
 
-#ifdef ENABLE_VOICE
+		#ifdef ENABLE_VOICE
 			case MENU_VOICE:
 				g_sub_menu_selection = g_eeprom.config.setting.voice_prompt;
 				break;
-#endif
+		#endif
 
 		case MENU_SCAN_CAR_RESUME:
 			g_sub_menu_selection = g_eeprom.config.setting.carrier_search_mode;
@@ -1141,17 +1154,23 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.config.setting.mic_sensitivity;
 			break;
 
-#ifdef ENABLE_TX_AUDIO_BAR
+		#ifdef ENABLE_PANADAPTER
+			case MENU_PANADAPTER:
+				g_sub_menu_selection = g_eeprom.config.setting.panadapter;
+				break;
+		#endif
+
+		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
 				g_sub_menu_selection = g_eeprom.config.setting.mic_bar;
 				break;
-#endif
+		#endif
 
-#ifdef ENABLE_RX_SIGNAL_BAR
+		#ifdef ENABLE_RX_SIGNAL_BAR
 			case MENU_RX_BAR:
 				g_sub_menu_selection = g_eeprom.config.setting.enable_rssi_bar;
 				break;
-#endif
+		#endif
 
 		case MENU_COMPAND:
 			g_sub_menu_selection = g_tx_vfo->channel.compand;

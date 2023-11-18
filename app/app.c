@@ -59,6 +59,9 @@
 	#include "mdc1200.h"
 #endif
 #include "misc.h"
+#ifdef ENABLE_PANADAPTER
+	#include "panadapter.h"
+#endif
 #include "radio.h"
 #include "settings.h"
 #if defined(ENABLE_OVERLAY)
@@ -71,13 +74,6 @@
 #include "ui/status.h"
 #include "ui/ui.h"
 
-// original QS front end register settings
-// 0x03BE   00000 011 101 11 110
-const uint8_t orig_lnas  = 3;   //   0dB
-const uint8_t orig_lna   = 5;   //  -4dB
-const uint8_t orig_mixer = 3;   //   0dB
-const uint8_t orig_pga   = 6;   //  -3dB
-
 static void APP_process_key(const key_code_t Key, const bool key_pressed, const bool key_held);
 
 static void APP_update_rssi(const int vfo, const bool force)
@@ -88,8 +84,11 @@ static void APP_update_rssi(const int vfo, const bool force)
 
 	#ifdef ENABLE_AM_FIX
 		// add RF gain adjust compensation
-		if (g_current_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
-			rssi -= rssi_gain_diff[vfo];
+		#ifdef ENABLE_PANADAPTER
+			if (!g_pan_enabled || g_panadapter_vfo_mode > 0)
+		#endif
+				if (g_current_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
+					rssi -= rssi_gain_diff[vfo];
 	#endif
 
 	if (g_current_rssi[vfo] == rssi && !force)
@@ -1841,6 +1840,11 @@ void APP_process_power_save(void)
 {
 	bool power_save = true;
 
+	#ifdef ENABLE_PANADAPTER
+		if (g_eeprom.config.setting.panadapter)
+			power_save = false;
+	#endif
+
 	if (g_monitor_enabled ||
 		#ifdef ENABLE_FMRADIO
 			g_fm_radio_mode ||
@@ -1861,8 +1865,8 @@ void APP_process_power_save(void)
 
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_eeprom.config.setting.indices.vfo[0].screen) ||
-		    IS_NOAA_CHANNEL(g_eeprom.config.setting.indices.vfo[1].screen) ||
-		    g_noaa_mode)
+			IS_NOAA_CHANNEL(g_eeprom.config.setting.indices.vfo[1].screen) ||
+			g_noaa_mode)
 		{
 			power_save = false;
 		}
@@ -1872,6 +1876,7 @@ void APP_process_power_save(void)
 	{
 //		if (g_current_function == FUNCTION_POWER_SAVE && g_rx_idle_mode)
 //			BK4819_RX_TurnOn();
+
 		if (g_current_function == FUNCTION_POWER_SAVE)
 			FUNCTION_Select(FUNCTION_RECEIVE);   // come out of power save mode
 
@@ -2509,6 +2514,11 @@ void APP_time_slice_10ms(void)
 			FM_scan();
 			g_fm_schedule = false;
 		}
+	#endif
+
+	#ifdef ENABLE_PANADAPTER
+		if (g_eeprom.config.setting.panadapter)
+			PAN_process_10ms();
 	#endif
 
 	APP_process_power_save();

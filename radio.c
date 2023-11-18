@@ -40,6 +40,9 @@
 	#include "mdc1200.h"
 #endif
 #include "misc.h"
+#ifdef ENABLE_PANADAPTER
+	#include "panadapter.h"
+#endif
 #include "radio.h"
 #include "settings.h"
 #include "ui/menu.h"
@@ -353,24 +356,49 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 	#ifdef ENABLE_AM_FIX
 		AM_fix_reset(VFO);
+
 		if (p_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
 		{
-			AM_fix_10ms(VFO);
+			#ifdef ENABLE_PANADAPTER
+				if (!g_pan_enabled || g_panadapter_vfo_mode > 0)
+				{
+					AM_fix_10ms(VFO);
+				}
+				else
+				{  // don't do agc
+					BK4819_DisableAGC();
+					BK4819_write_reg(0x13, (g_orig_lnas << 8) | (g_orig_lna << 5) | (g_orig_mixer << 3) | (g_orig_pga << 0));
+				}
+			#else
+				AM_fix_10ms(VFO);
+			#endif
 		}
 		else
 		{  // don't do agc in FM mode
 			BK4819_DisableAGC();
-			BK4819_write_reg(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
+			BK4819_write_reg(0x13, (g_orig_lnas << 8) | (g_orig_lna << 5) | (g_orig_mixer << 3) | (g_orig_pga << 0));
 		}
 	#else
 		if (p_vfo->mod_mode != MOD_MODE_FM)
 		{
-			BK4819_EnableAGC();
+			#ifdef ENABLE_PANADAPTER
+				if (!g_pan_enabled || g_panadapter_vfo_mode > 0)
+				{
+					BK4819_EnableAGC();
+				}
+				else
+				{  // don't do agc
+					BK4819_DisableAGC();
+					BK4819_write_reg(0x13, (g_orig_lnas << 8) | (g_orig_lna << 5) | (g_orig_mixer << 3) | (g_orig_pga << 0));
+				}
+			#else
+				BK4819_EnableAGC();
+			#endif
 		}
 		else
 		{  // don't do agc in FM mode
 			BK4819_DisableAGC();
-			BK4819_write_reg(0x13, (orig_lnas << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
+			BK4819_write_reg(0x13, (g_orig_lnas << 8) | (g_orig_lna << 5) | (g_orig_mixer << 3) | (g_orig_pga << 0));
 		}
 	#endif
 
