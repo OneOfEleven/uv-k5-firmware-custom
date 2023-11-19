@@ -679,7 +679,6 @@ void MENU_AcceptSetting(void)
 		#ifdef ENABLE_PANADAPTER
 			case MENU_PANADAPTER:
 				g_eeprom.config.setting.panadapter = g_sub_menu_selection;
-				PAN_enable((g_eeprom.config.setting.panadapter != 0) ? true : false);
 				break;
 		#endif
 

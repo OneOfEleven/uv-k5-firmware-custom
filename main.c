@@ -44,9 +44,6 @@
 	#include "mdc1200.h"
 #endif
 #include "misc.h"
-#ifdef ENABLE_PANADAPTER
-	#include "panadapter.h"
-#endif
 #include "radio.h"
 #include "settings.h"
 #include "ui/helper.h"
@@ -241,10 +238,6 @@ void Main(void)
 
 	#ifdef ENABLE_AM_FIX
 		AM_fix_init();
-	#endif
-
-	#ifdef ENABLE_PANADAPTER
-		PAN_enable((g_eeprom.config.setting.panadapter != 0) ? true : false);
 	#endif
 
 	BK4819_set_mic_gain(g_mic_sensitivity_tuning);

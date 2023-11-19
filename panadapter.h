@@ -26,12 +26,11 @@
 #define PANADAPTER_BINS   ((LCD_WIDTH / 2) - 1)
 
 extern bool    g_pan_enabled;
-extern uint8_t g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
 extern int     g_panadapter_vfo_mode;
+extern uint8_t g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
 
-void PAN_clear(void);
-void PAN_enable(const bool enable);
-bool PAN_process_10ms(void);
+bool PAN_scanning(void);
+void PAN_process_10ms(void);
 
 #endif
 

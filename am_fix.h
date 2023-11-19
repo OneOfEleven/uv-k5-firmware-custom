@@ -26,6 +26,7 @@ extern int16_t rssi_gain_diff[2];
 void AM_fix_init(void);
 void AM_fix_reset(const int vfo);
 void AM_fix_10ms(const int vfo);
+void AM_fix_set_front_end_gains(const int vfo);
 #ifdef ENABLE_AM_FIX_SHOW_DATA
 	void AM_fix_print_data(const int vfo, char *s);
 #endif

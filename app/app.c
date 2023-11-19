@@ -85,7 +85,7 @@ static void APP_update_rssi(const int vfo, const bool force)
 	#ifdef ENABLE_AM_FIX
 		// add RF gain adjust compensation
 		#ifdef ENABLE_PANADAPTER
-			if (!g_pan_enabled || g_panadapter_vfo_mode > 0)
+			if (!PAN_scanning())
 		#endif
 				if (g_current_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
 					rssi -= rssi_gain_diff[vfo];
@@ -105,6 +105,11 @@ static void APP_update_rssi(const int vfo, const bool force)
 
 static void APP_check_for_new_receive(void)
 {
+	#ifdef ENABLE_PANADAPTER
+		if (PAN_scanning())
+			return;
+	#endif
+
 	if (!g_squelch_open && !g_monitor_enabled)
 		return;
 
@@ -178,6 +183,14 @@ done:
 static void APP_process_new_receive(void)
 {
 	bool flag;
+
+	#ifdef ENABLE_PANADAPTER
+		if (PAN_scanning())
+		{
+			BK4819_set_AFC(0);
+			return;
+		}
+	#endif
 
 	if (!g_squelch_open)
 		BK4819_set_AFC(0);
@@ -273,6 +286,11 @@ typedef enum end_of_rx_mode_e end_of_rx_mode_t;
 
 static void APP_process_rx(void)
 {
+	#ifdef ENABLE_PANADAPTER
+		if (PAN_scanning())
+			return;
+	#endif
+
 	end_of_rx_mode_t Mode = END_OF_RX_MODE_NONE;
 
 //	APP_update_rssi(g_rx_vfo_num);
@@ -2228,6 +2246,10 @@ void APP_time_slice_500ms(void)
 
 						g_reduced_service = true;
 
+						#ifdef ENABLE_PANADAPTER
+							PAN_process_10ms();      // disable the panadapter
+						#endif
+
 						FUNCTION_Select(FUNCTION_POWER_SAVE);
 
 						ST7565_HardwareReset();
@@ -2426,10 +2448,10 @@ void APP_time_slice_10ms(void)
 	#endif
 
 	#ifdef ENABLE_AM_FIX
-		if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
-			#ifdef ENABLE_PANADAPTER
-				if (!g_eeprom.config.setting.panadapter || g_panadapter_vfo_mode > 0)
-			#endif
+		#ifdef ENABLE_PANADAPTER
+			if (!PAN_scanning())
+		#endif
+				if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
 					AM_fix_10ms(g_rx_vfo_num);
 	#endif
 
@@ -2456,17 +2478,19 @@ void APP_time_slice_10ms(void)
 			AUDIO_PlayBeep(BEEP_880HZ_40MS_OPTIONAL);
 	#endif
 
-	// 1of11
-//	if (g_update_rssi)
-	if (g_current_function != FUNCTION_POWER_SAVE && g_current_function != FUNCTION_TRANSMIT)
-		if (!g_flag_save_channel)
-			#ifdef ENABLE_PANADAPTER
-				if (!g_eeprom.config.setting.panadapter || g_panadapter_vfo_mode > 0)
-			#endif
-					APP_update_rssi(g_rx_vfo_num, false);
+#ifdef ENABLE_PANADAPTER
+	if (!PAN_scanning())
+#endif
+	{
+		// 1of11
+//		if (g_update_rssi)
+		if (g_current_function != FUNCTION_POWER_SAVE && g_current_function != FUNCTION_TRANSMIT)
+			if (!g_flag_save_channel)
+				APP_update_rssi(g_rx_vfo_num, false);
 
-	if (g_current_function != FUNCTION_POWER_SAVE || !g_rx_idle_mode)
-		APP_process_radio_interrupts();
+		if (g_current_function != FUNCTION_POWER_SAVE || !g_rx_idle_mode)
+			APP_process_radio_interrupts();
+	}
 
 	APP_process_functions();
 
@@ -2528,8 +2552,7 @@ void APP_time_slice_10ms(void)
 	#endif
 
 	#ifdef ENABLE_PANADAPTER
-		if (g_eeprom.config.setting.panadapter)
-			PAN_process_10ms();
+		PAN_process_10ms();
 	#endif
 
 	APP_process_power_save();

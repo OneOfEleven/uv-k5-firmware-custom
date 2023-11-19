@@ -449,6 +449,12 @@ void AM_fix_10ms(const int vfo)
 	#endif
 }
 
+void AM_fix_set_front_end_gains(const int vfo)
+{
+	const unsigned int index = gain_table_index_prev[vfo];
+	BK4819_write_reg(0x13, gain_table[index].reg_val);
+}
+
 #ifdef ENABLE_AM_FIX_SHOW_DATA
 
 	void AM_fix_print_data(const int vfo, char *s)

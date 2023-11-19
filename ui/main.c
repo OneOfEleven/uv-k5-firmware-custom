@@ -417,9 +417,9 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		uint8_t            span_rssi;
 		unsigned int       i;
 
-		if (!g_eeprom.config.setting.panadapter)
+		if (!g_eeprom.config.setting.panadapter || !g_pan_enabled || g_panadapter_vfo_mode > 0)
 			return;
-		if (!g_pan_enabled || single_vfo < 0 || g_current_display_screen != DISPLAY_MAIN)
+		if (single_vfo < 0 || g_current_display_screen != DISPLAY_MAIN)
 			return;
 		if (g_squelch_open || g_monitor_enabled)
 			return;
@@ -474,7 +474,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		}
 
 		// center marker (the VFO frequency)
-		base_line[(ARRAY_SIZE(g_panadapter_rssi) / 2) - (LCD_WIDTH * 2)] ^= 0xAA;
+		base_line[(ARRAY_SIZE(g_panadapter_rssi) / 2) - (LCD_WIDTH * 2)] = 0xAA;
 
 		// top horizontal line
 		for (i = 0; i < ARRAY_SIZE(g_panadapter_rssi); i += 2)
@@ -509,8 +509,9 @@ void UI_DisplayMain(void)
 
 #ifdef ENABLE_PANADAPTER
 	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
-		if (!g_squelch_open && !g_monitor_enabled && g_eeprom.config.setting.panadapter)
-			single_vfo = g_eeprom.config.setting.tx_vfo_num;
+		if (g_eeprom.config.setting.panadapter && g_pan_enabled)
+			if (!g_squelch_open && !g_monitor_enabled)
+				single_vfo = g_eeprom.config.setting.tx_vfo_num;
 #endif
 
 	// clear the screen

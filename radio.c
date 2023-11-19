@@ -360,7 +360,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		if (p_vfo->channel.mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
 		{
 			#ifdef ENABLE_PANADAPTER
-				if (!g_pan_enabled || g_panadapter_vfo_mode > 0)
+				if (!PAN_scanning())
 				{
 					AM_fix_10ms(VFO);
 				}
@@ -382,7 +382,7 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		if (p_vfo->mod_mode != MOD_MODE_FM)
 		{
 			#ifdef ENABLE_PANADAPTER
-				if (!g_pan_enabled || g_panadapter_vfo_mode > 0)
+				if (!PAN_scanning())
 				{
 					BK4819_EnableAGC();
 				}
