@@ -180,7 +180,7 @@ void PAN_process_10ms(void)
 			for (i = 0; i < (int)ARRAY_SIZE(g_panadapter_rssi); i++)
 			{
 				const uint8_t rssi = g_panadapter_rssi[i];
-				if (peak_rssi < rssi && rssi >= threshold_rssi && i != PANADAPTER_BINS)
+				if (peak_rssi < rssi && rssi >= threshold_rssi && (i < (PANADAPTER_BINS - 1) || i > (PANADAPTER_BINS + 1)))
 				{
 					peak_rssi = rssi;
 					g_panadapter_peak_freq = center_freq + (step_size * (i - PANADAPTER_BINS));

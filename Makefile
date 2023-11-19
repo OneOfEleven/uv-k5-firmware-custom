@@ -83,7 +83,7 @@ ENABLE_SIDE_BUTT_MENU            := 0
 # Key Lock 400 B
 ENABLE_KEYLOCK                   := 0
 ENABLE_PANADAPTER                := 1
-ENABLE_PANADAPTER_PEAK_FREQ      := 0
+ENABLE_PANADAPTER_PEAK_FREQ      := 1
 #ENABLE_SINGLE_VFO_CHAN          := 0
 
 #############################################################
