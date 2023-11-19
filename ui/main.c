@@ -417,10 +417,17 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		uint8_t            span_rssi;
 		unsigned int       i;
 
-		if (!g_eeprom.config.setting.panadapter || !g_pan_enabled)
+		if (!g_eeprom.config.setting.panadapter        ||
+		    !g_pan_enabled                             ||
+		     single_vfo < 0                            ||
+		     g_current_display_screen != DISPLAY_MAIN  ||
+		     g_current_function == FUNCTION_TRANSMIT   ||
+		     g_current_function == FUNCTION_POWER_SAVE ||
+		     g_monitor_enabled)
+		{
 			return;
-		if (single_vfo < 0 || g_current_display_screen != DISPLAY_MAIN || g_monitor_enabled)
-			return;
+		}
+
 //		if (g_squelch_open)
 //			return;
 
@@ -478,8 +485,12 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		base_line[(ARRAY_SIZE(g_panadapter_rssi) / 2) - (LCD_WIDTH * 2)] = 0xAA;
 
 		// top horizontal line
-		for (i = 0; i < ARRAY_SIZE(g_panadapter_rssi); i += 4)
-			base_line[i - (LCD_WIDTH * 2)] |= 1u;
+		for (i = 0; i < PANADAPTER_BINS; i += 4)
+		{
+			const unsigned int k = PANADAPTER_BINS + 1 - (LCD_WIDTH * 2);
+			base_line[k - i] |= 1u;
+			base_line[k + i] |= 1u;
+		}
 
 //		sprintf(str, "r %3d g %3u n %3u", rssi, glitch, noise);
 //		UI_PrintStringSmall(str, 2, 0, line);
