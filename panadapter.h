@@ -25,9 +25,12 @@
 // number of bins either side of the VFO RX frequency
 #define PANADAPTER_BINS   ((LCD_WIDTH / 2) - 1)
 
-extern bool    g_pan_enabled;
-extern int     g_panadapter_vfo_mode;
-extern uint8_t g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
+extern bool     g_panadapter_enabled;
+extern uint32_t g_panadapter_peak_freq;
+extern int      g_panadapter_vfo_mode;
+extern uint8_t  g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
+extern uint8_t  g_panadapter_max_rssi;
+extern uint8_t  g_panadapter_min_rssi;
 
 bool PAN_scanning(void);
 void PAN_process_10ms(void);

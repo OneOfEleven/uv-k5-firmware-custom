@@ -81,8 +81,9 @@ ENABLE_TX_AUDIO_BAR              := 0
 # Side Button Menu 300 B
 ENABLE_SIDE_BUTT_MENU            := 0
 # Key Lock 400 B
-ENABLE_KEYLOCK                   := 1
+ENABLE_KEYLOCK                   := 0
 ENABLE_PANADAPTER                := 1
+ENABLE_PANADAPTER_PEAK_FREQ      := 0
 #ENABLE_SINGLE_VFO_CHAN          := 0
 
 #############################################################
@@ -178,9 +179,6 @@ OBJS += app/menu.o
 OBJS += app/search.o
 ifeq ($(ENABLE_SCAN_IGNORE_LIST),1)
 	OBJS += freq_ignore.o
-endif
-ifeq ($(ENABLE_PANADAPTER),1)
-//	OBJS += app/spectrum.o
 endif
 ifeq ($(ENABLE_UART),1)
 	OBJS += app/uart.o
@@ -472,6 +470,9 @@ ifeq ($(ENABLE_SINGLE_VFO_CHAN),1)
 endif
 ifeq ($(ENABLE_PANADAPTER),1)
 	CFLAGS += -DENABLE_PANADAPTER
+endif
+ifeq ($(ENABLE_PANADAPTER_PEAK_FREQ),1)
+	CFLAGS += -DENABLE_PANADAPTER_PEAK_FREQ
 endif
 
 LDFLAGS =
