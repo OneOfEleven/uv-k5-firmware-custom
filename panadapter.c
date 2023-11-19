@@ -17,10 +17,10 @@
 #include "ui/main.h"
 #include "ui/ui.h"
 
-bool    g_pan_enabled;
-int     g_panadapter_vfo_mode;     // > 0 if we're currently sampling the VFO
-uint8_t g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
-int     g_panadapter_rssi_index;
+bool         g_pan_enabled;
+int          g_panadapter_vfo_mode;     // > 0 if we're currently sampling the VFO
+uint8_t      g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
+unsigned int panadapter_rssi_index;
 
 bool PAN_scanning(void)
 {
@@ -35,11 +35,11 @@ void PAN_set_freq(void)
 
 	if (g_pan_enabled && g_panadapter_vfo_mode <= 0)
 	{	// panadapter mode .. add the bin offset
-		if (g_panadapter_rssi_index < PANADAPTER_BINS)
-			freq -= step_size * (PANADAPTER_BINS - g_panadapter_rssi_index);
+		if (panadapter_rssi_index < PANADAPTER_BINS)
+			freq -= step_size * (PANADAPTER_BINS - panadapter_rssi_index);
 		else
-		if (g_panadapter_rssi_index > PANADAPTER_BINS)
-			freq += step_size * (g_panadapter_rssi_index - PANADAPTER_BINS);
+		if (panadapter_rssi_index > PANADAPTER_BINS)
+			freq += step_size * (panadapter_rssi_index - PANADAPTER_BINS);
 	}
 
 	BK4819_set_rf_frequency(freq, true);  // set the VCO/PLL
@@ -78,7 +78,6 @@ void PAN_process_10ms(void)
 			PAN_set_freq();
 
 			g_update_display = true;
-			//UI_DisplayMain_pan(true);
 		}
 
 		return;
@@ -88,45 +87,50 @@ void PAN_process_10ms(void)
 	{	// enable the panadapter
 
 		g_panadapter_vfo_mode = 0;
-		g_panadapter_rssi_index = 0;
+		panadapter_rssi_index = 0;
 //		memset(g_panadapter_rssi, 0, sizeof(g_panadapter_rssi));
 		g_pan_enabled = true;
 		PAN_set_freq();
 
 		g_update_display = true;
-		//UI_DisplayMain_pan(true);
+		return;
+	}
 
+	if (g_panadapter_vfo_mode > 0 && g_squelch_open)
+	{	// we have a signal on the VFO frequency
+		g_panadapter_vfo_mode = 50;   // pause scanning for at least another 500ms
 		return;
 	}
 
 	if (g_panadapter_vfo_mode <= 0)
-	{	// save the current RSSI value
-		const uint16_t rssi = BK4819_GetRSSI();
-		g_panadapter_rssi[g_panadapter_rssi_index] = (rssi <= 255) ? rssi : 255;
-	}
-
-	if (g_panadapter_vfo_mode <= 0)
 	{	// scanning
-		if (++g_panadapter_rssi_index >= (int)ARRAY_SIZE(g_panadapter_rssi))
-			g_panadapter_rssi_index = 0;
+
+		// save the current RSSI value
+		const uint16_t rssi = BK4819_GetRSSI();
+		g_panadapter_rssi[panadapter_rssi_index] = (rssi <= 255) ? rssi : 255;
+
+		// next frequency
+		if (++panadapter_rssi_index >= ARRAY_SIZE(g_panadapter_rssi))
+			panadapter_rssi_index = 0;
 
 		if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
-			// switch back to the VFO frequency once every 16 frequency steps .. if in FM mode
-			g_panadapter_vfo_mode = ((g_panadapter_rssi_index & 15u) == 0) ? 1 : 0;
+		{	// switch back to the VFO frequency for 90ms once every 250ms
+			g_panadapter_vfo_mode = ((panadapter_rssi_index % 25) == 0) ? 9 : 0;
+		}
 		else
-			// switch back to the VFO frequency once each scan cycle if not in FM mode
-			g_panadapter_vfo_mode = (g_panadapter_rssi_index == 0) ? 1 : 0;
+		{	// switch back to the VFO frequency for 90ms once each scan cycle
+			g_panadapter_vfo_mode = (panadapter_rssi_index == 0) ? 9 : 0;
+		}
 	}
 	else
-	{	// checking the VFO frequency for a signal .. we do this this periodically
-		if (++g_panadapter_vfo_mode >= 9)   // monitor the VFO frequency for 90ms before continuing our scan
-			g_panadapter_vfo_mode = 0;
+	{	// checking the VFO frequency for a signal .. we periodically do this
+		g_panadapter_vfo_mode--;
 	}
 
 	PAN_set_freq();
 
 	// the last bin value .. draw the panadapter once each scan cycle
-	if (g_panadapter_rssi_index == 0 && g_panadapter_vfo_mode <= 1)
+	if (panadapter_rssi_index == 0)
 		UI_DisplayMain_pan(true);
 		//g_update_display = true;
 }

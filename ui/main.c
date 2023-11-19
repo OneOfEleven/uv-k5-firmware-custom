@@ -412,18 +412,20 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 	{
 		const unsigned int line      = (g_eeprom.config.setting.tx_vfo_num == 0) ? 4 : 0;
 		uint8_t           *base_line = g_frame_buffer[line + 2];
-		uint8_t            max_rssi  = g_panadapter_rssi[0];
-		uint8_t            min_rssi  = g_panadapter_rssi[0];
+		uint8_t            max_rssi;
+		uint8_t            min_rssi;
 		uint8_t            span_rssi;
 		unsigned int       i;
 
-		if (!g_eeprom.config.setting.panadapter || !g_pan_enabled || g_panadapter_vfo_mode > 0)
+		if (!g_eeprom.config.setting.panadapter || !g_pan_enabled)
 			return;
-		if (single_vfo < 0 || g_current_display_screen != DISPLAY_MAIN)
+		if (single_vfo < 0 || g_current_display_screen != DISPLAY_MAIN || g_monitor_enabled)
 			return;
-		if (g_squelch_open || g_monitor_enabled)
-			return;
+//		if (g_squelch_open)
+//			return;
 
+		max_rssi = g_panadapter_rssi[0];
+		min_rssi = g_panadapter_rssi[0];
 		for (i = 1; i < ARRAY_SIZE(g_panadapter_rssi); i++)
 		{
 			const uint8_t rssi = g_panadapter_rssi[i];
@@ -434,21 +436,20 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		}
 
 		span_rssi = max_rssi - min_rssi;
-		if (span_rssi < 20)  // minimum vertical range
+		if (span_rssi < 40)  // minimum vertical range
 		{
-			span_rssi = 20;
+			span_rssi = 40;
 			if (min_rssi > (255 - span_rssi))
 				min_rssi =  255 - span_rssi;
 			max_rssi = min_rssi + span_rssi;
 		}
 
 		if (now)
-		{
-			memset(g_frame_buffer[line + 0], 0, LCD_WIDTH);
-			memset(g_frame_buffer[line + 1], 0, LCD_WIDTH);
-			memset(g_frame_buffer[line + 2], 0, LCD_WIDTH);
+		{	// clear our assigned screen area
+			memset(g_frame_buffer[line], 0, LCD_WIDTH * 3);
 		}
 
+		// draw the bins
 		for (i = 0; i < ARRAY_SIZE(g_panadapter_rssi); i++)
 		{
 			uint8_t  rssi = g_panadapter_rssi[i];
@@ -477,7 +478,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		base_line[(ARRAY_SIZE(g_panadapter_rssi) / 2) - (LCD_WIDTH * 2)] = 0xAA;
 
 		// top horizontal line
-		for (i = 0; i < ARRAY_SIZE(g_panadapter_rssi); i += 2)
+		for (i = 0; i < ARRAY_SIZE(g_panadapter_rssi); i += 4)
 			base_line[i - (LCD_WIDTH * 2)] |= 1u;
 
 //		sprintf(str, "r %3d g %3u n %3u", rssi, glitch, noise);
@@ -507,13 +508,6 @@ void UI_DisplayMain(void)
 	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF && g_rx_vfo_is_active)
 		current_vfo_num = g_rx_vfo_num;    // we're currently monitoring the other VFO
 
-#ifdef ENABLE_PANADAPTER
-	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
-		if (g_eeprom.config.setting.panadapter && g_pan_enabled)
-			if (!g_squelch_open && !g_monitor_enabled)
-				single_vfo = g_eeprom.config.setting.tx_vfo_num;
-#endif
-
 	// clear the screen
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
@@ -537,6 +531,14 @@ void UI_DisplayMain(void)
 			g_center_line = CENTER_LINE_IN_USE;
 			return;
 		}
+	#endif
+
+	#ifdef ENABLE_PANADAPTER
+		if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
+			if (g_eeprom.config.setting.panadapter && g_pan_enabled)
+				//if (!g_squelch_open && !g_monitor_enabled)
+				if (!g_monitor_enabled)
+					single_vfo = g_eeprom.config.setting.tx_vfo_num;
 	#endif
 
 	for (vfo_num = 0; vfo_num < 2; vfo_num++)
@@ -1140,7 +1142,8 @@ void UI_DisplayMain(void)
 	}
 
 	#ifdef ENABLE_PANADAPTER
-		UI_DisplayMain_pan(false);
+		//if (single_vfo >= 0)
+			UI_DisplayMain_pan(false);
 	#endif
 
 	ST7565_BlitFullScreen();
