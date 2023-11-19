@@ -424,6 +424,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 //		if (g_squelch_open)
 //			return;
 
+		// auto scale
 		max_rssi = g_panadapter_rssi[0];
 		min_rssi = g_panadapter_rssi[0];
 		for (i = 1; i < ARRAY_SIZE(g_panadapter_rssi); i++)
@@ -434,9 +435,8 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 			if (min_rssi > rssi)
 				min_rssi = rssi;
 		}
-
 		span_rssi = max_rssi - min_rssi;
-		if (span_rssi < 40)  // minimum vertical range
+		if (span_rssi < 40)  // minimum vertical range (20dB)
 		{
 			span_rssi = 40;
 			if (min_rssi > (255 - span_rssi))
@@ -449,7 +449,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 			memset(g_frame_buffer[line], 0, LCD_WIDTH * 3);
 		}
 
-		// draw the bins
+		// draw the vertical bins
 		for (i = 0; i < ARRAY_SIZE(g_panadapter_rssi); i++)
 		{
 			uint8_t  rssi = g_panadapter_rssi[i];
@@ -459,7 +459,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 				rssi = (rssi < ((-129 + 160) * 2)) ? 0 : rssi - ((-129 + 160) * 2);  // min of -129dBm (S3)
 				rssi = rssi >> 2;
 			#else
-				rssi = ((rssi - min_rssi) * 22) / span_rssi;  // 0 ~ 21
+				rssi = ((rssi - min_rssi) * 20) / span_rssi;  // 0 ~ 20
 			#endif
 
 			rssi += 2;
