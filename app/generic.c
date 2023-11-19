@@ -209,7 +209,7 @@ void GENERIC_Key_PTT(bool key_pressed)
 		if (g_dtmf_input_box_index < sizeof(g_dtmf_input_box))
 			g_dtmf_input_box[g_dtmf_input_box_index] = 0;             // NULL term the string
 
-		#if 0
+		#if 1
 			// append our DTMF ID to the inputted DTMF code -
 			//  IF the user inputted code is exactly 3 digits long
 			if (g_dtmf_input_box_index == 3)
@@ -231,6 +231,10 @@ void GENERIC_Key_PTT(bool key_pressed)
 
 		g_dtmf_reply_state = DTMF_REPLY_ANI;
 		g_dtmf_state       = DTMF_STATE_0;
+
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//			UART_printf("generic ptt tx %s\r\n", g_dtmf_string);
+		#endif
 	}
 
 	DTMF_clear_input_box();

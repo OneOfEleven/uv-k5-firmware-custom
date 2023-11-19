@@ -179,8 +179,7 @@ void FUNCTION_Select(function_type_t Function)
 			g_tx_timeout_reached  = false;
 			g_flag_end_tx         = false;
 		
-			g_rtte_count_down     = 0;
-			g_dtmf_reply_state    = DTMF_REPLY_NONE;
+			g_rtte_count_down = 0;
 		
 			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 				if (g_alarm_state == ALARM_STATE_OFF)
@@ -233,6 +232,10 @@ void FUNCTION_Select(function_type_t Function)
 			BK4819_set_scrambler(0);
 
 			RADIO_enableTX(false);
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//				UART_printf("function tx %u %s\r\n", g_dtmf_reply_state, g_dtmf_string);
+			#endif
 
 			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 				if (g_alarm_state != ALARM_STATE_OFF)

@@ -1085,9 +1085,9 @@ void RADIO_PrepareTX(void)
 		else
 		if (g_battery_display_level == 0)
 			State = VFO_STATE_BAT_LOW;       // charge your battery !
-		else
-		if (g_battery_display_level >= 6)
-			State = VFO_STATE_VOLTAGE_HIGH;  // over voltage (no doubt to protect the PA) .. this is being a pain
+//		else
+//		if (g_battery_display_level >= 6)
+//			State = VFO_STATE_VOLTAGE_HIGH;  // over voltage (no doubt to protect the PA) .. this is being a pain
 	}
 	else
 		State = VFO_STATE_TX_DISABLE;        // TX frequency not allowed
@@ -1110,12 +1110,16 @@ void RADIO_PrepareTX(void)
 	// ******************************
 	// TX is allowed
 
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("radio prepare tx %u %s\r\n", g_dtmf_reply_state, g_dtmf_string);
+	#endif
+
 	if (g_dtmf_reply_state == DTMF_REPLY_ANI)
 	{
 		if (g_dtmf_call_mode == DTMF_CALL_MODE_DTMF)
 		{
-			g_dtmf_is_tx                    = true;
-			g_dtmf_call_state               = DTMF_CALL_STATE_NONE;
+			g_dtmf_is_tx              = true;
+			g_dtmf_call_state         = DTMF_CALL_STATE_NONE;
 			g_dtmf_tx_stop_tick_500ms = dtmf_txstop_500ms;
 		}
 		else

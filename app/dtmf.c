@@ -24,6 +24,9 @@
 #include "driver/eeprom.h"
 #include "driver/gpio.h"
 #include "driver/system.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "dtmf.h"
 #include "external/printf/printf.h"
 #include "misc.h"
@@ -326,7 +329,7 @@ void DTMF_HandleRequest(void)
 
 		if (DTMF_CompareMessage(g_dtmf_rx + Offset, String, strlen(String), false))
 		{	// we got a response
-			g_dtmf_state    = DTMF_STATE_CALL_OUT_RSP;
+			g_dtmf_state     = DTMF_STATE_CALL_OUT_RSP;
 			DTMF_clear_RX();
 			g_update_display = true;
 		}
@@ -390,7 +393,7 @@ bool DTMF_Reply(void)
 {
 	const uint16_t delay_ms = ((g_eeprom.config.setting.dtmf.preload_time < 15) ? 15 : g_eeprom.config.setting.dtmf.preload_time) * 10;
 	const char    *pString = NULL;
-	char           String[23];
+	char           str[23];
 
 	switch (g_dtmf_reply_state)
 	{
@@ -401,9 +404,14 @@ bool DTMF_Reply(void)
 			}
 			else
 			{	// append our ID code onto the end of the DTMF code to send
-				sprintf(String, "%s%c%s", g_dtmf_string, g_eeprom.config.setting.dtmf.separate_code, g_eeprom.config.setting.dtmf.ani_id);
-				pString = String;
+				sprintf(str, "%s%c%s", g_dtmf_string, g_eeprom.config.setting.dtmf.separate_code, g_eeprom.config.setting.dtmf.ani_id);
+				pString = str;
 			}
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//				UART_printf("dtmf tx reply ani %s\r\n", pString);
+			#endif
+
 			break;
 
 		case DTMF_REPLY_AB:
@@ -411,13 +419,18 @@ bool DTMF_Reply(void)
 			break;
 
 		case DTMF_REPLY_AAAAA:
-			sprintf(String, "%s%c%s", g_eeprom.config.setting.dtmf.ani_id, g_eeprom.config.setting.dtmf.separate_code, "AAAAA");
-			pString = String;
+			sprintf(str, "%s%c%s", g_eeprom.config.setting.dtmf.ani_id, g_eeprom.config.setting.dtmf.separate_code, "AAAAA");
+			pString = str;
 			break;
 
 		default:
 		case DTMF_REPLY_NONE:
-			if (g_dtmf_call_state != DTMF_CALL_STATE_NONE           ||
+
+			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//				UART_printf("dtmf tx reply none %s\r\n", g_dtmf_string);
+			#endif
+
+			if (g_dtmf_call_state != DTMF_CALL_STATE_NONE                   ||
 			    g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO ||
 			    g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_OFF    ||
 			    g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN)
@@ -449,9 +462,9 @@ bool DTMF_Reply(void)
 		pString,
 		1,
 		g_eeprom.config.setting.dtmf.first_code_persist_time * 10,
-		g_eeprom.config.setting.dtmf.hash_code_persist_time * 10,
-		g_eeprom.config.setting.dtmf.code_persist_time * 10,
-		g_eeprom.config.setting.dtmf.code_interval_time * 10);
+		g_eeprom.config.setting.dtmf.hash_code_persist_time  * 10,
+		g_eeprom.config.setting.dtmf.code_persist_time       * 10,
+		g_eeprom.config.setting.dtmf.code_interval_time      * 10);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
