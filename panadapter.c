@@ -61,8 +61,6 @@ void PAN_set_freq(void)
 
 void PAN_process_10ms(void)
 {
-	uint16_t rssi;
-
 	if (!g_eeprom.config.setting.panadapter         ||
 	#ifdef ENABLE_FMRADIO
 		 g_fm_radio_mode                            ||
@@ -113,11 +111,8 @@ void PAN_process_10ms(void)
 	{	// we have a signal on the VFO frequency
 
 		// save the current RSSI value .. center bin is the VFO frequency
-		rssi = g_current_rssi[g_eeprom.config.setting.tx_vfo_num];
-		//if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
-			g_panadapter_rssi[PANADAPTER_BINS] = (rssi <= 255) ? rssi : 255;
-
-//		g_update_display = true;
+		const int16_t rssi = g_current_rssi[g_eeprom.config.setting.tx_vfo_num];
+		g_panadapter_rssi[PANADAPTER_BINS] = (rssi > 255) ? 255 : (rssi < 0) ? 0 : rssi;
 
 		g_panadapter_vfo_mode = 50;   // pause scanning for at least another 500ms
 		return;
@@ -127,7 +122,7 @@ void PAN_process_10ms(void)
 	{	// scanning
 
 		// save the current RSSI value
-		rssi = BK4819_GetRSSI();
+		const uint16_t rssi = BK4819_GetRSSI();
 		g_panadapter_rssi[panadapter_rssi_index] = (rssi <= 255) ? rssi : 255;
 
 		// next frequency
