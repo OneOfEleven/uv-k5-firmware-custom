@@ -135,8 +135,8 @@ void PAN_process_10ms(void)
 			panadapter_rssi_index = 0;
 
 		if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
-		{	// switch back to the VFO frequency for 100ms once every 500ms
-			g_panadapter_vfo_mode = ((panadapter_rssi_index % 50) == 0) ? 10 : 0;
+		{	// switch back to the VFO frequency for 100ms once every 400ms
+			g_panadapter_vfo_mode = ((panadapter_rssi_index % 40) == 0) ? 10 : 0;
 		}
 		else
 		{	// switch back to the VFO frequency for 100ms once each scan cycle

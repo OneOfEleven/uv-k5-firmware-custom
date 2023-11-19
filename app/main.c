@@ -360,6 +360,14 @@ void processFKeyFunction(const key_code_t Key)
 
 		case KEY_5:    // NOAA
 
+			#ifdef ENABLE_PANADAPTER
+				if (g_fkey_pressed)
+				{
+					g_eeprom.config.setting.panadapter = (g_eeprom.config.setting.panadapter + 1) & 1u;
+					break;
+				}
+			#endif
+
 			#ifdef ENABLE_NOAA
 
 				APP_stop_scan();
