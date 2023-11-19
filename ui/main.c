@@ -482,12 +482,12 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		}
 
 		// center marker (the VFO frequency)
-		base_line[(ARRAY_SIZE(g_panadapter_rssi) / 2) - (LCD_WIDTH * 2)] = 0xAA;
+		base_line[PANADAPTER_BINS - (LCD_WIDTH * 2)] = 0x07;
 
 		// top horizontal line
 		for (i = 0; i < PANADAPTER_BINS; i += 4)
 		{
-			const unsigned int k = PANADAPTER_BINS + 1 - (LCD_WIDTH * 2);
+			const unsigned int k = PANADAPTER_BINS - (LCD_WIDTH * 2);
 			base_line[k - i] |= 1u;
 			base_line[k + i] |= 1u;
 		}
