@@ -35,8 +35,10 @@ bool PAN_scanning(void)
 void PAN_set_freq(void)
 {	// set the frequency
 
-	const uint32_t step_size = g_tx_vfo->step_freq;
-	uint32_t       freq      = g_tx_vfo->p_rx->frequency;
+	uint32_t freq = g_tx_vfo->p_rx->frequency;
+
+	uint32_t step_size = g_tx_vfo->step_freq;
+	step_size = (step_size < PANADAPTER_MIN_STEP) ? PANADAPTER_MIN_STEP : (step_size > PANADAPTER_MAX_STEP) ? PANADAPTER_MAX_STEP : step_size;
 
 	if (g_panadapter_enabled && g_panadapter_vfo_mode <= 0)
 	{	// panadapter mode .. add the bin offset
@@ -163,15 +165,22 @@ void PAN_process_10ms(void)
 
 		#ifdef ENABLE_PANADAPTER_PEAK_FREQ
 		{	// find the peak freq
-			const int32_t step_size   = g_tx_vfo->step_freq;
 			const int32_t center_freq = g_tx_vfo->p_rx->frequency;
+			int32_t step_size = g_tx_vfo->step_freq;
+
 			uint8_t peak_rssi = 0;
 			uint8_t threshold_rssi;
+
 			uint8_t span_rssi = g_panadapter_max_rssi - g_panadapter_min_rssi;
 			if (span_rssi < 80)
 				span_rssi = 80;
+
+			step_size = (step_size < PANADAPTER_MIN_STEP) ? PANADAPTER_MIN_STEP : (step_size > PANADAPTER_MAX_STEP) ? PANADAPTER_MAX_STEP : step_size;
+
 			threshold_rssi = g_panadapter_min_rssi + (span_rssi / 4);
+
 			g_panadapter_peak_freq = 0;
+
 			for (i = 0; i < (int)ARRAY_SIZE(g_panadapter_rssi); i++)
 			{
 				const uint8_t rssi = g_panadapter_rssi[i];

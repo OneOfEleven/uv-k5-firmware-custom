@@ -424,14 +424,11 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		     g_current_function == FUNCTION_TRANSMIT   ||
 		     g_current_function == FUNCTION_POWER_SAVE ||
 		     g_monitor_enabled)
-		{
+		{	// don't draw the panadapter
 			return;
 		}
 
-//		if (g_squelch_open)
-//			return;
-
-		// auto scale
+		// auto vertical scale
 		max_rssi  = g_panadapter_max_rssi;
 		min_rssi  = g_panadapter_min_rssi;
 		span_rssi = max_rssi - min_rssi;
@@ -450,7 +447,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 
 		#ifdef ENABLE_PANADAPTER_PEAK_FREQ
 			if (g_panadapter_peak_freq > 0)
-			{
+			{	// print the peak frequency
 				char str[16];
 				sprintf(str, "%u.%05u", g_panadapter_peak_freq / 100000, g_panadapter_peak_freq % 100000);
 				NUMBER_trim_trailing_zeros(str);
@@ -458,10 +455,10 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 			}
 		#endif
 
-		// center marker (the VFO frequency)
-		base_line[PANADAPTER_BINS - (LCD_WIDTH * 2)] = 0x07;
+		// draw top center vertical marker (the VFO frequency)
+		base_line[PANADAPTER_BINS - (LCD_WIDTH * 2)] = 0x0F;
 
-		// top horizontal line
+		// draw top horizontal dotted line
 		for (i = 0; i < PANADAPTER_BINS; i += 4)
 		{
 			const unsigned int k = PANADAPTER_BINS - (LCD_WIDTH * 2);
@@ -469,25 +466,25 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 			base_line[k + i] |= 1u;
 		}
 
-		// draw the vertical bins
+		// draw the panadapter vertical bins
 		for (i = 0; i < ARRAY_SIZE(g_panadapter_rssi); i++)
 		{
-			uint8_t  rssi = g_panadapter_rssi[i];
 			uint32_t pixels;
+			uint8_t  rssi = g_panadapter_rssi[i];
 
 			#if 0
 				rssi = (rssi < ((-129 + 160) * 2)) ? 0 : rssi - ((-129 + 160) * 2);  // min of -129dBm (S3)
 				rssi = rssi >> 2;
 			#else
-				rssi = ((rssi - min_rssi) * 20) / span_rssi;  // 0 ~ 20
+				rssi = ((uint16_t)(rssi - min_rssi) * 20) / span_rssi;  // 0 ~ 20
 			#endif
 
-			rssi += 2;
-			if (rssi > 21)
-				rssi = 21;
+			rssi += 2;                  // offset from the bottom
+			if (rssi > 22)
+				rssi = 22;              // limit peak value
 
-			pixels = (1u << rssi) - 1;
-			pixels &= 0xfffffffe;
+			pixels = (1u << rssi) - 1;  // set the line pixels
+			pixels &= 0xfffffffe;       // clear the bottom line
 
 			base_line[i - (LCD_WIDTH * 2)] |= bit_reverse_8(pixels >> 16);
 			base_line[i - (LCD_WIDTH * 1)] |= bit_reverse_8(pixels >>  8);
