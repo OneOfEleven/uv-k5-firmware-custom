@@ -364,6 +364,7 @@ void processFKeyFunction(const key_code_t Key)
 				if (g_fkey_pressed)
 				{
 					g_eeprom.config.setting.panadapter = (g_eeprom.config.setting.panadapter + 1) & 1u;
+					g_request_save_settings = true;
 					break;
 				}
 			#endif
