@@ -75,8 +75,8 @@ void PAN_process_10ms(void)
 	     g_scan_state_dir != SCAN_STATE_DIR_OFF     ||
 		 g_dtmf_call_state != DTMF_CALL_STATE_NONE  ||
 	     g_dtmf_is_tx                               ||
-	     g_dtmf_input_mode                          ||
-		 g_input_box_index > 0)
+	     g_dtmf_input_mode)
+//		 g_input_box_index > 0)
 	{
 		if (g_panadapter_enabled)
 		{	// disable the panadapter

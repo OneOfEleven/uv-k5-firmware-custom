@@ -431,9 +431,8 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		if (g_dtmf_call_state != DTMF_CALL_STATE_NONE || g_dtmf_is_tx || g_dtmf_input_mode)
 			return;  // DTMF call
 
-//		if (g_input_box_index > 0 && IS_FREQ_CHANNEL(scrn_chan))
-		if (g_input_box_index > 0)
-			return;  // user is entering a frequency
+//		if (g_input_box_index > 0)
+//			return;  // user is entering a frequency
 
 		// auto vertical scale
 		max_rssi  = g_panadapter_max_rssi;
@@ -553,7 +552,7 @@ void UI_DisplayMain(void)
 				//if (!g_squelch_open && !g_monitor_enabled)
 				if (!g_monitor_enabled)
 					if (g_dtmf_call_state == DTMF_CALL_STATE_NONE && !g_dtmf_is_tx && !g_dtmf_input_mode)
-						if (g_input_box_index == 0)
+//						if (g_input_box_index == 0)
 							single_vfo = g_eeprom.config.setting.tx_vfo_num;
 	#endif
 
