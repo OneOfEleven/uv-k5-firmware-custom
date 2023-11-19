@@ -421,7 +421,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		    !g_panadapter_enabled                      ||
 		     single_vfo < 0                            ||
 		     g_current_display_screen != DISPLAY_MAIN  ||
-		     g_current_function == FUNCTION_TRANSMIT   ||
+//		     g_current_function == FUNCTION_TRANSMIT   ||
 		     g_current_function == FUNCTION_POWER_SAVE ||
 		     g_monitor_enabled)
 		{	// don't draw the panadapter
@@ -548,12 +548,10 @@ void UI_DisplayMain(void)
 
 	#ifdef ENABLE_PANADAPTER
 		if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
-			if (g_eeprom.config.setting.panadapter && g_panadapter_enabled)
-				//if (!g_squelch_open && !g_monitor_enabled)
-				if (!g_monitor_enabled)
-					if (g_dtmf_call_state == DTMF_CALL_STATE_NONE && !g_dtmf_is_tx && !g_dtmf_input_mode)
-//						if (g_input_box_index == 0)
-							single_vfo = g_eeprom.config.setting.tx_vfo_num;
+			if (g_dtmf_call_state == DTMF_CALL_STATE_NONE && !g_dtmf_is_tx && !g_dtmf_input_mode)
+				if (g_eeprom.config.setting.panadapter && g_panadapter_enabled)
+					if (!g_monitor_enabled)
+						single_vfo = g_eeprom.config.setting.tx_vfo_num;
 	#endif
 
 	for (vfo_num = 0; vfo_num < 2; vfo_num++)

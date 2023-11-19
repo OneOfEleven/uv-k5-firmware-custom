@@ -68,7 +68,6 @@ void PAN_process_10ms(void)
 //	     g_single_vfo < 0                           ||
 	     g_reduced_service                          ||
 	     g_monitor_enabled                          ||
-	     g_current_function == FUNCTION_TRANSMIT    ||
 	     g_current_function == FUNCTION_POWER_SAVE  ||
 	     g_current_display_screen == DISPLAY_SEARCH ||
 	     g_css_scan_mode  != CSS_SCAN_MODE_OFF      ||
@@ -93,6 +92,9 @@ void PAN_process_10ms(void)
 
 		return;
 	}
+
+	if (g_current_function == FUNCTION_TRANSMIT)
+		return;
 
 	if (!g_panadapter_enabled)
 	{	// enable the panadapter
