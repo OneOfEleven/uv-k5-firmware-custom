@@ -148,7 +148,7 @@ void PAN_process_10ms(void)
 
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{
-		g_panadapter_vfo_mode = 100;  // 1000ms
+		g_panadapter_vfo_mode = 100;  // 1 sec - stay on the VFO frequency for at least this amount of time after PTT release
 		panadapter_rssi_index = -1;
 		return;
 	}
@@ -162,8 +162,8 @@ void PAN_process_10ms(void)
 		g_panadapter_vfo_mode = 0;
 //		g_panadapter_max_rssi = 0;
 //		g_panadapter_min_rssi = 0;
-		panadapter_rssi_index = 0;
 //		memset(g_panadapter_rssi, 0, sizeof(g_panadapter_rssi));
+		panadapter_rssi_index = 0;
 		g_panadapter_enabled  = true;
 		PAN_set_freq();
 
@@ -178,49 +178,44 @@ void PAN_process_10ms(void)
 		return;
 	}
 
-	if (g_panadapter_vfo_mode > 0 && g_squelch_open)
-	{	// we have a signal on the VFO frequency
+	if (g_panadapter_vfo_mode > 0)
+	{	// we're paused on the VFO/center frequency
 
-		// save the current RSSI value .. center bin is the VFO frequency
+		// save the current RSSI value
 		const int16_t rssi = g_current_rssi[g_eeprom.config.setting.tx_vfo_num];
 		g_panadapter_rssi[PANADAPTER_BINS] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
 
 		PAN_update_min_max();
 
-		g_panadapter_vfo_mode = 40;   // pause scanning for at least another 400ms
+		g_panadapter_vfo_mode = g_squelch_open ? 40 : g_panadapter_vfo_mode - 1;
+
 		return;
 	}
 
-	if (g_panadapter_vfo_mode <= 0)
-	{	// scanning
+	// scanning/sweeping
 
-		// save the current RSSI value
-		const uint16_t rssi = BK4819_GetRSSI();
-		g_panadapter_rssi[panadapter_rssi_index] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
+	// save the current RSSI value
+	const uint16_t rssi = BK4819_GetRSSI();
+	g_panadapter_rssi[panadapter_rssi_index] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
 
-		// next frequency
-		if (++panadapter_rssi_index >= (int)ARRAY_SIZE(g_panadapter_rssi))
-			panadapter_rssi_index = 0;
+	// next frequency
+	if (++panadapter_rssi_index >= (int)ARRAY_SIZE(g_panadapter_rssi))
+		panadapter_rssi_index = 0;
 
-		if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
-		{	// switch back to the VFO frequency for 100ms once every 400ms
-			g_panadapter_vfo_mode = ((panadapter_rssi_index % 40) == 0) ? 10 : 0;
-		}
-		else
-		{	// switch back to the VFO frequency for 100ms once each scan cycle
-			g_panadapter_vfo_mode = (panadapter_rssi_index == 0) ? 10 : 0;
-		}
+	if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
+	{	// switch back to the VFO/center frequency for 100ms once every 400ms
+		g_panadapter_vfo_mode = ((panadapter_rssi_index % 40) == 0) ? 10 : 0;
 	}
 	else
-	{	// checking the VFO frequency for a signal
-		g_panadapter_vfo_mode--;
+	{	// switch back to the VFO/center frequency for 100ms once per full sweep/scan cycle
+		g_panadapter_vfo_mode = (panadapter_rssi_index == 0) ? 10 : 0;
 	}
 
 	PAN_set_freq();
 
-	// the last bin value .. draw the panadapter once each scan cycle
 	if (panadapter_rssi_index == 0)
-	{
+	{	// the last bin value .. only draw the panadapter once per full sweep/scan cycle
+
 		PAN_update_min_max();
 
 		#ifdef ENABLE_PANADAPTER_PEAK_FREQ
