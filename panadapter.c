@@ -190,17 +190,23 @@ void PAN_process_10ms(void)
 		// stay on the VFO/center frequency for a further 400ms after carrier drop
 		g_panadapter_vfo_tick = g_squelch_open ? 40 : g_panadapter_vfo_tick - 1;
 
-		if (g_panadapter_vfo_tick <= 0)
-		{	// back to scan/sweep mode
-			PAN_set_freq();
-			panadapter_delay = 3;  // give the VCO/PLL/RSSI a little more time to settle
-
-			if (g_panadapter_cycles > 0)
-				UI_DisplayMain_pan(true);
-				//g_update_display = true;
+		if (g_panadapter_vfo_tick > 0)
+		{
+			if (panadapter_delay > 0)
+			{	// update the screen every 200ms
+				if (--panadapter_delay == 0)
+				{
+					panadapter_delay = 20;
+					UI_DisplayMain_pan(true);
+					//g_update_display = true;
+				}
+			}
+			return;
 		}
 
-		return;
+		// back to scan/sweep mode
+		PAN_set_freq();
+		panadapter_delay = 3;  // give the VCO/PLL/RSSI a little more time to settle
 	}
 
 	// scanning/sweeping
@@ -222,11 +228,11 @@ void PAN_process_10ms(void)
 		panadapter_delay      = 3;  // give the VCO/PLL/RSSI a little more time to settle
 	}
 
-	if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM && g_panadapter_cycles > 0)
-	{	// switch back to the VFO/center frequency for 100ms once every 400ms
-		g_panadapter_vfo_tick = ((panadapter_rssi_index % 40) == 0) ? 10 : 0;
-	}
-	else
+//	if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM && g_panadapter_cycles > 0)
+//	{	// switch back to the VFO/center frequency for 100ms once every 400ms
+//		g_panadapter_vfo_tick = ((panadapter_rssi_index % 40) == 0) ? 10 : 0;
+//	}
+//	else
 	{	// switch back to the VFO/center frequency for 100ms once per full sweep/scan cycle
 		g_panadapter_vfo_tick = (panadapter_rssi_index == 0) ? 10 : 0;
 	}
