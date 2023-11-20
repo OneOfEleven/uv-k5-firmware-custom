@@ -33,6 +33,14 @@ int           panadapter_delay;          // used to give the VCO/PLL/RSSI time t
 
 const uint8_t panadapter_min_rssi = (-147 + 160) * 2;  // -147dBm (S0) min RSSI value
 
+inline void PAN_restart(const bool full)
+{
+	if (full)
+		g_panadapter_cycles   = 0;
+	panadapter_rssi_index = 0;
+	panadapter_delay      = 3;
+}
+
 bool PAN_scanning(void)
 {
 	return (g_eeprom.config.setting.panadapter && g_panadapter_enabled && g_panadapter_vfo_tick <= 0) ? true : false;
@@ -143,7 +151,6 @@ void PAN_process_10ms(void)
 			PAN_set_freq();
 			g_update_display = true;
 		}
-
 		return;
 	}
 
@@ -156,10 +163,8 @@ void PAN_process_10ms(void)
 
 	if (!g_panadapter_enabled)
 	{	// enable the panadapter
+		PAN_restart(false);
 		g_panadapter_vfo_tick = 0;
-		panadapter_rssi_index = 0;
-		panadapter_delay      = 3;  // give the VCO/PLL/RSSI a little more time to settle
-//		g_panadapter_cycles   = 0;
 		g_panadapter_enabled  = true;
 		PAN_set_freq();
 		g_update_display = true;
@@ -168,8 +173,8 @@ void PAN_process_10ms(void)
 
 	if (panadapter_rssi_index < 0)
 	{	// guess we've just come out of TX mode
+		PAN_restart(false);
 		PAN_set_freq();
-		panadapter_rssi_index = 0;
 		return;
 	}
 
@@ -217,7 +222,7 @@ void PAN_process_10ms(void)
 		panadapter_delay      = 3;  // give the VCO/PLL/RSSI a little more time to settle
 	}
 
-	if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
+	if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM && g_panadapter_cycles > 0)
 	{	// switch back to the VFO/center frequency for 100ms once every 400ms
 		g_panadapter_vfo_tick = ((panadapter_rssi_index % 40) == 0) ? 10 : 0;
 	}

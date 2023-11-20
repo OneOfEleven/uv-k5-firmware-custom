@@ -281,6 +281,10 @@ void processFKeyFunction(const key_code_t Key)
 
 			g_request_display_screen = DISPLAY_MAIN;
 
+			#ifdef ENABLE_PANADAPTER
+				PAN_restart(true);
+			#endif
+
 			break;
 
 		case KEY_2:   // A/B
@@ -1108,7 +1112,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 					#endif
 
 					#ifdef ENABLE_PANADAPTER
-						g_panadapter_vfo_tick = 20;  // 200ms
+						PAN_restart(false);
 					#endif
 
 					BK4819_set_rf_frequency(freq, true);  // set the VCO/PLL
@@ -1125,6 +1129,10 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 			// channel mode
 
 			g_tx_vfo->freq_in_channel = 0xff;
+
+			#ifdef ENABLE_PANADAPTER
+				PAN_restart(true);
+			#endif
 
 			Next = RADIO_FindNextChannel(Channel + direction, direction, false, 0);
 			if (Next == 0xFF)

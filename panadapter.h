@@ -36,6 +36,7 @@ extern uint8_t      g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
 extern uint8_t      g_panadapter_max_rssi;
 extern uint8_t      g_panadapter_min_rssi;
 
+void PAN_restart(const bool full);
 bool PAN_scanning(void);
 void PAN_process_10ms(void);
 
