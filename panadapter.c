@@ -19,15 +19,17 @@
 #include "ui/main.h"
 #include "ui/ui.h"
 
-bool         g_panadapter_enabled;
+bool          g_panadapter_enabled;
 #ifdef ENABLE_PANADAPTER_PEAK_FREQ
-	uint32_t g_panadapter_peak_freq;
+	uint32_t  g_panadapter_peak_freq;
 #endif
-int          g_panadapter_vfo_mode;     // > 0 if we're currently sampling the VFO
-uint8_t      g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
-uint8_t      g_panadapter_max_rssi;
-uint8_t      g_panadapter_min_rssi;
-unsigned int panadapter_rssi_index;
+int           g_panadapter_vfo_mode;     // > 0 if we're currently sampling the VFO
+uint8_t       g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
+uint8_t       g_panadapter_max_rssi;
+uint8_t       g_panadapter_min_rssi;
+unsigned int  panadapter_rssi_index;
+
+const uint8_t panadapter_min_rssi = (-147 + 160) * 2;  // min of -147dBm (S0)
 
 bool PAN_scanning(void)
 {
@@ -75,7 +77,6 @@ void PAN_process_10ms(void)
 		 g_dtmf_call_state != DTMF_CALL_STATE_NONE  ||
 	     g_dtmf_is_tx                               ||
 	     g_dtmf_input_mode)
-//		 g_input_box_index > 0)
 	{
 		if (g_panadapter_enabled)
 		{	// disable the panadapter
@@ -119,7 +120,7 @@ void PAN_process_10ms(void)
 
 		// save the current RSSI value .. center bin is the VFO frequency
 		const int16_t rssi = g_current_rssi[g_eeprom.config.setting.tx_vfo_num];
-		g_panadapter_rssi[PANADAPTER_BINS] = (rssi > 255) ? 255 : (rssi < 0) ? 0 : rssi;
+		g_panadapter_rssi[PANADAPTER_BINS] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
 
 		g_panadapter_vfo_mode = 40;   // pause scanning for at least another 400ms
 		return;
@@ -130,7 +131,7 @@ void PAN_process_10ms(void)
 
 		// save the current RSSI value
 		const uint16_t rssi = BK4819_GetRSSI();
-		g_panadapter_rssi[panadapter_rssi_index] = (rssi <= 255) ? rssi : 255;
+		g_panadapter_rssi[panadapter_rssi_index] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
 
 		// next frequency
 		if (++panadapter_rssi_index >= ARRAY_SIZE(g_panadapter_rssi))

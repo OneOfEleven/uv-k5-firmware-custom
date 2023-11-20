@@ -421,18 +421,14 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		    !g_panadapter_enabled                      ||
 		     single_vfo < 0                            ||
 		     g_current_display_screen != DISPLAY_MAIN  ||
-//		     g_current_function == FUNCTION_TRANSMIT   ||
 		     g_current_function == FUNCTION_POWER_SAVE ||
-		     g_monitor_enabled)
+		     g_monitor_enabled                         ||
+		     g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+		     g_dtmf_is_tx                              ||
+		     g_dtmf_input_mode)
 		{	// don't draw the panadapter
 			return;
 		}
-
-		if (g_dtmf_call_state != DTMF_CALL_STATE_NONE || g_dtmf_is_tx || g_dtmf_input_mode)
-			return;  // DTMF call
-
-//		if (g_input_box_index > 0)
-//			return;  // user is entering a frequency
 
 		// auto vertical scale
 		max_rssi  = g_panadapter_max_rssi;
@@ -462,7 +458,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		#endif
 
 		// draw top center vertical marker (the VFO frequency)
-		base_line[PANADAPTER_BINS - (LCD_WIDTH * 2)] = 0x0F;
+		base_line[PANADAPTER_BINS - (LCD_WIDTH * 2)] = 0x1F;
 
 		// draw top horizontal dotted line
 		for (i = 0; i < PANADAPTER_BINS; i += 4)

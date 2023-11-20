@@ -46,6 +46,7 @@ const uint8_t         key_input_timeout_500ms          =   6000 / 500;  // 6 sec
 #endif
 
 const uint8_t         key_debounce_10ms                =     30 / 10;   // 30ms
+const uint8_t         key_side_long_press_10ms         =   1000 / 10;   // 1 second
 const uint8_t         key_long_press_10ms              =    300 / 10;   // 300ms
 const uint8_t         key_repeat_10ms                  =     50 / 10;   // 50ms
 

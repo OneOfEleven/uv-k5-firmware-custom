@@ -1374,22 +1374,12 @@ void APP_check_keys(void)
 			{
 				if (g_key_prev != KEY_INVALID)
 				{	// key now fully released
-
-					#ifdef ENABLE_AIRCOPY
-						if (g_current_display_screen != DISPLAY_AIRCOPY)
-							APP_process_key(g_key_prev, false, g_key_held);
-						else
-							AIRCOPY_process_key(g_key_prev, false, g_key_held);
-					#else
-						APP_process_key(g_key_prev, false, g_key_held);
-					#endif
-
+					APP_process_key(g_key_prev, false, g_key_held);
 					g_key_debounce_press  = 0;
 					g_key_debounce_repeat = 0;
 					g_key_prev            = KEY_INVALID;
 					g_key_held            = false;
 					g_boot_tick_10ms      = 0;         // cancel the boot-up screen
-
 					g_update_status       = true;
 //					g_update_display      = true;
 				}
@@ -1401,6 +1391,10 @@ void APP_check_keys(void)
 	}
 	else
 	{	// key pressed
+
+		// long press time can be different for different keys
+		const uint8_t long_press_ticks = (key == KEY_SIDE1 || key == KEY_SIDE2) ? key_side_long_press_10ms : key_long_press_10ms;
+
 		if (g_key_debounce_press < key_debounce_10ms)
 		{
 			if (++g_key_debounce_press >= key_debounce_10ms)
@@ -1410,38 +1404,20 @@ void APP_check_keys(void)
 					g_key_debounce_repeat = key_debounce_10ms;
 					g_key_held            = false;
 					g_key_prev            = key;
-
-					#ifdef ENABLE_AIRCOPY
-						if (g_current_display_screen != DISPLAY_AIRCOPY)
-							APP_process_key(g_key_prev, true, g_key_held);
-						else
-							AIRCOPY_process_key(g_key_prev, true, g_key_held);
-					#else
-						APP_process_key(g_key_prev, true, g_key_held);
-					#endif
-
-					g_update_status  = true;
-//					g_update_display = true;
+					APP_process_key(g_key_prev, true, g_key_held);
+					g_update_status       = true;
+//					g_update_display      = true;
 				}
 			}
 		}
 		else
-		if (g_key_debounce_repeat < key_long_press_10ms)
+		if (g_key_debounce_repeat < long_press_ticks)
 		{
-			if (++g_key_debounce_repeat >= key_long_press_10ms)
+			if (++g_key_debounce_repeat >= long_press_ticks)
 			{	// key long press
-				g_key_held = true;
-
-				#ifdef ENABLE_AIRCOPY
-					if (g_current_display_screen != DISPLAY_AIRCOPY)
-						APP_process_key(g_key_prev, true, g_key_held);
-					else
-						AIRCOPY_process_key(g_key_prev, true, g_key_held);
-				#else
-					APP_process_key(g_key_prev, true, g_key_held);
-				#endif
-
-				g_update_status  = true;
+				g_key_held      = true;
+				APP_process_key(g_key_prev, true, g_key_held);
+				g_update_status = true;
 			}
 		}
 		else
@@ -1449,22 +1425,13 @@ void APP_check_keys(void)
 		{	// only the up and down keys are made repeatable
 
 			// key repeat max 10ms speed if user is moving up/down in freq/channel
-			const bool    freq_chan   = IS_FREQ_CHANNEL(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen);
-			const uint8_t repeat_10ms = (g_manual_scanning && g_monitor_enabled && freq_chan && g_current_display_screen == DISPLAY_MAIN) ? 2 : key_repeat_10ms;
+			const bool    freq_chan    = IS_FREQ_CHANNEL(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen);
+			const uint8_t repeat_ticks = (g_manual_scanning && g_monitor_enabled && freq_chan && g_current_display_screen == DISPLAY_MAIN) ? 2 : key_repeat_10ms;
 
-			if (++g_key_debounce_repeat >= (key_long_press_10ms + repeat_10ms))
+			if (++g_key_debounce_repeat >= (long_press_ticks + repeat_ticks))
 			{	// key repeat
-
-				g_key_debounce_repeat = key_long_press_10ms;
-
-				#ifdef ENABLE_AIRCOPY
-					if (g_current_display_screen != DISPLAY_AIRCOPY)
-						APP_process_key(g_key_prev, true, g_key_held);
-					else
-						AIRCOPY_process_key(g_key_prev, true, g_key_held);
-				#else
-					APP_process_key(g_key_prev, true, g_key_held);
-				#endif
+				g_key_debounce_repeat = long_press_ticks;
+				APP_process_key(g_key_prev, true, g_key_held);
 			}
 		}
 	}
@@ -2567,6 +2534,14 @@ void APP_time_slice_10ms(void)
 static void APP_process_key(const key_code_t Key, const bool key_pressed, const bool key_held)
 {
 	bool flag = false;
+
+	#ifdef ENABLE_AIRCOPY
+		if (g_current_display_screen == DISPLAY_AIRCOPY)
+		{
+			AIRCOPY_process_key(key, key_pressed, key_held);
+			return;
+		}
+	#endif
 
 	if (Key == KEY_INVALID && !key_pressed && !key_held)
 		return;

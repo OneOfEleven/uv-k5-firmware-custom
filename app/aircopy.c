@@ -840,6 +840,7 @@ void AIRCOPY_process_key(key_code_t Key, bool key_pressed, bool key_held)
 		case KEY_EXIT:
 			AIRCOPY_Key_EXIT(key_pressed, key_held);
 			break;
+//		case KEY_PTT:
 		default:
 			break;
 	}
