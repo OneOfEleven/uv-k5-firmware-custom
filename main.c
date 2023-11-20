@@ -197,12 +197,12 @@ void Main(void)
 	BootMode = BOOT_GetMode();
 	g_unhide_hidden = (BootMode == BOOT_MODE_UNHIDE_HIDDEN); // flag to say include the hidden menu items
 
-	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||
-	     KEYBOARD_Poll() != KEY_INVALID ||
-		 BootMode != BOOT_MODE_NORMAL)
+	BACKLIGHT_turn_on(2000);    // turn the backlight ON
+
+	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) || KEYBOARD_Poll() != KEY_INVALID || BootMode != BOOT_MODE_NORMAL)
 	{
 		MAIN_DisplayReleaseKeys();
-		BACKLIGHT_turn_on(0);    // turn the backlight ON
+//		BACKLIGHT_turn_on(2000);    // turn the backlight ON
 	}
 	else
 	{
@@ -260,9 +260,7 @@ void Main(void)
 	UI_SortMenu(!g_unhide_hidden);
 
 	// wait for user to release all buttons before moving on
-	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) ||
-	     KEYBOARD_Poll() != KEY_INVALID ||
-		 BootMode != BOOT_MODE_NORMAL)
+	if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) || KEYBOARD_Poll() != KEY_INVALID || BootMode != BOOT_MODE_NORMAL)
 	{
 		MAIN_DisplayReleaseKeys();
 		i = 0;
