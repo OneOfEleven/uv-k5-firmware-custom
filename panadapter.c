@@ -39,18 +39,20 @@ bool PAN_scanning(void)
 void PAN_update_min_max(void)
 {	// compute the min/max RSSI values
 
-	int i;
+	register unsigned int i;
+	register uint8_t     *p        = g_panadapter_rssi;
+	register uint8_t      max_rssi = *p;
+	register uint8_t      min_rssi = *p++;
 
-	g_panadapter_max_rssi = g_panadapter_rssi[0];
-	g_panadapter_min_rssi = g_panadapter_rssi[0];
-	for (i = 1; i < (int)ARRAY_SIZE(g_panadapter_rssi); i++)
+	for (i = ARRAY_SIZE(g_panadapter_rssi) - 1; i > 0; i--)
 	{
-		const uint8_t rssi = g_panadapter_rssi[i];
-		if (g_panadapter_max_rssi < rssi)
-			g_panadapter_max_rssi = rssi;
-		if (g_panadapter_min_rssi > rssi)
-			g_panadapter_min_rssi = rssi;
+		const uint8_t rssi = *p++;
+		if (max_rssi < rssi) max_rssi = rssi;
+		if (min_rssi > rssi) min_rssi = rssi;
 	}
+
+	g_panadapter_max_rssi = max_rssi;
+	g_panadapter_min_rssi = min_rssi;
 }
 
 #ifdef ENABLE_PANADAPTER_PEAK_FREQ
@@ -89,21 +91,21 @@ void PAN_update_min_max(void)
 void PAN_set_freq(void)
 {	// set the frequency
 
-	int32_t freq = g_tx_vfo->p_rx->frequency;
-
+	int32_t freq      = g_tx_vfo->p_rx->frequency;
 	int32_t step_size = g_tx_vfo->step_freq;
+
+	// limit the step size
 	step_size = (step_size < PANADAPTER_MIN_STEP) ? PANADAPTER_MIN_STEP : (step_size > PANADAPTER_MAX_STEP) ? PANADAPTER_MAX_STEP : step_size;
 
+	// if not paused on the VFO/center freq, add the bin offset (scanning)
 	if (g_panadapter_enabled && g_panadapter_vfo_mode <= 0 && panadapter_rssi_index >= 0)
-	{	// panadapter mode .. add the bin offset
 		freq += step_size * (panadapter_rssi_index - PANADAPTER_BINS);
-	}
 
 	BK4819_set_rf_frequency(freq, true);  // set the VCO/PLL
-	//BK4819_set_rf_filter_path(freq);    // set the proper LNA/PA filter path
+	//BK4819_set_rf_filter_path(freq);    // set the proper LNA/PA filter path .. no need, we're not moving far
 
-	// default front end gains
 	#ifdef ENABLE_AM_FIX
+		// set front end gains
 		if (g_panadapter_vfo_mode <= 0 || g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
 			BK4819_write_reg(0x13, (g_orig_lnas << 8) | (g_orig_lna << 5) | (g_orig_mixer << 3) | (g_orig_pga << 0));
 		else
