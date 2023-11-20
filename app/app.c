@@ -1813,9 +1813,6 @@ void APP_process_functions(void)
 				APP_check_for_new_receive();
 			break;
 
-		case FUNCTION_PANADAPTER:
-			break;
-
 		default:
 			break;
 	}

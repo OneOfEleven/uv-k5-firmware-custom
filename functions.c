@@ -294,13 +294,6 @@ void FUNCTION_Select(function_type_t Function)
 				BK4819_set_scrambler(g_current_vfo->channel.scrambler);
 			
 			break;
-
-		case FUNCTION_PANADAPTER:
-			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("func panadpter\r\n");
-			#endif
-
-			break;
 	}
 
 	g_power_save_pause_tick_10ms = power_save_pause_10ms;

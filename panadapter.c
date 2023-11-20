@@ -23,18 +23,19 @@ bool          g_panadapter_enabled;
 #ifdef ENABLE_PANADAPTER_PEAK_FREQ
 	uint32_t  g_panadapter_peak_freq;
 #endif
-int           g_panadapter_vfo_mode;     // > 0 if we're currently sampling the VFO
-uint8_t       g_panadapter_max_rssi;
-uint8_t       g_panadapter_min_rssi;
-uint8_t       g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
-int           panadapter_rssi_index;
-int           panadapter_delay;
+int           g_panadapter_vfo_tick;     // >0 if we're currently monitoring the VFO/center frequency
+unsigned int  g_panadapter_cycles;       //
+uint8_t       g_panadapter_max_rssi;     //
+uint8_t       g_panadapter_min_rssi;     //
+uint8_t       g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS]; // holds the RSSI samples
+int           panadapter_rssi_index;     //
+int           panadapter_delay;          // used to give the VCO/PLL/RSSI time to settle
 
-const uint8_t panadapter_min_rssi = (-147 + 160) * 2;  // min of -147dBm (S0)
+const uint8_t panadapter_min_rssi = (-147 + 160) * 2;  // -147dBm (S0) min RSSI value
 
 bool PAN_scanning(void)
 {
-	return (g_eeprom.config.setting.panadapter && g_panadapter_enabled && g_panadapter_vfo_mode <= 0) ? true : false;
+	return (g_eeprom.config.setting.panadapter && g_panadapter_enabled && g_panadapter_vfo_tick <= 0) ? true : false;
 }
 
 void PAN_update_min_max(void)
@@ -58,7 +59,7 @@ void PAN_update_min_max(void)
 
 #ifdef ENABLE_PANADAPTER_PEAK_FREQ
 	void PAN_find_peak(void)
-	{	// find the peak freq
+	{	// find the peak frequency
 
 		const int32_t center_freq = g_tx_vfo->p_rx->frequency;
 		int32_t step_size = g_tx_vfo->step_freq;
@@ -92,24 +93,27 @@ void PAN_update_min_max(void)
 #endif
 
 void PAN_set_freq(void)
-{	// set the frequency
+{	// set the VCO/PLL frequency
 
-	int32_t freq      = g_tx_vfo->p_rx->frequency;
-	int32_t step_size = g_tx_vfo->step_freq;
+	int32_t freq = g_tx_vfo->p_rx->frequency;
 
-	// limit the step size
-	step_size = (step_size < PANADAPTER_MIN_STEP) ? PANADAPTER_MIN_STEP : (step_size > PANADAPTER_MAX_STEP) ? PANADAPTER_MAX_STEP : step_size;
+	// if not paused on the VFO/center freq, add the panadapter bin offset frequency
+	if (g_panadapter_enabled && g_panadapter_vfo_tick <= 0 && panadapter_rssi_index >= 0)
+	{
+		int32_t step_size = g_tx_vfo->step_freq;
 
-	// if not paused on the VFO/center freq, add the bin offset (scanning)
-	if (g_panadapter_enabled && g_panadapter_vfo_mode <= 0 && panadapter_rssi_index >= 0)
+		// limit the step size
+		step_size = (step_size < PANADAPTER_MIN_STEP) ? PANADAPTER_MIN_STEP : (step_size > PANADAPTER_MAX_STEP) ? PANADAPTER_MAX_STEP : step_size;
+
 		freq += step_size * (panadapter_rssi_index - PANADAPTER_BINS);
+	}
 
 	BK4819_set_rf_frequency(freq, true);  // set the VCO/PLL
-	//BK4819_set_rf_filter_path(freq);    // set the proper LNA/PA filter path .. no need, we're not moving far
+	//BK4819_set_rf_filter_path(freq);    // set the proper LNA/PA filter path .. don't bother, we're not moving far from the VFO/center frequency
 
 	#ifdef ENABLE_AM_FIX
 		// set front end gains
-		if (g_panadapter_vfo_mode <= 0 || g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
+		if (g_panadapter_vfo_tick <= 0 || g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
 			BK4819_write_reg(0x13, (g_orig_lnas << 8) | (g_orig_lna << 5) | (g_orig_mixer << 3) | (g_orig_pga << 0));
 		else
 			AM_fix_set_front_end_gains(g_eeprom.config.setting.tx_vfo_num);
@@ -119,9 +123,9 @@ void PAN_set_freq(void)
 void PAN_process_10ms(void)
 {
 	if (!g_eeprom.config.setting.panadapter         ||
-	#ifdef ENABLE_FMRADIO
-		 g_fm_radio_mode                            ||
-	#endif
+	     #ifdef ENABLE_FMRADIO
+			g_fm_radio_mode                         ||
+	     #endif
 //	     g_single_vfo < 0                           ||
 	     g_reduced_service                          ||
 	     g_monitor_enabled                          ||
@@ -135,14 +139,8 @@ void PAN_process_10ms(void)
 	{
 		if (g_panadapter_enabled)
 		{	// disable the panadapter
-
-			#ifdef ENABLE_PANADAPTER_PEAK_FREQ
-				g_panadapter_peak_freq = 0;
-			#endif
-			g_panadapter_vfo_mode = 1;
-			g_panadapter_enabled  = false;
+			g_panadapter_enabled = false;
 			PAN_set_freq();
-
 			g_update_display = true;
 		}
 
@@ -151,52 +149,50 @@ void PAN_process_10ms(void)
 
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{
-		g_panadapter_vfo_mode = 100;  // 1 sec - stay on the VFO frequency for at least this amount of time after PTT release
+		g_panadapter_vfo_tick = 100;  // 1 sec - stay on the VFO frequency for at least this amount of time after PTT release
 		panadapter_rssi_index = -1;
 		return;
 	}
 
 	if (!g_panadapter_enabled)
 	{	// enable the panadapter
-
-		#ifdef ENABLE_PANADAPTER_PEAK_FREQ
-			g_panadapter_peak_freq = 0;
-		#endif
-		g_panadapter_vfo_mode = 0;
-//		g_panadapter_max_rssi = 0;
-//		g_panadapter_min_rssi = 0;
-//		memset(g_panadapter_rssi, 0, sizeof(g_panadapter_rssi));
+		g_panadapter_vfo_tick = 0;
 		panadapter_rssi_index = 0;
-		panadapter_delay      = 3;  // give the VCO/PLL/RSSI more time to settle
+		panadapter_delay      = 3;  // give the VCO/PLL/RSSI a little more time to settle
+//		g_panadapter_cycles   = 0;
 		g_panadapter_enabled  = true;
 		PAN_set_freq();
-
 		g_update_display = true;
 		return;
 	}
 
 	if (panadapter_rssi_index < 0)
-	{
+	{	// guess we've just come out of TX mode
 		PAN_set_freq();
-		panadapter_rssi_index++;
+		panadapter_rssi_index = 0;
 		return;
 	}
 
-	if (g_panadapter_vfo_mode > 0)
-	{	// we're paused on the VFO/center frequency
+	if (g_panadapter_vfo_tick > 0)
+	{	// we're paused on/monitoring the VFO/center frequency
 
-		// save the current RSSI value
+		// save the current RSSI value into the center of the panadapter
 		const int16_t rssi = g_current_rssi[g_eeprom.config.setting.tx_vfo_num];
 		g_panadapter_rssi[PANADAPTER_BINS] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
 
 		PAN_update_min_max();
 
-		g_panadapter_vfo_mode = g_squelch_open ? 40 : g_panadapter_vfo_mode - 1;
+		// stay on the VFO/center frequency for a further 400ms after carrier drop
+		g_panadapter_vfo_tick = g_squelch_open ? 40 : g_panadapter_vfo_tick - 1;
 
-		if (g_panadapter_vfo_mode <= 0)
-		{
+		if (g_panadapter_vfo_tick <= 0)
+		{	// back to scan/sweep mode
 			PAN_set_freq();
-			panadapter_delay = 3;  // give the VCO/PLL/RSSI more time to settle
+			panadapter_delay = 3;  // give the VCO/PLL/RSSI a little more time to settle
+
+			if (g_panadapter_cycles > 0)
+				UI_DisplayMain_pan(true);
+				//g_update_display = true;
 		}
 
 		return;
@@ -205,12 +201,12 @@ void PAN_process_10ms(void)
 	// scanning/sweeping
 
 	if (panadapter_delay > 0)
-	{
+	{	// let the VCO/PLL/RSSI settle before sampling the RSSI
 		panadapter_delay--;
 		return;
 	}
 
-	// save the current RSSI value
+	// save the current RSSI value into the panadapter
 	const uint16_t rssi = BK4819_GetRSSI();
 	g_panadapter_rssi[panadapter_rssi_index] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
 
@@ -218,30 +214,35 @@ void PAN_process_10ms(void)
 	if (++panadapter_rssi_index >= (int)ARRAY_SIZE(g_panadapter_rssi))
 	{
 		panadapter_rssi_index = 0;
-		panadapter_delay      = 3;  // give the VCO/PLL/RSSI more time to settle
+		panadapter_delay      = 3;  // give the VCO/PLL/RSSI a little more time to settle
 	}
 
 	if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
 	{	// switch back to the VFO/center frequency for 100ms once every 400ms
-		g_panadapter_vfo_mode = ((panadapter_rssi_index % 40) == 0) ? 10 : 0;
+		g_panadapter_vfo_tick = ((panadapter_rssi_index % 40) == 0) ? 10 : 0;
 	}
 	else
 	{	// switch back to the VFO/center frequency for 100ms once per full sweep/scan cycle
-		g_panadapter_vfo_mode = (panadapter_rssi_index == 0) ? 10 : 0;
+		g_panadapter_vfo_tick = (panadapter_rssi_index == 0) ? 10 : 0;
 	}
 
+	// set the VCO/PLL frequency
 	PAN_set_freq();
 
-	if (panadapter_rssi_index == 0)
-	{	// the last bin value .. only draw the panadapter once per full sweep/scan cycle
+	if (panadapter_rssi_index != 0)
+		return;
 
-		PAN_update_min_max();
+	// completed a full sweep/scan, draw the panadapter on-screen
 
-		#ifdef ENABLE_PANADAPTER_PEAK_FREQ
-			PAN_find_peak();
-		#endif
+	if (g_panadapter_cycles + 1)
+		g_panadapter_cycles++;
 
-		UI_DisplayMain_pan(true);
-		//g_update_display = true;
-	}
+	PAN_update_min_max();
+
+	#ifdef ENABLE_PANADAPTER_PEAK_FREQ
+		PAN_find_peak();
+	#endif
+
+	UI_DisplayMain_pan(true);
+	//g_update_display = true;
 }

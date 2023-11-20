@@ -78,9 +78,7 @@ void toggle_chan_scanlist(void)
 		return;
 	}
 
-	if (g_current_display_screen != DISPLAY_MAIN     ||
-		g_current_function == FUNCTION_TRANSMIT ||
-		g_current_function == FUNCTION_PANADAPTER)
+	if (g_current_display_screen != DISPLAY_MAIN || g_current_function == FUNCTION_TRANSMIT)
 	{
 		g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
 		return;
@@ -1110,7 +1108,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 					#endif
 
 					#ifdef ENABLE_PANADAPTER
-						g_panadapter_vfo_mode = 20;  // 200ms
+						g_panadapter_vfo_tick = 20;  // 200ms
 					#endif
 
 					BK4819_set_rf_frequency(freq, true);  // set the VCO/PLL

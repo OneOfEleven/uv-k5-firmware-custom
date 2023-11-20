@@ -28,12 +28,13 @@
 #define PANADAPTER_MAX_STEP    2500
 #define PANADAPTER_MIN_STEP    625
 
-extern bool     g_panadapter_enabled;
-extern uint32_t g_panadapter_peak_freq;
-extern int      g_panadapter_vfo_mode;
-extern uint8_t  g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
-extern uint8_t  g_panadapter_max_rssi;
-extern uint8_t  g_panadapter_min_rssi;
+extern bool         g_panadapter_enabled;
+extern unsigned int g_panadapter_cycles;
+extern uint32_t     g_panadapter_peak_freq;
+extern int          g_panadapter_vfo_tick;
+extern uint8_t      g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
+extern uint8_t      g_panadapter_max_rssi;
+extern uint8_t      g_panadapter_min_rssi;
 
 bool PAN_scanning(void);
 void PAN_process_10ms(void);

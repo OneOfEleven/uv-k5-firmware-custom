@@ -26,8 +26,7 @@ enum function_type_e
 //	FUNCTION_MONITOR,         // receiving with squelch forced open
 	FUNCTION_NEW_RECEIVE,     // signal just received
 	FUNCTION_RECEIVE,         // receive mode
-	FUNCTION_POWER_SAVE,      // sleeping
-	FUNCTION_PANADAPTER       // bandscope mode (panadpter/spectrum) .. not yet implemented
+	FUNCTION_POWER_SAVE       // sleeping
 };
 typedef enum function_type_e function_type_t;
 
