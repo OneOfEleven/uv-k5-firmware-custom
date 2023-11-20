@@ -27,7 +27,7 @@ int           g_panadapter_vfo_mode;     // > 0 if we're currently sampling the 
 uint8_t       g_panadapter_rssi[PANADAPTER_BINS + 1 + PANADAPTER_BINS];
 uint8_t       g_panadapter_max_rssi;
 uint8_t       g_panadapter_min_rssi;
-unsigned int  panadapter_rssi_index;
+int           panadapter_rssi_index;
 
 const uint8_t panadapter_min_rssi = (-147 + 160) * 2;  // min of -147dBm (S0)
 
@@ -35,6 +35,56 @@ bool PAN_scanning(void)
 {
 	return (g_eeprom.config.setting.panadapter && g_panadapter_enabled && g_panadapter_vfo_mode <= 0) ? true : false;
 }
+
+void PAN_update_min_max(void)
+{	// compute the min/max RSSI values
+
+	int i;
+
+	g_panadapter_max_rssi = g_panadapter_rssi[0];
+	g_panadapter_min_rssi = g_panadapter_rssi[0];
+	for (i = 1; i < (int)ARRAY_SIZE(g_panadapter_rssi); i++)
+	{
+		const uint8_t rssi = g_panadapter_rssi[i];
+		if (g_panadapter_max_rssi < rssi)
+			g_panadapter_max_rssi = rssi;
+		if (g_panadapter_min_rssi > rssi)
+			g_panadapter_min_rssi = rssi;
+	}
+}
+
+#ifdef ENABLE_PANADAPTER_PEAK_FREQ
+	void PAN_find_peak(void)
+	{	// find the peak freq
+
+		const int32_t center_freq = g_tx_vfo->p_rx->frequency;
+		int32_t step_size = g_tx_vfo->step_freq;
+
+		int i;
+
+		uint8_t peak_rssi = 0;
+		uint8_t threshold_rssi;
+		uint8_t span_rssi = g_panadapter_max_rssi - g_panadapter_min_rssi;
+		if (span_rssi < 80)
+			span_rssi = 80;
+		threshold_rssi = g_panadapter_min_rssi + (span_rssi / 4);
+
+		// limit the step size
+		step_size = (step_size < PANADAPTER_MIN_STEP) ? PANADAPTER_MIN_STEP : (step_size > PANADAPTER_MAX_STEP) ? PANADAPTER_MAX_STEP : step_size;
+
+		g_panadapter_peak_freq = 0;
+
+		for (i = 0; i < (int)ARRAY_SIZE(g_panadapter_rssi); i++)
+		{
+			const uint8_t rssi = g_panadapter_rssi[i];
+			if (peak_rssi < rssi && rssi >= threshold_rssi && (i < (PANADAPTER_BINS - 1) || i > (PANADAPTER_BINS + 1)))
+			{
+				peak_rssi = rssi;
+				g_panadapter_peak_freq = center_freq + (step_size * (i - PANADAPTER_BINS));
+			}
+		}
+	}
+#endif
 
 void PAN_set_freq(void)
 {	// set the frequency
@@ -44,9 +94,9 @@ void PAN_set_freq(void)
 	int32_t step_size = g_tx_vfo->step_freq;
 	step_size = (step_size < PANADAPTER_MIN_STEP) ? PANADAPTER_MIN_STEP : (step_size > PANADAPTER_MAX_STEP) ? PANADAPTER_MAX_STEP : step_size;
 
-	if (g_panadapter_enabled && g_panadapter_vfo_mode <= 0)
+	if (g_panadapter_enabled && g_panadapter_vfo_mode <= 0 && panadapter_rssi_index >= 0)
 	{	// panadapter mode .. add the bin offset
-		freq += step_size * ((int)panadapter_rssi_index - PANADAPTER_BINS);
+		freq += step_size * (panadapter_rssi_index - PANADAPTER_BINS);
 	}
 
 	BK4819_set_rf_frequency(freq, true);  // set the VCO/PLL
@@ -95,7 +145,11 @@ void PAN_process_10ms(void)
 	}
 
 	if (g_current_function == FUNCTION_TRANSMIT)
+	{
+		g_panadapter_vfo_mode = 100;  // 1000ms
+		panadapter_rssi_index = -1;
 		return;
+	}
 
 	if (!g_panadapter_enabled)
 	{	// enable the panadapter
@@ -115,12 +169,21 @@ void PAN_process_10ms(void)
 		return;
 	}
 
+	if (panadapter_rssi_index < 0)
+	{
+		PAN_set_freq();
+		panadapter_rssi_index++;
+		return;
+	}
+
 	if (g_panadapter_vfo_mode > 0 && g_squelch_open)
 	{	// we have a signal on the VFO frequency
 
 		// save the current RSSI value .. center bin is the VFO frequency
 		const int16_t rssi = g_current_rssi[g_eeprom.config.setting.tx_vfo_num];
 		g_panadapter_rssi[PANADAPTER_BINS] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
+
+		PAN_update_min_max();
 
 		g_panadapter_vfo_mode = 40;   // pause scanning for at least another 400ms
 		return;
@@ -134,7 +197,7 @@ void PAN_process_10ms(void)
 		g_panadapter_rssi[panadapter_rssi_index] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
 
 		// next frequency
-		if (++panadapter_rssi_index >= ARRAY_SIZE(g_panadapter_rssi))
+		if (++panadapter_rssi_index >= (int)ARRAY_SIZE(g_panadapter_rssi))
 			panadapter_rssi_index = 0;
 
 		if (g_tx_vfo->channel.mod_mode == MOD_MODE_FM)
@@ -156,48 +219,10 @@ void PAN_process_10ms(void)
 	// the last bin value .. draw the panadapter once each scan cycle
 	if (panadapter_rssi_index == 0)
 	{
-		int i;
-
-		// compute the min/max RSSI values
-		g_panadapter_max_rssi = g_panadapter_rssi[0];
-		g_panadapter_min_rssi = g_panadapter_rssi[0];
-		for (i = 1; i < (int)ARRAY_SIZE(g_panadapter_rssi); i++)
-		{
-			const uint8_t rssi = g_panadapter_rssi[i];
-			if (g_panadapter_max_rssi < rssi)
-				g_panadapter_max_rssi = rssi;
-			if (g_panadapter_min_rssi > rssi)
-				g_panadapter_min_rssi = rssi;
-		}
+		PAN_update_min_max();
 
 		#ifdef ENABLE_PANADAPTER_PEAK_FREQ
-		{	// find the peak freq
-
-			const int32_t center_freq = g_tx_vfo->p_rx->frequency;
-			int32_t step_size = g_tx_vfo->step_freq;
-
-			uint8_t peak_rssi = 0;
-			uint8_t threshold_rssi;
-			uint8_t span_rssi = g_panadapter_max_rssi - g_panadapter_min_rssi;
-			if (span_rssi < 80)
-				span_rssi = 80;
-			threshold_rssi = g_panadapter_min_rssi + (span_rssi / 4);
-
-			// limit the step size
-			step_size = (step_size < PANADAPTER_MIN_STEP) ? PANADAPTER_MIN_STEP : (step_size > PANADAPTER_MAX_STEP) ? PANADAPTER_MAX_STEP : step_size;
-
-			g_panadapter_peak_freq = 0;
-
-			for (i = 0; i < (int)ARRAY_SIZE(g_panadapter_rssi); i++)
-			{
-				const uint8_t rssi = g_panadapter_rssi[i];
-				if (peak_rssi < rssi && rssi >= threshold_rssi && (i < (PANADAPTER_BINS - 1) || i > (PANADAPTER_BINS + 1)))
-				{
-					peak_rssi = rssi;
-					g_panadapter_peak_freq = center_freq + (step_size * (i - PANADAPTER_BINS));
-				}
-			}
-		}
+			PAN_find_peak();
 		#endif
 
 		UI_DisplayMain_pan(true);

@@ -39,6 +39,9 @@
 	#include "freq_ignore.h"
 #endif
 #include "misc.h"
+#ifdef ENABLE_PANADAPTER
+	#include "panadapter.h"
+#endif
 #include "radio.h"
 #include "settings.h"
 #include "ui/inputbox.h"
@@ -1104,6 +1107,10 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 							g_monitor_enabled = true;
 							GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 						}
+					#endif
+
+					#ifdef ENABLE_PANADAPTER
+						g_panadapter_vfo_mode = 20;  // 200ms
 					#endif
 
 					BK4819_set_rf_frequency(freq, true);  // set the VCO/PLL
