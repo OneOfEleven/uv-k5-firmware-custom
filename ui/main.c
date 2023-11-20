@@ -463,12 +463,18 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		// draw top center vertical marker (the VFO frequency)
 		base_line[PANADAPTER_BINS - (LCD_WIDTH * 2)] = 0x3F;
 
-		// draw top horizontal dotted line
-		for (i = 0; i < PANADAPTER_BINS; i += 4)
-		{
-			const unsigned int k = PANADAPTER_BINS - (LCD_WIDTH * 2);
-			base_line[k - i] |= 1u;
-			base_line[k + i] |= 1u;
+		{	// draw top & bottom horizontal dotted line
+			const unsigned int top = PANADAPTER_BINS - (LCD_WIDTH * 2);
+			const unsigned int bot = PANADAPTER_BINS - (LCD_WIDTH * 0);
+			for (i = 0; i < PANADAPTER_BINS; i += 4)
+			{
+				// top line
+				base_line[top - i] |= 0x01;
+				base_line[top + i] |= 0x01;
+				// bottom line
+				base_line[bot - i] |= 0x20;
+				base_line[bot + i] |= 0x20;
+			}
 		}
 
 		// draw the panadapter vertical bins
