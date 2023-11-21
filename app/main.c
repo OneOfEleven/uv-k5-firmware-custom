@@ -567,6 +567,10 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		g_request_save_vfo            = true;
 		g_vfo_configure_mode          = VFO_CONFIGURE_RELOAD;
 
+		#ifdef ENABLE_PANADAPTER
+			PAN_restart(true);
+		#endif
+
 		g_update_display = true;
 		return;
 	}
@@ -577,10 +581,6 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 		uint32_t freq;
 
 		NUMBER_Get(g_input_box, &freq);
-
-	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//		UART_printf("key3 %u %u\r\n", freq, g_input_box_index);
-	#endif
 
 //		if (g_input_box_index < 6)
 //		if (g_input_box_index < 7)
@@ -644,6 +644,10 @@ void MAIN_Key_DIGITS(key_code_t Key, bool key_pressed, bool key_held)
 
 			g_request_save_channel = 1;
 			g_vfo_configure_mode   = VFO_CONFIGURE;
+
+			#ifdef ENABLE_PANADAPTER
+				PAN_restart(true);
+			#endif
 
 			g_update_display = true;
 			return;
