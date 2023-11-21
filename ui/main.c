@@ -99,21 +99,6 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 
 #ifdef ENABLE_TX_AUDIO_BAR
 
-	// linear search, ascending, using addition
-	uint16_t isqrt(const uint32_t y)
-	{
-		uint16_t L = 0;
-		uint32_t a = 1;
-		uint32_t d = 3;
-		while (a <= y)
-		{
-			a += d;	// (a + 1) ^ 2
-			d += 2;
-			L += 1;
-		}
-		return L;
-	}
-
 	bool UI_DisplayAudioBar(const bool now)
 	{
 		if (g_current_function != FUNCTION_TRANSMIT || g_current_display_screen != DISPLAY_MAIN)
@@ -161,7 +146,7 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 
 				// make non-linear to make more sensitive at low values
 				const unsigned int level      = voice_amp * 8;
-				const unsigned int sqrt_level = isqrt((level < 65535) ? level : 65535);
+				const unsigned int sqrt_level = NUMBER_isqrt((level < 65535) ? level : 65535);
 				const unsigned int len        = (sqrt_level <= bar_width) ? sqrt_level : bar_width;
 
 				draw_bar(p_line + bar_x, len, bar_width);

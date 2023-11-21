@@ -48,7 +48,8 @@ const uint8_t         key_input_timeout_500ms          =   6000 / 500;  // 6 sec
 const uint8_t         key_debounce_10ms                =     30 / 10;   // 30ms
 const uint8_t         key_side_long_press_10ms         =   1000 / 10;   // 1 second
 const uint8_t         key_long_press_10ms              =    300 / 10;   // 300ms
-const uint8_t         key_repeat_10ms                  =     50 / 10;   // 50ms
+//const uint8_t         key_repeat_10ms                  =     50 / 10;   // 50ms
+const uint8_t         key_repeat_10ms                  =    200 / 10;   // 200ms
 
 const uint16_t        search_freq_css_10ms             =  10000 / 10;   // 10 seconds
 const uint16_t        search_10ms                      =    210 / 10;   // 210ms .. don't reduce this
@@ -334,4 +335,19 @@ void NUMBER_trim_trailing_zeros(char *str)
 				str[i--] = 0;
 		}
 	}
+}
+
+// linear search, ascending, using addition
+uint16_t NUMBER_isqrt(const uint32_t y)
+{
+	uint16_t L = 0;
+	uint32_t a = 1;
+	uint32_t d = 3;
+	while (a <= y)
+	{
+		a += d;	// (a + 1) ^ 2
+		d += 2;
+		L += 1;
+	}
+	return L;
 }

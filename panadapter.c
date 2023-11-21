@@ -221,7 +221,7 @@ void PAN_process_10ms(void)
 	const uint16_t rssi = BK4819_GetRSSI();
 	g_panadapter_rssi[panadapter_rssi_index] = (rssi > 255) ? 255 : (rssi < panadapter_min_rssi) ? panadapter_min_rssi : rssi;
 
-	// next frequency
+	// next scan/sweep frequency
 	if (++panadapter_rssi_index >= (int)ARRAY_SIZE(g_panadapter_rssi))
 	{
 		panadapter_rssi_index = 0;
@@ -245,7 +245,7 @@ void PAN_process_10ms(void)
 
 	// completed a full sweep/scan, draw the panadapter on-screen
 
-	if (g_panadapter_cycles + 1)  // prevent wrap-a-round
+	if (g_panadapter_cycles + 1)  // prevent wrap-a-round/over-flow
 		g_panadapter_cycles++;
 
 	PAN_update_min_max();

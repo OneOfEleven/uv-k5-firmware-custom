@@ -28,6 +28,10 @@
 	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
+#ifndef SQR
+	#define SQR(x)    ((x) * (x))
+#endif
+
 #ifndef MAX
 //	#define MAX(a, b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
 #endif
@@ -333,6 +337,7 @@ void         NUMBER_Get(char *pDigits, uint32_t *pInteger);
 void         NUMBER_ToDigits(uint32_t Value, char *pDigits);
 int32_t      NUMBER_AddWithWraparound(int32_t Base, int32_t Add, int32_t LowerLimit, int32_t UpperLimit);
 void         NUMBER_trim_trailing_zeros(char *str);
+uint16_t     NUMBER_isqrt(const uint32_t y);
 
 #endif
 
