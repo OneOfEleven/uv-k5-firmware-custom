@@ -25,8 +25,8 @@
 // number of bins either side of the VFO RX frequency
 #define PANADAPTER_BINS   ((LCD_WIDTH / 2) - 1)
 
-#define PANADAPTER_MAX_STEP    2500
-#define PANADAPTER_MIN_STEP    625
+#define PANADAPTER_MAX_STEP    2500    // 25kHz
+#define PANADAPTER_MIN_STEP    500     // 5kHz
 
 extern bool         g_panadapter_enabled;
 extern unsigned int g_panadapter_cycles;

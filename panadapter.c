@@ -245,7 +245,7 @@ void PAN_process_10ms(void)
 
 	// completed a full sweep/scan, draw the panadapter on-screen
 
-	if (g_panadapter_cycles + 1)
+	if (g_panadapter_cycles + 1)  // prevent wrap-a-round
 		g_panadapter_cycles++;
 
 	PAN_update_min_max();

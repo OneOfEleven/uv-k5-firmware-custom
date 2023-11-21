@@ -140,8 +140,8 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 			uint8_t           *p_line    = g_frame_buffer[line];
 			char               s[16];
 
-			if (now)
-				memset(p_line, 0, LCD_WIDTH);
+			// clear the line
+			memset(p_line, 0, LCD_WIDTH);
 
 			// TX timeout seconds
 			sprintf(s, "%3u", secs);
@@ -242,8 +242,8 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 					g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 					return false;     // display is in use
 
-				if (now)
-					memset(g_frame_buffer[line], 0, LCD_WIDTH);
+				// clear the line
+				memset(g_frame_buffer[line], 0, LCD_WIDTH);
 
 				if (rssi_dBm >= (s9_dBm + 6))
 				{	// S9+XXdB, 1dB increment
@@ -445,10 +445,8 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 			}
 		}
 
-		if (now)
-		{	// clear our assigned screen area
-			memset(g_frame_buffer[line], 0, LCD_WIDTH * 3);
-		}
+		// clear our assigned screen area
+		memset(g_frame_buffer[line], 0, LCD_WIDTH * 3);
 
 		#ifdef ENABLE_PANADAPTER_PEAK_FREQ
 			if (g_panadapter_peak_freq > 0 && g_panadapter_cycles > 0)
