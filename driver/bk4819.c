@@ -1183,16 +1183,16 @@ void BK4819_PlayDTMF(char Code)
 	{
 			{ // tone1
 					941,  // '0'
-					679,  // '1'
+					697,  // '1'
 					697,  // '2'
-					679,  // '3'
+					697,  // '3'
 					770,  // '4'
 					770,  // '5'
 					770,  // '6'
 					852,  // '7'
 					852,  // '8'
 					852,  // '9'
-					679,  // 'A'
+					697,  // 'A'
 					770,  // 'B'
 					852,  // 'C'
 					941,  // 'D'
@@ -2353,8 +2353,8 @@ void BK4819_reset_fsk(void)
 					(0u <<  4) |   // 0 ~ 15  preamble length .. bit toggling
 					(1u <<  3) |   // 0/1     sync length
 					(0u <<  0);    // 0 ~ 7   ???
-		fsk_reg59 |= long_preamble ? 15u << 4 : 3u << 4; 
-			
+		fsk_reg59 |= long_preamble ? 15u << 4 : 3u << 4;
+
 		// Set packet length (not including pre-amble and sync bytes that we can't seem to disable)
 		BK4819_write_reg(0x5D, ((size - 1) << 8));
 
