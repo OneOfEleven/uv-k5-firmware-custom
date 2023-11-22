@@ -226,9 +226,7 @@ You may obtain a copy of the License at
   <img src="/images/image4.png" width=300 />
 </p>
 
-<video src="https://github.com/OneOfEleven/uv-k5-firmware-custom/images/spec.mp4"></video>
-
-<video src="https://github.com/OneOfEleven/uv-k5-firmware-custom/assets/51590168/2a3a9cdc-97da-4966-bf0d-1ce6ad09779c"></video>
+<video src="https://github.com/OneOfEleven/uv-k5-firmware-custom/assets/51590168/921162a7-e9f2-4023-b4d5-526567f8b989"></video>
 
 # WARNING if trying to use K5/K6 to TX out of band ..
 
