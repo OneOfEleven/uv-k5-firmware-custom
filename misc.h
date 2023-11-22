@@ -148,7 +148,8 @@ extern const uint8_t         key_input_timeout_500ms;
 extern const uint8_t         key_debounce_10ms;
 extern const uint8_t         key_side_long_press_10ms;
 extern const uint8_t         key_long_press_10ms;
-extern const uint8_t         key_repeat_10ms;
+extern const uint8_t         key_repeat_initial_10ms;
+extern const uint8_t         key_repeat_fastest_10ms;
 
 extern const uint16_t        search_freq_css_10ms;
 extern const uint16_t        search_10ms;

@@ -1277,7 +1277,8 @@ void APP_end_tx(void)
 	}
 #endif
 
-uint32_t key_repeat_ticks = SQR(100 / 10);
+int     key_repeat_speedup_ticks = 2500 / 10; // 2.5 seconds
+uint8_t key_repeat_ticks         =  300 / 10; // 300ms
 
 // called every 10ms
 void APP_check_keys(void)
@@ -1371,8 +1372,9 @@ void APP_check_keys(void)
 	if (key == KEY_INVALID || (g_key_prev != KEY_INVALID && key != g_key_prev))
 	{	// key not pressed or different key pressed
 
-		// reset the key repeat speed
-		key_repeat_ticks = SQR(key_repeat_10ms);
+		// reset the key repeat speed-up settings
+		key_repeat_speedup_ticks = 2500 / 10;          // speed-up once every 2.5 seconds
+		key_repeat_ticks         = key_repeat_initial_10ms;
 
 		if (g_key_debounce_press > 0)
 		{
@@ -1430,19 +1432,24 @@ void APP_check_keys(void)
 		if (key == KEY_UP || key == KEY_DOWN)
 		{	// only the up and down keys are made repeatable
 
+			// speed up key repeat the longer it's held down
+			if (key_repeat_ticks > key_repeat_fastest_10ms)
+			{
+				if (--key_repeat_speedup_ticks <= 0)
+				{
+					key_repeat_speedup_ticks = 2500 / 10;     // speed-up once every 2.5 seconds
+					key_repeat_ticks = (key_repeat_ticks > (60 / 10)) ? key_repeat_ticks >> 1 : key_repeat_ticks - 1;
+				}
+			}
+			key_repeat_ticks = (key_repeat_ticks < key_repeat_fastest_10ms) ? key_repeat_fastest_10ms : key_repeat_ticks;
+
 			// key repeat max 10ms speed if user is moving up/down in freq/channel
 //			const bool    freq_chan    = IS_FREQ_CHANNEL(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen);
-//			const uint8_t repeat_ticks = (g_manual_scanning && g_monitor_enabled && freq_chan && g_current_display_screen == DISPLAY_MAIN) ? 2 : NUMBER_isqrt(key_repeat_ticks);
-			const uint8_t repeat_ticks = NUMBER_isqrt(key_repeat_ticks);
+//			const uint8_t repeat_ticks = (g_manual_scanning && g_monitor_enabled && freq_chan && g_current_display_screen == DISPLAY_MAIN) ? 2 : key_repeat_ticks;
+			const uint8_t repeat_ticks = key_repeat_ticks;
 
 			if (++g_key_debounce_repeat >= (long_press_ticks + repeat_ticks))
 			{	// key repeat
-
-				// speed up the key repeat the longer the key is help down
-				if (key_repeat_ticks >= (SQR(2) + 8))
-					key_repeat_ticks -= 8;       
-				else
-					key_repeat_ticks = SQR(2);
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //					UART_printf("rp %u\n", key_repeat_ticks);
