@@ -226,7 +226,7 @@ You may obtain a copy of the License at
   <img src="/images/image4.png" width=300 />
 </p>
 
-<video src="https://github.com/OneOfEleven/uv-k5-firmware-custom/assets/3120d0fe-6c82-48f1-9f4a-2cf0fb9a1190"></video>
+<video src="https://github.com/OneOfEleven/uv-k5-firmware-custom/images/spec.mp4"></video>
 
 <video src="https://github.com/OneOfEleven/uv-k5-firmware-custom/assets/51590168/2a3a9cdc-97da-4966-bf0d-1ce6ad09779c"></video>
 
