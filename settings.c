@@ -483,6 +483,8 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, v
 
 	// ****************
 
+//	SETTINGS_save_vfo_indices();
+
 	SETTINGS_save_chan_attribs_name(channel, p_vfo);
 
 	if (channel <= USER_CHANNEL_LAST)

@@ -36,7 +36,7 @@ const uint8_t panadapter_min_rssi = (-147 + 160) * 2;  // -147dBm (S0) min RSSI 
 inline void PAN_restart(const bool full)
 {
 	if (full)
-		g_panadapter_cycles   = 0;
+		g_panadapter_cycles = 0;
 	panadapter_rssi_index = 0;
 	panadapter_delay      = 3;
 }
@@ -105,8 +105,11 @@ void PAN_set_freq(void)
 
 	int32_t freq = g_tx_vfo->p_rx->frequency;
 
+	if (g_current_function == FUNCTION_TRANSMIT || panadapter_rssi_index < 0)
+		return;
+
 	// if not paused on the VFO/center freq, add the panadapter bin offset frequency
-	if (g_panadapter_enabled && g_panadapter_vfo_tick <= 0 && panadapter_rssi_index >= 0)
+	if (g_panadapter_enabled && g_panadapter_vfo_tick <= 0)
 	{
 		int32_t step_size = g_tx_vfo->step_freq;
 
@@ -141,13 +144,14 @@ void PAN_process_10ms(void)
 	     g_current_display_screen == DISPLAY_SEARCH ||
 	     g_css_scan_mode  != CSS_SCAN_MODE_OFF      ||
 	     g_scan_state_dir != SCAN_STATE_DIR_OFF     ||
-		 g_dtmf_call_state != DTMF_CALL_STATE_NONE  ||
-	     g_dtmf_is_tx                               ||
-	     g_dtmf_input_mode)
+		 g_dtmf_call_state != DTMF_CALL_STATE_NONE) //  ||
+//	     g_dtmf_is_tx                               ||
+//	     g_dtmf_input_mode)
 	{
 		if (g_panadapter_enabled)
 		{	// disable the panadapter
 			g_panadapter_enabled = false;
+			PAN_restart(true);
 			PAN_set_freq();
 			g_update_display = true;
 		}
@@ -156,7 +160,6 @@ void PAN_process_10ms(void)
 
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{
-		g_panadapter_vfo_tick = 100;  // 1 sec - stay on the VFO frequency for at least this amount of time after PTT release
 		panadapter_rssi_index = -1;
 		return;
 	}
@@ -173,8 +176,9 @@ void PAN_process_10ms(void)
 
 	if (panadapter_rssi_index < 0)
 	{	// guess we've just come out of TX mode
+		g_panadapter_vfo_tick = 100;  // 1 sec - stay on the VFO frequency for at least this amount of time after PTT release
 		PAN_restart(false);
-		PAN_set_freq();
+//		PAN_set_freq();
 		return;
 	}
 
@@ -197,8 +201,10 @@ void PAN_process_10ms(void)
 				if (--panadapter_delay == 0)
 				{
 					panadapter_delay = 20;
-					UI_DisplayMain_pan(true);
-					//g_update_display = true;
+					if (!g_dtmf_input_mode)
+						UI_DisplayMain_pan(true);
+					else
+						g_update_display = true;
 				}
 			}
 			return;
@@ -254,6 +260,8 @@ void PAN_process_10ms(void)
 		PAN_find_peak();
 	#endif
 
-	UI_DisplayMain_pan(true);
-	//g_update_display = true;
+	if (!g_dtmf_input_mode)
+		UI_DisplayMain_pan(true);
+	else
+		g_update_display = true;
 }

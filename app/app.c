@@ -1469,6 +1469,7 @@ void APP_cancel_user_input_modes(void)
 		g_ask_to_save  = false;
 		g_update_display = true;
 	}
+
 	if (g_ask_to_delete)
 	{
 		g_ask_to_delete  = false;
