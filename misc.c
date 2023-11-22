@@ -47,9 +47,10 @@ const uint8_t         key_input_timeout_500ms          =   6000 / 500;  // 6 sec
 
 const uint8_t         key_debounce_10ms                =     30 / 10;   // 30ms
 const uint8_t         key_side_long_press_10ms         =   1000 / 10;   // 1 second
-const uint8_t         key_long_press_10ms              =    300 / 10;   // 300ms
-const uint8_t         key_repeat_initial_10ms          =    300 / 10;   // 300ms
+const uint8_t         key_long_press_10ms              =    320 / 10;   // 320ms
+const uint8_t         key_repeat_initial_10ms          =    320 / 10;   // 320ms
 const uint8_t         key_repeat_fastest_10ms          =     10 / 10;   // 10ms
+const uint16_t        key_repeat_speedup_10ms          =   2500 / 10;   // speed-up key repeat once every 2.5 seconds
 
 const uint16_t        search_freq_css_10ms             =  10000 / 10;   // 10 seconds
 const uint16_t        search_10ms                      =    210 / 10;   // 210ms .. don't reduce this

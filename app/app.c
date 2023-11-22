@@ -1277,13 +1277,13 @@ void APP_end_tx(void)
 	}
 #endif
 
-int     key_repeat_speedup_ticks = 2500 / 10; // 2.5 seconds
-uint8_t key_repeat_ticks         =  300 / 10; // 300ms
-
 // called every 10ms
-void APP_check_keys(void)
+void APP_process_keys(void)
 {
 	const bool ptt_pressed = !GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT);
+
+	static int     key_repeat_speedup_ticks = 0;
+	static uint8_t key_repeat_ticks         = 0;
 
 	key_code_t key;
 
@@ -1352,12 +1352,10 @@ void APP_check_keys(void)
 	#endif
 
 	// *****************
-	// button processing (non-PTT)
+	// key/button processing (non-PTT)
 
 	// scan the hardware keys
 	key = KEYBOARD_Poll();
-
-	g_boot_tick_10ms = 0;   // cancel boot screen/beeps
 
 	if (g_serial_config_tick_500ms > 0)
 	{	// config upload/download in progress
@@ -1372,10 +1370,6 @@ void APP_check_keys(void)
 	if (key == KEY_INVALID || (g_key_prev != KEY_INVALID && key != g_key_prev))
 	{	// key not pressed or different key pressed
 
-		// reset the key repeat speed-up settings
-		key_repeat_speedup_ticks = 2500 / 10;          // speed-up once every 2.5 seconds
-		key_repeat_ticks         = key_repeat_initial_10ms;
-
 		if (g_key_debounce_press > 0)
 		{
 			if (--g_key_debounce_press == 0)
@@ -1387,7 +1381,7 @@ void APP_check_keys(void)
 					g_key_debounce_repeat = 0;
 					g_key_prev            = KEY_INVALID;
 					g_key_held            = false;
-					g_boot_tick_10ms      = 0;         // cancel the boot-up screen
+					g_boot_tick_10ms      = 0;   // cancel boot screen/beeps
 					g_update_status       = true;
 //					g_update_display      = true;
 				}
@@ -1396,73 +1390,76 @@ void APP_check_keys(void)
 			if (g_key_debounce_repeat > 0)
 				g_key_debounce_repeat--;
 		}
-	}
-	else
-	{	// key pressed
 
-		// long press time can be different for different keys
-		const uint8_t long_press_ticks = (key == KEY_SIDE1 || key == KEY_SIDE2) ? key_side_long_press_10ms : key_long_press_10ms;
-
-		if (g_key_debounce_press < key_debounce_10ms)
-		{
-			if (++g_key_debounce_press >= key_debounce_10ms)
-			{
-				if (key != g_key_prev)
-				{	// key now fully pressed
-					g_key_debounce_repeat = key_debounce_10ms;
-					g_key_held            = false;
-					g_key_prev            = key;
-					APP_process_key(g_key_prev, true, g_key_held);
-					g_update_status       = true;
-//					g_update_display      = true;
-				}
-			}
-		}
-		else
-		if (g_key_debounce_repeat < long_press_ticks)
-		{
-			if (++g_key_debounce_repeat >= long_press_ticks)
-			{	// key long press
-				g_key_held      = true;
-				APP_process_key(g_key_prev, true, g_key_held);
-				g_update_status = true;
-			}
-		}
-		else
-		if (key == KEY_UP || key == KEY_DOWN)
-		{	// only the up and down keys are made repeatable
-
-			// speed up key repeat the longer it's held down
-			if (key_repeat_ticks > key_repeat_fastest_10ms)
-			{
-				if (--key_repeat_speedup_ticks <= 0)
-				{
-					key_repeat_speedup_ticks = 2500 / 10;     // speed-up once every 2.5 seconds
-					key_repeat_ticks = (key_repeat_ticks > (60 / 10)) ? key_repeat_ticks >> 1 : key_repeat_ticks - 1;
-				}
-			}
-			key_repeat_ticks = (key_repeat_ticks < key_repeat_fastest_10ms) ? key_repeat_fastest_10ms : key_repeat_ticks;
-
-			// key repeat max 10ms speed if user is moving up/down in freq/channel
-//			const bool    freq_chan    = IS_FREQ_CHANNEL(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen);
-//			const uint8_t repeat_ticks = (g_manual_scanning && g_monitor_enabled && freq_chan && g_current_display_screen == DISPLAY_MAIN) ? 2 : key_repeat_ticks;
-			const uint8_t repeat_ticks = key_repeat_ticks;
-
-			if (++g_key_debounce_repeat >= (long_press_ticks + repeat_ticks))
-			{	// key repeat
-
-				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//					UART_printf("rp %u\n", key_repeat_ticks);
-				#endif
-
-				g_key_debounce_repeat = long_press_ticks;
-
-				APP_process_key(g_key_prev, true, g_key_held);
-			}
-		}
+		return;
 	}
 
-	// *****************
+	// key pressed
+
+	if (g_key_debounce_press < key_debounce_10ms)
+	{
+		if (++g_key_debounce_press >= key_debounce_10ms)
+		{
+			if (key != g_key_prev)
+			{	// key pressed
+				key_repeat_speedup_ticks = key_repeat_speedup_10ms;
+				key_repeat_ticks         = key_repeat_initial_10ms;
+				g_key_debounce_repeat    = key_debounce_10ms;
+				g_key_prev               = key;
+				g_key_held               = false;
+				APP_process_key(g_key_prev, true, g_key_held);
+				g_update_status          = true;
+//				g_update_display         = true;
+			}
+		}
+		return;
+	}
+
+	// long press time can be different for different keys
+	const uint8_t long_press_ticks = (key == KEY_SIDE1 || key == KEY_SIDE2) ? key_side_long_press_10ms : key_long_press_10ms;
+
+	if (g_key_debounce_repeat < long_press_ticks)
+	{
+		if (++g_key_debounce_repeat >= long_press_ticks)
+		{	// key long press
+			g_key_held = true;
+			APP_process_key(g_key_prev, true, g_key_held);
+		}
+		return;
+	}
+
+	if (key != KEY_UP && key != KEY_DOWN)
+		return;		// up and down keys are the only repeatables
+
+	// speed up key repeat
+	if (key_repeat_ticks > key_repeat_fastest_10ms)
+	{
+		if (--key_repeat_speedup_ticks <= 0)
+		{
+			key_repeat_speedup_ticks = key_repeat_speedup_10ms;
+			key_repeat_ticks         = (key_repeat_ticks > (80 / 10)) ? key_repeat_ticks >> 1 : key_repeat_ticks - 1;
+		}
+	}
+	key_repeat_ticks = (key_repeat_ticks < key_repeat_fastest_10ms) ? key_repeat_fastest_10ms : key_repeat_ticks;
+
+	// key repeat max 10ms speed if user is moving up/down in freq/channel
+//	const bool    freq_chan    = IS_FREQ_CHANNEL(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].screen);
+//	const uint8_t repeat_ticks = (g_manual_scanning && g_monitor_enabled && freq_chan && g_current_display_screen == DISPLAY_MAIN) ? 2 : key_repeat_ticks;
+
+	const uint8_t repeat_ticks = key_repeat_ticks;
+
+	if (++g_key_debounce_repeat < (long_press_ticks + repeat_ticks))
+		return;
+
+	// key repeat
+
+	g_key_debounce_repeat = long_press_ticks;
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("rp %u\n", key_repeat_ticks);
+	#endif
+
+	APP_process_key(g_key_prev, true, g_key_held);
 }
 
 void APP_cancel_user_input_modes(void)
@@ -1726,14 +1723,14 @@ void APP_process_search(void)
 	{
 		if (--g_search_tick_10ms > 0)
 		{
-			APP_check_keys();
+			APP_process_keys();
 			return;
 		}
 	}
 
 	if (g_search_edit_state != SEARCH_EDIT_STATE_NONE)
 	{	// waiting for user input choice
-		APP_check_keys();
+		APP_process_keys();
 		return;
 	}
 
@@ -1860,7 +1857,6 @@ void APP_process_power_save(void)
 		g_ptt_is_pressed                          ||
 		g_fkey_pressed                            ||
 		g_key_pressed != KEY_INVALID              ||
-		g_key_held                                ||
 		g_eeprom.config.setting.battery_save_ratio == 0  ||
 		g_scan_state_dir != SCAN_STATE_DIR_OFF    ||
 		g_css_scan_mode != CSS_SCAN_MODE_OFF      ||
@@ -2386,7 +2382,7 @@ void APP_time_slice_10ms(void)
 
 			AIRCOPY_process_fsk_rx_10ms();
 
-			APP_check_keys();
+			APP_process_keys();
 			return;
 		}
 	#endif
@@ -2551,7 +2547,7 @@ void APP_time_slice_10ms(void)
 
 	APP_process_search();
 
-	APP_check_keys();
+	APP_process_keys();
 }
 
 static void APP_process_key(const key_code_t Key, const bool key_pressed, const bool key_held)

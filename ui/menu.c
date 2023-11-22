@@ -390,6 +390,8 @@ const char g_sub_menu_side_butt[9][16] =
 };
 #endif
 
+const char back_light_str[] = "BACKLITE\n";
+
 // ***************************************************************************************
 
 uint8_t g_menu_list_sorted[ARRAY_SIZE(g_menu_list)];
@@ -678,7 +680,7 @@ void UI_DisplayMenu(void)
 				str[i] = '.';
 				while (i < 8)
 				{
-					str[1 + i] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';			
+					str[1 + i] = (g_input_box[i] == 10) ? '-' : g_input_box[i] + '0';
 					i++;
 				}
 				UI_PrintString(str, sub_menu_x1, sub_menu_x2, 1, 8);
@@ -718,13 +720,13 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_AUTO_BACKLITE:
-			strcpy(str, "BACKLITE\n");
+			strcpy(str, back_light_str);
 			strcat(str, g_sub_menu_backlight[g_sub_menu_selection]);
 			BACKLIGHT_turn_on(5);
 			break;
 
 		case MENU_AUTO_BACKLITE_ON_TX_RX:
-			strcpy(str, "BACKLITE\n");
+			strcpy(str, back_light_str);
 			strcat(str, g_sub_menu_rx_tx[g_sub_menu_selection]);
 			break;
 
@@ -756,8 +758,12 @@ void UI_DisplayMenu(void)
 
 		#ifdef ENABLE_CONTRAST
 			case MENU_CONTRAST:
-				strcpy(str, "CONTRAST\n");
-				sprintf(str + strlen(str), "%d", g_sub_menu_selection);
+				#if 0
+					strcpy(str, "CONTRAST\n");
+					sprintf(str + strlen(str), "%d", g_sub_menu_selection);
+				#else
+					sprintf(str, "%d", g_sub_menu_selection);
+				#endif
 				ST7565_SetContrast(g_sub_menu_selection);
 				g_update_display = true;
 				break;
@@ -956,7 +962,7 @@ void UI_DisplayMenu(void)
 		#endif
 
 		case MENU_DUAL_WATCH:
-//			strcpy(String, g_sub_menu_dual_watch[g_sub_menu_selection]);
+//			strcpy(str, g_sub_menu_dual_watch[g_sub_menu_selection]);
 			strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
@@ -1051,7 +1057,6 @@ void UI_DisplayMenu(void)
 
 		case MENU_DTMF_PRE:
 			strcpy(str, "DTMF BOT\nDELAY\n");
-//			sprintf(String + strlen(String), "%d*10ms", g_sub_menu_selection);
 			sprintf(str + strlen(str), "%dms", 10 * g_sub_menu_selection);
 			break;
 
@@ -1061,7 +1066,7 @@ void UI_DisplayMenu(void)
 				strcat(str, g_sub_menu_mdc1200_mode[g_sub_menu_selection]);
 				channel_setting = true;
 				break;
-				
+
 			case MENU_MDC1200_ID:
 				sprintf(str, "MDC1200\nID\n%04X", g_sub_menu_selection);
 				break;
@@ -1094,7 +1099,7 @@ void UI_DisplayMenu(void)
 			}
 			break;
 		}
-		
+
 		case MENU_PON_MSG:
 			strcpy(str, g_sub_menu_pwr_on_msg[g_sub_menu_selection]);
 			break;
@@ -1152,7 +1157,7 @@ void UI_DisplayMenu(void)
 				}
 			}
 
-			// add the date and time
+			// add the compiled date and time
 			strcat(str, "\n \n" __DATE__ "\n" __TIME__);
 			break;
 		}
@@ -1354,11 +1359,11 @@ void UI_DisplayMenu(void)
 	}
 
 	if ((g_menu_cursor == MENU_RESET    ||
-	     g_menu_cursor == MENU_MEM_SAVE   ||
+	     g_menu_cursor == MENU_MEM_SAVE ||
 	     g_menu_cursor == MENU_MEM_NAME ||
 	     g_menu_cursor == MENU_MEM_DEL) && g_ask_for_confirmation)
 	{	// display confirmation
-		strcpy(str, (g_ask_for_confirmation == 1) ? "SURE?" : "WAIT!");
+		strcpy(str, (g_ask_for_confirmation == 1) ? "SURE ?" : "WAIT !");
 		UI_PrintString(str, sub_menu_x1, sub_menu_x2, 5, 8);
 	}
 
