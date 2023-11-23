@@ -50,6 +50,14 @@ void SETTINGS_write_eeprom_config(void)
 		EEPROM_WriteBuffer8(index, ((uint8_t *)&g_eeprom) + index);
 }
 
+void SETTINGS_write_eeprom_calib(void)
+{	// save the entire EEPROM calibration contents
+	const unsigned int index = (unsigned int)(((uint8_t *)&g_eeprom.calib) - ((uint8_t *)&g_eeprom));
+	unsigned int i;
+	for (i = 0; i < sizeof(g_eeprom.calib); i += 8)
+		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.calib) + i);
+}
+
 #ifdef ENABLE_FMRADIO
 	void SETTINGS_save_fm(void)
 	{

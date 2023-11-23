@@ -28,6 +28,7 @@
 #endif
 #include "external/printf/printf.h"
 #include "frequencies.h"
+#include "functions.h"
 #include "helper/battery.h"
 #include "misc.h"
 #include "radio.h"
@@ -155,6 +156,10 @@ const t_menu_item g_menu_list[] =
 	// enabled by pressing both the PTT and upper side button at power-on
 
 	{"BatCAL", VOICE_ID_INVALID,                       MENU_BAT_CAL               }, // battery voltage calibration
+
+#ifdef ENABLE_TX_POWER_CAL_MENU
+	{"TX CAL", VOICE_ID_INVALID,                       MENU_TX_CALI,              }, // L/M/H TX power calibration
+#endif
 
 #ifdef ENABLE_F_CAL_MENU
 	{"F CAL",  VOICE_ID_INVALID,                       MENU_F_CALI                }, // reference xtal calibration
@@ -434,6 +439,10 @@ void UI_SortMenu(const bool hide_hidden)
 	// it now no longer depends on the order of entries in the above const list (they can be any order)
 
 	unsigned int hidden_menu_count = g_hidden_menu_count;
+
+	#ifndef ENABLE_TX_POWER_CAL_MENU
+		hidden_menu_count--;
+	#endif
 
 	#ifndef ENABLE_F_CAL_MENU
 		hidden_menu_count--;
@@ -1190,13 +1199,34 @@ void UI_DisplayMenu(void)
 				case FREQ_LOCK_446:
 					strcpy(str, "446.00625\n~\n446.19375");
 					break;
-				#ifdef ENABLE_TX_UNLOCK
+				#ifdef ENABLE_TX_UNLOCK_MENU
 					case FREQ_LOCK_TX_UNLOCK:
 						sprintf(str, "UNLOCKED\n%u~%u", BX4819_BAND1.lower / 100000, BX4819_BAND2.upper / 100000);
 						break;
 				#endif
 			}
 			break;
+
+		#ifdef ENABLE_TX_POWER_CAL_MENU
+			case MENU_TX_CALI:
+				{
+					const unsigned int seg  = FREQUENCY_band_segment(g_current_vfo->p_tx->frequency);
+					const unsigned int band = (unsigned int)FREQUENCY_GetBand(g_current_vfo->p_tx->frequency);
+					const uint32_t     f1   = FREQ_BAND_TABLE[band].lower;
+					const uint32_t     f3   = FREQ_BAND_TABLE[band].upper;
+					const uint32_t     f2   = (f1 + f3) / 2;
+
+					sprintf(str, "B%u S%u\nTX %s\n", band, seg, g_sub_menu_tx_power[g_current_vfo->channel.tx_power]);
+					sprintf(str + strlen(str), "%u\n", g_sub_menu_selection);
+					sprintf(str + strlen(str), "%u.%05u\n", f1 / 100000, f1 % 100000);
+					sprintf(str + strlen(str), "%u.%05u\n", f2 / 100000, f2 % 100000);
+					sprintf(str + strlen(str), "%u.%05u",   f3 / 100000, f3 % 100000);
+
+					if (g_current_function == FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
+						BK4819_SetupPowerAmplifier(g_sub_menu_selection, g_current_vfo->p_tx->frequency);
+				}
+				break;
+		#endif
 
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:

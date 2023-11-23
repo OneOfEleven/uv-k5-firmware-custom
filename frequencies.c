@@ -136,22 +136,42 @@ frequency_band_t FREQUENCY_GetBand(uint32_t Frequency)
 //	return BAND_NONE;
 }
 
-uint8_t FREQUENCY_CalculateOutputPower(uint8_t TxpLow, uint8_t TxpMid, uint8_t TxpHigh, int32_t LowerLimit, int32_t Middle, int32_t UpperLimit, int32_t Frequency)
+unsigned int FREQUENCY_band_segment(const uint32_t freq)
 {
-	uint8_t pwr = TxpMid;
+	const unsigned int band  = (unsigned int)FREQUENCY_GetBand(freq);
+	const uint32_t     low_freq  = FREQ_BAND_TABLE[band].lower;
+	const uint32_t     high_freq = FREQ_BAND_TABLE[band].upper;
+	const uint32_t     mid_freq  = (low_freq + high_freq) / 2;
 
-	if (Frequency <= LowerLimit)
-		return TxpLow;
+	if (freq <  ((low_freq +  mid_freq) / 2))
+		return 0;
+	if (freq >= ((mid_freq + high_freq) / 2))
+		return 2;
+	return 1;
+}
 
-	if (Frequency >= UpperLimit)
-		return TxpHigh;
+uint8_t FREQUENCY_CalculateOutputPower(const int16_t low_tx_pwr, const int32_t mid_tx_pwr, const int16_t high_tx_pwr, const uint32_t freq)
+{
+	const unsigned int band      = (unsigned int)FREQUENCY_GetBand(freq);
+	const uint32_t     low_freq  = FREQ_BAND_TABLE[band].lower;
+	const uint32_t     high_freq = FREQ_BAND_TABLE[band].upper;
+	const uint32_t     mid_freq  = (low_freq + high_freq) / 2;
+
+	int16_t value;
+
+	if (freq <= low_freq)
+		return low_tx_pwr;
+
+	if (freq >= high_freq)
+		return high_tx_pwr;
 
 	// linear interpolation
-	if (Frequency <= Middle)
-		pwr += ((TxpMid  - TxpLow) * (Frequency - LowerLimit)) / (Middle - LowerLimit);
+	if (freq < mid_freq)
+		value = low_tx_pwr + (((mid_tx_pwr  - low_tx_pwr) * (freq - low_freq)) / (mid_freq  - low_freq));
 	else
-		pwr += ((TxpHigh - TxpMid) * (Frequency - Middle))     / (UpperLimit - Middle);
-	return pwr;
+		value = mid_tx_pwr + (((high_tx_pwr - mid_tx_pwr) * (freq - mid_freq)) / (high_freq - mid_freq));
+
+	return (value < 0) ? 0 : (value > 255) ? 255 : value;
 }
 
 uint32_t FREQUENCY_floor_to_step(uint32_t freq, const uint32_t step_size, const uint32_t lower, const uint32_t upper)
@@ -307,7 +327,7 @@ int FREQUENCY_tx_freq_check(const uint32_t Frequency)
 				return 0;
 			break;
 
-		#ifdef ENABLE_TX_UNLOCK
+		#ifdef ENABLE_TX_UNLOCK_MENU
 			case FREQ_LOCK_TX_UNLOCK:
 			{
 				unsigned int i;

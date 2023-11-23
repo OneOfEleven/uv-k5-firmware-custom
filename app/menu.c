@@ -34,6 +34,7 @@
 	#include "driver/uart.h"
 #endif
 #include "frequencies.h"
+#include "functions.h"
 #include "helper/battery.h"
 #include "misc.h"
 #include "settings.h"
@@ -366,6 +367,13 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMin = 1;
 			*pMax = 16;
 			break;
+
+		#ifdef ENABLE_TX_POWER_CAL_MENU
+			case MENU_TX_CALI:
+				*pMin = 0;
+				*pMax = 255;
+				break;
+		#endif
 
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
@@ -884,11 +892,29 @@ void MENU_AcceptSetting(void)
 			g_eeprom.config.setting.tx_enable = g_sub_menu_selection;
 			break;
 
-#ifdef ENABLE_F_CAL_MENU
+		#ifdef ENABLE_TX_POWER_CAL_MENU
+			case MENU_TX_CALI:
+				{
+					const unsigned int seg  = FREQUENCY_band_segment(g_current_vfo->p_tx->frequency);
+					const unsigned int band = (unsigned int)FREQUENCY_GetBand(g_current_vfo->p_tx->frequency);
+
+					g_eeprom.calib.tx_band_power[band].level[g_current_vfo->channel.tx_power][seg] = g_sub_menu_selection;
+
+					SETTINGS_write_eeprom_calib();
+
+					RADIO_ConfigureTXPower(g_current_vfo);
+
+					if (g_current_function == FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
+						BK4819_SetupPowerAmplifier(g_current_vfo->txp_calculated_setting, g_current_vfo->p_tx->frequency);
+				}
+				break;
+		#endif
+
+		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
 				writeXtalFreqCal(g_sub_menu_selection, true);
 				return;
-#endif
+		#endif
 
 		case MENU_BAT_CAL:
 		{
@@ -1350,6 +1376,16 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_TX_EN:
 			g_sub_menu_selection = g_eeprom.config.setting.tx_enable;
 			break;
+
+		#ifdef ENABLE_TX_POWER_CAL_MENU
+			case MENU_TX_CALI:
+				{
+					const unsigned int seg = FREQUENCY_band_segment(g_current_vfo->p_tx->frequency);
+					const unsigned int band = (unsigned int)FREQUENCY_GetBand(g_current_vfo->p_tx->frequency);
+					g_sub_menu_selection = g_eeprom.calib.tx_band_power[band].level[g_current_vfo->channel.tx_power][seg];
+				}
+				break;
+		#endif
 
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
@@ -2033,9 +2069,9 @@ void MENU_process_key(key_code_t Key, bool key_pressed, bool key_held)
 	if (g_current_display_screen == DISPLAY_MENU)
 	{
 		if (g_menu_cursor == MENU_VOLTAGE ||
-#ifdef ENABLE_F_CAL_MENU
-			g_menu_cursor == MENU_F_CALI ||
-#endif
+			#ifdef ENABLE_F_CAL_MENU
+				g_menu_cursor == MENU_F_CALI ||
+			#endif
 			g_menu_cursor == MENU_BAT_CAL)
 		{
 			g_menu_tick_10ms = menu_timeout_long_500ms;

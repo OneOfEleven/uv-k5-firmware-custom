@@ -19,7 +19,7 @@ ENABLE_AIRCOPY_RX_REBOOT         := 0
 ENABLE_FMRADIO_64_76             := 0
 ENABLE_FMRADIO_76_90             := 0
 ENABLE_FMRADIO_76_108            := 0
-ENABLE_FMRADIO_875_108           := 1
+ENABLE_FMRADIO_875_108           := 0
 ENABLE_FMRADIO_64_108            := 0
 # NOAA 1.2 kB
 ENABLE_NOAA                      := 0
@@ -29,7 +29,6 @@ ENABLE_MUTE_RADIO_FOR_VOICE      := 0
 # Tx on Voice 1.0 kB
 ENABLE_VOX                       := 0
 ENABLE_VOX_MORE_SENSITIVE        := 1
-ENABLE_REDUCE_LOW_MID_TX_POWER   := 1
 # Tx Alarm 600 B
 ENABLE_ALARM                     := 0
 ENABLE_TX1750                    := 0
@@ -51,7 +50,9 @@ ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
 # Freq calibration 188 B
 ENABLE_F_CAL_MENU                := 0
-ENABLE_TX_UNLOCK                 := 0
+ENABLE_TX_UNLOCK_MENU            := 0
+ENABLE_TX_POWER_CAL_MENU         := 0
+ENABLE_FIX_TX_POWER              := 1
 ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1
 ENABLE_CONTRAST                  := 0
 ENABLE_BOOT_BEEPS                := 0
@@ -354,8 +355,8 @@ endif
 ifeq ($(ENABLE_VOX_MORE_SENSITIVE),1)
 	CFLAGS  += -DENABLE_VOX_MORE_SENSITIVE
 endif
-ifeq ($(ENABLE_REDUCE_LOW_MID_TX_POWER),1)
-	CFLAGS  += -DENABLE_REDUCE_LOW_MID_TX_POWER
+ifeq ($(ENABLE_FIX_TX_POWER),1)
+	CFLAGS  += -DENABLE_FIX_TX_POWER
 endif
 ifeq ($(ENABLE_ALARM),1)
 	CFLAGS  += -DENABLE_ALARM
@@ -387,8 +388,11 @@ endif
 ifeq ($(ENABLE_F_CAL_MENU),1)
 	CFLAGS  += -DENABLE_F_CAL_MENU
 endif
-ifeq ($(ENABLE_TX_UNLOCK),1)
-	CFLAGS  += -DENABLE_TX_UNLOCK
+ifeq ($(ENABLE_TX_UNLOCK_MENU),1)
+	CFLAGS  += -DENABLE_TX_UNLOCK_MENU
+endif
+ifeq ($(ENABLE_TX_POWER_CAL_MENU),1)
+	CFLAGS  += -DENABLE_TX_POWER_CAL_MENU
 endif
 ifeq ($(ENABLE_CTCSS_TAIL_PHASE_SHIFT),1)
 	CFLAGS  += -DENABLE_CTCSS_TAIL_PHASE_SHIFT

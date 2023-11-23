@@ -148,6 +148,10 @@ enum
 
 	MENU_BAT_CAL,      // battery voltage calibration
 
+#ifdef ENABLE_TX_POWER_CAL_MENU
+	MENU_TX_CALI,      // L/M/H TX power calibration
+#endif
+
 #ifdef ENABLE_F_CAL_MENU
 	MENU_F_CALI,       // 26MHz reference xtal calibration
 #endif

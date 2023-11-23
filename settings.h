@@ -48,7 +48,7 @@ enum {
 	FREQ_LOCK_430,
 	FREQ_LOCK_438,
 	FREQ_LOCK_446,
-#ifdef ENABLE_TX_UNLOCK
+#ifdef ENABLE_TX_UNLOCK_MENU
 	FREQ_LOCK_TX_UNLOCK,
 #endif
 	FREQ_LOCK_LAST
@@ -623,6 +623,7 @@ extern t_eeprom g_eeprom;
 
 void SETTINGS_read_eeprom(void);
 void SETTINGS_write_eeprom_config(void);
+void SETTINGS_write_eeprom_calib(void);
 
 #ifdef ENABLE_FMRADIO
 	void SETTINGS_save_fm(void);
