@@ -560,7 +560,7 @@ void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 
 void RADIO_ConfigureTXPower(vfo_info_t *p_vfo)
 {
-	// my calibration data
+	// my eeprom calibration data
 	//
 	// 1ED0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF ..  50 MHz
 	// 1EE0    32 32 32   64 64 64   8C 8C 8C   FF FF FF FF FF FF FF .. 108 MHz
@@ -593,6 +593,7 @@ void RADIO_ConfigureTXPower(vfo_info_t *p_vfo)
 		}
 	#endif
 
+	// set the TX power registers
 	p_vfo->txp_calculated_setting = FREQUENCY_CalculateOutputPower(
 		tx_power[0],
 		tx_power[1],

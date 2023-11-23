@@ -404,12 +404,13 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 
 		if (!g_eeprom.config.setting.panadapter        ||
 		    !g_panadapter_enabled                      ||
+		     g_monitor_enabled                         ||
 		     single_vfo < 0                            ||
 		     g_current_display_screen != DISPLAY_MAIN  ||
 		     g_current_function == FUNCTION_POWER_SAVE ||
-		     g_monitor_enabled                         ||
+//		     g_current_function == FUNCTION_TRANSMIT   ||
 		     g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
-		     g_dtmf_is_tx                              ||
+//		     g_dtmf_is_tx                              ||
 		     g_dtmf_input_mode)
 		{	// don't draw the panadapter
 			return;

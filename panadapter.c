@@ -142,11 +142,9 @@ void PAN_process_10ms(void)
 	     g_monitor_enabled                          ||
 	     g_current_function == FUNCTION_POWER_SAVE  ||
 	     g_current_display_screen == DISPLAY_SEARCH ||
-	     g_css_scan_mode  != CSS_SCAN_MODE_OFF      ||
-	     g_scan_state_dir != SCAN_STATE_DIR_OFF     ||
-		 g_dtmf_call_state != DTMF_CALL_STATE_NONE) //  ||
-//	     g_dtmf_is_tx                               ||
-//	     g_dtmf_input_mode)
+	     g_css_scan_mode   != CSS_SCAN_MODE_OFF     ||
+	     g_scan_state_dir  != SCAN_STATE_DIR_OFF    ||
+		 g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 	{
 		if (g_panadapter_enabled)
 		{	// disable the panadapter
@@ -196,16 +194,13 @@ void PAN_process_10ms(void)
 
 		if (g_panadapter_vfo_tick > 0)
 		{
-			if (panadapter_delay > 0)
-			{	// update the screen every 200ms
-				if (--panadapter_delay == 0)
-				{
-					panadapter_delay = 20;
-					if (!g_dtmf_input_mode)
-						UI_DisplayMain_pan(true);
-					else
-						g_update_display = true;
-				}
+			if (--panadapter_delay <= 0)
+			{	// update the screen every 200ms while on the VFO/center frequency
+				panadapter_delay = 20;
+				if (!g_dtmf_input_mode)
+					UI_DisplayMain_pan(true);
+				//else
+				//	g_update_display = true;
 			}
 			return;
 		}
@@ -217,11 +212,10 @@ void PAN_process_10ms(void)
 
 	// scanning/sweeping
 
-	if (panadapter_delay > 0)
-	{	// let the VCO/PLL/RSSI settle before sampling the RSSI
-		panadapter_delay--;
+	// let the VCO/PLL/RSSI settle before sampling the RSSI
+	if (--panadapter_delay >= 0)
 		return;
-	}
+	panadapter_delay = 0;
 
 	// save the current RSSI value into the panadapter
 	const uint16_t rssi = BK4819_GetRSSI();
@@ -262,6 +256,6 @@ void PAN_process_10ms(void)
 
 	if (!g_dtmf_input_mode)
 		UI_DisplayMain_pan(true);
-	else
-		g_update_display = true;
+//	else
+//		g_update_display = true;
 }

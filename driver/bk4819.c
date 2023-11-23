@@ -476,7 +476,7 @@ void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth)
 				(0u << 15) |     // 0
 				(4u << 12) |     // 3 RF filter bandwidth
 				(2u <<  9) |     // 0 RF filter bandwidth when signal is weak
-				(3u <<  6) |     // 0 AF-TX-LPF-2 filter band width
+				(4u <<  6) |     // 0 AF-TX-LPF-2 filter band width
 				(2u <<  4) |     // 2 BW Mode Selection
 				(1u <<  3) |     // 1
 				(0u <<  2) |     // 0 Gain after FM Demodulation
@@ -488,7 +488,7 @@ void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth)
 				(0u << 15) |     // 0
 				(4u << 12) |     // 4 RF filter bandwidth
 				(2u <<  9) |     // 0 RF filter bandwidth when signal is weak
-				(2u <<  6) |     // 1 AF-TX-LPF-2 filter Band Width
+				(6u <<  6) |     // 1 AF-TX-LPF-2 filter Band Width
 				(0u <<  4) |     // 0 BW Mode Selection
 				(1u <<  3) |     // 1
 				(0u <<  2) |     // 0 Gain after FM Demodulation
