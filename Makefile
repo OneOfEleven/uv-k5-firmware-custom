@@ -19,7 +19,7 @@ ENABLE_AIRCOPY_RX_REBOOT         := 0
 ENABLE_FMRADIO_64_76             := 0
 ENABLE_FMRADIO_76_90             := 0
 ENABLE_FMRADIO_76_108            := 0
-ENABLE_FMRADIO_875_108           := 0
+ENABLE_FMRADIO_875_108           := 1
 ENABLE_FMRADIO_64_108            := 0
 # NOAA 1.2 kB
 ENABLE_NOAA                      := 0
