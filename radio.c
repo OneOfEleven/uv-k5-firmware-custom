@@ -577,19 +577,19 @@ void RADIO_ConfigureTXPower(vfo_info_t *p_vfo)
 	memcpy(&tx_power, &g_eeprom.calib.tx_band_power[band].level[p_vfo->channel.tx_power], 3);
 
 	#ifdef ENABLE_REDUCE_LOW_MID_TX_POWER
-		// make low and mid even lower
+		// make low and mid lower
 		if (p_vfo->channel.tx_power == OUTPUT_POWER_LOW)
 		{
-			tx_power[0] /= 5;    //tx_power[0] /= 8;
-			tx_power[1] /= 5;    //tx_power[1] /= 8;
-			tx_power[2] /= 5;    //tx_power[2] /= 8; get more low power
+			tx_power[0] /= 10;
+			tx_power[1] /= 10;
+			tx_power[2] /= 10;
 		}
 		else
 		if (p_vfo->channel.tx_power == OUTPUT_POWER_MID)
 		{
-			tx_power[0] /= 3;    //tx_power[0] /= 5;
-			tx_power[1] /= 3;    //tx_power[1] /= 5;
-			tx_power[2] /= 3;    //tx_power[2] /= 5;   get more low power
+			tx_power[0] /= 2;
+			tx_power[1] /= 2;
+			tx_power[2] /= 2;
 		}
 	#endif
 
