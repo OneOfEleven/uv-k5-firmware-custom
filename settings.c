@@ -114,6 +114,26 @@ void SETTINGS_read_eeprom(void)
 					 sizeof(g_eeprom),        sizeof(g_eeprom));
 	#endif
 
+#if 1
+	// channel sanity checks ..
+	for (index = 0; index < ARRAY_SIZE(g_eeprom.config.channel); index++)
+	{
+//		if (g_eeprom.config.channel_attributes[index].band <= BAND7_470MHz)
+		{	// used channel
+
+			if (g_eeprom.config.channel[index].mod_mode == 3)
+				g_eeprom.config.channel[index].mod_mode = 0;
+
+			#ifdef ENABLE_TX_POWER_LOW_USER
+				if (g_eeprom.config.channel[index].tx_power_user == 0)
+					g_eeprom.config.channel[index].tx_power_user = 9;
+			#endif
+
+
+		}
+	}
+#endif
+
 #if 0
 	// sanity checks ..
 
