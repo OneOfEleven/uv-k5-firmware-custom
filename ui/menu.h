@@ -45,9 +45,7 @@ enum
 	MENU_STEP,
 	MENU_BANDWIDTH,
 	MENU_TX_POWER,
-#ifdef ENABLE_TX_POWER_LOW_USER
-	MENU_TX_POWER_LOW_USER,
-#endif
+	MENU_TX_POWER_USER,
 	MENU_RX_CDCSS,
 	MENU_RX_CTCSS,
 	MENU_TX_CDCSS,
@@ -176,7 +174,7 @@ extern const t_menu_item  g_menu_list[];
 extern uint8_t            g_menu_list_sorted[];
 
 extern const char         g_sub_menu_mod_mode[3][4];
-extern const char         g_sub_menu_tx_power[3][7];
+extern const char         g_sub_menu_tx_power[4][5];
 extern const char         g_sub_menu_shift_dir[3][4];
 extern const char         g_sub_menu_bandwidth[2][7];
 extern const char         g_sub_menu_off_on[2][4];
@@ -188,17 +186,17 @@ extern const char         g_sub_menu_cross_vfo[3][10];
 	extern const char     g_sub_menu_voice[3][4];
 #endif
 extern const char         g_sub_menu_scan_car_resume[3][8];
-extern const char         g_sub_menu_mem_disp[4][15];
+extern const char         g_sub_menu_mem_disp[4][12];
 #ifdef ENABLE_ALARM
 	extern const char     g_sub_menu_alarm_mode[2][5];
 #endif
 extern const char         g_sub_menu_dtmf_rsp[4][9];
 extern const char         g_sub_menu_ptt_id[5][16];
 #ifdef ENABLE_MDC1200
-	extern const char     g_sub_menu_mdc1200_mode[4][8];
+	extern const char     g_sub_menu_mdc1200_mode[4][5];
 #endif
-extern const char         g_sub_menu_pwr_on_msg[4][14];
-extern const char         g_sub_menu_roger_mode[3][15];
+extern const char         g_sub_menu_pwr_on_msg[4][11];
+extern const char         g_sub_menu_roger_mode[3][8];
 extern const char         g_sub_menu_reset[2][4];
 extern const char         g_sub_menu_backlight[8][7];
 extern const char         g_sub_menu_rx_tx[4][6];
@@ -206,7 +204,6 @@ extern const char         g_sub_menu_rx_tx[4][6];
 	extern const char     g_sub_menu_AM_FIX_test1[4][8];
 #endif
 extern const char         g_sub_menu_bat_text[3][8];
-extern const char         g_sub_menu_dis_en[2][9];
 #ifdef ENABLE_SIDE_BUTT_MENU
 	extern const char     g_sub_menu_side_butt[9][16];
 #endif

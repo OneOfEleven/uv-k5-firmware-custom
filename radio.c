@@ -630,11 +630,9 @@ void RADIO_ConfigureTXPower(vfo_info_t *p_vfo)
 
 	#endif
 
-#ifdef ENABLE_TX_POWER_LOW_USER
-	if (p_vfo->channel.tx_power == OUTPUT_POWER_LOW)
+	if (p_vfo->channel.tx_power == OUTPUT_POWER_USER)
 		p_vfo->txp_reg_value = 8 + (p_vfo->channel.tx_power_user * 2);
 	else
-#endif
 		p_vfo->txp_reg_value = FREQUENCY_CalculateOutputPower(tx_power[0], tx_power[1], tx_power[2], p_vfo->p_tx->frequency);
 }
 

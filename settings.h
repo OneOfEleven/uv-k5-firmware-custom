@@ -83,7 +83,8 @@ enum {
 enum {
 	OUTPUT_POWER_LOW = 0,
 	OUTPUT_POWER_MID,
-	OUTPUT_POWER_HIGH
+	OUTPUT_POWER_HIGH,
+	OUTPUT_POWER_USER
 };
 
 enum {
@@ -211,7 +212,7 @@ typedef struct {
 	struct {
 		uint8_t frequency_reverse:1;         // 0=disabled  1=enabled
 		uint8_t channel_bandwidth:1;         // 0=wide (25kHz)  1=narrow (12.5kHz)
-		uint8_t tx_power:2;                  // 0=low/user  1=medium  2=high
+		uint8_t tx_power:2;                  // 0=low  1=medium  2=high  3=user
 		uint8_t busy_channel_lock:1;         // 0=disabled  1=enabled
 		uint8_t unused5:1;                   //
 		uint8_t compand:2;                   // 0=off  1=TX  2=RX  3=TX/RX

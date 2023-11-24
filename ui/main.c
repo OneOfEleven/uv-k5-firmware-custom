@@ -949,6 +949,7 @@ void UI_DisplayMain(void)
 					case OUTPUT_POWER_LOW:  Level = 2; break;
 					case OUTPUT_POWER_MID:  Level = 4; break;
 					case OUTPUT_POWER_HIGH: Level = 6; break;
+					case OUTPUT_POWER_USER: Level = 2; break;
 				}
 			}
 			else
@@ -990,11 +991,7 @@ void UI_DisplayMain(void)
 			if (FREQUENCY_tx_freq_check(g_vfo_info[vfo_num].p_tx->frequency) == 0)
 			{
 				// show the TX power
-				#ifdef ENABLE_TX_POWER_LOW_USER
-					const char pwr_list[] = "UMH";  // user, midium, high
-				#else
-					const char pwr_list[] = "LMH";  //  low, medium, high
-				#endif
+				const char pwr_list[] = "LMHU";  //  low, medium, high, user
 				const unsigned int i = g_vfo_info[vfo_num].channel.tx_power;
 				str[0] = (i < ARRAY_SIZE(pwr_list)) ? pwr_list[i] : '\0';
 				str[1] = '\0';

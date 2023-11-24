@@ -121,13 +121,11 @@ void SETTINGS_read_eeprom(void)
 //		if (g_eeprom.config.channel_attributes[index].band <= BAND7_470MHz)
 		{	// used channel
 
-			if (g_eeprom.config.channel[index].mod_mode == 3)
-				g_eeprom.config.channel[index].mod_mode = 0;
+			if (g_eeprom.config.channel[index].mod_mode >= MOD_MODE_LEN)
+				g_eeprom.config.channel[index].mod_mode = MOD_MODE_FM;
 
-			#ifdef ENABLE_TX_POWER_LOW_USER
-				if (g_eeprom.config.channel[index].tx_power_user == 0)
-					g_eeprom.config.channel[index].tx_power_user = 9;
-			#endif
+			if (g_eeprom.config.channel[index].tx_power_user == 0)
+				g_eeprom.config.channel[index].tx_power_user = 8;
 
 
 		}

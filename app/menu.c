@@ -120,16 +120,14 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(g_sub_menu_mem_disp) - 1;
 			break;
 
-		#ifdef ENABLE_TX_POWER_LOW_USER
-			case MENU_TX_POWER_LOW_USER:
-				*pMin = 0;
-				*pMax = 15;
-				break;
-		#endif
-
 		case MENU_TX_POWER:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_tx_power) - 1;
+			break;
+
+		case MENU_TX_POWER_USER:
+			*pMin = 0;
+			*pMax = 15;
 			break;
 
 		case MENU_SHIFT_DIR:
@@ -257,6 +255,15 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#ifdef ENABLE_SCAN_RANGES
 			case MENU_SCAN_RANGES:
 		#endif
+		#ifdef ENABLE_NOAA
+			case MENU_NOAA_SCAN:
+		#endif
+		case MENU_350_TX:
+		case MENU_174_TX:
+		case MENU_470_TX:
+		case MENU_350_EN:
+		case MENU_SCRAMBLER_EN:
+		case MENU_TX_EN:
 		case MENU_S_ADD1:
 		case MENU_S_ADD2:
 		case MENU_STE:
@@ -270,19 +277,6 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		case MENU_MOD_MODE:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_mod_mode) - 1;
-			break;
-
-		#ifdef ENABLE_NOAA
-			case MENU_NOAA_SCAN:
-		#endif
-		case MENU_350_TX:
-		case MENU_174_TX:
-		case MENU_470_TX:
-		case MENU_350_EN:
-		case MENU_SCRAMBLER_EN:
-		case MENU_TX_EN:
-			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_dis_en) - 1;
 			break;
 
 		case MENU_SCRAMBLER:
@@ -437,17 +431,15 @@ void MENU_AcceptSetting(void)
 			g_request_save_channel = 1;
 			return;
 
-		#ifdef ENABLE_TX_POWER_LOW_USER
-			case MENU_TX_POWER_LOW_USER:
-				g_tx_vfo->channel.tx_power_user = g_sub_menu_selection;
-				g_request_save_channel = 1;
-				break;
-		#endif
-
 		case MENU_TX_POWER:
 			g_tx_vfo->channel.tx_power = g_sub_menu_selection;
 			g_request_save_channel = 1;
 			return;
+
+		case MENU_TX_POWER_USER:
+			g_tx_vfo->channel.tx_power_user = g_sub_menu_selection;
+			g_request_save_channel = 1;
+			break;
 
 		case MENU_TX_CDCSS:
 			pConfig = &g_tx_vfo->freq_config_tx;
@@ -1022,14 +1014,12 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = FREQUENCY_get_step_index(STEP_FREQ_TABLE[g_tx_vfo->channel.step_setting]);
 			break;
 		
-		#ifdef ENABLE_TX_POWER_LOW_USER
-			case MENU_TX_POWER_LOW_USER:
-				g_sub_menu_selection = g_tx_vfo->channel.tx_power_user;
-				break;
-		#endif
-
 		case MENU_TX_POWER:
 			g_sub_menu_selection = g_tx_vfo->channel.tx_power;
+			break;
+
+		case MENU_TX_POWER_USER:
+			g_sub_menu_selection = g_tx_vfo->channel.tx_power_user;
 			break;
 
 		case MENU_RX_CDCSS:

@@ -53,9 +53,7 @@ const t_menu_item g_menu_list[] =
 	{"STEP",   VOICE_ID_FREQUENCY_STEP,                MENU_STEP                  },
 	{"W/N",    VOICE_ID_CHANNEL_BANDWIDTH,             MENU_BANDWIDTH             },
 	{"Tx PWR", VOICE_ID_POWER,                         MENU_TX_POWER              }, // was "TXP"
-#ifdef ENABLE_TX_POWER_LOW_USER
-	{"TxPUSR", VOICE_ID_POWER,                         MENU_TX_POWER_LOW_USER     },
-#endif
+	{"TxPUSR", VOICE_ID_POWER,                         MENU_TX_POWER_USER         },
 	{"Rx DCS", VOICE_ID_DCS,                           MENU_RX_CDCSS              }, // was "R_DCS"
 	{"Rx CTS", VOICE_ID_CTCSS,                         MENU_RX_CTCSS              }, // was "R_CTCS"
 	{"Tx DCS", VOICE_ID_DCS,                           MENU_TX_CDCSS              }, // was "T_DCS"
@@ -193,15 +191,12 @@ const char g_sub_menu_mod_mode[3][4] =
 	"DSB"
 };
 
-const char g_sub_menu_tx_power[3][7] =
+const char g_sub_menu_tx_power[4][5] =
 {
-	#ifdef ENABLE_TX_POWER_LOW_USER
-		"USER",
-	#else
-		"LOW",
-	#endif
-	"MEDIUM",
-	"HIGH"
+	"LOW",
+	"MID",
+	"HIGH",
+	"USER"
 };
 
 const char g_sub_menu_shift_dir[3][4] =
@@ -278,10 +273,10 @@ const char g_sub_menu_scan_car_resume[3][8] =
 	"NO"
 };
 
-const char g_sub_menu_mem_disp[4][15] =
+const char g_sub_menu_mem_disp[4][12] =
 {
 	"FREQ",
-	"CHANNEL\nNUMBER",
+	"CHANNEL\nNUM",
 	"NAME",
 	"NAME\n+\nFREQ"
 };
@@ -312,28 +307,28 @@ const char g_sub_menu_ptt_id[5][16] =
 };
 
 #ifdef ENABLE_MDC1200
-	const char g_sub_menu_mdc1200_mode[4][8] =
+	const char g_sub_menu_mdc1200_mode[4][5] =
 	{
 		"OFF",
 		"BOT",
 		"EOT",
-		"BOT+EOT"
+		"BOTH"
 	};
 #endif
 
-const char g_sub_menu_pwr_on_msg[4][14] =
+const char g_sub_menu_pwr_on_msg[4][11] =
 {
-	"ALL\nPIXELS\nON",
+	"ALL\nPIX\nON",
 	"MESSAGE",
 	"VOLTAGE",
 	"NONE"
 };
 
-const char g_sub_menu_roger_mode[3][15] =
+const char g_sub_menu_roger_mode[3][8] =
 {
 	"OFF",
-	"TX END\nROGER 1",
-	"TX END\nROGER 2"
+	"ROGER 1",
+	"ROGER 2"
 };
 
 const char g_sub_menu_reset[2][4] =
@@ -377,12 +372,6 @@ const char g_sub_menu_bat_text[3][8] =
 	"NONE",
 	"VOLTAGE",
 	"PERCENT"
-};
-
-const char g_sub_menu_dis_en[2][9] =
-{
-	"DISABLED",
-	"ENABLED"
 };
 
 #ifdef ENABLE_SIDE_BUTT_MENU
@@ -617,17 +606,15 @@ void UI_DisplayMenu(void)
 			channel_setting = true;
 			break;
 
-		#ifdef ENABLE_TX_POWER_LOW_USER
-			case MENU_TX_POWER_LOW_USER:
-//				sprintf(str, "%u", 8 + (g_sub_menu_selection * 2));
-				sprintf(str, "%u", g_sub_menu_selection);
+		case MENU_TX_POWER_USER:
+//			sprintf(str, "%u", 8 + (g_sub_menu_selection * 2));
+			sprintf(str, "%u", g_sub_menu_selection);
 
-//				if (g_current_function == FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
-//					BK4819_SetupPowerAmplifier(8 + (g_sub_menu_selection * 2), g_current_vfo->p_tx->frequency);
+//			if (g_current_function == FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
+//				BK4819_SetupPowerAmplifier(8 + (g_sub_menu_selection * 2), g_current_vfo->p_tx->frequency);
 
-				channel_setting = true;
-				break;
-		#endif
+			channel_setting = true;
+			break;
 
 		case MENU_RX_CDCSS:
 		case MENU_TX_CDCSS:
@@ -867,39 +854,39 @@ void UI_DisplayMenu(void)
 		#ifdef ENABLE_NOAA
 			case MENU_NOAA_SCAN:
 				strcpy(str, "SCAN\n");
-				strcat(str, g_sub_menu_dis_en[g_sub_menu_selection]);
+				strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
 				break;
 		#endif
 
 		case MENU_350_EN:
 			strcpy(str, "350~400\n");
-			strcat(str, g_sub_menu_dis_en[g_sub_menu_selection]);
+			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
 		case MENU_350_TX:
 			strcpy(str, "TX\n350~400\n");
-			strcat(str, g_sub_menu_dis_en[g_sub_menu_selection]);
+			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
 		case MENU_174_TX:
 			strcpy(str, "TX\n174~350\n");
-			strcat(str, g_sub_menu_dis_en[g_sub_menu_selection]);
+			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
 		case MENU_470_TX:
 			strcpy(str, "TX\n470~600\n");
-			strcat(str, g_sub_menu_dis_en[g_sub_menu_selection]);
+			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
 		case MENU_SCRAMBLER_EN:
 			strcpy(str, "SCRAMBLER\n");
-			strcat(str, g_sub_menu_dis_en[g_sub_menu_selection]);
+			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
 			channel_setting = true;
 			break;
 
 		case MENU_TX_EN:
 			strcpy(str, "TX\n");
-			strcat(str, g_sub_menu_dis_en[g_sub_menu_selection]);
+			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
 		case MENU_MEM_SAVE:
