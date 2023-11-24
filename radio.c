@@ -632,7 +632,7 @@ void RADIO_ConfigureTXPower(vfo_info_t *p_vfo)
 
 #ifdef ENABLE_TX_POWER_LOW_USER
 	if (p_vfo->channel.tx_power == OUTPUT_POWER_LOW)
-		p_vfo->txp_reg_value = 8 + (p_vfo->channel.tx_pwr_user * 2);
+		p_vfo->txp_reg_value = 8 + (p_vfo->channel.tx_power_user * 2);
 	else
 #endif
 		p_vfo->txp_reg_value = FREQUENCY_CalculateOutputPower(tx_power[0], tx_power[1], tx_power[2], p_vfo->p_tx->frequency);
@@ -1220,7 +1220,7 @@ void RADIO_tx_eot(void)
 	#endif
 
 	if (g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
-	   (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN || g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_BOTH))
+	   (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_EOT || g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_BOTH))
 	{	// end-of-tx
 		if (g_eeprom.config.setting.dtmf.side_tone)
 		{

@@ -30,8 +30,8 @@ enum dcs_code_type_e
 typedef enum dcs_code_type_e dcs_code_type_t;
 
 enum {
-	CDCSS_POSITIVE_CODE = 1U,
-	CDCSS_NEGATIVE_CODE = 2U,
+	CDCSS_POSITIVE_CODE = 1u,
+	CDCSS_NEGATIVE_CODE = 2u,
 };
 
 extern const uint16_t CTCSS_TONE_LIST[50];

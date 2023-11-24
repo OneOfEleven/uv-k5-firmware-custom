@@ -406,11 +406,13 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
 
 void BK4819_set_TX_deviation(const bool narrow)
 {
-	const uint8_t scrambler = (BK4819_read_reg(0x31) >> 1) & 1u;
-	uint16_t deviation = narrow ? 900 : 1232;  // 0 ~ 4095
-	if (scrambler)
-		deviation -= 200;
-	BK4819_write_reg(0x40, (3u << 12) | deviation);
+//	const uint8_t scrambler = (BK4819_read_reg(0x31) >> 1) & 1u;
+	uint16_t deviation = narrow ? 900 : 1232;
+//	if (scrambler)
+//		deviation -= 200;
+	if (deviation > 4095)
+		deviation = 4095;
+	BK4819_write_reg(0x40, (3u << 12) | deviation);   // deviaion 0 ~ 4095
 }
 
 void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth)
@@ -530,7 +532,7 @@ void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
 	//               7 = max
 	//               0 = min
 	//
-	//                                                                         280MHz     gain 1 = 1  gain 2 = 0  gain 1 = 4  gain 2 = 2
+	//                                       280MHz     gain 1 = 1  gain 2 = 0  gain 1 = 4  gain 2 = 2
 	const uint8_t gain   = (frequency == 0) ? 0 : (frequency < rf_filter_transition_freq) ? (1u << 3) | (0u << 0) : (4u << 3) | (2u << 0);
 	const uint8_t enable = 1;
 	BK4819_write_reg(0x36, ((uint16_t)bias << 8) | ((uint16_t)enable << 7) | ((uint16_t)gain << 0));

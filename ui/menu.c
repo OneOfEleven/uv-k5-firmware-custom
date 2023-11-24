@@ -625,6 +625,7 @@ void UI_DisplayMenu(void)
 //				if (g_current_function == FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
 //					BK4819_SetupPowerAmplifier(8 + (g_sub_menu_selection * 2), g_current_vfo->p_tx->frequency);
 
+				channel_setting = true;
 				break;
 		#endif
 

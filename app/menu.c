@@ -439,7 +439,7 @@ void MENU_AcceptSetting(void)
 
 		#ifdef ENABLE_TX_POWER_LOW_USER
 			case MENU_TX_POWER_LOW_USER:
-				g_tx_vfo->channel.tx_pwr_user = g_sub_menu_selection;
+				g_tx_vfo->channel.tx_power_user = g_sub_menu_selection;
 				g_request_save_channel = 1;
 				break;
 		#endif
@@ -769,7 +769,7 @@ void MENU_AcceptSetting(void)
 
 		case MENU_PTT_ID:
 			g_tx_vfo->channel.dtmf_ptt_id_tx_mode = g_sub_menu_selection;
-			if (g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_TX_DOWN ||
+			if (g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_EOT ||
 			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_BOTH    ||
 			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 			{
@@ -1024,7 +1024,7 @@ void MENU_ShowCurrentSetting(void)
 		
 		#ifdef ENABLE_TX_POWER_LOW_USER
 			case MENU_TX_POWER_LOW_USER:
-				g_sub_menu_selection = g_tx_vfo->channel.tx_pwr_user;
+				g_sub_menu_selection = g_tx_vfo->channel.tx_power_user;
 				break;
 		#endif
 

@@ -150,8 +150,8 @@ enum compand_e {
 
 enum ptt_id_e {
 	PTT_ID_OFF = 0,    // OFF
-	PTT_ID_TX_UP,      // BEGIN OF TX
-	PTT_ID_TX_DOWN,    // END OF TX
+	PTT_ID_BOT,        // BEGIN OF TX
+	PTT_ID_EOT,        // END OF TX
 	PTT_ID_BOTH,       // BOTH
 	PTT_ID_APOLLO      // Apolo quindar tones
 };
@@ -185,51 +185,51 @@ typedef enum vfo_state_e vfo_state_t;
 //
 // 16 bytes
 typedef struct {
-	// [0]
-	uint32_t frequency;                      //
-	// [4]
-	uint32_t tx_offset;                      //
-	// [8]
-	uint8_t  rx_ctcss_cdcss_code;            //
+	// [byte 0-3]
+	uint32_t frequency;                      // rx frequency / 10
+	// [byte 4-7]
+	uint32_t tx_offset;                      // tx offset frequency / 10
+	// [byte 8]
+	uint8_t  rx_ctcss_cdcss_code;            // ctcss 0 ~ 49   cdcss 0 ~ 103
 	// [9]
-	uint8_t  tx_ctcss_cdcss_code;            //
+	uint8_t  tx_ctcss_cdcss_code;            // ctcss 0 ~ 49   cdcss 0 ~ 103
 	// [10]
 	struct {
-		uint8_t rx_ctcss_cdcss_type:2;       //
+		uint8_t rx_ctcss_cdcss_type:2;       // 0=none  1=ctcss  2=cdcss  3=cdcss reverse
 		uint8_t unused1:2;                   //
-		uint8_t tx_ctcss_cdcss_type:2;       //
+		uint8_t tx_ctcss_cdcss_type:2;       // 0=none  1=ctcss  2=cdcss  3=cdcss reverse
 		uint8_t unused2:2;                   //
 	};
 	// [11]
 	struct {
 		uint8_t tx_offset_dir:2;             // 0=none  1=neg  2=pos
-		uint8_t mdc1200_mode:2;              // 1of11
+		uint8_t mdc1200_mode:2;              // 1of11  0=none  1=bot  2=eot  3=both
 		uint8_t mod_mode:2;                  // 0=FM  1=AM  2=DSB
 		uint8_t unused4:2;                   //
 	};
 	// [12]
 	struct {
-		uint8_t frequency_reverse:1;         // reverse repeater
-		uint8_t channel_bandwidth:1;         // wide/narrow
-		uint8_t tx_power:2;                  // 0=Low  1=Medium  2=High
-		uint8_t busy_channel_lock:1;         //
+		uint8_t frequency_reverse:1;         // 0=disabled  1=enabled
+		uint8_t channel_bandwidth:1;         // 0=wide (25kHz)  1=narrow (12.5kHz)
+		uint8_t tx_power:2;                  // 0=low/user  1=medium  2=high
+		uint8_t busy_channel_lock:1;         // 0=disabled  1=enabled
 		uint8_t unused5:1;                   //
 		uint8_t compand:2;                   // 0=off  1=TX  2=RX  3=TX/RX
 	};
 	// [13]
 	struct {
-		uint8_t dtmf_decoding_enable:1;      //
-		uint8_t dtmf_ptt_id_tx_mode:3;       //
-		uint8_t squelch_level:4;             // 1of11   0 ~ 9 per channel squelch, 0 = use main squelch level
+		uint8_t dtmf_decoding_enable:1;      // 0=disabled  1=enabled
+		uint8_t dtmf_ptt_id_tx_mode:3;       // 0=none  1=bot  2=eot  3=both  4=apollo
+		uint8_t squelch_level:4;             // 1of11   0 = use main squelch level, 1 ~ 9 per channel squelch
 	};
 	// [14]
 	struct {
 		uint8_t step_setting:4;              // step size index 0 ~ 15
-		uint8_t tx_pwr_user:4;               // 1of11
+		uint8_t tx_power_user:4;             // 1of11 .. user power setting 0 ~ 15
 	};
 	// [15]
 	struct {
-		uint8_t scrambler:5;                 // voice inversion scrambler frequency index
+		uint8_t scrambler:5;                 // voice inversion scrambler frequency index 0 ~ 31
 		uint8_t unused7:3;                   //
 	};
 } __attribute__((packed)) t_channel;
@@ -491,8 +491,7 @@ typedef struct {
 	} __attribute__((packed)) rssi_cal;
 
 	// 0x1ED0
-	struct
-	{
+	struct {
 		union {
 			struct {
 				uint8_t  low[3];                    //
@@ -506,11 +505,19 @@ typedef struct {
 
 	// 0x1F40
 	uint16_t battery[6];                            //
-	uint8_t  unused1[4];                            // 0xff's
+	#if 1
+		// QS
+		uint8_t unused1[4];                         // 0xff's
+	#else
+		// 1of11
+		struct {
+			uint16_t wide;                          // 0 ~ 4095
+			uint16_t narrow;                        // 0 ~ 4095
+		} __attribute__((packed)) tx_deviation;
+	#endif
 
 	// 0x1F50
-	struct
-	{
+	struct {
 		uint16_t threshold[10];                     //
 		uint8_t  unused[4];                         // 0xff's
 	} __attribute__((packed)) vox[2];
