@@ -125,11 +125,6 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(g_sub_menu_tx_power) - 1;
 			break;
 
-		case MENU_TX_POWER_USER:
-			*pMin = 0;
-			*pMax = 15;
-			break;
-
 		case MENU_SHIFT_DIR:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_shift_dir) - 1;
@@ -435,11 +430,6 @@ void MENU_AcceptSetting(void)
 			g_tx_vfo->channel.tx_power = g_sub_menu_selection;
 			g_request_save_channel = 1;
 			return;
-
-		case MENU_TX_POWER_USER:
-			g_tx_vfo->channel.tx_power_user = g_sub_menu_selection;
-			g_request_save_channel = 1;
-			break;
 
 		case MENU_TX_CDCSS:
 			pConfig = &g_tx_vfo->freq_config_tx;
@@ -1018,10 +1008,6 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_tx_vfo->channel.tx_power;
 			break;
 
-		case MENU_TX_POWER_USER:
-			g_sub_menu_selection = g_tx_vfo->channel.tx_power_user;
-			break;
-
 		case MENU_RX_CDCSS:
 			switch (g_tx_vfo->freq_config_rx.code_type)
 			{
@@ -1085,11 +1071,11 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		case MENU_MEM_SAVE:
-#if 0
+			#if 0
 				g_sub_menu_selection = g_eeprom.config.setting.indices.vfo[0].user;
-#else
+			#else
 				g_sub_menu_selection = g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].user;
-#endif
+			#endif
 			break;
 
 		case MENU_MEM_NAME:
@@ -1424,6 +1410,11 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 	g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
+	if (g_menu_cursor == MENU_TX_POWER && g_sub_menu_selection == OUTPUT_POWER_USER && g_edit_index >= 0)
+	{	// currently editing the user TX power level
+		return;
+	}
+
 	if (g_menu_cursor == MENU_MEM_NAME && g_edit_index >= 0)
 	{	// currently editing the channel name
 
@@ -1715,6 +1706,26 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 		return;
 	}
 
+	if (g_menu_cursor == MENU_TX_POWER)
+	{
+		if (g_in_sub_menu && g_sub_menu_selection == OUTPUT_POWER_USER)
+		{
+			if (g_edit_index < 0)
+			{
+				g_edit_index = g_tx_vfo->channel.tx_power_user;
+			}
+			else
+			{
+				g_tx_vfo->channel.tx_power_user = g_edit_index;
+				g_request_save_channel = 1;
+	
+				g_in_sub_menu = false;
+				g_edit_index  = -1;
+			}
+			return;
+		}
+	}
+
 	if (g_menu_cursor == MENU_MEM_NAME)
 	{
 		if (g_edit_index < 0)
@@ -1736,7 +1747,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 
 			return;
 		}
-		else
+
 		if (g_edit_index >= 0 && g_edit_index < 10)
 		{	// editing the channel name characters
 
@@ -1747,7 +1758,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 			if (memcmp(g_edit_original, g_edit, sizeof(g_edit_original)) == 0)
 			{	// no change - drop it
 				g_flag_accept_setting  = false;
-				g_in_sub_menu        = false;
+				g_in_sub_menu          = false;
 				g_ask_for_confirmation = 0;
 			}
 			else
@@ -1887,6 +1898,17 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 	uint8_t VFO;
 	uint8_t Channel;
 	bool    bCheckScanList;
+
+	if (g_menu_cursor == MENU_TX_POWER && g_in_sub_menu && g_sub_menu_selection == OUTPUT_POWER_USER && g_edit_index >= 0)
+	{
+		if (key_pressed)
+		{
+			g_edit_index += Direction;
+			g_edit_index = (g_edit_index < 1) ? 1 : (g_edit_index > 15) ? 15 : g_edit_index;
+			g_request_display_screen = DISPLAY_MENU;
+		}
+		return;
+	}
 
 	if (g_menu_cursor == MENU_MEM_NAME && g_in_sub_menu && g_edit_index >= 0)
 	{	// change the character

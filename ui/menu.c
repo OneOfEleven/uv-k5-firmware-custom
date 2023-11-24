@@ -53,7 +53,6 @@ const t_menu_item g_menu_list[] =
 	{"STEP",   VOICE_ID_FREQUENCY_STEP,                MENU_STEP                  },
 	{"W/N",    VOICE_ID_CHANNEL_BANDWIDTH,             MENU_BANDWIDTH             },
 	{"Tx PWR", VOICE_ID_POWER,                         MENU_TX_POWER              }, // was "TXP"
-	{"TxPUSR", VOICE_ID_POWER,                         MENU_TX_POWER_USER         },
 	{"Rx DCS", VOICE_ID_DCS,                           MENU_RX_CDCSS              }, // was "R_DCS"
 	{"Rx CTS", VOICE_ID_CTCSS,                         MENU_RX_CTCSS              }, // was "R_CTCS"
 	{"Tx DCS", VOICE_ID_DCS,                           MENU_TX_CDCSS              }, // was "T_DCS"
@@ -603,15 +602,14 @@ void UI_DisplayMenu(void)
 
 		case MENU_TX_POWER:
 			strcpy(str, g_sub_menu_tx_power[g_sub_menu_selection]);
-			channel_setting = true;
-			break;
 
-		case MENU_TX_POWER_USER:
-//			sprintf(str, "%u", 8 + (g_sub_menu_selection * 2));
-			sprintf(str, "%u", g_sub_menu_selection);
-
-//			if (g_current_function == FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
-//				BK4819_SetupPowerAmplifier(8 + (g_sub_menu_selection * 2), g_current_vfo->p_tx->frequency);
+			if (g_sub_menu_selection == OUTPUT_POWER_USER)
+			{
+				if (!g_in_sub_menu || g_edit_index < 0)
+					sprintf(str + strlen(str), "\n%u", g_tx_vfo->channel.tx_power_user);
+				else
+					sprintf(str + strlen(str), "\n> %u", g_edit_index);
+			}
 
 			channel_setting = true;
 			break;
@@ -758,12 +756,12 @@ void UI_DisplayMenu(void)
 		#endif
 
 		#ifdef ENABLE_KEYLOCK
-		case MENU_AUTO_KEY_LOCK:
-			if (g_sub_menu_selection == 0)
-				strcpy(str, "OFF");
-			else
-				sprintf(str, "%u secs", key_lock_timeout_500ms / 2);
-			break;
+			case MENU_AUTO_KEY_LOCK:
+				if (g_sub_menu_selection == 0)
+					strcpy(str, "OFF");
+				else
+					sprintf(str, "%u secs", key_lock_timeout_500ms / 2);
+				break;
 		#endif
 
 		case MENU_COMPAND:
@@ -804,8 +802,8 @@ void UI_DisplayMenu(void)
 
 		#ifdef ENABLE_AM_FIX
 //			case MENU_AM_FIX:
-				strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
-				break;
+//				strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
+//				break;
 		#endif
 
 		#ifdef ENABLE_SCAN_RANGES
@@ -1037,7 +1035,7 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_DTMF_RSP:
-			strcpy(str, "DTMF\nRESPONSE\n");
+			strcpy(str, "DTMF\nRESP\n");
 			strcat(str, g_sub_menu_dtmf_rsp[g_sub_menu_selection]);
 			channel_setting = true;
 			break;
@@ -1066,7 +1064,7 @@ void UI_DisplayMenu(void)
 			if (g_sub_menu_selection < DTMF_HOLD_MAX)
 				sprintf(str + strlen(str), "%d sec", g_sub_menu_selection);
 			else
-				strcat(str, "STAY ON\nSCREEN");  // 60
+				strcat(str, "STAY ON\nSCRN");  // 60
 
 			break;
 
