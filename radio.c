@@ -143,7 +143,7 @@ void RADIO_InitInfo(vfo_info_t *p_vfo, const uint8_t ChannelSave, const uint32_t
 	p_vfo->freq_config_tx.frequency     = Frequency;
 	p_vfo->p_rx                         = &p_vfo->freq_config_rx;
 	p_vfo->p_tx                         = &p_vfo->freq_config_tx;
-	p_vfo->channel.compand              = 0;  // off
+	p_vfo->channel.compand              = COMPAND_OFF;
 	p_vfo->channel.squelch_level        = 0;  // use main squelch
 	p_vfo->freq_in_channel              = 0xff;
 
@@ -575,59 +575,67 @@ void RADIO_ConfigureTXPower(vfo_info_t *p_vfo)
 
 	memcpy(tx_power, g_eeprom.calib.tx_band_power[band].level[p_vfo->channel.tx_power], 3);
 
-	#if defined(ENABLE_FIX_TX_POWER) && !defined(ENABLE_TX_POWER_CAL_MENU)
-		switch (p_vfo->channel.tx_power)
-		{
-			case OUTPUT_POWER_LOW:		// ~ 10mW
-//				if (p_vfo->p_tx->frequency <= 26000000)
-//				{	// 137 ~ 174
-//					tx_power[0] = 0x13;
-//					tx_power[1] = 0x13;
-//					tx_power[2] = 0x13;
-//				}
-//				else
-//				{	// 400 ~ 470
-					tx_power[0] = 0x13;
-					tx_power[1] = 0x13;
-					tx_power[2] = 0x13;
-//				}
-				break;
+	#ifndef ENABLE_TX_POWER_CAL_MENU
 
-			default:
-			case OUTPUT_POWER_MID:		// ~ 500mW
-				if (p_vfo->p_tx->frequency <= 26000000)
-				{	// 137 ~ 174
-					tx_power[0] = 0x29;
-					tx_power[1] = 0x29;
-					tx_power[2] = 0x29;
-				}
-				else
-				{	// 400 ~ 470
-					tx_power[0] = 0x37;
-					tx_power[1] = 0x37;
-					tx_power[2] = 0x37;
-				}
-				break;
+		#ifdef ENABLE_TX_POWER_FIX
+			switch (p_vfo->channel.tx_power)
+			{
+				case OUTPUT_POWER_LOW:		// ~ 10mW
+//					if (p_vfo->p_tx->frequency <= 26000000)
+//					{	// 137 ~ 174
+//						tx_power[0] = 0x13;
+//						tx_power[1] = 0x13;
+//						tx_power[2] = 0x13;
+//					}
+//					else
+//					{	// 400 ~ 470
+						tx_power[0] = 0x13;
+						tx_power[1] = 0x13;
+						tx_power[2] = 0x13;
+//					}
+					break;
 
-			case OUTPUT_POWER_HIGH:		// ~ 4W
-				if (p_vfo->p_tx->frequency <= 26000000)
-				{	// 137 ~ 174
-					tx_power[0] = 0x7F;
-					tx_power[1] = 0x84;
-					tx_power[2] = 0x8C;
-				}
-				else
-				{	// 400 ~ 470
-					tx_power[0] = 0x96;
-					tx_power[1] = 0x96;
-					tx_power[2] = 0x8C;
-				}
-				break;
-		}
+				default:
+				case OUTPUT_POWER_MID:		// ~ 500mW
+					if (p_vfo->p_tx->frequency <= 26000000)
+					{	// 137 ~ 174
+						tx_power[0] = 0x29;
+						tx_power[1] = 0x29;
+						tx_power[2] = 0x29;
+					}
+					else
+					{	// 400 ~ 470
+						tx_power[0] = 0x37;
+						tx_power[1] = 0x37;
+						tx_power[2] = 0x37;
+					}
+					break;
+
+				case OUTPUT_POWER_HIGH:		// ~ 4W
+					if (p_vfo->p_tx->frequency <= 26000000)
+					{	// 137 ~ 174
+						tx_power[0] = 0x7F;
+						tx_power[1] = 0x84;
+						tx_power[2] = 0x8C;
+					}
+					else
+					{	// 400 ~ 470
+						tx_power[0] = 0x96;
+						tx_power[1] = 0x96;
+						tx_power[2] = 0x8C;
+					}
+					break;
+			}
+		#endif
+
 	#endif
 
-	// set the TX power registers
-	p_vfo->txp_calculated_setting = FREQUENCY_CalculateOutputPower(tx_power[0], tx_power[1], tx_power[2], p_vfo->p_tx->frequency);
+#ifdef ENABLE_TX_POWER_LOW_USER
+	if (p_vfo->channel.tx_power == OUTPUT_POWER_LOW)
+		p_vfo->txp_reg_value = 8 + (p_vfo->channel.tx_pwr_user * 2);
+	else
+#endif
+		p_vfo->txp_reg_value = FREQUENCY_CalculateOutputPower(tx_power[0], tx_power[1], tx_power[2], p_vfo->p_tx->frequency);
 }
 
 void RADIO_apply_offset(vfo_info_t *p_vfo, const bool set_pees)
@@ -901,7 +909,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 			BK4819_DisableVox();
 
 	// RX expander
-	BK4819_SetCompander((g_rx_vfo->channel.mod_mode == MOD_MODE_FM && g_rx_vfo->channel.compand >= 2) ? g_rx_vfo->channel.compand : 0);
+	BK4819_SetCompander((g_rx_vfo->channel.mod_mode == MOD_MODE_FM) ? g_rx_vfo->channel.compand : COMPAND_OFF);
 
 	BK4819_EnableDTMF();
 	interrupt_mask |= BK4819_REG_3F_DTMF_5TONE_FOUND;
@@ -982,7 +990,7 @@ void RADIO_enableTX(const bool fsk_tx)
 	// so MAKE SURE that DTMF is disabled - until needed
 	BK4819_DisableDTMF();
 
-	BK4819_SetCompander((!fsk_tx && g_rx_vfo->channel.mod_mode == MOD_MODE_FM && (g_rx_vfo->channel.compand == 1 || g_rx_vfo->channel.compand >= 3)) ? g_rx_vfo->channel.compand : 0);
+	BK4819_SetCompander((!fsk_tx && g_current_vfo->channel.mod_mode == MOD_MODE_FM) ? g_current_vfo->channel.compand : COMPAND_OFF);
 
 	// ******************
 
@@ -996,7 +1004,7 @@ void RADIO_enableTX(const bool fsk_tx)
 	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, true);                // PA on
 
 	if (g_current_display_screen != DISPLAY_AIRCOPY)
-		BK4819_SetupPowerAmplifier(g_current_vfo->txp_calculated_setting, g_current_vfo->p_tx->frequency);
+		BK4819_SetupPowerAmplifier(g_current_vfo->txp_reg_value, g_current_vfo->p_tx->frequency);
 	else
 		BK4819_SetupPowerAmplifier(0, g_current_vfo->p_tx->frequency);      // very low power when in AIRCOPY mode
 

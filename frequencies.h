@@ -81,7 +81,7 @@ enum step_setting_e {
 };
 typedef enum step_setting_e step_setting_t;
 
-extern const uint16_t STEP_FREQ_TABLE[21];
+extern const uint16_t STEP_FREQ_TABLE[16];
 extern uint16_t       step_freq_table_sorted[ARRAY_SIZE(STEP_FREQ_TABLE)];
 
 #ifdef ENABLE_NOAA

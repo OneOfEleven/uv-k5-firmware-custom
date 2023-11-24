@@ -53,6 +53,9 @@ const t_menu_item g_menu_list[] =
 	{"STEP",   VOICE_ID_FREQUENCY_STEP,                MENU_STEP                  },
 	{"W/N",    VOICE_ID_CHANNEL_BANDWIDTH,             MENU_BANDWIDTH             },
 	{"Tx PWR", VOICE_ID_POWER,                         MENU_TX_POWER              }, // was "TXP"
+#ifdef ENABLE_TX_POWER_LOW_USER
+	{"TxPUSR", VOICE_ID_POWER,                         MENU_TX_POWER_LOW_USER     },
+#endif
 	{"Rx DCS", VOICE_ID_DCS,                           MENU_RX_CDCSS              }, // was "R_DCS"
 	{"Rx CTS", VOICE_ID_CTCSS,                         MENU_RX_CTCSS              }, // was "R_CTCS"
 	{"Tx DCS", VOICE_ID_DCS,                           MENU_TX_CDCSS              }, // was "T_DCS"
@@ -192,7 +195,11 @@ const char g_sub_menu_mod_mode[3][4] =
 
 const char g_sub_menu_tx_power[3][7] =
 {
-	"LOW",
+	#ifdef ENABLE_TX_POWER_LOW_USER
+		"USER",
+	#else
+		"LOW",
+	#endif
 	"MEDIUM",
 	"HIGH"
 };
@@ -609,6 +616,17 @@ void UI_DisplayMenu(void)
 			strcpy(str, g_sub_menu_tx_power[g_sub_menu_selection]);
 			channel_setting = true;
 			break;
+
+		#ifdef ENABLE_TX_POWER_LOW_USER
+			case MENU_TX_POWER_LOW_USER:
+//				sprintf(str, "%u", 8 + (g_sub_menu_selection * 2));
+				sprintf(str, "%u", g_sub_menu_selection);
+
+//				if (g_current_function == FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
+//					BK4819_SetupPowerAmplifier(8 + (g_sub_menu_selection * 2), g_current_vfo->p_tx->frequency);
+
+				break;
+		#endif
 
 		case MENU_RX_CDCSS:
 		case MENU_TX_CDCSS:

@@ -141,6 +141,13 @@ enum {
 	BANDWIDTH_NARROW
 };
 
+enum compand_e {
+	COMPAND_OFF = 0,
+	COMPAND_TX,
+	COMPAND_RX,
+	COMPAND_TX_RX
+};
+
 enum ptt_id_e {
 	PTT_ID_OFF = 0,    // OFF
 	PTT_ID_TX_UP,      // BEGIN OF TX
@@ -186,93 +193,55 @@ typedef struct {
 	uint8_t  rx_ctcss_cdcss_code;            //
 	// [9]
 	uint8_t  tx_ctcss_cdcss_code;            //
-
 	// [10]
 	struct {
-		uint8_t  rx_ctcss_cdcss_type:2;          //
-		uint8_t  unused1:2;                      //
-		uint8_t  tx_ctcss_cdcss_type:2;          //
-		uint8_t  unused2:2;                      //
+		uint8_t rx_ctcss_cdcss_type:2;       //
+		uint8_t unused1:2;                   //
+		uint8_t tx_ctcss_cdcss_type:2;       //
+		uint8_t unused2:2;                   //
 	};
-
 	// [11]
 	struct {
-		uint8_t  tx_offset_dir:2;                //
-
-		#ifdef ENABLE_MDC1200
-			uint8_t mdc1200_mode:2;              //
-		#else
-			uint8_t unused3:2;                   //
-		#endif
-
-		#if 0
-			uint8_t mod_mode:1;                  //  FM/AM
-			uint8_t unused4:3;                   //
-		#else
-			uint8_t mod_mode:2;                  //  FM/AM/DSB
-			uint8_t unused4:2;                   //
-		#endif
+		uint8_t tx_offset_dir:2;             // 0=none  1=neg  2=pos
+		uint8_t mdc1200_mode:2;              // 1of11
+		uint8_t mod_mode:2;                  // 0=FM  1=AM  2=DSB
+		uint8_t unused4:2;                   //
 	};
-
 	// [12]
 	struct {
-		uint8_t  frequency_reverse:1;        // reverse repeater
-		uint8_t  channel_bandwidth:1;        // wide/narrow
-		uint8_t  tx_power:2;                 // 0, 1 or 2 .. L, M or H
-		uint8_t  busy_channel_lock:1;        //
-
-		#if 0
-			// QS
-			uint8_t unused5:3;               //
-		#else
-			// 1of11
-			uint8_t unused5:1;               //
-			uint8_t compand:2;               // 0 = off, 1 = TX, 2 = RX, 3 = TX/RX
-		#endif
+		uint8_t frequency_reverse:1;         // reverse repeater
+		uint8_t channel_bandwidth:1;         // wide/narrow
+		uint8_t tx_power:2;                  // 0=Low  1=Medium  2=High
+		uint8_t busy_channel_lock:1;         //
+		uint8_t unused5:1;                   //
+		uint8_t compand:2;                   // 0=off  1=TX  2=RX  3=TX/RX
 	};
-
 	// [13]
 	struct {
-		uint8_t  dtmf_decoding_enable:1;     //
-		uint8_t  dtmf_ptt_id_tx_mode:3;      //
-
-		#if 0
-			// QS
-			uint8_t unused6:4;               //
-		#else
-			// 1of11
-			uint8_t squelch_level:4;         // 0 ~ 9 per channel squelch, 0 = use main squelch level
-		#endif
+		uint8_t dtmf_decoding_enable:1;      //
+		uint8_t dtmf_ptt_id_tx_mode:3;       //
+		uint8_t squelch_level:4;             // 1of11   0 ~ 9 per channel squelch, 0 = use main squelch level
 	};
-
 	// [14]
-	uint8_t  step_setting;                   //
-
+	struct {
+		uint8_t step_setting:4;              // step size index 0 ~ 15
+		uint8_t tx_pwr_user:4;               // 1of11
+	};
 	// [15]
-	#if 0
-		// QS
-		struct {
-			uint8_t scrambler:4;             //
-			uint8_t unused7:4;               //
-		};
-	#else
-		// 1of11
-		struct {
-			uint8_t scrambler:5;             // more scrambler frequencies
-			uint8_t unused7:3;               //
-		};
-	#endif
-
-} __attribute__((packed)) t_channel;         //
+	struct {
+		uint8_t scrambler:5;                 // voice inversion scrambler frequency index
+		uint8_t unused7:3;                   //
+	};
+} __attribute__((packed)) t_channel;
 
 typedef union {
 	struct {
-		uint8_t    band:4;                   // why do QS have these bits ?  band can/is computed from the frequency
+		uint8_t    band:4;                   // 0~6   otherwise channel unused
 		uint8_t    unused:2;                 //
 		uint8_t    scanlist2:1;              // set if in scan list 2
 		uint8_t    scanlist1:1;              // set if in scan list 1
 	};
-	uint8_t attributes;
+	uint8_t attributes;                      //
 } __attribute__((packed)) t_channel_attrib;
 
 typedef struct {
@@ -613,7 +582,7 @@ typedef struct vfo_info_t
 	uint8_t          squelch_open_glitch_thresh;
 	uint8_t          squelch_close_glitch_thresh;
 
-	uint8_t          txp_calculated_setting;
+	uint8_t          txp_reg_value;
 
 } vfo_info_t;
 

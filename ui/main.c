@@ -895,7 +895,7 @@ void UI_DisplayMain(void)
 				}
 				x += smallest_char_spacing * 4;
 
-				if (g_vfo_info[vfo_num].channel.compand)
+				if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
 					UI_PrintStringSmallest("C", x, (line + 0) * 8, false, true);
 				//x += smallest_char_spacing * 1;
 			}
@@ -909,7 +909,7 @@ void UI_DisplayMain(void)
 							str[0] = 'I';  // frequency is in the ignore list
 					#endif
 
-					if (g_vfo_info[vfo_num].channel.compand)
+					if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
 						str[1] = 'C';  // compander is enabled
 
 					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 2), 0, line + 1);
@@ -928,7 +928,7 @@ void UI_DisplayMain(void)
 					if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
 						str[1] = 'F';  // this VFO frequency is also found in a channel
 
-					if (g_vfo_info[vfo_num].channel.compand)
+					if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
 						str[2] = 'C';  // compander is enabled
 
 					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
@@ -990,7 +990,11 @@ void UI_DisplayMain(void)
 			if (FREQUENCY_tx_freq_check(g_vfo_info[vfo_num].p_tx->frequency) == 0)
 			{
 				// show the TX power
-				const char pwr_list[] = "LMH";
+				#ifdef ENABLE_TX_POWER_LOW_USER
+					const char pwr_list[] = "UMH";  // user, midium, high
+				#else
+					const char pwr_list[] = "LMH";  //  low, medium, high
+				#endif
 				const unsigned int i = g_vfo_info[vfo_num].channel.tx_power;
 				str[0] = (i < ARRAY_SIZE(pwr_list)) ? pwr_list[i] : '\0';
 				str[1] = '\0';

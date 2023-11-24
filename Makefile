@@ -51,8 +51,9 @@ ENABLE_TX_WHEN_AM                := 0
 # Freq calibration 188 B
 ENABLE_F_CAL_MENU                := 0
 ENABLE_TX_UNLOCK_MENU            := 0
-ENABLE_TX_POWER_CAL_MENU         := 0
-ENABLE_FIX_TX_POWER              := 1
+#ENABLE_TX_POWER_CAL_MENU        := 0
+ENABLE_TX_POWER_FIX              := 1
+ENABLE_TX_POWER_LOW_USER         := 0
 ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1
 ENABLE_CONTRAST                  := 0
 ENABLE_BOOT_BEEPS                := 0
@@ -355,8 +356,11 @@ endif
 ifeq ($(ENABLE_VOX_MORE_SENSITIVE),1)
 	CFLAGS  += -DENABLE_VOX_MORE_SENSITIVE
 endif
-ifeq ($(ENABLE_FIX_TX_POWER),1)
-	CFLAGS  += -DENABLE_FIX_TX_POWER
+ifeq ($(ENABLE_TX_POWER_FIX),1)
+	CFLAGS  += -DENABLE_TX_POWER_FIX
+endif
+ifeq ($(ENABLE_TX_POWER_LOW_USER),1)
+	CFLAGS  += -DENABLE_TX_POWER_LOW_USER
 endif
 ifeq ($(ENABLE_ALARM),1)
 	CFLAGS  += -DENABLE_ALARM

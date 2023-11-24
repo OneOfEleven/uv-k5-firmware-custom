@@ -28,6 +28,7 @@
 #ifdef ENABLE_MDC1200
 	#include "mdc1200.h"
 #endif
+#include "settings.h"
 
 #ifndef ARRAY_SIZE
 	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
@@ -735,9 +736,9 @@ void BK4819_SetCompander(const unsigned int mode)
 
 	const uint16_t r31 = BK4819_read_reg(0x31);
 
-	if (mode == 0)
+	if (mode == COMPAND_OFF)
 	{	// disable
-		BK4819_write_reg(0x31, r31 & ~(1u << 3));
+		BK4819_write_reg(0x31, r31 & ~(1ul << 3));
 		return;
 	}
 
@@ -753,7 +754,7 @@ void BK4819_SetCompander(const unsigned int mode)
 	//
 	// <6:0>   64 Compress (AF Tx) noise point (dB)
 	//
-	const uint16_t compress_ratio = (mode == 1 || mode >= 3) ? 2 : 0;  // 2:1
+	const uint16_t compress_ratio = (mode == COMPAND_TX || mode == COMPAND_TX_RX) ? 2 : 0;  // 2:1
 	BK4819_write_reg(0x29, // (BK4819_read_reg(0x29) & ~(3u << 14)) | (compress_ratio << 14));
 		(compress_ratio << 14) |
 		(86u            <<  7) |   // compress 0dB
@@ -771,7 +772,7 @@ void BK4819_SetCompander(const unsigned int mode)
 	//
 	// <6:0>   56 Expander (AF Rx) noise point (dB)
 	//
-	const uint16_t expand_ratio = (mode >= 2) ? 1 : 0;   // 1:2
+	const uint16_t expand_ratio = (mode == COMPAND_RX || mode == COMPAND_TX_RX) ? 1 : 0;   // 1:2
 	BK4819_write_reg(0x28, // (BK4819_read_reg(0x28) & ~(3u << 14)) | (expand_ratio << 14));
 		(expand_ratio << 14) |
 		(86u          <<  7) |   // expander 0dB
