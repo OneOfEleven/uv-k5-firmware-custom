@@ -229,6 +229,7 @@ You may obtain a copy of the License at
 </p>
 
  <img src="/images/UV_K5_8_antenna.png" />
+ <img src="/images/UV_K5_8_antenna_text.png" />
 
 <video src="https://github.com/OneOfEleven/uv-k5-firmware-custom/assets/51590168/921162a7-e9f2-4023-b4d5-526567f8b989"></video>
 
