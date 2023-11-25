@@ -473,11 +473,11 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, v
 		p_vfo->channel.tx_ctcss_cdcss_type = p_vfo->freq_config_tx.code_type;
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("save chan 1  %u %u %u %uHz %uHz\r\n", channel, vfo, mode, p_vfo->channel.frequency * 10, p_vfo->channel.tx_offset * 10);
+//			UART_printf("save chan 1  %u %u %u %uHz %uHz\r\n", channel, vfo, mode, p_vfo->channel.frequency * 10, p_vfo->channel.tx_offset * 10);
 		#endif
 	}
 
-	if (mode < 2 && channel <= USER_CHANNEL_LAST)
+	if (mode <= 1 && channel <= USER_CHANNEL_LAST)
 		return;
 
 	{	// save the channel to EEPROM
@@ -493,7 +493,7 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, v
 			memset(&m_channel, 0xff, sizeof(t_channel));
 		
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-			UART_printf("save chan 2 %04X  %3u %3u %u %u %uHz %uHz\r\n", addr, chan, channel, vfo, mode, m_channel.frequency * 10, m_channel.tx_offset * 10);
+//			UART_printf("save chan 2 %04X  %3u %3u %u %u %uHz %uHz\r\n", addr, chan, channel, vfo, mode, m_channel.frequency * 10, m_channel.tx_offset * 10);
 		#endif
 
 		memcpy(&g_eeprom.config.channel[chan], &m_channel, sizeof(t_channel));
@@ -507,25 +507,27 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, v
 		EEPROM_WriteBuffer8(addr + 8, ((uint8_t *)&m_channel) + 8);
 	}
 
-	// ****************
-
 //	SETTINGS_save_vfo_indices();
 
 	SETTINGS_save_chan_attribs_name(channel, p_vfo);
+/*
+	if (channel > USER_CHANNEL_LAST)
+		return;
 
-	if (channel <= USER_CHANNEL_LAST)
-	{	// user channel, it has a channel name
-		memset(&g_eeprom.config.channel_name[channel], (p_vfo != NULL) ? 0x00 : 0xff, sizeof(g_eeprom.config.channel_name[channel]));
+	// user channel, it has a channel name
 
+//	memset(&g_eeprom.config.channel_name[channel], (p_vfo != NULL) ? 0x00 : 0xff, sizeof(g_eeprom.config.channel_name[channel]));
+//	SETTINGS_save_chan_name(channel);
+
+	if (p_vfo != NULL)
+		memcpy(g_eeprom.config.channel_name[channel].name, p_vfo->channel_name.name, sizeof(g_eeprom.config.channel_name[channel].name));
+	else
+		memset(&g_eeprom.config.channel_name[channel], 0xff, sizeof(g_eeprom.config.channel_name[channel]));
+
+	// save the channel name
+	if (mode >= 3 || p_vfo == NULL)
 		SETTINGS_save_chan_name(channel);
-
-		if (p_vfo != NULL)
-			memcpy(g_eeprom.config.channel_name[channel].name, p_vfo->channel_name.name, sizeof(g_eeprom.config.channel_name[channel].name));
-
-		// save the channel name
-		if (mode >= 3 || p_vfo == NULL)
-			SETTINGS_save_chan_name(channel);
-	}
+*/
 }
 
 void SETTINGS_save_chan_name(const unsigned int channel)
@@ -562,7 +564,7 @@ void SETTINGS_save_chan_attribs_name(const unsigned int channel, const vfo_info_
 	}
 
 	if (channel <= USER_CHANNEL_LAST)
-	{	// user memory channel
+	{	// user channel
 		if (p_vfo != NULL)
 		{
 			memset(&g_eeprom.config.channel_name[channel], 0, sizeof(g_eeprom.config.channel_name[channel]));

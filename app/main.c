@@ -143,6 +143,7 @@ void toggle_chan_scanlist(void)
 
 			RADIO_select_vfos();
 			RADIO_apply_offset(g_tx_vfo, false);
+
 			RADIO_ConfigureSquelch(g_tx_vfo);
 //			RADIO_ConfigureTXPower(g_tx_vfo);
 			RADIO_setup_registers(true);

@@ -47,24 +47,20 @@ void I2C_Stop(void)
 uint8_t I2C_Read(const bool end, const bool fast)
 {
 	const unsigned int delay = fast ? 2 : 4;
-	unsigned int i;
-	uint8_t      Data;
+	int                i     = 8;
+	uint8_t            data  = 0;
 
 	PORTCON_PORTA_IE |= PORTCON_PORTA_IE_A11_BITS_ENABLE;
 	PORTCON_PORTA_OD &= ~PORTCON_PORTA_OD_A11_MASK;
 	GPIOA->DIR &= ~GPIO_DIR_11_MASK;
 
-	Data = 0;
-	for (i = 0; i < 8; i++)
+	while (--i >= 0)
 	{
 		GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
 		SYSTICK_Delay250ns(delay);
 		GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
 		SYSTICK_Delay250ns(delay);
-		Data <<= 1;
-		SYSTICK_Delay250ns(delay);
-		if (GPIO_CheckBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA))
-			Data |= 1U;
+		data = (data << 1) | (GPIO_CheckBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA) ? 1u : 0u);
 		GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
 		SYSTICK_Delay250ns(delay);
 	}
@@ -84,37 +80,38 @@ uint8_t I2C_Read(const bool end, const bool fast)
 	GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
 	SYSTICK_Delay250ns(delay);
 
-	return Data;
+	return data;
 }
 
-int I2C_Write(uint8_t Data)
+int I2C_Write(uint8_t data) //, const bool fast)
 {
-	uint8_t i;
+	const unsigned int delay = 4; // fast ? 2 : 4;
+	int i   = 8;
 	int ret = -1;
 
 	GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-	SYSTICK_Delay250ns(4);
-	for (i = 0; i < 8; i++)
+	SYSTICK_Delay250ns(delay);
+	while (--i >= 0)
 	{
-		if ((Data & 0x80) == 0)
+		if ((data & 0x80) == 0)
 			GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
 		else
 			GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-		Data <<= 1;
-		SYSTICK_Delay250ns(4);
+		data <<= 1;
+		SYSTICK_Delay250ns(delay);
 		GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-		SYSTICK_Delay250ns(4);
+		SYSTICK_Delay250ns(delay);
 		GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-		SYSTICK_Delay250ns(4);
+		SYSTICK_Delay250ns(delay);
 	}
 
 	PORTCON_PORTA_IE |= PORTCON_PORTA_IE_A11_BITS_ENABLE;
 	PORTCON_PORTA_OD &= ~PORTCON_PORTA_OD_A11_MASK;
 	GPIOA->DIR &= ~GPIO_DIR_11_MASK;
 	GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SDA);
-	SYSTICK_Delay250ns(4);
+	SYSTICK_Delay250ns(delay);
 	GPIO_SetBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-	SYSTICK_Delay250ns(4);
+	SYSTICK_Delay250ns(delay);
 
 	for (i = 0; i < 255; i++)
 	{
@@ -126,7 +123,7 @@ int I2C_Write(uint8_t Data)
 	}
 
 	GPIO_ClearBit(&GPIOA->DATA, GPIOA_PIN_I2C_SCL);
-	SYSTICK_Delay250ns(4);
+	SYSTICK_Delay250ns(delay);
 	PORTCON_PORTA_IE &= ~PORTCON_PORTA_IE_A11_MASK;
 	PORTCON_PORTA_OD |= PORTCON_PORTA_OD_A11_BITS_ENABLE;
 	GPIOA->DIR |= GPIO_DIR_11_BITS_OUTPUT;

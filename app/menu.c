@@ -1697,21 +1697,18 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 		g_ask_for_confirmation = 0;
 		g_in_sub_menu       = true;
 
-//		if (g_menu_cursor != MENU_DTMF_LIST)
-		{
-			g_input_box_index = 0;
-			g_edit_index      = -1;
-		}
+		g_input_box_index = 0;
+		g_edit_index      = -1;
 
 		return;
 	}
 
 	if (g_menu_cursor == MENU_TX_POWER)
 	{
-		if (g_in_sub_menu && g_sub_menu_selection == OUTPUT_POWER_USER)
+		if (g_sub_menu_selection == OUTPUT_POWER_USER)
 		{
 			if (g_edit_index < 0)
-			{
+			{	// start editing the power level
 				g_edit_index = g_tx_vfo->channel.tx_power_user;
 			}
 			else
@@ -1719,6 +1716,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 				g_tx_vfo->channel.tx_power_user = g_edit_index;
 				g_request_save_channel = 1;
 	
+				g_flag_accept_setting = true;
 				g_in_sub_menu = false;
 				g_edit_index  = -1;
 			}

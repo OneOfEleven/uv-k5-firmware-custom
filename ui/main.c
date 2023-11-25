@@ -692,8 +692,7 @@ void UI_DisplayMain(void)
 		{	// frequency mode
 			// show the frequency band number
 			const unsigned int x = 2;	// was 14
-//			sprintf(String, "FB%u", 1 + scrn_chan - FREQ_CHANNEL_FIRST);
-			sprintf(str, "VFO%u", 1 + scrn_chan - FREQ_CHANNEL_FIRST);
+			sprintf(str, "F%u", 1 + scrn_chan - FREQ_CHANNEL_FIRST);
 			UI_PrintStringSmall(str, x, 0, line + 1);
 		}
 		#ifdef ENABLE_NOAA

@@ -62,6 +62,7 @@ void BACKLIGHT_set_brightness(unsigned int brightness)
 	if (brightness > BACKLIGHT_MAX_BRIGHTNESS)
 		brightness = BACKLIGHT_MAX_BRIGHTNESS;
 
+	// 0 ~ 1023  logify it though
 	PWM_PLUS0_CH0_COMP = (1023ul * brightness * brightness * brightness) / (BACKLIGHT_MAX_BRIGHTNESS * BACKLIGHT_MAX_BRIGHTNESS * BACKLIGHT_MAX_BRIGHTNESS);
 	//PWM_PLUS0_SWLOAD = 1;
 }
