@@ -39,6 +39,7 @@ ENABLE_MDC1200_SIDE_BEEP         := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 0
 ENABLE_BIG_FREQ                  := 0
+ENABLE_DTMF_LIVE_DECODER         := 0
 ENABLE_SHOW_FREQS_CHAN           := 0
 # smaa bolf 580 B
 ENABLE_SMALL_BOLD                := 1
@@ -326,6 +327,9 @@ ifeq ($(ENABLE_UART_DEBUG),1)
 endif
 ifeq ($(ENABLE_BIG_FREQ),1)
 	CFLAGS  += -DENABLE_BIG_FREQ
+endif
+ifeq ($(ENABLE_DTMF_LIVE_DECODER),1)
+	CFLAGS  += -DENABLE_DTMF_LIVE_DECODER
 endif
 ifeq ($(ENABLE_SHOW_FREQS_CHAN),1)
 	CFLAGS  += -DENABLE_SHOW_FREQS_CHAN

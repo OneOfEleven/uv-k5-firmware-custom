@@ -77,8 +77,10 @@ extern uint8_t            g_dtmf_rx_index;
 extern uint8_t            g_dtmf_rx_timeout;
 extern bool               g_dtmf_rx_pending;
 
-extern char               g_dtmf_rx_live[20];
-extern uint8_t            g_dtmf_rx_live_timeout;
+#ifdef ENABLE_DTMF_LIVE_DECODER
+	extern char           g_dtmf_rx_live[20];
+	extern uint8_t        g_dtmf_rx_live_timeout;
+#endif
 
 extern bool               g_dtmf_is_contact_valid;
 extern char               g_dtmf_id[4];

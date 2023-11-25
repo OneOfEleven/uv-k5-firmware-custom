@@ -58,7 +58,10 @@ void SystickHandler(void)
 		g_next_time_slice_500ms = true;
 		
 		DECREMENT_AND_TRIGGER(g_tx_timer_tick_500ms, g_tx_timeout_reached);
-		DECREMENT(g_serial_config_tick_500ms);
+
+		#if defined(ENABLE_UART)
+			DECREMENT(g_serial_config_tick_500ms);
+		#endif
 	}
 
 	if ((g_global_sys_tick_counter & 3) == 0)

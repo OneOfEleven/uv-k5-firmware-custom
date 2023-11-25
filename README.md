@@ -64,6 +64,7 @@ ENABLE_MDC1200_SIDE_BEEP         := 1       enable short side tone/beep when MDC
 ENABLE_PWRON_PASSWORD            := 0       include power-on password code
 ENABLE_RESET_AES_KEY             := 1       '1' = reset/clear the AES key stored in the eeprom (only if it's set)
 ENABLE_BIG_FREQ                  := 0       big font frequencies (like original QS firmware)
+ENABLE_DTMF_LIVE_DECODER         := 0       enable the live DTMF display/decoder .. adds a menu option
 ENABLE_SHOW_FREQS_CHAN           := 1       show the channel name under the frequency if the frequency is found in a channel
 ENABLE_SMALL_BOLD                := 1       bold channel name/no. (when name + freq channel display mode)
 ENABLE_TRIM_TRAILING_ZEROS       := 1       trim away any trailing zeros on frequencies

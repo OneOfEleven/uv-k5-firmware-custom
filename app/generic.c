@@ -99,7 +99,11 @@ void GENERIC_Key_PTT(bool key_pressed)
 {
 	g_input_box_index = 0;
 
+#if defined(ENABLE_UART)
 	if (!key_pressed || g_serial_config_tick_500ms > 0)
+#else
+	if (!key_pressed)
+#endif
 	{	// PTT released
 
 		if (g_current_function == FUNCTION_TRANSMIT)

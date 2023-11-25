@@ -215,9 +215,11 @@ void FUNCTION_Select(function_type_t Function)
 			// clear the DTMF RX buffer
 			DTMF_clear_RX();
 
-			// clear the DTMF RX live decoder buffer
-			g_dtmf_rx_live_timeout = 0;
-			memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
+			#ifdef ENABLE_DTMF_LIVE_DECODER
+				// clear the DTMF RX live decoder buffer
+				g_dtmf_rx_live_timeout = 0;
+				memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
+			#endif
 
 			#ifdef ENABLE_FMRADIO
 				// disable the FM radio

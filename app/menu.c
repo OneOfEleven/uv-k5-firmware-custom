@@ -264,7 +264,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		case MENU_STE:
 		case MENU_DTMF_ST:
 		case MENU_DTMF_DCD:
-		case MENU_DTMF_LIVE_DEC:
+		#ifdef ENABLE_DTMF_LIVE_DECODER
+			case MENU_DTMF_LIVE_DEC:
+		#endif
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_off_on) - 1;
 			break;
@@ -771,15 +773,17 @@ void MENU_AcceptSetting(void)
 			g_request_save_channel = 1;
 			return;
 
-		case MENU_DTMF_LIVE_DEC:
-			g_eeprom.config.setting.dtmf_live_decoder = g_sub_menu_selection;
-			g_dtmf_rx_live_timeout      = 0;
-			memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
-			if (!g_eeprom.config.setting.dtmf_live_decoder)
-				BK4819_DisableDTMF();
-			g_flag_reconfigure_vfos = true;
-			g_update_status         = true;
-			break;
+		#ifdef ENABLE_DTMF_LIVE_DECODER
+			case MENU_DTMF_LIVE_DEC:
+				g_eeprom.config.setting.dtmf_live_decoder = g_sub_menu_selection;
+				g_dtmf_rx_live_timeout      = 0;
+				memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
+				if (!g_eeprom.config.setting.dtmf_live_decoder)
+					BK4819_DisableDTMF();
+				g_flag_reconfigure_vfos = true;
+				g_update_status         = true;
+				break;
+		#endif
 
 		case MENU_DTMF_LIST:
 			g_dtmf_chosen_contact = g_sub_menu_selection - 1;
@@ -1285,9 +1289,11 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_dtmf_chosen_contact + 1;
 			break;
 
-		case MENU_DTMF_LIVE_DEC:
-			g_sub_menu_selection = g_eeprom.config.setting.dtmf_live_decoder;
-			break;
+		#ifdef ENABLE_DTMF_LIVE_DECODER
+			case MENU_DTMF_LIVE_DEC:
+				g_sub_menu_selection = g_eeprom.config.setting.dtmf_live_decoder;
+				break;
+		#endif
 
 		case MENU_PON_MSG:
 			g_sub_menu_selection = g_eeprom.config.setting.power_on_display_mode;
@@ -1712,7 +1718,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 				g_edit_index = g_tx_vfo->channel.tx_power_user;
 			}
 			else
-			{
+			{	// save the new power level
 				g_tx_vfo->channel.tx_power_user = g_edit_index;
 				g_request_save_channel = 1;
 	

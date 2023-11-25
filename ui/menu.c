@@ -125,7 +125,9 @@ const t_menu_item g_menu_list[] =
 	{"D PRE",  VOICE_ID_INVALID,                       MENU_DTMF_PRE              },
 	{"D DCD",  VOICE_ID_INVALID,                       MENU_DTMF_DCD              },
 	{"D LIST", VOICE_ID_INVALID,                       MENU_DTMF_LIST             },
+#ifdef ENABLE_DTMF_LIVE_DECODER
 	{"D LIVE", VOICE_ID_INVALID,                       MENU_DTMF_LIVE_DEC         }, // live DTMF decoder
+#endif
 	{"PonMSG", VOICE_ID_INVALID,                       MENU_PON_MSG               },
 	{"ROGER",  VOICE_ID_INVALID,                       MENU_ROGER_MODE            },
 	{"BatVOL", VOICE_ID_INVALID,                       MENU_VOLTAGE               }, // was "VOL"
@@ -829,10 +831,14 @@ void UI_DisplayMenu(void)
 
 			// Fallthrough
 
-		case MENU_DTMF_LIVE_DEC:
-			strcpy(str, "DTMF\nDECODE\n");
-			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
-			break;
+		#ifdef ENABLE_DTMF_LIVE_DECODER
+			case MENU_DTMF_LIVE_DEC:
+				strcpy(str, "DTMF\nDECODE\n");
+				strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
+				break;
+		#endif
+
+			// Fallthrough
 
 		case MENU_STE:
 			strcpy(str, "SUB TAIL\nELIMIN\n");

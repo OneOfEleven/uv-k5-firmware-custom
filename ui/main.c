@@ -53,7 +53,8 @@
 const int     rssi_offset_band_123  = -44;
 const int     rssi_offset_band_4567 = -18;
 
-int           single_vfo = -1;
+int           single_vfo  = -1;
+bool          pan_enabled = false;
 
 center_line_t g_center_line = CENTER_LINE_NONE;
 
@@ -395,6 +396,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 
 	void UI_DisplayMain_pan(const bool now)
 	{
+		const bool         valid     = (g_panadapter_cycles > 0 && !g_monitor_enabled && g_current_function != FUNCTION_TRANSMIT) ? true : false;
 		const unsigned int line      = (g_eeprom.config.setting.tx_vfo_num == 0) ? 4 : 0;
 		uint8_t           *base_line = g_frame_buffer[line + 2];
 		uint8_t            max_rssi;
@@ -404,21 +406,22 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 
 		if (!g_eeprom.config.setting.panadapter        ||
 		    !g_panadapter_enabled                      ||
-		     g_monitor_enabled                         ||
-		     single_vfo < 0                            ||
+		    !pan_enabled                               ||
+		     g_reduced_service                         ||
 		     g_current_display_screen != DISPLAY_MAIN  ||
 		     g_current_function == FUNCTION_POWER_SAVE ||
-//		     g_current_function == FUNCTION_TRANSMIT   ||
 		     g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
-//		     g_dtmf_is_tx                              ||
 		     g_dtmf_input_mode)
 		{	// don't draw the panadapter
 			return;
 		}
 
-		// auto vertical scale
-		if (g_panadapter_cycles > 0)
+		// clear our assigned screen area
+		memset(g_frame_buffer[line], 0, LCD_WIDTH * 3);
+
+		if (valid)
 		{
+			// auto vertical scale
 			max_rssi  = g_panadapter_max_rssi;
 			min_rssi  = g_panadapter_min_rssi;
 			span_rssi = max_rssi - min_rssi;
@@ -429,23 +432,17 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 					min_rssi =  255 - span_rssi;
 				max_rssi = min_rssi + span_rssi;
 			}
+
+			#ifdef ENABLE_PANADAPTER_PEAK_FREQ
+				if (g_panadapter_peak_freq > 0)
+				{	// print the peak frequency
+					char str[16];
+					sprintf(str, "%u.%05u", g_panadapter_peak_freq / 100000, g_panadapter_peak_freq % 100000);
+					NUMBER_trim_trailing_zeros(str);
+					UI_PrintStringSmall(str, 8, 0, line + 0);
+				}
+			#endif
 		}
-
-		// clear our assigned screen area
-		memset(g_frame_buffer[line], 0, LCD_WIDTH * 3);
-
-		#ifdef ENABLE_PANADAPTER_PEAK_FREQ
-			if (g_panadapter_peak_freq > 0 && g_panadapter_cycles > 0)
-			{	// print the peak frequency
-				char str[16];
-				sprintf(str, "%u.%05u", g_panadapter_peak_freq / 100000, g_panadapter_peak_freq % 100000);
-				NUMBER_trim_trailing_zeros(str);
-				UI_PrintStringSmall(str, 8, 0, line + 0);
-			}
-		#endif
-
-		// draw top center vertical marker (the VFO frequency)
-		base_line[PANADAPTER_BINS - (LCD_WIDTH * 2)] = 0x3F;
 
 		{	// draw top & bottom horizontal dotted line
 			const unsigned int top = PANADAPTER_BINS - (LCD_WIDTH * 2);
@@ -453,36 +450,42 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 			for (i = 0; i < PANADAPTER_BINS; i += 4)
 			{
 				// top line
-				base_line[top - i] |= 0x01;
-				base_line[top + i] |= 0x01;
+				if (i <= 4)
+				{
+					base_line[top - i] |= 1u << 0;
+					base_line[top + i] |= 1u << 0;
+				}
 				// bottom line
-				base_line[bot - i] |= 0x20;
-				base_line[bot + i] |= 0x20;
+				base_line[bot - i] |= 1u << 6;
+				base_line[bot + i] |= 1u << 6;
 			}
 		}
 
+		// draw top center vertical marker (the VFO frequency)
+		base_line[PANADAPTER_BINS - (LCD_WIDTH * 2)] = 0x15;
+
 		// draw the panadapter vertical bins
-		if (g_panadapter_cycles > 0)
+		if (valid)
 		{
 			for (i = 0; i < ARRAY_SIZE(g_panadapter_rssi); i++)
 			{
 				uint32_t pixels;
 				uint8_t  rssi = g_panadapter_rssi[i];
-	
+
 				#if 0
 					rssi = (rssi < ((-129 + 160) * 2)) ? 0 : rssi - ((-129 + 160) * 2);  // min of -129dBm (S3)
 					rssi = rssi >> 2;
 				#else
-					rssi = ((uint16_t)(rssi - min_rssi) * 21) / span_rssi;  // 0 ~ 21
+					rssi = ((uint16_t)(rssi - min_rssi) * 22) / span_rssi;  // 0 ~ 22
 				#endif
-	
+
 				rssi += 2;                  // offset from the bottom
-				if (rssi > 22)
-					rssi = 22;              // limit peak value
-	
-				pixels = (1u << rssi) - 1;  // set the line pixels
+				if (rssi > 24)
+					rssi = 24;              // limit peak value
+
+				pixels = (1u << rssi) - 1;  // pixels
 				pixels &= 0xfffffffe;       // clear the bottom line
-	
+
 				base_line[i - (LCD_WIDTH * 2)] |= bit_reverse_8(pixels >> 16);
 				base_line[i - (LCD_WIDTH * 1)] |= bit_reverse_8(pixels >>  8);
 				base_line[i - (LCD_WIDTH * 0)] |= bit_reverse_8(pixels >>  0);
@@ -508,23 +511,33 @@ void UI_DisplayMain(void)
 
 	g_center_line = CENTER_LINE_NONE;
 
-	single_vfo = -1;
+	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
+	{
+		single_vfo = main_vfo_num;
+	}
+	else
+	{
+		single_vfo  = -1;
+		pan_enabled = false;
 
-	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF && g_rx_vfo_is_active)
-		current_vfo_num = g_rx_vfo_num;    // we're currently monitoring the other VFO
+		if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF && g_rx_vfo_is_active)
+			current_vfo_num = g_rx_vfo_num;    // we're currently monitoring the other VFO
+	}
 
-	// clear the screen
+	// clear the screen buffer
 	memset(g_frame_buffer, 0, sizeof(g_frame_buffer));
 
-	if (g_serial_config_tick_500ms > 0)
-	{
-		BACKLIGHT_turn_on(5);		// 5 seconds
-		UI_PrintString("UART", 0, LCD_WIDTH, 1, 8);
-		UI_PrintString("CONFIG COMMS", 0, LCD_WIDTH, 3, 8);
-		ST7565_BlitFullScreen();
-		g_center_line = CENTER_LINE_IN_USE;
-		return;
-	}
+	#if defined(ENABLE_UART)
+		if (g_serial_config_tick_500ms > 0)
+		{	// tell user the serial comms is in use
+			BACKLIGHT_turn_on(5);		// 5 seconds
+			UI_PrintString("UART", 0, LCD_WIDTH, 1, 8);
+			UI_PrintString("CONFIG COMMS", 0, LCD_WIDTH, 3, 8);
+			ST7565_BlitFullScreen();
+			g_center_line = CENTER_LINE_IN_USE;
+			return;
+		}
+	#endif
 
 	#ifdef ENABLE_KEYLOCK
 		if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
@@ -539,20 +552,19 @@ void UI_DisplayMain(void)
 	#endif
 
 	#ifdef ENABLE_PANADAPTER
-		if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
-			if (g_dtmf_call_state == DTMF_CALL_STATE_NONE && !g_dtmf_is_tx && !g_dtmf_input_mode)
-				if (g_eeprom.config.setting.panadapter && g_panadapter_enabled)
-					if (!g_monitor_enabled)
-						single_vfo = g_eeprom.config.setting.tx_vfo_num;
+		if (g_eeprom.config.setting.panadapter && g_panadapter_enabled && single_vfo >= 0)
+			pan_enabled = true;
+		else
+			single_vfo = -1;
 	#endif
 
 	for (vfo_num = 0; vfo_num < 2; vfo_num++)
 	{
-		const unsigned int scrn_chan  = g_eeprom.config.setting.indices.vfo[vfo_num].screen;
-		const unsigned int line       = (vfo_num == 0) ? line0 : line1;
-		uint8_t           *p_line0    = g_frame_buffer[line + 0];
-		uint8_t           *p_line1    = g_frame_buffer[line + 1];
-		unsigned int       mode       = 0;
+		const unsigned int scrn_chan = g_eeprom.config.setting.indices.vfo[vfo_num].screen;
+		const unsigned int line      = (vfo_num == 0) ? line0 : line1;
+		uint8_t           *p_line0   = g_frame_buffer[line + 0];
+		uint8_t           *p_line1   = g_frame_buffer[line + 1];
+		unsigned int       mode      = 0;
 		unsigned int       state;
 
 		if (single_vfo >= 0 && single_vfo != vfo_num)
@@ -617,6 +629,8 @@ void UI_DisplayMain(void)
 				}
 				str[16] = 0;
 				UI_PrintString(str, 2, 0, 2 + (vfo_num * 3), 8);
+
+				pan_enabled = false;
 
 				g_center_line = CENTER_LINE_IN_USE;
 				continue;
@@ -1096,36 +1110,38 @@ void UI_DisplayMain(void)
 
 		if (rx || g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_POWER_SAVE)
 		{
-			#if 1
-				if (g_eeprom.config.setting.dtmf_live_decoder && g_dtmf_rx_live[0] != 0)
-				{	// show live DTMF decode
-					const unsigned int len = strlen(g_dtmf_rx_live);
-					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
-
-					if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-						return;
-
-					g_center_line = CENTER_LINE_DTMF_DEC;
-
-					strcpy(str, "DTMF ");
-					strcat(str, g_dtmf_rx_live + idx);
-					UI_PrintStringSmall(str, 2, 0, 3);
-				}
-			#else
-				if (g_eeprom.config.setting.dtmf_live_decoder && g_dtmf_rx_index > 0)
-				{	// show live DTMF decode
-					const unsigned int len = g_dtmf_rx_index;
-					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
-
-					if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-						return;
-
-					g_center_line = CENTER_LINE_DTMF_DEC;
-
-					strcpy(str, "DTMF ");
-					strcat(str, g_dtmf_rx + idx);
-					UI_PrintStringSmall(str, 2, 0, 3);
-				}
+			#ifdef ENABLE_DTMF_LIVE_DECODER
+				#if 1
+					if (g_eeprom.config.setting.dtmf_live_decoder && g_dtmf_rx_live[0] != 0)
+					{	// show live DTMF decode
+						const unsigned int len = strlen(g_dtmf_rx_live);
+						const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
+	
+						if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+							return;
+	
+						g_center_line = CENTER_LINE_DTMF_DEC;
+	
+						strcpy(str, "DTMF ");
+						strcat(str, g_dtmf_rx_live + idx);
+						UI_PrintStringSmall(str, 2, 0, 3);
+					}
+				#else
+					if (g_eeprom.config.setting.dtmf_live_decoder && g_dtmf_rx_index > 0)
+					{	// show live DTMF decode
+						const unsigned int len = g_dtmf_rx_index;
+						const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
+	
+						if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+							return;
+	
+						g_center_line = CENTER_LINE_DTMF_DEC;
+	
+						strcpy(str, "DTMF ");
+						strcat(str, g_dtmf_rx + idx);
+						UI_PrintStringSmall(str, 2, 0, 3);
+					}
+				#endif
 			#endif
 
 			#ifdef ENABLE_SHOW_CHARGE_LEVEL
@@ -1147,8 +1163,7 @@ void UI_DisplayMain(void)
 	}
 
 	#ifdef ENABLE_PANADAPTER
-		//if (single_vfo >= 0)
-			UI_DisplayMain_pan(false);
+		UI_DisplayMain_pan(false);
 	#endif
 
 	ST7565_BlitFullScreen();

@@ -132,7 +132,9 @@ extern const uint16_t        menu_timeout_long_500ms;
 
 extern const uint16_t        backlight_tx_rx_time_secs;
 
-extern const uint8_t         dtmf_rx_live_timeout_500ms;
+#ifdef ENABLE_DTMF_LIVE_DECODER
+	extern const uint8_t     dtmf_rx_live_timeout_500ms;
+#endif
 extern const uint8_t         dtmf_rx_timeout_500ms;
 extern const uint8_t         dtmf_decode_ring_500ms;
 extern const uint8_t         dtmf_txstop_500ms;
@@ -197,7 +199,9 @@ extern volatile bool         g_power_save_expired;
 extern volatile uint16_t     g_dual_watch_tick_10ms;
 extern volatile bool         g_dual_watch_delay_down_expired;
 
-extern volatile uint8_t      g_serial_config_tick_500ms;
+#if defined(ENABLE_UART)
+	extern volatile uint8_t  g_serial_config_tick_500ms;
+#endif
 
 extern volatile bool         g_next_time_slice_500ms;
 

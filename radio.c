@@ -1114,7 +1114,11 @@ void RADIO_PrepareTX(void)
 		}
 		else
 	#endif
-	if (!g_eeprom.config.setting.tx_enable || g_serial_config_tick_500ms > 0)
+	#if defined(ENABLE_UART)
+		if (!g_eeprom.config.setting.tx_enable || g_serial_config_tick_500ms > 0)
+	#else
+		if (!g_eeprom.config.setting.tx_enable)
+	#endif
 	{	// TX is disabled or config upload/download in progress
 		State = VFO_STATE_TX_DISABLE;
 	}

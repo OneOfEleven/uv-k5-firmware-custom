@@ -986,19 +986,21 @@ void APP_process_radio_interrupts(void)
 			const char c = DTMF_GetCharacter(BK4819_GetDTMF_5TONE_Code());
 			if (c != 0xff && g_current_function != FUNCTION_TRANSMIT)
 			{
-				if (g_eeprom.config.setting.dtmf_live_decoder)
-				{
-					size_t len = strlen(g_dtmf_rx_live);
-					if (len >= (sizeof(g_dtmf_rx_live) - 1))
-					{	// make room
-						memmove(&g_dtmf_rx_live[0], &g_dtmf_rx_live[1], sizeof(g_dtmf_rx_live) - 1);
-						len--;
+				#ifdef ENABLE_DTMF_LIVE_DECODER
+					if (g_eeprom.config.setting.dtmf_live_decoder)
+					{
+						size_t len = strlen(g_dtmf_rx_live);
+						if (len >= (sizeof(g_dtmf_rx_live) - 1))
+						{	// make room
+							memmove(&g_dtmf_rx_live[0], &g_dtmf_rx_live[1], sizeof(g_dtmf_rx_live) - 1);
+							len--;
+						}
+						g_dtmf_rx_live[len++]  = c;
+						g_dtmf_rx_live[len]    = 0;
+						g_dtmf_rx_live_timeout = dtmf_rx_live_timeout_500ms;  // time till we delete it
+						g_update_display       = true;
 					}
-					g_dtmf_rx_live[len++]  = c;
-					g_dtmf_rx_live[len]    = 0;
-					g_dtmf_rx_live_timeout = dtmf_rx_live_timeout_500ms;  // time till we delete it
-					g_update_display       = true;
-				}
+				#endif
 
 				#ifdef ENABLE_KILL_REVIVE
 					if (g_rx_vfo->channel.dtmf_decoding_enable || g_eeprom.config.setting.radio_disabled)
@@ -1264,8 +1266,13 @@ void APP_end_tx(void)
 		if (g_current_function == FUNCTION_POWER_SAVE)
 			FUNCTION_Select(FUNCTION_FOREGROUND);
 
-		if (g_current_function == FUNCTION_TRANSMIT || g_serial_config_tick_500ms > 0)
+		if (g_current_function == FUNCTION_TRANSMIT)
 			return;
+
+		#if defined(ENABLE_UART)
+			if (g_serial_config_tick_500ms > 0)
+				return;
+		#endif
 
 		// ************* go into TX mode
 
@@ -1303,25 +1310,31 @@ void APP_process_keys(void)
 	if (ptt_pressed)
 	{	// PTT pressed
 
-		#ifdef ENABLE_AIRCOPY
-			if (!g_ptt_is_pressed && g_serial_config_tick_500ms == 0 && g_eeprom.config.setting.tx_enable && g_current_function != FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
-		#else
-			if (!g_ptt_is_pressed && g_serial_config_tick_500ms == 0 && g_eeprom.config.setting.tx_enable && g_current_function != FUNCTION_TRANSMIT)
-		#endif
+		if (!g_ptt_is_pressed && g_eeprom.config.setting.tx_enable && g_current_function != FUNCTION_TRANSMIT)
 		{
-			#ifdef ENABLE_KILL_REVIVE
-				if (!g_eeprom.config.setting.radio_disabled)
-			#endif
+		#if defined(ENABLE_UART)
+			if (g_serial_config_tick_500ms == 0)
+		#endif
 			{
-				if (++g_ptt_debounce >= 3)        // 30ms debounce
-				{	// start TX'ing
-
-					g_boot_tick_10ms   = 0;       // cancel the boot-up screen
-					g_ptt_is_pressed   = ptt_pressed;
-					g_ptt_was_released = false;
-					g_ptt_debounce     = 3;
-
-					APP_process_key(KEY_PTT, true, false);
+			#ifdef ENABLE_AIRCOPY
+				if (g_current_display_screen != DISPLAY_AIRCOPY)
+			#endif
+				{
+				#ifdef ENABLE_KILL_REVIVE
+					if (!g_eeprom.config.setting.radio_disabled)
+				#endif
+					{
+						if (++g_ptt_debounce >= 3)        // 30ms debounce
+						{	// start TX'ing
+		
+							g_boot_tick_10ms   = 0;       // cancel the boot-up screen
+							g_ptt_is_pressed   = ptt_pressed;
+							g_ptt_was_released = false;
+							g_ptt_debounce     = 3;
+		
+							APP_process_key(KEY_PTT, true, false);
+						}
+					}
 				}
 			}
 		}
@@ -1329,7 +1342,11 @@ void APP_process_keys(void)
 	else
 	{	// PTT released
 
+	#if defined(ENABLE_UART)
 		if (g_ptt_is_pressed || g_serial_config_tick_500ms > 0)
+	#else
+		if (g_ptt_is_pressed)
+	#endif
 		{
 //			if (g_ptt_debounce > 0)
 			{
@@ -1357,15 +1374,17 @@ void APP_process_keys(void)
 	// scan the hardware keys
 	key = KEYBOARD_Poll();
 
-	if (g_serial_config_tick_500ms > 0)
-	{	// config upload/download in progress
-		g_key_debounce_press  = 0;
-		g_key_debounce_repeat = 0;
-		g_key_prev            = KEY_INVALID;
-		g_key_held            = false;
-		g_fkey_pressed        = false;
-		return;
-	}
+	#if defined(ENABLE_UART)
+		if (g_serial_config_tick_500ms > 0)
+		{	// config upload/download in progress
+			g_key_debounce_press  = 0;
+			g_key_debounce_repeat = 0;
+			g_key_prev            = KEY_INVALID;
+			g_key_held            = false;
+			g_fkey_pressed        = false;
+			return;
+		}
+	#endif
 
 	if (key == KEY_INVALID || (g_key_prev != KEY_INVALID && key != g_key_prev))
 	{	// key not pressed or different key pressed
@@ -1974,7 +1993,9 @@ void APP_time_slice_500ms(void)
 
 			if (g_beep_to_play != BEEP_NONE)
 			{
+			#if defined(ENABLE_UART)
 				if (g_serial_config_tick_500ms == 0)
+			#endif
 					AUDIO_PlayBeep(g_beep_to_play);
 				g_beep_to_play = BEEP_NONE;
 			}
@@ -1995,10 +2016,10 @@ void APP_time_slice_500ms(void)
 		if (--g_keypad_locked == 0)
 			g_update_display = true;
 
-	if (g_serial_config_tick_500ms > 0)
-	{	// config upload/download is running
-		return;
-	}
+	#if defined(ENABLE_UART)
+		if (g_serial_config_tick_500ms > 0)
+			return;
+	#endif
 
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{
@@ -2039,23 +2060,25 @@ void APP_time_slice_500ms(void)
 		}
 	#endif
 
-	if (g_dtmf_rx_live_timeout > 0)
-	{
-		#ifdef ENABLE_RX_SIGNAL_BAR
-			if (g_center_line == CENTER_LINE_DTMF_DEC ||
-				g_center_line == CENTER_LINE_NONE)  // wait till the center line is free for us to use before timing out
-		#endif
+	#ifdef ENABLE_DTMF_LIVE_DECODER
+		if (g_dtmf_rx_live_timeout > 0)
 		{
-			if (--g_dtmf_rx_live_timeout == 0)
+			#ifdef ENABLE_RX_SIGNAL_BAR
+				if (g_center_line == CENTER_LINE_DTMF_DEC ||
+					g_center_line == CENTER_LINE_NONE)  // wait till the center line is free for us to use before timing out
+			#endif
 			{
-				if (g_dtmf_rx_live[0] != 0)
+				if (--g_dtmf_rx_live_timeout == 0)
 				{
-					memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
-					g_update_display   = true;
+					if (g_dtmf_rx_live[0] != 0)
+					{
+						memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
+						g_update_display   = true;
+					}
 				}
 			}
 		}
-	}
+	#endif
 
 	if (g_menu_tick_10ms > 0)
 		if (--g_menu_tick_10ms == 0)
@@ -2412,7 +2435,11 @@ void APP_time_slice_10ms(void)
 		}
 	#endif
 
+#if defined(ENABLE_UART)
 	if (g_current_function == FUNCTION_TRANSMIT && (g_tx_timeout_reached || g_serial_config_tick_500ms > 0))
+#else
+	if (g_current_function == FUNCTION_TRANSMIT && g_tx_timeout_reached)
+#endif
 	{	// transmitter timed out or must de-key
 
 		BK4819_stop_tones(true);
@@ -2450,7 +2477,11 @@ void APP_time_slice_10ms(void)
 		}
 	#endif
 
+#if defined(ENABLE_UART)
 	if (g_reduced_service || g_serial_config_tick_500ms > 0)
+#else
+	if (g_reduced_service)
+#endif
 	{
 		if (g_current_function == FUNCTION_TRANSMIT)
 			g_tx_timeout_reached = true;
@@ -2659,13 +2690,15 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 	if (Key == KEY_EXIT && key_held && key_pressed)
 	{	// exit key held pressed
 
-		// clear the live DTMF decoder
-		if (g_dtmf_rx_live[0] != 0)
-		{
-			memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
-			g_dtmf_rx_live_timeout = 0;
-			g_update_display       = true;
-		}
+		#ifdef ENABLE_DTMF_LIVE_DECODER
+			// clear the live DTMF decoder
+			if (g_dtmf_rx_live[0] != 0)
+			{
+				memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
+				g_dtmf_rx_live_timeout = 0;
+				g_update_display       = true;
+			}
+		#endif
 
 		// cancel user input
 		APP_cancel_user_input_modes();

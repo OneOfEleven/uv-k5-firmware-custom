@@ -139,7 +139,6 @@ void PAN_process_10ms(void)
 	     #endif
 //	     g_single_vfo < 0                           ||
 	     g_reduced_service                          ||
-	     g_monitor_enabled                          ||
 	     g_current_function == FUNCTION_POWER_SAVE  ||
 	     g_current_display_screen == DISPLAY_SEARCH ||
 	     g_css_scan_mode   != CSS_SCAN_MODE_OFF     ||
@@ -156,7 +155,7 @@ void PAN_process_10ms(void)
 		return;
 	}
 
-	if (g_current_function == FUNCTION_TRANSMIT)
+	if (g_current_function == FUNCTION_TRANSMIT || g_monitor_enabled)
 	{
 		panadapter_rssi_index = -1;
 		return;
