@@ -497,6 +497,23 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 	}
 #endif
 
+#ifdef ENABLE_SINGLE_VFO_CHAN
+	void UI_DisplayMainSingle(void)
+	{
+		int                vfo_num   = g_eeprom.config.setting.tx_vfo_num;
+		const unsigned int scrn_chan = g_eeprom.config.setting.indices.vfo[vfo_num].screen;
+		uint8_t           *p_line    = g_frame_buffer[0];
+		unsigned int       mode      = 0;
+		unsigned int       state;
+		char               str[22];
+
+
+
+
+
+	}
+#endif
+
 void UI_DisplayMain(void)
 {
 	#if !defined(ENABLE_BIG_FREQ) && defined(ENABLE_SMALLEST_FONT)
@@ -506,6 +523,9 @@ void UI_DisplayMain(void)
 	const unsigned int line1           = 4;
 	int                main_vfo_num    = g_eeprom.config.setting.tx_vfo_num;
 	int                current_vfo_num = g_eeprom.config.setting.tx_vfo_num;
+	#ifdef ENABLE_SINGLE_VFO_CHAN
+		bool           single_vfo_chan = false;
+	#endif
 	char               str[22];
 	int                vfo_num;
 
@@ -554,8 +574,17 @@ void UI_DisplayMain(void)
 	#ifdef ENABLE_PANADAPTER
 		if (g_eeprom.config.setting.panadapter && g_panadapter_enabled && single_vfo >= 0)
 			pan_enabled = true;
-		else
-			single_vfo = -1;
+		#ifndef ENABLE_SINGLE_VFO_CHAN
+			else
+				single_vfo = -1;
+		#endif
+	#endif
+
+	#ifdef ENABLE_SINGLE_VFO_CHAN
+		single_vfo_chan = (single_vfo >= 0 && pan_enabled) ? true : false;
+
+		if (single_vfo_chan)
+			UI_DisplayMainSingle();
 	#endif
 
 	for (vfo_num = 0; vfo_num < 2; vfo_num++)
@@ -658,7 +687,6 @@ void UI_DisplayMain(void)
 
 		if (g_current_function == FUNCTION_TRANSMIT)
 		{	// transmitting
-
 			#ifdef ENABLE_ALARM
 				if (g_alarm_state == ALARM_STATE_ALARM)
 					mode = 1;
@@ -669,10 +697,11 @@ void UI_DisplayMain(void)
 				if (current_vfo_num == vfo_num)
 				{	// show the TX symbol
 					mode = 1;
+					const int x = 14;
 					#ifdef ENABLE_SMALL_BOLD
-						UI_PrintStringSmallBold("TX", 14, 0, line);
+						UI_PrintStringSmallBold("TX", x, 0, line);
 					#else
-						UI_PrintStringSmall("TX", 14, 0, line);
+						UI_PrintStringSmall("TX", x, 0, line);
 					#endif
 				}
 			}
@@ -682,10 +711,11 @@ void UI_DisplayMain(void)
 			mode = 2;
 			if ((g_current_function == FUNCTION_RECEIVE && g_squelch_open) && g_rx_vfo_num == vfo_num)
 			{
+				const int x = 14;
 				#ifdef ENABLE_SMALL_BOLD
-					UI_PrintStringSmallBold("RX", 14, 0, line);
+					UI_PrintStringSmallBold("RX", x, 0, line);
 				#else
-					UI_PrintStringSmall("RX", 14, 0, line);
+					UI_PrintStringSmall("RX", x, 0, line);
 				#endif
 			}
 		}
@@ -697,7 +727,7 @@ void UI_DisplayMain(void)
 			if (!inputting)
 				NUMBER_ToDigits(scrn_chan + 1, str);  // show the memory channel number
 			else
-				memcpy(str + 5, g_input_box, 3);                            // show the input text
+				memcpy(str + 5, g_input_box, 3);      // show the input text
 			UI_PrintStringSmall("M", x, 0, line + 1);
 			UI_Displaysmall_digits(3, str + 5, x + 7, line + 1, inputting);
 		}
@@ -712,6 +742,7 @@ void UI_DisplayMain(void)
 		#ifdef ENABLE_NOAA
 			else
 			{
+				const int x = 7;
 				if (g_input_box_index == 0 || g_eeprom.config.setting.tx_vfo_num != vfo_num)
 				{	// channel number
 					sprintf(str, "N%u", 1 + scrn_chan - NOAA_CHANNEL_FIRST);
@@ -720,7 +751,7 @@ void UI_DisplayMain(void)
 				{	// user entering channel number
 					sprintf(str, "N%u%u", '0' + g_input_box[0], '0' + g_input_box[1]);
 				}
-				UI_PrintStringSmall(str, 7, 0, line + 1);
+				UI_PrintStringSmall(str, x, 0, line + 1);
 			}
 		#endif
 
@@ -737,217 +768,218 @@ void UI_DisplayMain(void)
 			}
 		#endif
 
-		if (state != VFO_STATE_NORMAL)
-		{
-			const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALARM", "VOLT HIGH"};
-			if (state < ARRAY_SIZE(state_list))
-				UI_PrintString(state_list[state], 31, 0, line, 8);
-		}
-		else
-		if (g_input_box_index > 0 && IS_FREQ_CHANNEL(scrn_chan) && g_eeprom.config.setting.tx_vfo_num == vfo_num)
-		{	// user is entering a frequency
-//			UI_DisplayFrequencyBig(g_input_box, 32, line, true, false, 6);
-//			UI_DisplayFrequencyBig(g_input_box, 32, line, true, false, 7);
-			UI_DisplayFrequency(g_input_box, 32, line, true, 8);
-//			g_center_line = CENTER_LINE_IN_USE;
-		}
-		else
 		{
 			const unsigned int x = 32;
 
-			uint32_t frequency = g_vfo_info[vfo_num].p_rx->frequency;
-
-			if (g_current_function == FUNCTION_TRANSMIT)
-			{	// transmitting
-				current_vfo_num = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo_num : g_eeprom.config.setting.tx_vfo_num;
-				if (current_vfo_num == vfo_num)
-					frequency = g_vfo_info[vfo_num].p_tx->frequency;
-			}
-
-			if (scrn_chan <= USER_CHANNEL_LAST)
-			{	// a user channel
-
-				switch (g_eeprom.config.setting.channel_display_mode)
-				{
-					case MDF_FREQUENCY:	// just channel frequency
-
-						#ifdef ENABLE_BIG_FREQ
-							big_freq(frequency, x, line);
-						#else
-							// show the frequency in the main font
-							sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
-							#ifdef ENABLE_TRIM_TRAILING_ZEROS
-								NUMBER_trim_trailing_zeros(str);
-							#endif
-							UI_PrintString(str, x, 0, line, 8);
-						#endif
-
-						break;
-
-					case MDF_CHANNEL:	// just channel number
-
-						sprintf(str, "CH-%03u", scrn_chan + 1);
-						UI_PrintString(str, x, 0, line, 8);
-
-						break;
-
-					case MDF_NAME:		// channel name
-					case MDF_NAME_FREQ:	// channel name and frequency
-
-						SETTINGS_fetch_channel_name(str, scrn_chan);
-						if (str[0] == 0)
-						{	// no channel name, use channel number
-//							sprintf(str, "CH-%03u", 1 + scrn_chan);
-							sprintf(str, "CH-%u", 1 + scrn_chan);
-						}
-
-						if (g_eeprom.config.setting.channel_display_mode == MDF_NAME)
-						{	// just the name
-							UI_PrintString(str, x + 4, 0, line, 8);
-						}
-						else
-						{	// name & frequency
-
-							// name
-							#ifdef ENABLE_SMALL_BOLD
-								UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
-							#else
-								UI_PrintStringSmall(str, x + 4, 0, line + 0);
-							#endif
-
-							// frequency
-//							sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
-							sprintf(str, "%u.%05u", frequency / 100000, frequency % 100000);
-							#ifdef ENABLE_TRIM_TRAILING_ZEROS
-								NUMBER_trim_trailing_zeros(str);
-							#endif
-							UI_PrintStringSmall(str, x + 4, 0, line + 1);
-						}
-
-						break;
-				}
+			if (state != VFO_STATE_NORMAL)
+			{
+				const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALARM", "VOLT HIGH"};
+				if (state < ARRAY_SIZE(state_list))
+					UI_PrintString(state_list[state], x - 1, 0, line, 8);
 			}
 			else
-//			if (IS_FREQ_CHANNEL(scrn_chan))
-			{	// frequency mode
-				#ifdef ENABLE_BIG_FREQ
-					big_freq(frequency, x, line);
-				#else
+			if (g_input_box_index > 0 && IS_FREQ_CHANNEL(scrn_chan) && g_eeprom.config.setting.tx_vfo_num == vfo_num)
+			{	// user is entering a frequency
+//				UI_DisplayFrequencyBig(g_input_box, x, line, true, false, 6);
+//				UI_DisplayFrequencyBig(g_input_box, x, line, true, false, 7);
+				UI_DisplayFrequency(g_input_box, x, line, true, 8);
+//				g_center_line = CENTER_LINE_IN_USE;
+			}
+			else
+			{
+				uint32_t frequency = g_vfo_info[vfo_num].p_rx->frequency;
 
-					#ifdef ENABLE_SHOW_FREQS_CHAN
-						const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
-					#endif
+				if (g_current_function == FUNCTION_TRANSMIT)
+				{	// transmitting
+					current_vfo_num = (g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF) ? g_rx_vfo_num : g_eeprom.config.setting.tx_vfo_num;
+					if (current_vfo_num == vfo_num)
+						frequency = g_vfo_info[vfo_num].p_tx->frequency;
+				}
 
-//					sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
-					sprintf(str, "%u.%05u", frequency / 100000, frequency % 100000);
-					#ifdef ENABLE_TRIM_TRAILING_ZEROS
-						NUMBER_trim_trailing_zeros(str);
-					#endif
+				if (scrn_chan <= USER_CHANNEL_LAST)
+				{	// a user channel
 
-					#ifdef ENABLE_SHOW_FREQS_CHAN
-						//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
-						if (chan <= USER_CHANNEL_LAST)
-						{	// the frequency has a channel - show the channel name below the frequency
+					switch (g_eeprom.config.setting.channel_display_mode)
+					{
+						case MDF_FREQUENCY:	// just channel frequency
 
-							// frequency
-							#ifdef ENABLE_SMALL_BOLD
-								UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
+							#ifdef ENABLE_BIG_FREQ
+								big_freq(frequency, x, line);
 							#else
-								UI_PrintStringSmall(str, x + 4, 0, line + 0);
+								// show the frequency in the main font
+								sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
+								#ifdef ENABLE_TRIM_TRAILING_ZEROS
+									NUMBER_trim_trailing_zeros(str);
+								#endif
+								UI_PrintString(str, x, 0, line, 8);
 							#endif
 
-							// channel name, if not then channel number
-							SETTINGS_fetch_channel_name(str, chan);
+							break;
+
+						case MDF_CHANNEL:	// just channel number
+
+							sprintf(str, "CH-%03u", scrn_chan + 1);
+							UI_PrintString(str, x, 0, line, 8);
+
+							break;
+
+						case MDF_NAME:		// channel name
+						case MDF_NAME_FREQ:	// channel name and frequency
+
+							SETTINGS_fetch_channel_name(str, scrn_chan);
 							if (str[0] == 0)
-//								sprintf(str, "CH-%03u", 1 + chan);
-								sprintf(str, "CH-%u", 1 + chan);
-							UI_PrintStringSmall(str, x + 4, 0, line + 1);
-						}
-						else
-					#endif
-					{	// show the frequency in the main font
-						UI_PrintString(str, x, 0, line, 8);
-					}
+							{	// no channel name, use channel number
+								sprintf(str, "CH-%u", 1 + scrn_chan);
+							}
 
-				#endif
-			}
+							if (g_eeprom.config.setting.channel_display_mode == MDF_NAME)
+							{	// just the name
+								UI_PrintString(str, x + 4, 0, line, 8);
+							}
+							else
+							{	// name & frequency
 
-			// show channel symbols
+								// name
+								#ifdef ENABLE_SMALL_BOLD
+									UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
+								#else
+									UI_PrintStringSmall(str, x + 4, 0, line + 0);
+								#endif
 
-			if (scrn_chan <= USER_CHANNEL_LAST)
-			//if (IS_NOT_NOAA_CHANNEL(scrn_chan))
-			{	// it's a user channel or VFO
+								// frequency
+//								sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
+								sprintf(str, "%u.%05u", frequency / 100000, frequency % 100000);
+								#ifdef ENABLE_TRIM_TRAILING_ZEROS
+									NUMBER_trim_trailing_zeros(str);
+								#endif
+								UI_PrintStringSmall(str, x + 4, 0, line + 1);
+							}
 
-				unsigned int x = LCD_WIDTH - 1 - sizeof(BITMAP_SCANLIST2) - sizeof(BITMAP_SCANLIST1);
-
-				if (g_vfo_info[vfo_num].channel_attributes.scanlist1)
-					memcpy(p_line0 + x, BITMAP_SCANLIST1, sizeof(BITMAP_SCANLIST1));
-				x += sizeof(BITMAP_SCANLIST1);
-
-				if (g_vfo_info[vfo_num].channel_attributes.scanlist2)
-					memcpy(p_line0 + x, BITMAP_SCANLIST2, sizeof(BITMAP_SCANLIST2));
-				//x += sizeof(BITMAP_SCANLIST2);
-			}
-
-			#ifdef ENABLE_BIG_FREQ
-
-				// no room for these symbols
-
-			#elif defined(ENABLE_SMALLEST_FONT)
-			{
-				unsigned int x = LCD_WIDTH + LCD_WIDTH - 1 - (smallest_char_spacing * 1) - (smallest_char_spacing * 4);
-
-				if (IS_FREQ_CHANNEL(scrn_chan))
-				{
-					//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
-					if (g_vfo_info[vfo_num].freq_in_channel <= USER_CHANNEL_LAST)
-					{	// the channel number that contains this VFO frequency
-						sprintf(str, "%03u", 1 + g_vfo_info[vfo_num].freq_in_channel);
-						UI_PrintStringSmallest(str, x, (line + 0) * 8, false, true);
+							break;
 					}
 				}
-				x += smallest_char_spacing * 4;
+				else
+//				if (IS_FREQ_CHANNEL(scrn_chan))
+				{	// frequency mode
+					#ifdef ENABLE_BIG_FREQ
+						big_freq(frequency, x, line);
+					#else
 
-				if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
-					UI_PrintStringSmallest("C", x, (line + 0) * 8, false, true);
-				//x += smallest_char_spacing * 1;
-			}
-			#else
-			{
-				#ifdef ENABLE_SHOW_FREQS_CHAN
-					strcpy(str, "  ");
+						#ifdef ENABLE_SHOW_FREQS_CHAN
+							const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
+						#endif
 
-					#ifdef ENABLE_SCAN_IGNORE_LIST
-						if (FI_freq_ignored(frequency) >= 0)
-							str[0] = 'I';  // frequency is in the ignore list
+//						sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
+						sprintf(str, "%u.%05u", frequency / 100000, frequency % 100000);
+						#ifdef ENABLE_TRIM_TRAILING_ZEROS
+							NUMBER_trim_trailing_zeros(str);
+						#endif
+
+						#ifdef ENABLE_SHOW_FREQS_CHAN
+							//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
+							if (chan <= USER_CHANNEL_LAST)
+							{	// the frequency has a channel - show the channel name below the frequency
+
+								// frequency
+								#ifdef ENABLE_SMALL_BOLD
+									UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
+								#else
+									UI_PrintStringSmall(str, x + 4, 0, line + 0);
+								#endif
+
+								// channel name, if not then channel number
+								SETTINGS_fetch_channel_name(str, chan);
+								if (str[0] == 0)
+//									sprintf(str, "CH-%03u", 1 + chan);
+									sprintf(str, "CH-%u", 1 + chan);
+								UI_PrintStringSmall(str, x + 4, 0, line + 1);
+							}
+							else
+						#endif
+						{	// show the frequency in the main font
+							UI_PrintString(str, x, 0, line, 8);
+						}
+
 					#endif
+				}
+
+				// show channel symbols
+
+				if (scrn_chan <= USER_CHANNEL_LAST)
+				//if (IS_NOT_NOAA_CHANNEL(scrn_chan))
+				{	// it's a user channel or VFO
+
+					unsigned int x = LCD_WIDTH - 1 - sizeof(BITMAP_SCANLIST2) - sizeof(BITMAP_SCANLIST1);
+
+					if (g_vfo_info[vfo_num].channel_attributes.scanlist1)
+						memcpy(p_line0 + x, BITMAP_SCANLIST1, sizeof(BITMAP_SCANLIST1));
+					x += sizeof(BITMAP_SCANLIST1);
+
+					if (g_vfo_info[vfo_num].channel_attributes.scanlist2)
+						memcpy(p_line0 + x, BITMAP_SCANLIST2, sizeof(BITMAP_SCANLIST2));
+					//x += sizeof(BITMAP_SCANLIST2);
+				}
+
+				#ifdef ENABLE_BIG_FREQ
+
+					// no room for these symbols
+
+				#elif defined(ENABLE_SMALLEST_FONT)
+				{
+					unsigned int x = LCD_WIDTH + LCD_WIDTH - 1 - (smallest_char_spacing * 1) - (smallest_char_spacing * 4);
+
+					if (IS_FREQ_CHANNEL(scrn_chan))
+					{
+						//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
+						if (g_vfo_info[vfo_num].freq_in_channel <= USER_CHANNEL_LAST)
+						{	// the channel number that contains this VFO frequency
+							sprintf(str, "%03u", 1 + g_vfo_info[vfo_num].freq_in_channel);
+							UI_PrintStringSmallest(str, x, (line + 0) * 8, false, true);
+						}
+					}
+					x += smallest_char_spacing * 4;
 
 					if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
-						str[1] = 'C';  // compander is enabled
-
-					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 2), 0, line + 1);
+						UI_PrintStringSmallest("C", x, (line + 0) * 8, false, true);
+					//x += smallest_char_spacing * 1;
+				}
 				#else
-					const bool is_freq_chan       = IS_FREQ_CHANNEL(scrn_chan);
-					const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
-//					const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
+				{
+					#ifdef ENABLE_SHOW_FREQS_CHAN
+						strcpy(str, "  ");
 
-					strcpy(str, "   ");
+						#ifdef ENABLE_SCAN_IGNORE_LIST
+							if (FI_freq_ignored(frequency) >= 0)
+								str[0] = 'I';  // frequency is in the ignore list
+						#endif
 
-					#ifdef ENABLE_SCAN_IGNORE_LIST
-						if (FI_freq_ignored(frequency) >= 0)
-							str[0] = 'I';  // frequency is in the ignore list
+						if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
+							str[1] = 'C';  // compander is enabled
+
+						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 2), 0, line + 1);
+					#else
+						const bool is_freq_chan       = IS_FREQ_CHANNEL(scrn_chan);
+						const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
+//						const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
+
+						strcpy(str, "   ");
+
+						#ifdef ENABLE_SCAN_IGNORE_LIST
+							if (FI_freq_ignored(frequency) >= 0)
+								str[0] = 'I';  // frequency is in the ignore list
+						#endif
+
+						if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
+							str[1] = 'F';  // this VFO frequency is also found in a channel
+
+						if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
+							str[2] = 'C';  // compander is enabled
+
+						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
 					#endif
-
-					if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-						str[1] = 'F';  // this VFO frequency is also found in a channel
-
-					if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
-						str[2] = 'C';  // compander is enabled
-
-					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
+				}
 				#endif
 			}
-			#endif
 		}
 
 		// ************
@@ -1116,12 +1148,12 @@ void UI_DisplayMain(void)
 					{	// show live DTMF decode
 						const unsigned int len = strlen(g_dtmf_rx_live);
 						const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
-	
+
 						if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 							return;
-	
+
 						g_center_line = CENTER_LINE_DTMF_DEC;
-	
+
 						strcpy(str, "DTMF ");
 						strcat(str, g_dtmf_rx_live + idx);
 						UI_PrintStringSmall(str, 2, 0, 3);
@@ -1131,12 +1163,12 @@ void UI_DisplayMain(void)
 					{	// show live DTMF decode
 						const unsigned int len = g_dtmf_rx_index;
 						const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
-	
+
 						if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 							return;
-	
+
 						g_center_line = CENTER_LINE_DTMF_DEC;
-	
+
 						strcpy(str, "DTMF ");
 						strcat(str, g_dtmf_rx + idx);
 						UI_PrintStringSmall(str, 2, 0, 3);

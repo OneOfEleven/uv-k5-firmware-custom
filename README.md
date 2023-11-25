@@ -99,7 +99,7 @@ ENABLE_SIDE_BUTT_MENU            := 1       enable menu option for configuring t
 ENABLE_KEYLOCK                   := 1       enable keylock menu option + keylock code
 ENABLE_PANADAPTER                := 1       centered on the selected VFO RX frequency, only shows if dual-watch is disabled
 ENABLE_PANADAPTER_PEAK_FREQ      := 0       show the peak panadapter frequency
-#ENABLE_SINGLE_VFO_CHAN          := 0       not yet implemented - single VFO on display when possible
+#ENABLE_SINGLE_VFO_CHAN          := 0       not yet implemented
 ```
 
 # New/modified function keys
@@ -227,6 +227,8 @@ You may obtain a copy of the License at
   <img src="/images/image1.png" width=300 />
   <img src="/images/image4.png" width=300 />
 </p>
+
+ <img src="/images/UV_K5_8_antenna.png" />
 
 <video src="https://github.com/OneOfEleven/uv-k5-firmware-custom/assets/51590168/921162a7-e9f2-4023-b4d5-526567f8b989"></video>
 
