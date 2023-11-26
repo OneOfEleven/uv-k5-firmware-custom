@@ -47,9 +47,9 @@
 
 //#define SHOW_RX_TEST_VALUES
 
+// calibrate the RSSI reading .. roughly
 //const int     rssi_offset_band_123  = 0;
 //const int     rssi_offset_band_4567 = 0;
-
 const int     rssi_offset_band_123  = -44;
 const int     rssi_offset_band_4567 = -18;
 
@@ -425,13 +425,22 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 			max_rssi  = g_panadapter_max_rssi;
 			min_rssi  = g_panadapter_min_rssi;
 			span_rssi = max_rssi - min_rssi;
-			if (span_rssi < 40)  // minimum vertical range (20dB)
-			{
-				span_rssi = 40;
-				if (min_rssi > (255 - span_rssi))
-					min_rssi =  255 - span_rssi;
-				max_rssi = min_rssi + span_rssi;
-			}
+			if (span_rssi < 30)
+				span_rssi = 30;
+			if (min_rssi > (255 - span_rssi))
+				min_rssi =  255 - span_rssi;
+			max_rssi = min_rssi + span_rssi;
+
+			#if 0
+				{	// show the min/max RSSI values
+					char str[16];
+					sprintf(str, "%u", min_rssi);
+					UI_PrintStringSmall(str, 2, 0, line + 0);
+					//sprintf(str, "%u", max_rssi);
+					sprintf(str, "%u", span_rssi);
+					UI_PrintStringSmall(str, LCD_WIDTH - 2 - (7 * strlen(str)), 0, line + 0);
+				}
+			#endif
 
 			#ifdef ENABLE_PANADAPTER_PEAK_FREQ
 				if (g_panadapter_peak_freq > 0)
@@ -439,7 +448,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 					char str[16];
 					sprintf(str, "%u.%05u", g_panadapter_peak_freq / 100000, g_panadapter_peak_freq % 100000);
 					NUMBER_trim_trailing_zeros(str);
-					UI_PrintStringSmall(str, 8, 0, line + 0);
+					UI_PrintStringSmall(str, 2 + (7 * 4), 0, line + 0);
 				}
 			#endif
 		}
