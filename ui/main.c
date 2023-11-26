@@ -508,7 +508,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		char               str[22];
 
 
-
+		// TODO: single VFO mode
 
 
 	}

@@ -826,19 +826,14 @@ void UI_DisplayMenu(void)
 			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
 			break;
 
-		case MENU_DTMF_DCD:
-			channel_setting = true;
-
-			// Fallthrough
-
 		#ifdef ENABLE_DTMF_LIVE_DECODER
 			case MENU_DTMF_LIVE_DEC:
-				strcpy(str, "DTMF\nDECODE\n");
-				strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
-				break;
 		#endif
-
-			// Fallthrough
+		case MENU_DTMF_DCD:
+			strcpy(str, "DTMF\nDECODE\n");
+			strcat(str, g_sub_menu_off_on[g_sub_menu_selection]);
+			channel_setting = true;
+			break;
 
 		case MENU_STE:
 			strcpy(str, "SUB TAIL\nELIMIN\n");
