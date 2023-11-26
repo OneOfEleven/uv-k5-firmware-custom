@@ -146,7 +146,7 @@ static void APP_check_for_new_receive(void)
 			goto done;
 
 		g_dual_watch_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
-		g_scan_pause_time_mode  = false;
+		g_scan_pause_time_mode = false;
 
 		g_update_status = true;
 	}
@@ -499,7 +499,7 @@ bool APP_start_listening(void)
 	#endif
 
 	if (g_squelch_open)
-		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // LED on
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // green LED on
 
 	if (g_eeprom.config.setting.backlight_on_tx_rx >= 2)
 		BACKLIGHT_turn_on(backlight_tx_rx_time_secs);
@@ -511,15 +511,16 @@ bool APP_start_listening(void)
 	// clear the other vfo's rssi level (to hide the antenna symbol)
 	g_vfo_rssi_bar_level[(chan + 1) & 1u] = 0;
 
+	// enable/disable AFC
 	switch (g_rx_vfo->channel.mod_mode)
 	{
 		case MOD_MODE_FM:
 		case MOD_MODE_AM:
-			BK4819_set_AFC(2);
+			BK4819_set_AFC(2);   // enable a bit
 			break;
 		default:
 		case MOD_MODE_DSB:
-			BK4819_set_AFC(0);
+			BK4819_set_AFC(0);   // disable
 			break;
 	}
 
@@ -552,6 +553,18 @@ bool APP_start_listening(void)
 				break;
 		}
 	}
+	else
+	if (g_css_scan_mode != CSS_SCAN_MODE_OFF)
+	{	// we're code scanning
+		g_css_scan_mode = CSS_SCAN_MODE_FOUND;
+	}
+	else
+	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
+	{	// dual watch is enabled
+		g_dual_watch_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
+		g_rx_vfo_is_active     = true;
+		g_update_status        = true;
+	}
 
 	#ifdef ENABLE_NOAA
 		if (IS_NOAA_CHANNEL(g_rx_vfo->channel_save) && g_noaa_mode)
@@ -565,20 +578,7 @@ bool APP_start_listening(void)
 		}
 	#endif
 
-	if (g_css_scan_mode != CSS_SCAN_MODE_OFF)
-		g_css_scan_mode = CSS_SCAN_MODE_FOUND;
-
-	if (g_scan_state_dir == SCAN_STATE_DIR_OFF &&
-	    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
-	    g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
-	{	// dual watch is active
-
-		g_dual_watch_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
-		g_rx_vfo_is_active     = true;
-		g_update_status        = true;
-	}
-
-	// AF gain - original QS values
+	// AF gain
 //	if (g_rx_vfo->channel.mod_mode != MOD_MODE_FM)
 //	{
 //		BK4819_write_reg(0x48, 0xB3A8);   // 1011 0011 1010 1000
@@ -594,11 +594,12 @@ bool APP_start_listening(void)
 
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)
-			BK1080_Init(0, false);		// disable the FM radio audio
+			BK1080_Init(0, false);		// disable FM radio audio
 	#endif
 
 	FUNCTION_Select(FUNCTION_RECEIVE);
 
+	// set modulation mode FM, AM etc
 	#ifdef ENABLE_VOICE
 		#ifdef MUTE_AUDIO_FOR_VOICE
 			if (g_voice_write_index == 0)
@@ -611,9 +612,10 @@ bool APP_start_listening(void)
 	#endif
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("mode %u\r\n", g_rx_vfo->channel.mod_mode);
+//		UART_printf("mod mode %u\r\n", g_rx_vfo->channel.mod_mode);
 	#endif
 
+	// speaker on
 	GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 	if (g_current_display_screen != DISPLAY_MENU)
@@ -814,23 +816,6 @@ static void APP_next_channel(void)
 
 			// Fallthrough
 
-			// this bit doesn't yet work if the other VFO is a frequency
-			case SCAN_NEXT_CHAN_DUAL_WATCH:
-				// dual watch is enabled - include the other VFO in the scan
-//				if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
-//				{
-//					chan = (g_rx_vfo + 1) & 1u;
-//					chan = g_eeprom.config.setting.indices.vfo[chan].screen;
-//					if (chan <= USER_CHANNEL_LAST)
-//					{
-//						g_scan_current_scan_list = SCAN_NEXT_CHAN_DUAL_WATCH;
-//						g_scan_next_channel   = chan;
-//						break;
-//					}
-//				}
-
-			// Fallthrough
-
 			default:
 			case SCAN_NEXT_CHAN_USER:
 				g_scan_current_scan_list = SCAN_NEXT_CHAN_USER;
@@ -912,10 +897,6 @@ static bool APP_toggle_dual_watch_vfo(void)
 	if (g_dual_watch_tick_10ms > 0)
 		return false;
 
-	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//		UART_SendText("dual wot\r\n");
-	#endif
-
 	#ifdef ENABLE_NOAA
 		if (g_noaa_mode)
 		{
@@ -934,8 +915,12 @@ static bool APP_toggle_dual_watch_vfo(void)
 	{	// toggle between VFO's
 		g_rx_vfo_num    = (g_rx_vfo_num + 1) & 1u;
 		g_rx_vfo        = &g_vfo_info[g_rx_vfo_num];
-		g_update_status = true;
+//		g_update_status = true;
 	}
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("dw %u\r\n", g_rx_vfo_num);
+	#endif
 
 	RADIO_setup_registers(false);
 
@@ -959,8 +944,45 @@ void APP_process_radio_interrupts(void)
 		uint16_t int_bits;
 
 		const uint16_t reg_c = BK4819_read_reg(0x0C);
-		if ((reg_c & 1u) == 0)
-			break;
+
+//		if ((reg_c & (2u << 1))
+//		{	// VOX
+//		}
+
+		if (reg_c & (1u << 1))
+		{	// squelch is open
+			if (!g_squelch_open)
+			{
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_SendText("sq open\r\n");
+				#endif
+				g_squelch_open = true;
+				//APP_update_rssi(g_rx_vfo_num, false);
+				g_update_rssi = true;
+				if (g_monitor_enabled)
+					BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);  // green LED on
+				g_update_display = true;
+			}
+		}
+		else
+		{	// squelch is closed
+			if (g_squelch_open)
+			{
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+					UART_SendText("sq close\r\n");
+				#endif
+				g_squelch_open = false;
+				//APP_update_rssi(g_rx_vfo_num, false);
+				g_update_rssi = true;
+				BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);  // green LED off
+				if (!g_monitor_enabled)
+					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+				g_update_display = true;
+			}
+		}
+
+		if ((reg_c & (1u << 0)) == 0)
+			break;       // no interrupt flags
 
 		BK4819_write_reg(0x02, 0);
 		int_bits = BK4819_read_reg(0x02);
@@ -1111,7 +1133,7 @@ void APP_process_radio_interrupts(void)
 				#endif
 			}
 		#endif
-
+/*
 		if (int_bits & BK4819_REG_02_SQUELCH_CLOSED)
 		{
 			g_squelch_open = false;
@@ -1122,7 +1144,7 @@ void APP_process_radio_interrupts(void)
 				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("sq close\r\n");
+				UART_SendText("sq closed\r\n");
 			#endif
 
 			//APP_update_rssi(g_rx_vfo_num, false);
@@ -1136,7 +1158,7 @@ void APP_process_radio_interrupts(void)
 			g_squelch_open = true;
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-				UART_SendText("sq open\r\n");
+				UART_SendText("sq opened\r\n");
 			#endif
 
 			//APP_update_rssi(g_rx_vfo_num, false);
@@ -1147,7 +1169,7 @@ void APP_process_radio_interrupts(void)
 
 			g_update_display = true;
 		}
-
+*/
 		#ifdef ENABLE_MDC1200
 			MDC1200_process_rx(int_bits);
 		#endif
@@ -1326,12 +1348,12 @@ void APP_process_keys(void)
 					{
 						if (++g_ptt_debounce >= 3)        // 30ms debounce
 						{	// start TX'ing
-		
+
 							g_boot_tick_10ms   = 0;       // cancel the boot-up screen
 							g_ptt_is_pressed   = ptt_pressed;
 							g_ptt_was_released = false;
 							g_ptt_debounce     = 3;
-		
+
 							APP_process_key(KEY_PTT, true, false);
 						}
 					}

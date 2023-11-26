@@ -399,7 +399,6 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		const bool         valid     = (g_panadapter_cycles > 0 && !g_monitor_enabled && g_current_function != FUNCTION_TRANSMIT) ? true : false;
 		const unsigned int line      = (g_eeprom.config.setting.tx_vfo_num == 0) ? 4 : 0;
 		uint8_t           *base_line = g_frame_buffer[line + 2];
-		uint8_t            max_rssi;
 		uint8_t            min_rssi;
 		uint8_t            span_rssi;
 		unsigned int       i;
@@ -410,6 +409,7 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		     g_reduced_service                         ||
 		     g_current_display_screen != DISPLAY_MAIN  ||
 		     g_current_function == FUNCTION_POWER_SAVE ||
+		     g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF ||
 		     g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
 		     g_dtmf_input_mode)
 		{	// don't draw the panadapter
@@ -422,21 +422,18 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		if (valid)
 		{
 			// auto vertical scale
-			max_rssi  = g_panadapter_max_rssi;
 			min_rssi  = g_panadapter_min_rssi;
-			span_rssi = max_rssi - min_rssi;
+			span_rssi = g_panadapter_max_rssi - min_rssi;
 			if (span_rssi < 30)
 				span_rssi = 30;
 			if (min_rssi > (255 - span_rssi))
 				min_rssi =  255 - span_rssi;
-			max_rssi = min_rssi + span_rssi;
 
 			#if 0
 				{	// show the min/max RSSI values
 					char str[16];
 					sprintf(str, "%u", min_rssi);
 					UI_PrintStringSmall(str, 2, 0, line + 0);
-					//sprintf(str, "%u", max_rssi);
 					sprintf(str, "%u", span_rssi);
 					UI_PrintStringSmall(str, LCD_WIDTH - 2 - (7 * strlen(str)), 0, line + 0);
 				}
@@ -550,7 +547,7 @@ void UI_DisplayMain(void)
 		pan_enabled = false;
 
 		if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF && g_rx_vfo_is_active)
-			current_vfo_num = g_rx_vfo_num;    // we're currently monitoring the other VFO
+			current_vfo_num = g_rx_vfo_num;
 	}
 
 	// clear the screen buffer
@@ -673,25 +670,15 @@ void UI_DisplayMain(void)
 				g_center_line = CENTER_LINE_IN_USE;
 				continue;
 			}
-
-			// highlight the selected/used VFO with a marker
-			if (single_vfo < 0)
-			{
-				if (vfo_num == main_vfo_num)
-					memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
-				else
-				if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF || vfo_num == current_vfo_num)
-					memcpy(p_line0 + 0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
-			}
 		}
-		else
+
 		if (single_vfo < 0)
-		{	// highlight the selected/used VFO with a marker
+		{
 			if (vfo_num == main_vfo_num)
-				memcpy(p_line0 + 0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
+				memcpy(p_line0, BITMAP_VFO_DEFAULT, sizeof(BITMAP_VFO_DEFAULT));
 			else
 			if (g_eeprom.config.setting.cross_vfo != CROSS_BAND_OFF || vfo_num == current_vfo_num)
-				memcpy(p_line0 + 0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
+				memcpy(p_line0, BITMAP_VFO_NOT_DEFAULT, sizeof(BITMAP_VFO_NOT_DEFAULT));
 		}
 
 		if (g_current_function == FUNCTION_TRANSMIT)

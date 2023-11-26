@@ -549,6 +549,10 @@ void BK4819_set_rf_frequency(const uint32_t frequency, const bool trigger_update
 		BK4819_write_reg(0x30, reg & ~BK4819_REG_30_ENABLE_VCO_CALIB);
 		BK4819_write_reg(0x30, reg);
 	}
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("bk freq %4u.%05u\n", frequency / 100000, frequency % 100000);
+	#endif
 }
 
 void BK4819_SetupSquelch(

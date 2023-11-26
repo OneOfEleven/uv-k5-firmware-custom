@@ -735,10 +735,10 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		#ifdef ENABLE_FMRADIO
 			if (!g_fm_radio_mode && g_request_display_screen != DISPLAY_FM)
 		#endif
-				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);   // speaker off
 	}
 
-	// turn green LED off
+	// green LED off
 	BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, false);
 
 	Bandwidth = RADIO_set_bandwidth(Bandwidth, g_rx_vfo->channel.mod_mode);
@@ -757,18 +757,17 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		BK4819_REG_30_ENABLE_RX_DSP    |
 	0);
 
-	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);         // LED off
-	BK4819_SetupPowerAmplifier(0, 0);
+	BK4819_set_GPIO_pin(BK4819_GPIO5_PIN1_RED, false);         // red LED off
+	BK4819_SetupPowerAmplifier(0, 0);                          //
 	BK4819_set_GPIO_pin(BK4819_GPIO1_PIN29_PA_ENABLE, false);  // PA off
 
-	while (1)
-	{	// wait for interrupts to clear
+	do {	// wait for interrupts to clear
 		const uint16_t int_bits = BK4819_read_reg(0x0C);
 		if ((int_bits & (1u << 0)) == 0)
 			break;
-		BK4819_write_reg(0x02, 0);   // clear the interrupt bits
+		BK4819_write_reg(0x02, 0);   // clear the interrupt bits ?
 		SYSTEM_DelayMs(1);
-	}
+	} while (1);
 	BK4819_write_reg(0x3F, 0);       // disable interrupts
 
 	#ifdef ENABLE_NOAA
@@ -778,9 +777,11 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	#endif
 			Frequency = g_rx_vfo->p_rx->frequency;
 
-	BK4819_set_rf_frequency(Frequency, false);
+	// set VCO/PLL frequency
+	BK4819_set_rf_frequency(Frequency, true);
 	BK4819_set_rf_filter_path(Frequency);
 
+	// set squelch level
 	BK4819_SetupSquelch(
 		g_rx_vfo->squelch_open_rssi_thresh,    g_rx_vfo->squelch_close_rssi_thresh,
 		g_rx_vfo->squelch_open_noise_thresh,   g_rx_vfo->squelch_close_noise_thresh,
@@ -804,7 +805,7 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 	}
 
 	if (!g_monitor_enabled)
-	{
+	{	// set modulation mode FM, AM etc
 		#ifdef ENABLE_FMRADIO
 			if (!g_fm_radio_mode && g_request_display_screen != DISPLAY_FM)
 		#endif
@@ -885,7 +886,6 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 		else
 		{
 			BK4819_set_CTCSS_freq(0);      // NOAA 1050Hz stuff
-
 			interrupt_mask |= BK4819_REG_3F_CTCSS_FOUND | BK4819_REG_3F_CTCSS_LOST;
 		}
 	#endif
@@ -927,6 +927,10 @@ void RADIO_setup_registers(bool switch_to_function_foreground)
 
 //	if (g_monitor_enabled)
 //		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("setup-reg %4u.%05u MHz, %u\r\n", Frequency / 100000, Frequency % 100000, Bandwidth);
+	#endif
 }
 
 #ifdef ENABLE_NOAA

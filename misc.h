@@ -107,7 +107,6 @@ typedef enum css_scan_mode_e css_scan_mode_t;
 enum scan_next_chan_e {
 	SCAN_NEXT_CHAN_SCANLIST1 = 0,
 	SCAN_NEXT_CHAN_SCANLIST2,
-	SCAN_NEXT_CHAN_DUAL_WATCH,
 	SCAN_NEXT_CHAN_USER,
 	SCAN_NEXT_NUM
 };
