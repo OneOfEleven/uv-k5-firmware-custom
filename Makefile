@@ -76,7 +76,7 @@ ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
 ENABLE_FASTER_CHANNEL_SCAN       := 1
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
 # Rx Signal Bar 400 B
-ENABLE_RX_SIGNAL_BAR             := 0
+ENABLE_RX_SIGNAL_BAR             := 1
 # Tx Audio Bar 300 B
 ENABLE_TX_AUDIO_BAR              := 0
 # Side Button Menu 300 B
@@ -85,7 +85,8 @@ ENABLE_SIDE_BUTT_MENU            := 0
 ENABLE_KEYLOCK                   := 0
 ENABLE_PANADAPTER                := 1
 ENABLE_PANADAPTER_PEAK_FREQ      := 0
-#ENABLE_SINGLE_VFO_CHAN          := 0
+# single VFO 1.4 kB
+ENABLE_SINGLE_VFO_CHAN           := 0
 
 #############################################################
 

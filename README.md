@@ -99,7 +99,7 @@ ENABLE_SIDE_BUTT_MENU            := 1       enable menu option for configuring t
 ENABLE_KEYLOCK                   := 1       enable keylock menu option + keylock code
 ENABLE_PANADAPTER                := 1       centered on the selected VFO RX frequency, only shows if dual-watch is disabled
 ENABLE_PANADAPTER_PEAK_FREQ      := 0       show the peak panadapter frequency
-#ENABLE_SINGLE_VFO_CHAN          := 0       not yet implemented
+ENABLE_SINGLE_VFO_CHAN           := 0       not yet complete
 ```
 
 # New/modified function keys

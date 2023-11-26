@@ -31,7 +31,7 @@
 #include "ui/helper.h"
 #include "ui/ui.h"
 #include "ui/status.h"
-
+/*
 void invert_pixels(void *p, const unsigned int size)
 {
 	unsigned int i;
@@ -39,7 +39,7 @@ void invert_pixels(void *p, const unsigned int size)
 	for (i = 0; i < size; i++)
 		*p8++ ^= 0xff;
 }
-
+*/
 void UI_DisplayStatus(const bool test_display)
 {
 	uint8_t     *line = g_status_line;
@@ -55,7 +55,7 @@ void UI_DisplayStatus(const bool test_display)
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{
 		memcpy(line + x, BITMAP_TX, sizeof(BITMAP_TX));
-		invert_pixels(line + x, sizeof(BITMAP_TX));
+//		invert_pixels(line + x, sizeof(BITMAP_TX));
 	}
 	else
 	if (g_current_function == FUNCTION_RECEIVE ||
@@ -155,7 +155,7 @@ void UI_DisplayStatus(const bool test_display)
 		if (dw_running)
 		{
 			memcpy(line + x, BITMAP_TDR_RUNNING, sizeof(BITMAP_TDR_RUNNING));
-			invert_pixels(line + x, sizeof(BITMAP_TDR_RUNNING));
+//			invert_pixels(line + x, sizeof(BITMAP_TDR_RUNNING));
 		}
 		else
 		{
@@ -194,7 +194,7 @@ void UI_DisplayStatus(const bool test_display)
 	if (g_eeprom.config.setting.key_lock || test_display)
 	{
 		memcpy(line + x, BITMAP_KEYLOCK, sizeof(BITMAP_KEYLOCK));
-		invert_pixels(line + x, sizeof(BITMAP_KEYLOCK));
+//		invert_pixels(line + x, sizeof(BITMAP_KEYLOCK));
 		x += sizeof(BITMAP_KEYLOCK) + 1;
 	}
 	else

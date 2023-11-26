@@ -618,7 +618,7 @@ void UI_DisplayMenu(void)
 
 		case MENU_RX_CDCSS:
 		case MENU_TX_CDCSS:
-			strcpy(str, "CDCSS\n");
+			//strcpy(str, "CDCSS\n");
 			if (g_sub_menu_selection == 0)
 				strcat(str, "OFF");
 			else
@@ -633,7 +633,7 @@ void UI_DisplayMenu(void)
 		case MENU_TX_CTCSS:
 		{
 			channel_setting = true;
-			strcpy(str, "CTCSS\n");
+			//strcpy(str, "CTCSS\n");
 			#if 1
 				// set CTCSS as the user adjusts it
 				unsigned int Code;

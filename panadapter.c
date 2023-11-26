@@ -137,14 +137,13 @@ void PAN_process_10ms(void)
 	     #ifdef ENABLE_FMRADIO
 			g_fm_radio_mode                         ||
 	     #endif
-//	     g_single_vfo < 0                           ||
 	     g_reduced_service                          ||
 	     g_current_function == FUNCTION_POWER_SAVE  ||
 	     g_current_display_screen == DISPLAY_SEARCH ||
-	     g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF ||
 	     g_css_scan_mode   != CSS_SCAN_MODE_OFF     ||
 	     g_scan_state_dir  != SCAN_STATE_DIR_OFF    ||
-		 g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+		 g_dtmf_call_state != DTMF_CALL_STATE_NONE  ||
+	     g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
 	{
 		if (g_panadapter_enabled)
 		{	// disable the panadapter
