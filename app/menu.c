@@ -1586,6 +1586,12 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 	{
 		g_sub_menu_selection = INPUTBOX_value();   // get the current value from the input box
 
+		#ifdef ENABLE_FM_DEV_CAL_MENU
+			if (g_current_function == FUNCTION_TRANSMIT)
+				if (g_menu_cursor == MENU_TX_FM_DEV_CAL_N || g_menu_cursor == MENU_TX_FM_DEV_CAL_W)
+					BK4819_set_TX_deviation(g_sub_menu_selection);
+		#endif
+
 		if (g_input_box_index < 4)
 		{	// not yet enough characters
 			#ifdef ENABLE_VOICE
