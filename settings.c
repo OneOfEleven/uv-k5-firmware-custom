@@ -56,7 +56,7 @@ void SETTINGS_write_eeprom_calib(void)
 	unsigned int index = (unsigned int)(((uint8_t *)&g_eeprom.calib) - ((uint8_t *)&g_eeprom));
 	index &= ~7u;
 	for (i = 0; i < sizeof(g_eeprom.calib); i += 8)
-		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.calib) + i);
+		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom) + index + i);
 }
 
 #ifdef ENABLE_FMRADIO
@@ -67,12 +67,12 @@ void SETTINGS_write_eeprom_calib(void)
 
 		index = (unsigned int)(((uint8_t *)&g_eeprom.config.setting.fm_radio) - ((uint8_t *)&g_eeprom));
 		index &= ~7u;
-		EEPROM_WriteBuffer8(index, &g_eeprom.config.setting.fm_radio);
+		EEPROM_WriteBuffer8(index, ((uint8_t *)&g_eeprom) + index);
 
 		index = (unsigned int)(((uint8_t *)&g_eeprom.config.setting.fm_channel) - ((uint8_t *)&g_eeprom));
 		index &= ~7u;
 		for (i = 0; i < sizeof(g_eeprom.config.setting.fm_channel); i += 8)
-			EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.setting.fm_channel) + i);
+			EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom) + index + i);
 	}
 #endif
 
@@ -80,7 +80,7 @@ void SETTINGS_save_vfo_indices(void)
 {
 	uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.config.setting.indices) - ((uint8_t *)&g_eeprom));
 	index &= ~7u;
-	EEPROM_WriteBuffer8(index, &g_eeprom.config.setting.indices);
+	EEPROM_WriteBuffer8(index, ((uint8_t *)&g_eeprom) + index);
 }
 
 void SETTINGS_save_attributes(void)
@@ -89,7 +89,7 @@ void SETTINGS_save_attributes(void)
 	unsigned int index = (unsigned int )(((uint8_t *)&g_eeprom.config.channel_attributes) - ((uint8_t *)&g_eeprom));
 	index &= ~7u;
 	for (i = 0; i < sizeof(g_eeprom.config.channel_attributes); i += 8)
-		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.channel_attributes) + i);
+		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom) + index + i);
 }
 
 void SETTINGS_save_channel_names(void)
@@ -98,7 +98,7 @@ void SETTINGS_save_channel_names(void)
 	unsigned int index = (unsigned int)(((uint8_t *)&g_eeprom.config.channel_name) - ((uint8_t *)&g_eeprom));
 	index &= ~7u;
 	for (i = 0; i < sizeof(g_eeprom.config.channel_name); i += 8)
-		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.channel_name) + i);
+		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom) + index + i);
 }
 
 void SETTINGS_read_eeprom(void)
@@ -469,7 +469,7 @@ void SETTINGS_save(void)
 	for (index = 0; index < sizeof(g_eeprom.config.setting); index += 8)
 	{
 		const uint16_t offset = (uint16_t)(((uint8_t *)&g_eeprom.config.setting) - ((uint8_t *)&g_eeprom));
-		EEPROM_WriteBuffer8(offset + index, ((uint8_t *)&g_eeprom.config.setting) + index);
+		EEPROM_WriteBuffer8(offset + index, ((uint8_t *)&g_eeprom) + offset + index);
 	}
 }
 

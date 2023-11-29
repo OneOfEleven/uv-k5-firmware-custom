@@ -928,7 +928,7 @@ void MENU_AcceptSetting(void)
 				{
 					uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.calib.deviation_narrow) - ((uint8_t *)&g_eeprom));
 					index &= ~7u;
-					EEPROM_WriteBuffer8(index, &g_eeprom.calib.deviation_narrow);
+					EEPROM_WriteBuffer8(index, ((uint8_t *)&g_eeprom) + index);
 				}
 				break;
 
@@ -937,7 +937,7 @@ void MENU_AcceptSetting(void)
 				{
 					uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.calib.deviation_wide) - ((uint8_t *)&g_eeprom));
 					index &= ~7u;
-					EEPROM_WriteBuffer8(index, &g_eeprom.calib.deviation_wide);
+					EEPROM_WriteBuffer8(index, ((uint8_t *)&g_eeprom) + index);
 				}
 				break;
 		#endif
