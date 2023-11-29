@@ -71,6 +71,7 @@ ENABLE_TRIM_TRAILING_ZEROS       := 1       trim away any trailing zeros on freq
 ENABLE_WIDE_RX                   := 1       full 18MHz to 1300MHz RX (though front-end/PA not designed for full range)
 ENABLE_TX_WHEN_AM                := 0       allow TX (always FM) when RX is set to AM
 ENABLE_F_CAL_MENU                := 0       enable frequency calibration hidden menu
+ENABLE_FM_DEV_CAL_MENU           := 0       enable FM deviation calibration hidden menu
 ENABLE_TX_UNLOCK_MENU            := 0       allow TX everywhere EXCEPT airband (108~137) .. TX harmonic content will cause interference to other services, do so entirely at your own risk !
 ENABLE_TX_POWER_CAL_MENU         := 0       used to compute the TX power register values .. leave at '0'
 ENABLE_TX_POWER_FIX              := 1       fix the TX output power, L ~ 10mW, M ~ 500mW, H ~ 4W, U ~ user settable

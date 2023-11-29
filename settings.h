@@ -24,6 +24,16 @@
 #include "dcs.h"
 #include "frequencies.h"
 
+enum {
+	FM_DEV_LIMIT_LOWER_NARROW   =  700,
+	FM_DEV_LIMIT_DEFAULT_NARROW =  900,
+	FM_DEV_LIMIT_UPPER_NARROW   = 1100,
+
+	FM_DEV_LIMIT_LOWER_WIDE     =  950,
+	FM_DEV_LIMIT_DEFAULT_WIDE   = 1250,
+	FM_DEV_LIMIT_UPPER_WIDE     = 1500
+};
+
 enum mod_mode_e {
 	MOD_MODE_FM = 0,
 	MOD_MODE_AM,
@@ -518,10 +528,19 @@ typedef struct {
 	#endif
 
 	// 0x1F50
-	struct {
-		uint16_t threshold[10];                     //
-		uint8_t  unused[4];                         // 0xff's
-	} __attribute__((packed)) vox[2];
+	uint16_t vox_threshold_enable[10];              //
+	uint8_t  unused[4];                             // 0xff's
+
+	// 0x1F68
+	uint16_t vox_threshold_disable[10];             //
+//	#ifdef ENABLE_FM_DEV_CAL_MENU
+		// 1of11
+		uint16_t deviation_narrow;                  //
+		uint16_t deviation_wide;                    //
+//	#else
+//		// QS
+//		uint8_t  unused[4];                         // 0xff's
+//	#endif
 
 	// 0x1F80
 	uint8_t  mic_gain_dB2[5];                       //

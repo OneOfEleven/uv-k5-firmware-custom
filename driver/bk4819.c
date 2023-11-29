@@ -404,10 +404,10 @@ void BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold)
 	BK4819_write_reg(0x31, BK4819_read_reg(0x31) | (1u << 2));
 }
 
-void BK4819_set_TX_deviation(const bool narrow)
+void BK4819_set_TX_deviation(uint16_t deviation)
 {
 //	const uint8_t scrambler = (BK4819_read_reg(0x31) >> 1) & 1u;
-	uint16_t deviation = narrow ? 900 : 1232;
+//	uint16_t deviation = narrow ? 900 : 1232;
 //	if (scrambler)
 //		deviation -= 200;
 	if (deviation > 4095)

@@ -163,8 +163,13 @@ const t_menu_item g_menu_list[] =
 	{"TX CAL", VOICE_ID_INVALID,                       MENU_TX_CALI,              }, // L/M/H TX power calibration
 #endif
 
+#ifdef ENABLE_FM_DEV_CAL_MENU
+	{"FN CAL", VOICE_ID_INVALID,                       MENU_TX_FM_DEV_CAL_N,      }, // narrow FM deviation calibration
+	{"FW CAL", VOICE_ID_INVALID,                       MENU_TX_FM_DEV_CAL_W,      }, // wide FM deviation calibration
+#endif
+
 #ifdef ENABLE_F_CAL_MENU
-	{"F CAL",  VOICE_ID_INVALID,                       MENU_F_CALI                }, // reference xtal calibration
+	{"FR CAL",  VOICE_ID_INVALID,                      MENU_F_CALI                }, // reference xtal calibration
 #endif
 
 	{"F LOCK", VOICE_ID_INVALID,                       MENU_FREQ_LOCK             }, // country/area specific
@@ -180,8 +185,8 @@ const t_menu_item g_menu_list[] =
 	// ************************************
 };
 
-// number of hidden menu items at the end of the list - KEEP THIS CORRECT
-const unsigned int g_hidden_menu_count = 9;
+// number of hidden menu items at the end of the list - KEEP THIS CORRECT !
+const unsigned int g_hidden_menu_count = 12;
 
 // ***************************************************************************************
 
@@ -439,6 +444,10 @@ void UI_SortMenu(const bool hide_hidden)
 
 	#ifndef ENABLE_TX_POWER_CAL_MENU
 		hidden_menu_count--;
+	#endif
+
+	#ifndef ENABLE_FM_DEV_CAL_MENU
+		hidden_menu_count -= 2;
 	#endif
 
 	#ifndef ENABLE_F_CAL_MENU
@@ -1230,6 +1239,17 @@ void UI_DisplayMenu(void)
 					if (g_current_function == FUNCTION_TRANSMIT && g_current_display_screen != DISPLAY_AIRCOPY)
 						BK4819_SetupPowerAmplifier(g_sub_menu_selection, g_current_vfo->p_tx->frequency);
 				}
+				break;
+		#endif
+
+		#ifdef ENABLE_FM_DEV_CAL_MENU
+			case MENU_TX_FM_DEV_CAL_N:		// narrow FM deviation calibration
+			case MENU_TX_FM_DEV_CAL_W:      // wide FM deviation calibration
+				strcpy(str, "FM DEV ");
+				strcat(str, (g_menu_cursor == MENU_TX_FM_DEV_CAL_N) ? "N\n" : "W\n");
+				sprintf(str + strlen(str), g_in_sub_menu ? "> %04d" : "%d", g_sub_menu_selection);
+				if (g_current_function == FUNCTION_TRANSMIT)
+					BK4819_set_TX_deviation(g_sub_menu_selection);
 				break;
 		#endif
 

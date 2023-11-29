@@ -52,8 +52,9 @@ void SETTINGS_write_eeprom_config(void)
 
 void SETTINGS_write_eeprom_calib(void)
 {	// save the entire EEPROM calibration contents
-	const unsigned int index = (unsigned int)(((uint8_t *)&g_eeprom.calib) - ((uint8_t *)&g_eeprom));
 	unsigned int i;
+	unsigned int index = (unsigned int)(((uint8_t *)&g_eeprom.calib) - ((uint8_t *)&g_eeprom));
+	index &= ~7u;
 	for (i = 0; i < sizeof(g_eeprom.calib); i += 8)
 		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.calib) + i);
 }
@@ -65,9 +66,11 @@ void SETTINGS_write_eeprom_calib(void)
 		unsigned int index;
 
 		index = (unsigned int)(((uint8_t *)&g_eeprom.config.setting.fm_radio) - ((uint8_t *)&g_eeprom));
+		index &= ~7u;
 		EEPROM_WriteBuffer8(index, &g_eeprom.config.setting.fm_radio);
 
 		index = (unsigned int)(((uint8_t *)&g_eeprom.config.setting.fm_channel) - ((uint8_t *)&g_eeprom));
+		index &= ~7u;
 		for (i = 0; i < sizeof(g_eeprom.config.setting.fm_channel); i += 8)
 			EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.setting.fm_channel) + i);
 	}
@@ -75,14 +78,16 @@ void SETTINGS_write_eeprom_calib(void)
 
 void SETTINGS_save_vfo_indices(void)
 {
-	const uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.config.setting.indices) - ((uint8_t *)&g_eeprom));
+	uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.config.setting.indices) - ((uint8_t *)&g_eeprom));
+	index &= ~7u;
 	EEPROM_WriteBuffer8(index, &g_eeprom.config.setting.indices);
 }
 
 void SETTINGS_save_attributes(void)
 {
 	unsigned int i;
-	const unsigned int index = (unsigned int )(((uint8_t *)&g_eeprom.config.channel_attributes) - ((uint8_t *)&g_eeprom));
+	unsigned int index = (unsigned int )(((uint8_t *)&g_eeprom.config.channel_attributes) - ((uint8_t *)&g_eeprom));
+	index &= ~7u;
 	for (i = 0; i < sizeof(g_eeprom.config.channel_attributes); i += 8)
 		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.channel_attributes) + i);
 }
@@ -90,7 +95,8 @@ void SETTINGS_save_attributes(void)
 void SETTINGS_save_channel_names(void)
 {
 	unsigned int i;
-	const unsigned int index = (unsigned int)(((uint8_t *)&g_eeprom.config.channel_name) - ((uint8_t *)&g_eeprom));
+	unsigned int index = (unsigned int)(((uint8_t *)&g_eeprom.config.channel_name) - ((uint8_t *)&g_eeprom));
+	index &= ~7u;
 	for (i = 0; i < sizeof(g_eeprom.config.channel_name); i += 8)
 		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom.config.channel_name) + i);
 }
@@ -116,6 +122,7 @@ void SETTINGS_read_eeprom(void)
 
 #if 1
 	// channel sanity checks ..
+
 	for (index = 0; index < ARRAY_SIZE(g_eeprom.config.channel); index++)
 	{
 //		if (g_eeprom.config.channel_attributes[index].band <= BAND7_470MHz)
@@ -392,6 +399,13 @@ void SETTINGS_read_eeprom(void)
 
 //	memset(&g_eeprom.calib.unused3, 0xff, sizeof(g_eeprom.calib.unused3));
 
+//	#ifdef ENABLE_FM_DEV_CAL_MENU
+		if (g_eeprom.calib.deviation_narrow < FM_DEV_LIMIT_LOWER_NARROW || g_eeprom.calib.deviation_narrow > FM_DEV_LIMIT_UPPER_NARROW)
+			g_eeprom.calib.deviation_narrow = FM_DEV_LIMIT_DEFAULT_NARROW;
+		if (g_eeprom.calib.deviation_wide < FM_DEV_LIMIT_LOWER_WIDE || g_eeprom.calib.deviation_wide > FM_DEV_LIMIT_UPPER_WIDE)
+			g_eeprom.calib.deviation_wide = FM_DEV_LIMIT_DEFAULT_WIDE;
+//	#endif
+
 	if (g_eeprom.calib.battery[0] >= 5000)
 	{
 		g_eeprom.calib.battery[0] = 1900;
@@ -485,13 +499,13 @@ void SETTINGS_save_channel(const unsigned int channel, const unsigned int vfo, v
 		const unsigned int chan = CHANNEL_NUM(channel, vfo);
 		const unsigned int addr = sizeof(t_channel) * chan;
 		t_channel          m_channel;
-	
+
 		if (p_vfo != NULL)
 			memcpy(&m_channel, &p_vfo->channel, sizeof(t_channel));
 		else
 		if (channel <= USER_CHANNEL_LAST)
 			memset(&m_channel, 0xff, sizeof(t_channel));
-		
+
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //			UART_printf("save chan 2 %04X  %3u %3u %u %u %uHz %uHz\r\n", addr, chan, channel, vfo, mode, m_channel.frequency * 10, m_channel.tx_offset * 10);
 		#endif

@@ -413,8 +413,8 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		uint16_t threshold_enable;
 		uint16_t threshold_disable;
 
-		if (level > (ARRAY_SIZE(g_eeprom.calib.vox[0].threshold) - 1))
-			level = ARRAY_SIZE(g_eeprom.calib.vox[0].threshold) - 1;
+		if (level > (ARRAY_SIZE(g_eeprom.calib.vox_threshold_enable) - 1))
+			level = ARRAY_SIZE(g_eeprom.calib.vox_threshold_enable) - 1;
 
 		// my eeprom values ..
 		//
@@ -423,11 +423,11 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 		//
 		#ifdef ENABLE_VOX_MORE_SENSITIVE
 			// more sensitive
-			threshold_enable  = g_eeprom.calib.vox[0].threshold[level] / 3;
+			threshold_enable  = g_eeprom.calib.vox_threshold_enable[level] / 3;
 			threshold_disable = (threshold_enable > 13) ? threshold_enable - 10 : 3;
 		#else
-			threshold_enable  = g_eeprom.calib.vox[0].threshold[level];
-			threshold_disable = g_eeprom.calib.vox[1].threshold[level];
+			threshold_enable  = g_eeprom.calib.vox_threshold_enable[level];
+			threshold_disable = g_eeprom.calib.vox_threshold_disable[level];
 		#endif
 
 		BK4819_EnableVox(threshold_enable, threshold_disable);
@@ -688,6 +688,8 @@ void RADIO_select_vfos(void)
 
 BK4819_filter_bandwidth_t RADIO_set_bandwidth(BK4819_filter_bandwidth_t bandwidth, const int mode)
 {
+	uint16_t deviation;
+
 	switch (bandwidth)
 	{
 		default:
@@ -718,6 +720,44 @@ BK4819_filter_bandwidth_t RADIO_set_bandwidth(BK4819_filter_bandwidth_t bandwidt
 			BK4819_set_AFC(0);
 			break;
 	}
+
+	#ifdef ENABLE_FM_DEV_CAL_MENU
+		switch (bandwidth)
+		{
+			case BK4819_FILTER_BW_WIDE:
+				if (g_eeprom.calib.deviation_wide < FM_DEV_LIMIT_LOWER_WIDE || g_eeprom.calib.deviation_wide > FM_DEV_LIMIT_UPPER_WIDE)
+					deviation = FM_DEV_LIMIT_DEFAULT_WIDE;
+				else
+					deviation = g_eeprom.calib.deviation_wide;
+				break;
+			case BK4819_FILTER_BW_NARROW:
+				if (g_eeprom.calib.deviation_narrow < FM_DEV_LIMIT_LOWER_NARROW || g_eeprom.calib.deviation_narrow > FM_DEV_LIMIT_UPPER_NARROW)
+					deviation = FM_DEV_LIMIT_DEFAULT_NARROW;
+				else
+					deviation = g_eeprom.calib.deviation_narrow;
+				break;
+			case BK4819_FILTER_BW_NARROWER:
+				if (g_eeprom.calib.deviation_narrow < FM_DEV_LIMIT_LOWER_NARROW || g_eeprom.calib.deviation_narrow > FM_DEV_LIMIT_UPPER_NARROW)
+					deviation = FM_DEV_LIMIT_DEFAULT_NARROW;
+				else
+					deviation = g_eeprom.calib.deviation_narrow;
+				break;
+		}
+	#else
+		switch (bandwidth)
+		{
+			case BK4819_FILTER_BW_WIDE:
+				deviation = g_eeprom.calib.deviation_wide;
+				break;
+			case BK4819_FILTER_BW_NARROW:
+				deviation = g_eeprom.calib.deviation_narrow;
+				break;
+			case BK4819_FILTER_BW_NARROWER:
+				deviation = g_eeprom.calib.deviation_narrow;
+				break;
+		}
+	#endif
+	BK4819_set_TX_deviation(deviation);
 
 	BK4819_SetFilterBandwidth(bandwidth);
 

@@ -51,6 +51,7 @@ ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
 # Freq calibration 188 B
 ENABLE_F_CAL_MENU                := 0
+ENABLE_FM_DEV_CAL_MENU           := 1
 ENABLE_TX_UNLOCK_MENU            := 0
 #ENABLE_TX_POWER_CAL_MENU        := 0
 ENABLE_TX_POWER_FIX              := 1
@@ -391,6 +392,9 @@ ifeq ($(ENABLE_TX_WHEN_AM),1)
 endif
 ifeq ($(ENABLE_F_CAL_MENU),1)
 	CFLAGS  += -DENABLE_F_CAL_MENU
+endif
+ifeq ($(ENABLE_FM_DEV_CAL_MENU),1)
+	CFLAGS  += -DENABLE_FM_DEV_CAL_MENU
 endif
 ifeq ($(ENABLE_TX_UNLOCK_MENU),1)
 	CFLAGS  += -DENABLE_TX_UNLOCK_MENU

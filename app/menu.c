@@ -140,7 +140,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMin = 2;    //  1 second
 			*pMax = 40;   // 20 seconds
 			break;
-			
+
 		case MENU_CROSS_VFO:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_cross_vfo) - 1;
@@ -222,7 +222,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 				*pMax = 45;
 				break;
 		#endif
-		
+
 		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				*pMin = 0;
@@ -334,13 +334,13 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 				*pMin = 0;
 				*pMax = ARRAY_SIZE(g_sub_menu_mdc1200_mode) - 1;
 				break;
-		
+
 			case MENU_MDC1200_ID:
 				*pMin = 0;
 				*pMax = 0xffff;
 				break;
 		#endif
-		
+
 		case MENU_PTT_ID:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_ptt_id) - 1;
@@ -370,6 +370,18 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			case MENU_TX_CALI:
 				*pMin = 0;
 				*pMax = 255;
+				break;
+		#endif
+
+		#ifdef ENABLE_FM_DEV_CAL_MENU
+			case MENU_TX_FM_DEV_CAL_N:
+				*pMin = FM_DEV_LIMIT_LOWER_NARROW;
+				*pMax = FM_DEV_LIMIT_UPPER_NARROW;
+				break;
+
+			case MENU_TX_FM_DEV_CAL_W:
+				*pMin = FM_DEV_LIMIT_LOWER_WIDE;
+				*pMax = FM_DEV_LIMIT_UPPER_WIDE;
 				break;
 		#endif
 
@@ -593,7 +605,7 @@ void MENU_AcceptSetting(void)
 				ST7565_SetContrast(g_eeprom.config.setting.lcd_contrast);
 				break;
 		#endif
-		
+
 		case MENU_DUAL_WATCH:
 //			g_eeprom.config.setting.dual_watch = g_sub_menu_selection;
 			g_eeprom.config.setting.dual_watch = (g_sub_menu_selection > 0) ? 1 + g_eeprom.config.setting.tx_vfo_num : DUAL_WATCH_OFF;
@@ -663,7 +675,7 @@ void MENU_AcceptSetting(void)
 		case MENU_S_ADD2:
 			g_tx_vfo->channel_attributes.scanlist2 = g_sub_menu_selection;
 			SETTINGS_save_chan_attribs_name(g_tx_vfo->channel_save, g_tx_vfo);
-			g_vfo_configure_mode = VFO_CONFIGURE;	
+			g_vfo_configure_mode = VFO_CONFIGURE;
 			g_flag_reset_vfos    = true;
 			return;
 
@@ -910,6 +922,26 @@ void MENU_AcceptSetting(void)
 				break;
 		#endif
 
+		#ifdef ENABLE_FM_DEV_CAL_MENU
+			case MENU_TX_FM_DEV_CAL_N:
+				g_eeprom.calib.deviation_narrow = g_sub_menu_selection;
+				{
+					uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.calib.deviation_narrow) - ((uint8_t *)&g_eeprom));
+					index &= ~7u;
+					EEPROM_WriteBuffer8(index, &g_eeprom.calib.deviation_narrow);
+				}
+				break;
+
+			case MENU_TX_FM_DEV_CAL_W:
+				g_eeprom.calib.deviation_wide = g_sub_menu_selection;
+				{
+					uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.calib.deviation_wide) - ((uint8_t *)&g_eeprom));
+					index &= ~7u;
+					EEPROM_WriteBuffer8(index, &g_eeprom.calib.deviation_wide);
+				}
+				break;
+		#endif
+
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
 				writeXtalFreqCal(g_sub_menu_selection, true);
@@ -1007,7 +1039,7 @@ void MENU_ShowCurrentSetting(void)
 		case MENU_STEP:
 			g_sub_menu_selection = FREQUENCY_get_step_index(STEP_FREQ_TABLE[g_tx_vfo->channel.step_setting]);
 			break;
-		
+
 		case MENU_TX_POWER:
 			g_sub_menu_selection = g_tx_vfo->channel.tx_power;
 			break;
@@ -1111,7 +1143,7 @@ void MENU_ShowCurrentSetting(void)
 				g_sub_menu_selection = g_eeprom.config.setting.lcd_contrast;
 				break;
 		#endif
-		
+
 		case MENU_DUAL_WATCH:
 //			g_sub_menu_selection = g_eeprom.config.setting.dual_watch;
 			g_sub_menu_selection = (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF) ? 0 : 1;
@@ -1389,6 +1421,16 @@ void MENU_ShowCurrentSetting(void)
 				break;
 		#endif
 
+		#ifdef ENABLE_FM_DEV_CAL_MENU
+			case MENU_TX_FM_DEV_CAL_N:
+				g_sub_menu_selection = g_eeprom.calib.deviation_narrow;
+				break;
+
+			case MENU_TX_FM_DEV_CAL_W:
+				g_sub_menu_selection = g_eeprom.calib.deviation_wide;
+				break;
+		#endif
+
 		#ifdef ENABLE_F_CAL_MENU
 			case MENU_F_CALI:
 				g_sub_menu_selection = g_eeprom.calib.bk4819_xtal_freq_low;
@@ -1410,7 +1452,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 	int32_t      min;
 	int32_t      max;
 	uint32_t     value = 0;
-	
+
 	if (key_held || !key_pressed)
 		return;
 
@@ -1428,7 +1470,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		{
 			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Wtype-limits"
-	
+
 			if (Key >= KEY_0 && Key <= KEY_9)
 			{
 				g_edit[g_edit_index] = '0' + Key - KEY_0;
@@ -1530,13 +1572,17 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //			UART_printf("offset 4 %u\r\n", Frequency);
 		#endif
-		
+
 		g_sub_menu_selection = Frequency;
 
 		return;
 	}
 
-	if (g_menu_cursor == MENU_BAT_CAL)
+	#ifdef ENABLE_FM_DEV_CAL_MENU
+		if (g_menu_cursor == MENU_BAT_CAL || g_menu_cursor == MENU_TX_FM_DEV_CAL_N || g_menu_cursor == MENU_TX_FM_DEV_CAL_W)
+	#else
+		if (g_menu_cursor == MENU_BAT_CAL)
+	#endif
 	{
 		g_sub_menu_selection = INPUTBOX_value();   // get the current value from the input box
 
@@ -1721,7 +1767,7 @@ static void MENU_Key_MENU(const bool key_pressed, const bool key_held)
 			{	// save the new power level
 				g_tx_vfo->channel.tx_power_user = g_edit_index;
 				g_request_save_channel = 1;
-	
+
 				g_flag_accept_setting = true;
 				g_in_sub_menu = false;
 				g_edit_index  = -1;
@@ -1989,10 +2035,10 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 			const int32_t max_freq = MAX_TX_OFFSET;
 			const int32_t step_size = g_tx_vfo->step_freq;
 			int32_t offset = (int32_t)g_sub_menu_selection + (Direction * step_size);
-			
+
 			// wrap
 			if (offset >= max_freq)
-				offset = 0;                    
+				offset = 0;
 			else
 			if (offset < 0)
 				offset = max_freq - step_size;
@@ -2006,7 +2052,7 @@ static void MENU_Key_UP_DOWN(bool key_pressed, bool key_held, int8_t Direction)
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_printf("offset 2 %u %u\r\n", offset, step_size);
 			#endif
-			
+
 			g_sub_menu_selection = offset;
 			g_request_display_screen = DISPLAY_MENU;
 			return;
