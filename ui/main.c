@@ -23,6 +23,9 @@
 #include "driver/backlight.h"
 #include "driver/bk4819.h"
 #include "driver/st7565.h"
+#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+	#include "driver/uart.h"
+#endif
 #include "external/printf/printf.h"
 #include "font.h"
 #include "functions.h"
@@ -752,7 +755,11 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			}
 			else
 			{
-				const uint32_t frequency = (g_current_function == FUNCTION_TRANSMIT) ? g_vfo_info[vfo_num].p_rx->frequency : g_vfo_info[vfo_num].p_tx->frequency;
+				const uint32_t frequency = (g_current_function == FUNCTION_TRANSMIT) ? g_vfo_info[vfo_num].p_tx->frequency : g_vfo_info[vfo_num].p_rx->frequency;
+
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//					UART_printf("%u.%05u MHz\n", frequency / 100000, frequency % 100000);
+				#endif
 
 				if (scrn_chan <= USER_CHANNEL_LAST)
 				{	// a user channel

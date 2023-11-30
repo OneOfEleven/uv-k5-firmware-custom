@@ -138,8 +138,8 @@ void toggle_chan_scanlist(void)
 			const unsigned int channel = FREQ_CHANNEL_FIRST + g_vfo_info[vfo].channel_attributes.band;
 
 			g_eeprom.config.setting.indices.vfo[vfo].screen = channel;
-			g_vfo_info[vfo].channel_save        = channel;
-			g_eeprom.config.setting.tx_vfo_num = vfo;
+			g_vfo_info[vfo].channel_save                    = channel;
+//			g_eeprom.config.setting.tx_vfo_num              = vfo;
 
 			RADIO_select_vfos();
 			RADIO_apply_offset(g_tx_vfo, false);
@@ -151,10 +151,10 @@ void toggle_chan_scanlist(void)
 			// find the first channel that contains this frequency
 			g_tx_vfo->freq_in_channel = SETTINGS_find_channel(g_tx_vfo->freq_config_tx.frequency);
 
-			SETTINGS_save_channel(g_tx_vfo->channel_save, g_eeprom.config.setting.tx_vfo_num, g_tx_vfo, 2);
+			SETTINGS_save_channel(channel, vfo, g_tx_vfo, 2);
 
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//				UART_printf("chan-vfo %u\r\n", g_tx_vfo->channel_save);
+//				UART_printf("chan-vfo %u\r\n", channel);
 			#endif
 
 			g_beep_to_play = BEEP_880HZ_60MS_TRIPLE_BEEP;

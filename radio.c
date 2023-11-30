@@ -644,11 +644,11 @@ void RADIO_apply_offset(vfo_info_t *p_vfo, const bool set_pees)
 	{
 		case TX_OFFSET_FREQ_DIR_OFF:
 			break;
-		case TX_OFFSET_FREQ_DIR_ADD:
-			Frequency += p_vfo->channel.tx_offset;
-			break;
 		case TX_OFFSET_FREQ_DIR_SUB:
 			Frequency -= p_vfo->channel.tx_offset;
+			break;
+		case TX_OFFSET_FREQ_DIR_ADD:
+			Frequency += p_vfo->channel.tx_offset;
 			break;
 	}
 
