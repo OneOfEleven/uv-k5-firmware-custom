@@ -118,7 +118,11 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 
 		if (g_eeprom.config.setting.mic_bar)
 		{
-			const unsigned int line      = 3;
+			#ifdef ENABLE_SINGLE_VFO_CHAN
+				const unsigned int line  = (single_vfo >= 0 && !pan_enabled) ? 6 : 3;
+			#else
+				const unsigned int line  = 3;
+			#endif
 			const unsigned int txt_width = 7 * 3;                 // 3 text chars
 			const unsigned int bar_x     = 2 + txt_width + 4;     // X coord of bar graph
 			const unsigned int bar_width = LCD_WIDTH - 1 - bar_x;
@@ -513,9 +517,18 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 #endif
 
 void UI_DisplayCenterLine(void)
-{	
+{
 //	const bool rx = (g_current_function == FUNCTION_RECEIVE && g_squelch_open) ? true : false;
 	const bool rx = (g_current_function == FUNCTION_RECEIVE) ? true : false;
+
+	#ifdef ENABLE_SINGLE_VFO_CHAN
+		const unsigned int line = (single_vfo >= 0 && !pan_enabled) ? 6 : 3;
+	#else
+		const unsigned int line = 3;
+	#endif
+
+	(void)rx;
+	(void)line;
 
 	if (g_center_line != CENTER_LINE_NONE ||
 	    g_current_display_screen != DISPLAY_MAIN ||
@@ -534,7 +547,7 @@ void UI_DisplayCenterLine(void)
 		}
 		else
 	#endif
-	
+
 	#ifdef ENABLE_MDC1200
 		if (mdc1200_rx_ready_tick_500ms > 0)
 		{
@@ -545,25 +558,25 @@ void UI_DisplayCenterLine(void)
 				sprintf(str, "MDC1200 ID %04X", mdc1200_unit_id);
 			#endif
 			#ifdef ENABLE_SMALL_BOLD
-				UI_PrintStringSmallBold(str, 2, 0, 3);
+				UI_PrintStringSmallBold(str, 2, 0, line);
 			#else
-				UI_PrintStringSmall(str, 2, 0, 3);
+				UI_PrintStringSmall(str, 2, 0, line);
 			#endif
 		}
 		else
 	#endif
-	
+
 	#if defined(ENABLE_AM_FIX) && defined(ENABLE_AM_FIX_SHOW_DATA)
 		// show the AM-FIX debug data
 		if (rx && g_vfo_info[g_rx_vfo_num].mod_mode != MOD_MODE_FM && g_eeprom.config.setting.am_fix)
 		{
 			g_center_line = CENTER_LINE_AM_FIX_DATA;
 			AM_fix_print_data(g_rx_vfo_num, str);
-			UI_PrintStringSmall(str, 2, 0, 3);
+			UI_PrintStringSmall(str, 2, 0, line);
 		}
 		else
 	#endif
-	
+
 	#ifdef ENABLE_RX_SIGNAL_BAR
 		// show the RX RSSI dBm, S-point and signal strength bar graph
 		if (rx && g_eeprom.config.setting.enable_rssi_bar)
@@ -574,7 +587,7 @@ void UI_DisplayCenterLine(void)
 		}
 		else
 	#endif
-	
+
 	if (rx || g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_POWER_SAVE)
 	{
 		#ifdef ENABLE_DTMF_LIVE_DECODER
@@ -583,47 +596,47 @@ void UI_DisplayCenterLine(void)
 				{	// show live DTMF decode
 					const unsigned int len = strlen(g_dtmf_rx_live);
 					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
-	
+
 					if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 						return;
-	
+
 					g_center_line = CENTER_LINE_DTMF_DEC;
-	
+
 					strcpy(str, "DTMF ");
 					strcat(str, g_dtmf_rx_live + idx);
-					UI_PrintStringSmall(str, 2, 0, 3);
+					UI_PrintStringSmall(str, 2, 0, line);
 				}
 			#else
 				if (g_eeprom.config.setting.dtmf_live_decoder && g_dtmf_rx_index > 0)
 				{	// show live DTMF decode
 					const unsigned int len = g_dtmf_rx_index;
 					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
-	
+
 					if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 						return;
-	
+
 					g_center_line = CENTER_LINE_DTMF_DEC;
-	
+
 					strcpy(str, "DTMF ");
 					strcat(str, g_dtmf_rx + idx);
-					UI_PrintStringSmall(str, 2, 0, 3);
+					UI_PrintStringSmall(str, 2, 0, line);
 				}
 			#endif
 		#endif
-	
+
 		#ifdef ENABLE_SHOW_CHARGE_LEVEL
 			else
 			if (g_charging_with_type_c)
 			{	// show the battery charge state
 				if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 					return;
-	
+
 				g_center_line = CENTER_LINE_CHARGE_DATA;
-	
+
 				sprintf(str, "Charge %u.%02uV %u%%",
 					g_battery_voltage_average / 100, g_battery_voltage_average % 100,
 					BATTERY_VoltsToPercent(g_battery_voltage_average));
-				UI_PrintStringSmall(str, 2, 0, 3);
+				UI_PrintStringSmall(str, 2, 0, line);
 			}
 		#endif
 	}
