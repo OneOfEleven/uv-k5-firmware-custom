@@ -86,7 +86,7 @@ void SETTINGS_save_vfo_indices(void)
 void SETTINGS_save_attributes(void)
 {
 	unsigned int i;
-	unsigned int index = (unsigned int )(((uint8_t *)&g_eeprom.config.channel_attributes) - ((uint8_t *)&g_eeprom));
+	unsigned int index = (unsigned int)(((uint8_t *)&g_eeprom.config.channel_attributes) - ((uint8_t *)&g_eeprom));
 	index &= ~7u;
 	for (i = 0; i < sizeof(g_eeprom.config.channel_attributes); i += 8)
 		EEPROM_WriteBuffer8(index + i, ((uint8_t *)&g_eeprom) + index + i);
@@ -105,7 +105,7 @@ void SETTINGS_read_eeprom(void)
 {
 	unsigned int index;
 
-	// read the entire EEPROM contents into memory as a whole
+	// read the entire EEPROM contents into memory
 	for (index = 0; index < sizeof(g_eeprom); index += 128)
 		EEPROM_ReadBuffer(index, (uint8_t *)(&g_eeprom) + index, 128);
 
