@@ -863,7 +863,9 @@ void UI_DisplayMain(void)
 	single_vfo  = -1;
 
 	if (g_eeprom.config.setting.dual_watch == DUAL_WATCH_OFF && g_eeprom.config.setting.cross_vfo == CROSS_BAND_OFF)
+	{
 		single_vfo = main_vfo_num;
+	}
 	else
 	if (g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF && g_rx_vfo_is_active)
 		current_vfo_num = g_rx_vfo_num;
@@ -904,12 +906,20 @@ void UI_DisplayMain(void)
 		#endif
 	#endif
 
-	#ifdef ENABLE_SINGLE_VFO_CHAN
-		if (single_vfo >= 0 && !pan_enabled)
-		{
-			UI_DisplayMainSingle();
-			return;
-		}
+	#if ENABLE_SINGLE_VFO_CHAN
+		#ifdef ENABLE_PANADAPTER
+			if (single_vfo >= 0 && !pan_enabled)
+			{
+				UI_DisplayMainSingle();
+				return;
+			}
+		#else
+			if (single_vfo >= 0)
+			{
+				UI_DisplayMainSingle();
+				return;
+			}
+		#endif
 	#endif
 
 	for (vfo_num = 0; vfo_num < 2; vfo_num++)
