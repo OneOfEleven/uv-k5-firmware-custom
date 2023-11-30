@@ -676,7 +676,8 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 							else
 						#endif
 */						{	// show the frequency in the main font
-							UI_PrintString(str, x + 5, 0, y, 8);
+//							UI_PrintString(str, x + 5, 0, y, 8);
+							UI_PrintString(str, x + 5, 0, y + 1, 8);
 						}
 					#endif
 				}
@@ -729,7 +730,14 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 						#endif
 
 						if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-							str[1] = 'F';  // this VFO frequency is also found in a channel
+						{	// this VFO frequency is also found in a channel
+							str[1] = 'F';
+
+
+							// TODO: show the channel name this frequency is found in
+
+
+						}
 
 						if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
 							str[2] = 'C';  // compander is enabled
