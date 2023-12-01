@@ -1063,6 +1063,9 @@ void UI_DisplayMain(void)
 	#endif
 
 	#if ENABLE_SINGLE_VFO_CHAN
+		if (g_dtmf_input_mode)
+			single_vfo = -1;
+
 		#ifdef ENABLE_PANADAPTER
 			if (!pan_enabled)
 		#endif
@@ -1116,7 +1119,7 @@ void UI_DisplayMain(void)
 				}
 				else
 				{
-					sprintf(str, ">%s", g_dtmf_input_box);
+					sprintf(str, "DTMF entry ..");
 				}
 				str[16] = 0;
 				UI_PrintString(str, 2, 0, 0 + (vfo_num * 3), 8);
@@ -1143,6 +1146,10 @@ void UI_DisplayMain(void)
 					{
 						sprintf(str, ">%s", g_dtmf_string);
 					}
+				}
+				else
+				{
+					sprintf(str, ">%s", g_dtmf_input_box);
 				}
 				str[16] = 0;
 				UI_PrintString(str, 2, 0, 2 + (vfo_num * 3), 8);
