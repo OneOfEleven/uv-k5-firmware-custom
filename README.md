@@ -226,6 +226,7 @@ You may obtain a copy of the License at
 <p float="left">
   <img src="/images/image1.png" width=300 />
   <img src="/images/image4.png" width=300 />
+  <img src="/images/single_vfo_mode.jpg" width=600 />
 </p>
 
  <img src="/images/UV_K5_8_antenna.png" />

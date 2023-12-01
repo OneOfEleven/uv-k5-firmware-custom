@@ -1119,7 +1119,7 @@ void UI_DisplayMain(void)
 				}
 				else
 				{
-					sprintf(str, "DTMF entry ..");
+					sprintf(str, "DTMF entry");
 				}
 				str[16] = 0;
 				UI_PrintString(str, 2, 0, 0 + (vfo_num * 3), 8);

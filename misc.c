@@ -42,7 +42,7 @@ const uint8_t         dtmf_txstop_500ms                =   3000 / 500;  // 6 sec
 
 const uint8_t         serial_config_tick_500ms         =   3000 / 500;  // 3 seconds
 
-const uint8_t         key_input_timeout_500ms          =   6000 / 500;  // 6 seconds
+const uint8_t         key_input_timeout_500ms          =   8000 / 500;  // 8 seconds
 #ifdef ENABLE_KEYLOCK
 	const uint8_t     key_lock_timeout_500ms           =  30000 / 500;  // 30 seconds
 #endif
