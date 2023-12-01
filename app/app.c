@@ -2085,18 +2085,15 @@ void APP_time_slice_500ms(void)
 	#ifdef ENABLE_DTMF_LIVE_DECODER
 		if (g_dtmf_rx_live_timeout > 0)
 		{
-			#ifdef ENABLE_RX_SIGNAL_BAR
-				if (g_center_line == CENTER_LINE_DTMF_DEC ||
-					g_center_line == CENTER_LINE_NONE)  // wait till the center line is free for us to use before timing out
-			#endif
+			if (g_center_line == CENTER_LINE_DTMF_DEC ||
+				g_center_line == CENTER_LINE_NONE)  // wait till the center line is free for us to use before timing out
+
+			if (--g_dtmf_rx_live_timeout == 0)
 			{
-				if (--g_dtmf_rx_live_timeout == 0)
+				if (g_dtmf_rx_live[0] != 0)
 				{
-					if (g_dtmf_rx_live[0] != 0)
-					{
-						memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
-						g_update_display   = true;
-					}
+					memset(g_dtmf_rx_live, 0, sizeof(g_dtmf_rx_live));
+					g_update_display   = true;
 				}
 			}
 		}

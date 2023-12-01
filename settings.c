@@ -315,11 +315,8 @@ void SETTINGS_read_eeprom(void)
 //	g_eeprom.config.setting.enable_tx_470       = (g_eeprom.config.setting.enable_tx_470 < 2) ? g_eeprom.config.setting.enable_tx_470 : 0;
 //	g_eeprom.config.setting.enable_350          = (g_eeprom.config.setting.enable_350 < 2)    ? g_eeprom.config.setting.enable_350 : 1;
 //	g_eeprom.config.setting.enable_scrambler    = (g_eeprom.config.setting.enable_scrambler & (1u << 0)) ? 1 : 0;
-	#ifdef ENABLE_RX_SIGNAL_BAR
-//		g_eeprom.config.setting.enable_rssi_bar = (Data[6] & (1u << 1)) ? true : false;
-	#else
-		g_eeprom.config.setting.enable_rssi_bar = 0;
-	#endif
+//	g_eeprom.config.setting.enable_rssi_bar     = (Data[6] & (1u << 1)) ? true : false;
+
 //	g_eeprom.config.setting.tx_enable          = (Data[7] & (1u << 0)) ? true : false;
 //	g_eeprom.config.setting.dtmf_live_decoder  = (Data[7] & (1u << 1)) ? true : false;
 	g_eeprom.config.setting.battery_text       = (g_eeprom.config.setting.battery_text < 3) ? g_eeprom.config.setting.battery_text : 2;

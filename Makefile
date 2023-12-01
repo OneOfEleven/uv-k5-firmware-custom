@@ -36,6 +36,7 @@ ENABLE_TX1750                    := 0
 ENABLE_MDC1200                   := 0
 ENABLE_MDC1200_SHOW_OP_ARG       := 1
 ENABLE_MDC1200_SIDE_BEEP         := 1
+#
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 0
 ENABLE_BIG_FREQ                  := 0
@@ -49,9 +50,9 @@ ENABLE_SMALLEST_FONT             := 0
 ENABLE_TRIM_TRAILING_ZEROS       := 0
 ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
-# Freq calibration 188 B
+# Frequency calibration 188 B
 ENABLE_F_CAL_MENU                := 0
-ENABLE_FM_DEV_CAL_MENU           := 1
+ENABLE_FM_DEV_CAL_MENU           := 0
 ENABLE_TX_UNLOCK_MENU            := 0
 #ENABLE_TX_POWER_CAL_MENU        := 0
 ENABLE_TX_POWER_FIX              := 1
@@ -76,8 +77,6 @@ ENABLE_SQUELCH_MORE_SENSITIVE    := 1
 ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1
 ENABLE_FASTER_CHANNEL_SCAN       := 1
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
-# Rx Signal Bar 400 B
-ENABLE_RX_SIGNAL_BAR             := 1
 # Tx Audio Bar 300 B
 ENABLE_TX_AUDIO_BAR              := 0
 # Side Button Menu 300 B
@@ -461,9 +460,6 @@ ifeq ($(ENABLE_FASTER_CHANNEL_SCAN),1)
 endif
 ifeq ($(ENABLE_backlight_ON_RX),1)
 	CFLAGS  += -DENABLE_backlight_ON_RX
-endif
-ifeq ($(ENABLE_RX_SIGNAL_BAR),1)
-	CFLAGS  += -DENABLE_RX_SIGNAL_BAR
 endif
 ifeq ($(ENABLE_TX_AUDIO_BAR),1)
 	CFLAGS  += -DENABLE_TX_AUDIO_BAR

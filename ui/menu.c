@@ -101,9 +101,7 @@ const t_menu_item g_menu_list[] =
 #ifdef ENABLE_TX_AUDIO_BAR
 	{"Tx BAR", VOICE_ID_INVALID,                       MENU_TX_BAR                },
 #endif
-#ifdef ENABLE_RX_SIGNAL_BAR
 	{"Rx BAR", VOICE_ID_INVALID,                       MENU_RX_BAR                },
-#endif
 	{"1 CALL", VOICE_ID_INVALID,                       MENU_1_CALL                },
 	{"SLIST",  VOICE_ID_INVALID,                       MENU_S_LIST                },
 	{"SLIST1", VOICE_ID_INVALID,                       MENU_SLIST1                },
@@ -805,11 +803,9 @@ void UI_DisplayMenu(void)
 				break;
 		#endif
 
-		#ifdef ENABLE_RX_SIGNAL_BAR
-			case MENU_RX_BAR:
-				strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
-				break;
-		#endif
+		case MENU_RX_BAR:
+			strcpy(str, g_sub_menu_off_on[g_sub_menu_selection]);
+			break;
 
 		#ifdef ENABLE_AM_FIX
 //			case MENU_AM_FIX:

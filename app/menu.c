@@ -239,9 +239,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#ifdef ENABLE_TX_AUDIO_BAR
 			case MENU_TX_BAR:
 		#endif
-		#ifdef ENABLE_RX_SIGNAL_BAR
-			case MENU_RX_BAR:
-		#endif
+		case MENU_RX_BAR:
 		case MENU_BUSY_CHAN_LOCK:
 		case MENU_BEEP:
 		#ifdef ENABLE_KEYLOCK
@@ -706,11 +704,9 @@ void MENU_AcceptSetting(void)
 				break;
 		#endif
 
-		#ifdef ENABLE_RX_SIGNAL_BAR
-			case MENU_RX_BAR:
-				g_eeprom.config.setting.enable_rssi_bar = g_sub_menu_selection;
-				break;
-		#endif
+		case MENU_RX_BAR:
+			g_eeprom.config.setting.enable_rssi_bar = g_sub_menu_selection;
+			break;
 
 		case MENU_COMPAND:
 			g_tx_vfo->channel.compand = g_sub_menu_selection;
@@ -1223,11 +1219,9 @@ void MENU_ShowCurrentSetting(void)
 				break;
 		#endif
 
-		#ifdef ENABLE_RX_SIGNAL_BAR
-			case MENU_RX_BAR:
-				g_sub_menu_selection = g_eeprom.config.setting.enable_rssi_bar;
-				break;
-		#endif
+		case MENU_RX_BAR:
+			g_sub_menu_selection = g_eeprom.config.setting.enable_rssi_bar;
+			break;
 
 		case MENU_COMPAND:
 			g_sub_menu_selection = g_tx_vfo->channel.compand;
