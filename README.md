@@ -97,9 +97,9 @@ ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1       long press M, copy channel to VFO, o
 ENABLE_TX_AUDIO_BAR              := 1       enable a menu option for showing a TX audio level bar
 ENABLE_SIDE_BUTT_MENU            := 1       enable menu option for configuring the programmable side buttons
 ENABLE_KEYLOCK                   := 1       enable keylock menu option + keylock code
-ENABLE_PANADAPTER                := 1       centered on the selected VFO RX frequency, only shows if dual-watch is disabled
+ENABLE_PANADAPTER                := 0       centered on the selected VFO RX frequency, only shows if dual-watch is disabled
 ENABLE_PANADAPTER_PEAK_FREQ      := 0       show the peak panadapter frequency
-ENABLE_SINGLE_VFO_CHAN           := 0       not yet complete
+ENABLE_SINGLE_VFO_CHAN           := 1       switch to single VFO display when dual-watch and cross-VFO are disabled
 ```
 
 # New/modified function keys
