@@ -911,16 +911,20 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			}
 
 			y += 2;
-			x = LCD_WIDTH - (7 * 6);
+			x = LCD_WIDTH - (7 * 7);
 
 			{	// audio scramble symbol
 				if (g_vfo_info[vfo_num].channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
 					UI_PrintStringSmall("SCR", x, 0, y);
 			}
 
-			{	// modulation mode
+			{	// bandwidth & modulation mode
+				const char bw_list[]    = "WNn ";
 				const char *mode_list[] = {"FM", "AM", "SB", ""};
-				strcpy(str, mode_list[g_vfo_info[vfo_num].channel.mod_mode]);
+				// wide/narrow band symbol
+				strcpy(str, "  ");
+				str[0] = bw_list[g_vfo_info[vfo_num].channel.channel_bandwidth];
+				strcpy(str + 1, mode_list[g_vfo_info[vfo_num].channel.mod_mode]);
 				UI_PrintStringSmall(str, x + (7 * 4), 0, y);
 			}
 
@@ -973,7 +977,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			x += 7 * 1;
 
 			if (tx_allowed && g_vfo_info[vfo_num].freq_config_rx.frequency != g_vfo_info[vfo_num].freq_config_tx.frequency)
-			{	// TX offset symbol
+			{	// offset symbol
 				const char *dir_list[] = {"", "+", "-"};
 				const unsigned int i = g_vfo_info[vfo_num].channel.tx_offset_dir;
 				UI_PrintStringSmall(dir_list[i], x, 0, y);
@@ -982,27 +986,12 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 
 			if (g_vfo_info[vfo_num].channel.tx_offset_dir != TX_OFFSET_FREQ_DIR_OFF)
 			{	// TX/RX offset
-				const uint32_t ofs = g_vfo_info[vfo_num].channel.tx_offset / 1000;
-				if (ofs < 10 || (ofs % 100))
-				{
-					sprintf(str, "%u.%02u", ofs / 100, ofs % 100);
-					NUMBER_trim_trailing_zeros(str);
-				}
-				else
-					sprintf(str, "%3u", ofs / 100);
+				const uint32_t ofs = g_vfo_info[vfo_num].channel.tx_offset;
+				sprintf(str, "%u.%05u", ofs / 100000, ofs % 100000);
+				NUMBER_trim_trailing_zeros(str);
 				UI_PrintStringSmall(str, x, 0, y);
 			}
-			x += 7 * 5;
-
-			// wide/narrow band symbol
-			strcpy(str, " ");
-			if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_WIDE)
-				str[0] = 'W';
-			else
-			if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_NARROW)
-				str[0] = 'N';
-			UI_PrintStringSmall(str, x, 0, y);
-			x += 7 * 2;
+			x += 7 * 7;
 
 			// DTMF decoding symbol
 			str[0] = 0;
