@@ -2863,7 +2863,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 					if (g_eeprom.config.setting.repeater_tail_tone_elimination == 0)
 						FUNCTION_Select(FUNCTION_FOREGROUND);
 					else
-						g_rtte_count_down = g_eeprom.config.setting.repeater_tail_tone_elimination * 10;
+						g_rtte_count_down  = g_eeprom.config.setting.repeater_tail_tone_elimination * 10;
 
 					if (Key == KEY_PTT)
 						g_ptt_was_pressed  = true;
@@ -3051,8 +3051,8 @@ Skip:
 
 	if (g_update_menu)
 	{
-		g_update_menu = false;
-		g_menu_tick_10ms   = menu_timeout_500ms;
+		g_update_menu    = false;
+		g_menu_tick_10ms = menu_timeout_500ms;
 
 		MENU_ShowCurrentSetting();
 	}

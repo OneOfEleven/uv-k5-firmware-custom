@@ -43,7 +43,7 @@ ENABLE_BIG_FREQ                  := 0
 ENABLE_DTMF_LIVE_DECODER         := 0
 ENABLE_SHOW_FREQS_CHAN           := 0
 # smaa bolf 580 B
-ENABLE_SMALL_BOLD                := 1
+ENABLE_SMALL_BOLD                := 0
 # smallest font 2 kB
 ENABLE_SMALLEST_FONT             := 0
 # trim trailing 44 B
@@ -66,8 +66,10 @@ ENABLE_REVERSE_BAT_SYMBOL        := 0
 ENABLE_FREQ_SEARCH_LNA           := 0
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
-ENABLE_SCAN_IGNORE_LIST          := 1
-ENABLE_SCAN_RANGES               := 1
+# scan ignore list 740 B
+ENABLE_SCAN_IGNORE_LIST          := 0
+# scan ranges 400 B
+ENABLE_SCAN_RANGES               := 0
 # Kill and Revive 400 B
 ENABLE_KILL_REVIVE               := 0
 # AM Fix 800 B
@@ -83,9 +85,10 @@ ENABLE_TX_AUDIO_BAR              := 0
 ENABLE_SIDE_BUTT_MENU            := 0
 # Key Lock 400 B
 ENABLE_KEYLOCK                   := 0
-ENABLE_PANADAPTER                := 0
+# panadapter 1.5kB
+ENABLE_PANADAPTER                := 1
 ENABLE_PANADAPTER_PEAK_FREQ      := 0
-# single VFO 1.4 kB
+# single VFO 1.5kB
 ENABLE_SINGLE_VFO_CHAN           := 1
 
 #############################################################

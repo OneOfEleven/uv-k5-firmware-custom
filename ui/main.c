@@ -642,15 +642,26 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 #ifdef ENABLE_SINGLE_VFO_CHAN
 	void UI_DisplayMainSingle(void)
 	{
-		const int          vfo_num   = g_eeprom.config.setting.tx_vfo_num;
-		const unsigned int scrn_chan = g_eeprom.config.setting.indices.vfo[vfo_num].screen;
-		const unsigned int state     = g_vfo_state[vfo_num];
-		uint8_t           *p_line1   = g_frame_buffer[1];
+		const int          vfo_num    = g_eeprom.config.setting.tx_vfo_num;
+		const unsigned int scrn_chan  = g_eeprom.config.setting.indices.vfo[vfo_num].screen;
+		const unsigned int state      = g_vfo_state[vfo_num];
+		bool               tx_allowed = false;
+		uint8_t           *p_line1    = g_frame_buffer[1];
 		char               str[22];
 
 		#ifdef ENABLE_ALARM
 			if (g_current_function == FUNCTION_TRANSMIT && g_alarm_state == ALARM_STATE_ALARM)
 				state = VFO_STATE_ALARM;
+		#endif
+
+		#ifdef ENABLE_TX_WHEN_AM
+			if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
+				if (FREQUENCY_tx_freq_check(g_vfo_info[vfo_num].p_tx->frequency) == 0)
+					tx_allowed = true;
+		#else
+			if ((state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) && g_vfo_info[vfo_num].channel.mod_mode == MOD_MODE_FM) // TX allowed only when FM
+				if (FREQUENCY_tx_freq_check(g_vfo_info[vfo_num].p_tx->frequency) == 0)
+					tx_allowed = true;
 		#endif
 
 		// ********************
@@ -942,57 +953,63 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 
 			// ***************************************
 
-			x = 2;
+			x = 0;
 			y++;
 
-			#ifdef ENABLE_TX_WHEN_AM
-				if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
-			#else
-				if ((state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) && g_vfo_info[vfo_num].channel.mod_mode == MOD_MODE_FM) // TX allowed only when FM
-			#endif
-			{
-				if (FREQUENCY_tx_freq_check(g_vfo_info[vfo_num].p_tx->frequency) == 0)
-				{	// TX power
-					const char *pwr_list[] = {"LOW", "MID", "HIGH", "U"};
-					const unsigned int i = g_vfo_info[vfo_num].channel.tx_power;
-					strcpy(str, pwr_list[i]);
-					if (i == OUTPUT_POWER_USER)
-						sprintf(str + strlen(str), "%03u", g_tx_vfo->channel.tx_power_user);
-					UI_PrintStringSmall(str, x, 0, y);
+			if (tx_allowed)
+			{	// TX power
+				const char *pwr_list[] = {"LOW", "MID", "HIGH", "U"};
+				const unsigned int i = g_vfo_info[vfo_num].channel.tx_power;
+				strcpy(str, pwr_list[i]);
+				if (i == OUTPUT_POWER_USER)
+					sprintf(str + strlen(str), "%03u", g_tx_vfo->channel.tx_power_user);
+				UI_PrintStringSmall(str, x, 0, y);
+			}
+			x += 7 * 5;
 
-					if (g_vfo_info[vfo_num].freq_config_rx.frequency != g_vfo_info[vfo_num].freq_config_tx.frequency)
-					{	// TX offset symbol
-						const char *dir_list[] = {"", "+", "-"};
-						const unsigned int i = g_vfo_info[vfo_num].channel.tx_offset_dir;
-						UI_PrintStringSmall(dir_list[i], x + (7 * 5), 0, y);
-					}
+			// reverse offset symbol
+			if (g_vfo_info[vfo_num].channel.frequency_reverse)
+				UI_PrintStringSmall("R", x, 0, y);
+			x += 7 * 1;
+
+			if (tx_allowed && g_vfo_info[vfo_num].freq_config_rx.frequency != g_vfo_info[vfo_num].freq_config_tx.frequency)
+			{	// TX offset symbol
+				const char *dir_list[] = {"", "+", "-"};
+				const unsigned int i = g_vfo_info[vfo_num].channel.tx_offset_dir;
+				UI_PrintStringSmall(dir_list[i], x, 0, y);
+			}
+			x += 7 * 1;
+
+			if (g_vfo_info[vfo_num].channel.tx_offset_dir != TX_OFFSET_FREQ_DIR_OFF)
+			{	// TX/RX offset
+				const uint32_t ofs = g_vfo_info[vfo_num].channel.tx_offset / 1000;
+				if (ofs < 10 || (ofs % 100))
+				{
+					sprintf(str, "%u.%02u", ofs / 100, ofs % 100);
+					NUMBER_trim_trailing_zeros(str);
 				}
-			}
-
-			{	// TX/RX reverse symbol
-				x += 7 * 7;
-				if (g_vfo_info[vfo_num].channel.frequency_reverse)
-					UI_PrintStringSmall("R", x, 0, y);
-			}
-
-			{	// wide/narrow band symbol
-				x += 7 * 2;
-				strcpy(str, " ");
-				if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_WIDE)
-					str[0] = 'W';
 				else
-				if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_NARROW)
-					str[0] = 'N';
+					sprintf(str, "%3u", ofs / 100);
 				UI_PrintStringSmall(str, x, 0, y);
 			}
+			x += 7 * 5;
 
-			{	// DTMF decoding symbol
-				str[0] = 0;
-				if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
-					strcpy(str, "DTMF");
-				x += 7 * 2;
-				UI_PrintStringSmall(str, x, 0, y);
-			}
+			// wide/narrow band symbol
+			strcpy(str, " ");
+			if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_WIDE)
+				str[0] = 'W';
+			else
+			if (g_vfo_info[vfo_num].channel.channel_bandwidth == BANDWIDTH_NARROW)
+				str[0] = 'N';
+			UI_PrintStringSmall(str, x, 0, y);
+			x += 7 * 2;
+
+			// DTMF decoding symbol
+			str[0] = 0;
+			if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
+				strcpy(str, "DTMF");
+			UI_PrintStringSmall(str, x, 0, y);
+			//x += 7 * 5;
 		}
 
 		UI_DisplayCenterLine();

@@ -42,28 +42,13 @@ void EEPROM_WriteBuffer8(const uint16_t address, const void *p_buffer)
 	if (p_buffer == NULL || (address + 8) > 0x2000)
 		return;
 
-#if 0
-	// normal way
-
-	I2C_Start();
-	I2C_Write(0xA0);
-	I2C_Write((address >> 8) & 0xFF);
-	I2C_Write((address >> 0) & 0xFF);
-	I2C_WriteBuffer(p_buffer, 8);
-	I2C_Stop();
-
-	// give the EEPROM time to burn the data in (apparently takes 1.5ms ~ 5ms)
-	SYSTEM_DelayMs(6);
-
-#else
+#if 1
 	// eeprom wear reduction
 	// only write the data if it's different to what's already there
-
 	uint8_t buffer[8];
-
 	EEPROM_ReadBuffer(address, buffer, 8);
-
 	if (memcmp(p_buffer, buffer, 8) != 0)
+#endif
 	{
 		I2C_Start();
 		I2C_Write(0xA0);
@@ -75,6 +60,4 @@ void EEPROM_WriteBuffer8(const uint16_t address, const void *p_buffer)
 		// give the EEPROM time to burn the data in (apparently takes 1.5ms ~ 5ms)
 		SYSTEM_DelayMs(6);
 	}
-
-#endif
 }
