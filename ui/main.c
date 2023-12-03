@@ -911,21 +911,20 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			}
 
 			y += 2;
-			x = LCD_WIDTH - (7 * 7);
+			x = LCD_WIDTH - (7 * 6) - 4;
 
-			{	// audio scramble symbol
-				if (g_vfo_info[vfo_num].channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
-					UI_PrintStringSmall("SCR", x, 0, y);
-			}
+			// audio scramble symbol
+			if (g_vfo_info[vfo_num].channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
+				UI_PrintStringSmall("SCR", x, 0, y);
+			x += (7 * 3) + 4;
 
 			{	// bandwidth & modulation mode
-				const char bw_list[]    = "WNn ";
+				const char  bw_list[]   = "WNn ";
 				const char *mode_list[] = {"FM", "AM", "SB", ""};
-				// wide/narrow band symbol
-				strcpy(str, "  ");
 				str[0] = bw_list[g_vfo_info[vfo_num].channel.channel_bandwidth];
 				strcpy(str + 1, mode_list[g_vfo_info[vfo_num].channel.mod_mode]);
-				UI_PrintStringSmall(str, x + (7 * 4), 0, y);
+				UI_PrintStringSmall(str, x, 0, y);
+				//x += 7 * 3;
 			}
 
 			y++;
