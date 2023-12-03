@@ -400,11 +400,9 @@ bool DTMF_Reply(void)
 	switch (g_dtmf_reply_state)
 	{
 		case DTMF_REPLY_ANI:
-			if (g_dtmf_call_mode == DTMF_CALL_MODE_DTMF)
-			{
-				pString = g_dtmf_string;
-			}
-			else
+			pString = g_dtmf_string;
+
+			if (g_dtmf_call_mode != DTMF_CALL_MODE_DTMF)
 			{	// append our ID code onto the end of the DTMF code to send
 				sprintf(str, "%s%c%s", g_dtmf_string, g_eeprom.config.setting.dtmf.separate_code, g_eeprom.config.setting.dtmf.ani_id);
 				pString = str;
