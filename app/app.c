@@ -1201,8 +1201,8 @@ void APP_end_tx(void)
 		#endif
 	}
 
-	// re-enable 300Hz TX HPF
-	BK4819_write_reg(0x2B, BK4819_read_reg(0x2B) & ~(1u << 2));
+	// re-enable TX HPF & LPF
+	BK4819_write_reg(0x2B, BK4819_read_reg(0x2B) & ~(1u << 2) & ~(1u << 1));
 
 	RADIO_setup_registers(false);
 

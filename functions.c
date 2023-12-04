@@ -298,11 +298,11 @@ void FUNCTION_Select(function_type_t Function)
 			// 1of11 .. TEST ONLY
 //			if (g_current_vfo->p_tx->code_type == CODE_TYPE_NONE)
 			{
-//				const uint16_t reg = BK4819_read_reg(0x2B);
-				#if 0
-					BK4819_write_reg(0x2B, reg |  (1u << 2));   // disable the 300Hz TX HPF
-					//BK4819_write_reg(0x2B, reg |  (1u << 1));   // disable the TX LPF
-				#else
+				const uint16_t reg = BK4819_read_reg(0x2B);
+//				#if 0
+//					BK4819_write_reg(0x2B, reg | (1u << 2));   // disable the 300Hz TX HPF
+					BK4819_write_reg(0x2B, reg | (1u << 2) | (1u << 1));   // disable TX LPF & HPF
+//				#else
 //					BK4819_write_reg(0x2B, reg & ~(1u << 2));   //  enable the 300Hz TX HPF
 
 					// TX 300Hz LPF
@@ -320,9 +320,9 @@ void FUNCTION_Select(function_type_t Function)
 					//BK4819_write_reg(0x55, 0x31E7);  //
 					//BK4819_write_reg(0x54, 0x8ED8);  // +3dB
 					//BK4819_write_reg(0x55, 0x3232);  //
-					  BK4819_write_reg(0x54, 0x8D8F);  // +4dB
-					  BK4819_write_reg(0x55, 0x3359);  //
-				#endif
+//					  BK4819_write_reg(0x54, 0x8D8F);  // +4dB
+//					  BK4819_write_reg(0x55, 0x3359);  //
+//				#endif
 
 					// TX 3kHz HPF
 					//BK4819_write_reg(0x74, 64002);  // -1dB
@@ -330,7 +330,7 @@ void FUNCTION_Select(function_type_t Function)
 					//BK4819_write_reg(0x74, 58908);  // +1dB
 					//BK4819_write_reg(0x74, 57122);  // +2dB
 					//BK4819_write_reg(0x74, 54317);  // +3dB
-					  BK4819_write_reg(0x74, 52277);  // +4dB
+//					  BK4819_write_reg(0x74, 52277);  // +4dB
 //				#endif
 			}
 //			else
