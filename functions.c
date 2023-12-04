@@ -137,7 +137,7 @@ void FUNCTION_Select(function_type_t Function)
 				UART_printf("func new receive %u\r\n", g_rx_vfo->freq_config_rx.frequency);
 			#endif
 			break;
-			
+
 		case FUNCTION_RECEIVE:
 			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 				UART_printf("func receive %u\r\n", g_rx_vfo->freq_config_rx.frequency);
@@ -154,13 +154,13 @@ void FUNCTION_Select(function_type_t Function)
 				g_monitor_enabled = false;
 				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 			}
-			
+
 			g_power_save_tick_10ms = g_eeprom.config.setting.battery_save_ratio * 10;
 			g_power_save_expired   = false;
 
 			g_rx_idle_mode = true;
 
-			BK4819_DisableVox();			
+			BK4819_DisableVox();
 			BK4819_Sleep();
 
 			BK4819_set_GPIO_pin(BK4819_GPIO0_PIN28_RX_ENABLE, false);
@@ -178,9 +178,9 @@ void FUNCTION_Select(function_type_t Function)
 			g_tx_timer_tick_500ms = 0;
 			g_tx_timeout_reached  = false;
 			g_flag_end_tx         = false;
-		
+
 			g_rtte_count_down = 0;
-		
+
 			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 				if (g_alarm_state == ALARM_STATE_OFF)
 			#endif
@@ -297,9 +297,46 @@ void FUNCTION_Select(function_type_t Function)
 
 			// 1of11 .. TEST ONLY
 			if (g_current_vfo->p_tx->code_type == CODE_TYPE_NONE)
-				BK4819_write_reg(0x2B, BK4819_read_reg(0x2B) |  (1u << 2));   // disable the 300Hz TX HPF
+			{
+				const uint16_t reg = BK4819_read_reg(0x2B);
+				#if 1
+					BK4819_write_reg(0x2B, reg |  (1u << 2));   // disable the 300Hz TX HPF
+					//BK4819_write_reg(0x2B, reg |  (1u << 1));   // disable the TX LPF
+				#else
+					BK4819_write_reg(0x2B, reg & ~(1u << 2));   //  enable the 300Hz TX HPF
+
+					// TX 300Hz LPF
+					//BK4819_write_reg(0x54, 0x935A);  // -3dB
+					//BK4819_write_reg(0x55, 0x2EFF);  //
+					//BK4819_write_reg(0x54, 0x920B);  // -2dB
+					//BK4819_write_reg(0x55, 0x3010);  //
+					//BK4819_write_reg(0x54, 0x91c1);  // -1dB
+					//BK4819_write_reg(0x55, 0x3040);  //
+					//BK4819_write_reg(0x54, 0x9009);  //  0dB default
+					//BK4819_write_reg(0x55, 0x31A9);  //
+					//BK4819_write_reg(0x54, 0x8F90);  // +1dB
+					//BK4819_write_reg(0x55, 0x31F3);  //
+					//BK4819_write_reg(0x54, 0x8F46);  // +2dB
+					//BK4819_write_reg(0x55, 0x31E7);  //
+					//BK4819_write_reg(0x54, 0x8ED8);  // +3dB
+					//BK4819_write_reg(0x55, 0x3232);  //
+					  BK4819_write_reg(0x54, 0x8D8F);  // +4dB
+					  BK4819_write_reg(0x55, 0x3359);  //
+				#endif
+
+					// TX 3kHz HPF
+					//BK4819_write_reg(0x74, 64002);  // -1dB
+					//BK4819_write_reg(0x74, 62731);  //  0dB default
+					//BK4819_write_reg(0x74, 58908);  // +1dB
+					//BK4819_write_reg(0x74, 57122);  // +2dB
+					//BK4819_write_reg(0x74, 54317);  // +3dB
+					  BK4819_write_reg(0x74, 52277);  // +4dB
+//				#endif
+			}
 			else
+			{
 				BK4819_write_reg(0x2B, BK4819_read_reg(0x2B) & ~(1u << 2));   // enable the 300Hz TX HPF
+			}
 
 			break;
 	}
