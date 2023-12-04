@@ -136,6 +136,41 @@ void BK4819_Init(void)
 	BK4819_write_reg(0x4B, 0x7102);  // AF gains
 	BK4819_write_reg(0x26, 0x13A0);  // ???
 #endif
+
+	#if 0
+	{
+		const uint16_t reg = BK4819_read_reg(0x2B);
+		BK4819_write_reg(0x2B, reg | (1u <<  9));               // disable RX LPF
+		//BK4819_write_reg(0x2B, reg | (1u << 10));               // disable RX HPF
+		//BK4819_write_reg(0x2B, reg | (1u << 10) | (1u << 9));   // disable RX LPF & HPF
+	
+		// RX 300Hz LPF
+		//BK4819_write_reg(0x54, 0x935A);  // -3dB
+		//BK4819_write_reg(0x55, 0x2EFF);  //
+		//BK4819_write_reg(0x54, 0x920B);  // -2dB
+		//BK4819_write_reg(0x55, 0x3010);  //
+		//BK4819_write_reg(0x54, 0x91c1);  // -1dB
+		//BK4819_write_reg(0x55, 0x3040);  //
+		//BK4819_write_reg(0x54, 0x9009);  //  0dB default
+		//BK4819_write_reg(0x55, 0x31A9);  //
+		//BK4819_write_reg(0x54, 0x8F90);  // +1dB
+		//BK4819_write_reg(0x55, 0x31F3);  //
+		//BK4819_write_reg(0x54, 0x8F46);  // +2dB
+		//BK4819_write_reg(0x55, 0x31E7);  //
+		//BK4819_write_reg(0x54, 0x8ED8);  // +3dB
+		//BK4819_write_reg(0x55, 0x3232);  //
+		BK4819_write_reg(0x54, 0x8D8F);  // +4dB
+		BK4819_write_reg(0x55, 0x3359);  //
+	
+		// TX 3kHz HPF
+		//BK4819_write_reg(0x75, 64002);  // -1dB
+		//BK4819_write_reg(0x75, 62731);  //  0dB default
+		//BK4819_write_reg(0x75, 58908);  // +1dB
+		//BK4819_write_reg(0x75, 57122);  // +2dB
+		//BK4819_write_reg(0x75, 54317);  // +3dB
+		BK4819_write_reg(0x75, 52277);  // +4dB
+	}
+	#endif
 }
 
 static uint16_t BK4819_read_16(void)
