@@ -1201,6 +1201,9 @@ void APP_end_tx(void)
 		#endif
 	}
 
+	// re-enable 300Hz TX HPF
+	BK4819_write_reg(0x2B, BK4819_read_reg(0x2B) & ~(1u << 2));
+
 	RADIO_setup_registers(false);
 
 	if (g_monitor_enabled)

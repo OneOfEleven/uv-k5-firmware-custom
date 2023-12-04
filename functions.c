@@ -294,7 +294,13 @@ void FUNCTION_Select(function_type_t Function)
 
 			if (g_eeprom.config.setting.enable_scrambler)
 				BK4819_set_scrambler(g_current_vfo->channel.scrambler);
-			
+
+			// 1of11 .. TEST ONLY
+			if (g_current_vfo->p_tx->code_type == CODE_TYPE_NONE)
+				BK4819_write_reg(0x2B, BK4819_read_reg(0x2B) |  (1u << 2));   // disable the 300Hz TX HPF
+			else
+				BK4819_write_reg(0x2B, BK4819_read_reg(0x2B) & ~(1u << 2));   // enable the 300Hz TX HPF
+
 			break;
 	}
 
