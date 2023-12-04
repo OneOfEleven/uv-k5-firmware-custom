@@ -52,7 +52,7 @@ ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
 # Frequency calibration 188 B
 ENABLE_F_CAL_MENU                := 0
-ENABLE_FM_DEV_CAL_MENU           := 1
+ENABLE_FM_DEV_CAL_MENU           := 0
 ENABLE_TX_UNLOCK_MENU            := 0
 #ENABLE_TX_POWER_CAL_MENU        := 0
 ENABLE_TX_POWER_FIX              := 1
@@ -86,7 +86,7 @@ ENABLE_SIDE_BUTT_MENU            := 0
 # Key Lock 400 B
 ENABLE_KEYLOCK                   := 0
 # panadapter 1.5kB
-ENABLE_PANADAPTER                := 0
+ENABLE_PANADAPTER                := 1
 ENABLE_PANADAPTER_PEAK_FREQ      := 0
 # single VFO 1.5kB
 ENABLE_SINGLE_VFO_CHAN           := 1

@@ -298,9 +298,9 @@ void FUNCTION_Select(function_type_t Function)
 			// 1of11 .. TEST ONLY
 //			if (g_current_vfo->p_tx->code_type == CODE_TYPE_NONE)
 			{
-//				const uint16_t reg = BK4819_read_reg(0x2B);
+				const uint16_t reg = BK4819_read_reg(0x2B);
 //				#if 0
-//					BK4819_write_reg(0x2B, reg | (1u << 1));               // disable TX LPF
+					BK4819_write_reg(0x2B, reg | (1u << 1));               // disable TX LPF
 //					BK4819_write_reg(0x2B, reg | (1u << 2));               // disable TX HPF
 //					BK4819_write_reg(0x2B, reg | (1u << 2) | (1u << 1));   // disable TX LPF & HPF
 //				#else

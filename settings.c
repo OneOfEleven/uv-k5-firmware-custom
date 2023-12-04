@@ -397,10 +397,8 @@ void SETTINGS_read_eeprom(void)
 //	memset(&g_eeprom.calib.unused3, 0xff, sizeof(g_eeprom.calib.unused3));
 
 //	#ifdef ENABLE_FM_DEV_CAL_MENU
-		if (g_eeprom.calib.deviation_narrow < FM_DEV_LIMIT_LOWER_NARROW || g_eeprom.calib.deviation_narrow > FM_DEV_LIMIT_UPPER_NARROW)
-			g_eeprom.calib.deviation_narrow = FM_DEV_LIMIT_DEFAULT_NARROW;
-		if (g_eeprom.calib.deviation_wide < FM_DEV_LIMIT_LOWER_WIDE || g_eeprom.calib.deviation_wide > FM_DEV_LIMIT_UPPER_WIDE)
-			g_eeprom.calib.deviation_wide = FM_DEV_LIMIT_DEFAULT_WIDE;
+		if (g_eeprom.calib.deviation < FM_DEV_LIMIT_LOWER || g_eeprom.calib.deviation > FM_DEV_LIMIT_UPPER)
+			g_eeprom.calib.deviation = FM_DEV_LIMIT_DEFAULT;
 //	#endif
 
 	if (g_eeprom.calib.battery[0] >= 5000)

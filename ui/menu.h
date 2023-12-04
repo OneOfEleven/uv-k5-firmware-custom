@@ -154,8 +154,7 @@ enum
 #endif
 
 #ifdef ENABLE_FM_DEV_CAL_MENU
-	MENU_TX_FM_DEV_CAL_N,  // narrow FM deviation calibration
-	MENU_TX_FM_DEV_CAL_W,  // wide FM deviation calibration
+	MENU_TX_FM_DEV_CAL,  // FM deviation calibration
 #endif
 
 #ifdef ENABLE_F_CAL_MENU

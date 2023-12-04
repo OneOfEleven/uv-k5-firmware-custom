@@ -162,8 +162,7 @@ const t_menu_item g_menu_list[] =
 #endif
 
 #ifdef ENABLE_FM_DEV_CAL_MENU
-	{"FN CAL", VOICE_ID_INVALID,                       MENU_TX_FM_DEV_CAL_N,      }, // narrow FM deviation calibration
-	{"FW CAL", VOICE_ID_INVALID,                       MENU_TX_FM_DEV_CAL_W,      }, // wide FM deviation calibration
+	{"FN CAL", VOICE_ID_INVALID,                       MENU_TX_FM_DEV_CAL,        }, // FM deviation calibration
 #endif
 
 #ifdef ENABLE_F_CAL_MENU
@@ -1239,10 +1238,8 @@ void UI_DisplayMenu(void)
 		#endif
 
 		#ifdef ENABLE_FM_DEV_CAL_MENU
-			case MENU_TX_FM_DEV_CAL_N:		// narrow FM deviation calibration
-			case MENU_TX_FM_DEV_CAL_W:      // wide FM deviation calibration
-				strcpy(str, "FM DEV ");
-				strcat(str, (g_menu_cursor == MENU_TX_FM_DEV_CAL_N) ? "N\n" : "W\n");
+			case MENU_TX_FM_DEV_CAL:
+				strcpy(str, "FM DEV\n");
 				sprintf(str + strlen(str), g_in_sub_menu ? "> %04d" : "%d", g_sub_menu_selection);
 				if (g_current_function == FUNCTION_TRANSMIT)
 					BK4819_set_TX_deviation(g_sub_menu_selection);

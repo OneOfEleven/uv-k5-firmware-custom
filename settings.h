@@ -25,13 +25,9 @@
 #include "frequencies.h"
 
 enum {
-	FM_DEV_LIMIT_LOWER_NARROW   = 1000,
-	FM_DEV_LIMIT_DEFAULT_NARROW = 1350,
-	FM_DEV_LIMIT_UPPER_NARROW   = 1600,
-
-	FM_DEV_LIMIT_LOWER_WIDE     = 1000,
-	FM_DEV_LIMIT_DEFAULT_WIDE   = 1350,
-	FM_DEV_LIMIT_UPPER_WIDE     = 1600
+	FM_DEV_LIMIT_LOWER   = 1000,
+	FM_DEV_LIMIT_DEFAULT = 1350,
+	FM_DEV_LIMIT_UPPER   = 1600
 };
 
 enum mod_mode_e {
@@ -535,11 +531,11 @@ typedef struct {
 	uint16_t vox_threshold_disable[10];             //
 //	#ifdef ENABLE_FM_DEV_CAL_MENU
 		// 1of11
-		uint16_t deviation_narrow;                  //
-		uint16_t deviation_wide;                    //
+		uint16_t deviation;                         //
+		uint8_t  unused1a[2];                       // 0xff's
 //	#else
 //		// QS
-//		uint8_t  unused[4];                         // 0xff's
+//		uint8_t  unused1a[4];                       // 0xff's
 //	#endif
 
 	// 0x1F80

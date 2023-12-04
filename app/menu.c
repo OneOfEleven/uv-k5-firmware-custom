@@ -372,14 +372,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		#endif
 
 		#ifdef ENABLE_FM_DEV_CAL_MENU
-			case MENU_TX_FM_DEV_CAL_N:
-				*pMin = FM_DEV_LIMIT_LOWER_NARROW;
-				*pMax = FM_DEV_LIMIT_UPPER_NARROW;
-				break;
-
-			case MENU_TX_FM_DEV_CAL_W:
-				*pMin = FM_DEV_LIMIT_LOWER_WIDE;
-				*pMax = FM_DEV_LIMIT_UPPER_WIDE;
+			case MENU_TX_FM_DEV_CAL:
+				*pMin = FM_DEV_LIMIT_LOWER;
+				*pMax = FM_DEV_LIMIT_UPPER;
 				break;
 		#endif
 
@@ -919,19 +914,10 @@ void MENU_AcceptSetting(void)
 		#endif
 
 		#ifdef ENABLE_FM_DEV_CAL_MENU
-			case MENU_TX_FM_DEV_CAL_N:
-				g_eeprom.calib.deviation_narrow = g_sub_menu_selection;
+			case MENU_TX_FM_DEV_CAL:
+				g_eeprom.calib.deviation = g_sub_menu_selection;
 				{
-					uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.calib.deviation_narrow) - ((uint8_t *)&g_eeprom));
-					index &= ~7u;
-					EEPROM_WriteBuffer8(index, ((uint8_t *)&g_eeprom) + index);
-				}
-				break;
-
-			case MENU_TX_FM_DEV_CAL_W:
-				g_eeprom.calib.deviation_wide = g_sub_menu_selection;
-				{
-					uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.calib.deviation_wide) - ((uint8_t *)&g_eeprom));
+					uint16_t index = (uint16_t)(((uint8_t *)&g_eeprom.calib.deviation) - ((uint8_t *)&g_eeprom));
 					index &= ~7u;
 					EEPROM_WriteBuffer8(index, ((uint8_t *)&g_eeprom) + index);
 				}
@@ -1416,12 +1402,8 @@ void MENU_ShowCurrentSetting(void)
 		#endif
 
 		#ifdef ENABLE_FM_DEV_CAL_MENU
-			case MENU_TX_FM_DEV_CAL_N:
-				g_sub_menu_selection = g_eeprom.calib.deviation_narrow;
-				break;
-
-			case MENU_TX_FM_DEV_CAL_W:
-				g_sub_menu_selection = g_eeprom.calib.deviation_wide;
+			case MENU_TX_FM_DEV_CAL:
+				g_sub_menu_selection = g_eeprom.calib.deviation;
 				break;
 		#endif
 
@@ -1573,7 +1555,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 	}
 
 	#ifdef ENABLE_FM_DEV_CAL_MENU
-		if (g_menu_cursor == MENU_BAT_CAL || g_menu_cursor == MENU_TX_FM_DEV_CAL_N || g_menu_cursor == MENU_TX_FM_DEV_CAL_W)
+		if (g_menu_cursor == MENU_BAT_CAL || g_menu_cursor == MENU_TX_FM_DEV_CAL)
 	#else
 		if (g_menu_cursor == MENU_BAT_CAL)
 	#endif
@@ -1582,7 +1564,7 @@ static void MENU_Key_0_to_9(key_code_t Key, bool key_pressed, bool key_held)
 
 		#ifdef ENABLE_FM_DEV_CAL_MENU
 			if (g_current_function == FUNCTION_TRANSMIT)
-				if (g_menu_cursor == MENU_TX_FM_DEV_CAL_N || g_menu_cursor == MENU_TX_FM_DEV_CAL_W)
+				if (g_menu_cursor == MENU_TX_FM_DEV_CAL)
 					BK4819_set_TX_deviation(g_sub_menu_selection);
 		#endif
 

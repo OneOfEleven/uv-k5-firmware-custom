@@ -721,42 +721,10 @@ BK4819_filter_bandwidth_t RADIO_set_bandwidth(BK4819_filter_bandwidth_t bandwidt
 			break;
 	}
 
-	#ifdef ENABLE_FM_DEV_CAL_MENU
-		switch (bandwidth)
-		{
-			case BK4819_FILTER_BW_WIDE:
-				if (g_eeprom.calib.deviation_wide < FM_DEV_LIMIT_LOWER_WIDE || g_eeprom.calib.deviation_wide > FM_DEV_LIMIT_UPPER_WIDE)
-					deviation = FM_DEV_LIMIT_DEFAULT_WIDE;
-				else
-					deviation = g_eeprom.calib.deviation_wide;
-				break;
-			case BK4819_FILTER_BW_NARROW:
-				if (g_eeprom.calib.deviation_narrow < FM_DEV_LIMIT_LOWER_NARROW || g_eeprom.calib.deviation_narrow > FM_DEV_LIMIT_UPPER_NARROW)
-					deviation = FM_DEV_LIMIT_DEFAULT_NARROW;
-				else
-					deviation = g_eeprom.calib.deviation_narrow;
-				break;
-			case BK4819_FILTER_BW_NARROWER:
-				if (g_eeprom.calib.deviation_narrow < FM_DEV_LIMIT_LOWER_NARROW || g_eeprom.calib.deviation_narrow > FM_DEV_LIMIT_UPPER_NARROW)
-					deviation = FM_DEV_LIMIT_DEFAULT_NARROW;
-				else
-					deviation = g_eeprom.calib.deviation_narrow;
-				break;
-		}
-	#else
-		switch (bandwidth)
-		{
-			case BK4819_FILTER_BW_WIDE:
-				deviation = g_eeprom.calib.deviation_wide;
-				break;
-			case BK4819_FILTER_BW_NARROW:
-				deviation = g_eeprom.calib.deviation_narrow;
-				break;
-			case BK4819_FILTER_BW_NARROWER:
-				deviation = g_eeprom.calib.deviation_narrow;
-				break;
-		}
-	#endif
+	if (g_eeprom.calib.deviation < FM_DEV_LIMIT_LOWER || g_eeprom.calib.deviation > FM_DEV_LIMIT_UPPER)
+		deviation = FM_DEV_LIMIT_DEFAULT;
+	else
+		deviation = g_eeprom.calib.deviation;
 	BK4819_set_TX_deviation(deviation);
 
 	BK4819_SetFilterBandwidth(bandwidth);
