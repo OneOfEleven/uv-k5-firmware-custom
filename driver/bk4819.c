@@ -1478,8 +1478,7 @@ void BK4819_set_CTCSS_freq(const uint32_t control_word)
 			( 0u <<  9) |     // Auto CDCSS BW Mode           1 = disable   0 = enable
 			( 0u <<  8) |     // Auto CTCSS BW Mode           1 = disable   0 = enable
 			( 0u <<  7) |     // ???
-//			(74u <<  0));     // CTCSS/CDCSS TX gain 1        0 ~ 127
-			(51u <<  0));
+			(51u <<  0));     // CTCSS/CDCSS TX gain 1        0 ~ 127
 	}
 
 	// REG_07 <15:0>
@@ -1524,8 +1523,7 @@ void BK4819_enable_CDCSS_tail(void)
 		( 0u <<  9) |     // Auto CDCSS BW Mode           1 = disable   0 = enable
 		( 0u <<  8) |     // Auto CTCSS BW Mode           1 = disable   0 = enable
 		( 0u <<  7) |     // ???
-//		(74u <<  0));     // CTCSS/CDCSS TX gain 1        0 ~ 127
-		(51u <<  0));
+		(51u <<  0));     // CTCSS/CDCSS TX gain 1        0 ~ 127
 }
 
 void BK4819_enable_CTCSS_tail(void)
@@ -1548,8 +1546,7 @@ void BK4819_enable_CTCSS_tail(void)
 		( 0u <<  9) |     // Auto CDCSS BW Mode           1 = disable   0 = enable
 		( 0u <<  8) |     // Auto CTCSS BW Mode           1 = disable   0 = enable
 		( 0u <<  7) |     // ???
-//		(74u <<  0));     // CTCSS/CDCSS TX gain 1        0 ~ 127
-		(51u <<  0));
+		(51u <<  0));     // CTCSS/CDCSS TX gain 1        0 ~ 127
 }
 
 uint16_t BK4819_GetRSSI(void)
