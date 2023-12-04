@@ -162,7 +162,7 @@ const t_menu_item g_menu_list[] =
 #endif
 
 #ifdef ENABLE_FM_DEV_CAL_MENU
-	{"FN CAL", VOICE_ID_INVALID,                       MENU_TX_FM_DEV_CAL,        }, // FM deviation calibration
+	{"DEVCAL", VOICE_ID_INVALID,                       MENU_TX_FM_DEV_CAL,        }, // FM deviation calibration
 #endif
 
 #ifdef ENABLE_F_CAL_MENU
