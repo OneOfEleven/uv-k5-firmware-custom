@@ -813,7 +813,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 					#else
 
 						#ifdef ENABLE_SHOW_FREQS_CHAN
-							const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
+//							const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
 						#endif
 
 						//sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
@@ -868,39 +868,35 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 				}
 
 				{
+					const bool is_freq_chan       = IS_FREQ_CHANNEL(scrn_chan);
+					const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
+//					const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
+
 					#ifdef ENABLE_SHOW_FREQS_CHAN
-						strcpy(str, "  ");
+						strcpy(str, "      ");
+
+						if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
+							sprintf(str, "%3u", 1 + freq_in_channel);
 
 						#ifdef ENABLE_SCAN_IGNORE_LIST
 							if (FI_freq_ignored(frequency) >= 0)
-								str[0] = 'I';  // frequency is in the ignore list
+								str[4] = 'I';  // frequency is in the ignore list
 						#endif
 
 						if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
-							str[1] = 'C';  // compander is enabled
+							str[5] = 'C';  // compander is enabled
 
-						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 2), 0, y + 1);
+						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 6), 0, y + 1);
 					#else
-						const bool is_freq_chan       = IS_FREQ_CHANNEL(scrn_chan);
-						const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
-//						const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
-
 						strcpy(str, "   ");
+
+						if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
+							str[0] = 'F';  // this VFO frequency is also found in a channel
 
 						#ifdef ENABLE_SCAN_IGNORE_LIST
 							if (FI_freq_ignored(frequency) >= 0)
-								str[0] = 'I';  // frequency is in the ignore list
+								str[1] = 'I';  // frequency is in the ignore list
 						#endif
-
-						if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-						{	// this VFO frequency is also found in a channel
-							str[1] = 'F';
-
-
-							// TODO: show the channel name this frequency is found in
-
-
-						}
 
 						if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
 							str[2] = 'C';  // compander is enabled
@@ -990,13 +986,13 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 				NUMBER_trim_trailing_zeros(str);
 				UI_PrintStringSmall(str, x, 0, y);
 			}
-			x += 7 * 7;
+			//x += 7 * 7;
 
 			// DTMF decoding symbol
 			str[0] = 0;
 			if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
 				strcpy(str, "DTMF");
-			UI_PrintStringSmall(str, x, 0, y);
+			UI_PrintStringSmall(str, LCD_WIDTH - (7 * 4), 0, y);
 			//x += 7 * 5;
 		}
 
