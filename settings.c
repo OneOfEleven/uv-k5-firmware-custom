@@ -231,10 +231,10 @@ void SETTINGS_read_eeprom(void)
 	g_eeprom.config.setting.dtmf.auto_reset_time         = (g_eeprom.config.setting.dtmf.auto_reset_time <= DTMF_HOLD_MAX) ? g_eeprom.config.setting.dtmf.auto_reset_time : (g_eeprom.config.setting.dtmf.auto_reset_time >= DTMF_HOLD_MIN) ? g_eeprom.config.setting.dtmf.auto_reset_time : DTMF_HOLD_MAX;
 #endif
 	g_eeprom.config.setting.dtmf.preload_time            = (g_eeprom.config.setting.dtmf.preload_time            < 3 || g_eeprom.config.setting.dtmf.preload_time            > 99) ? 30 : g_eeprom.config.setting.dtmf.preload_time;
-	g_eeprom.config.setting.dtmf.first_code_persist_time = (g_eeprom.config.setting.dtmf.first_code_persist_time < 8 || g_eeprom.config.setting.dtmf.first_code_persist_time > 20) ? 10 : g_eeprom.config.setting.dtmf.first_code_persist_time;
-	g_eeprom.config.setting.dtmf.hash_code_persist_time  = (g_eeprom.config.setting.dtmf.hash_code_persist_time  < 8 || g_eeprom.config.setting.dtmf.hash_code_persist_time  > 20) ? 10 : g_eeprom.config.setting.dtmf.hash_code_persist_time;
-	g_eeprom.config.setting.dtmf.code_persist_time       = (g_eeprom.config.setting.dtmf.code_persist_time       < 8 || g_eeprom.config.setting.dtmf.code_persist_time       > 20) ? 10 : g_eeprom.config.setting.dtmf.code_persist_time;
-	g_eeprom.config.setting.dtmf.code_interval_time      = (g_eeprom.config.setting.dtmf.code_interval_time      < 8 || g_eeprom.config.setting.dtmf.code_interval_time      > 20) ? 10 : g_eeprom.config.setting.dtmf.code_interval_time;
+	g_eeprom.config.setting.dtmf.first_code_persist_time = (g_eeprom.config.setting.dtmf.first_code_persist_time < 5 || g_eeprom.config.setting.dtmf.first_code_persist_time > 20) ? 10 : g_eeprom.config.setting.dtmf.first_code_persist_time;
+	g_eeprom.config.setting.dtmf.hash_code_persist_time  = (g_eeprom.config.setting.dtmf.hash_code_persist_time  < 5 || g_eeprom.config.setting.dtmf.hash_code_persist_time  > 20) ? 10 : g_eeprom.config.setting.dtmf.hash_code_persist_time;
+	g_eeprom.config.setting.dtmf.code_persist_time       = (g_eeprom.config.setting.dtmf.code_persist_time       < 5 || g_eeprom.config.setting.dtmf.code_persist_time       > 20) ? 10 : g_eeprom.config.setting.dtmf.code_persist_time;
+	g_eeprom.config.setting.dtmf.code_interval_time      = (g_eeprom.config.setting.dtmf.code_interval_time      < 5 || g_eeprom.config.setting.dtmf.code_interval_time      > 20) ? 10 : g_eeprom.config.setting.dtmf.code_interval_time;
 #if 0
 	#ifdef ENABLE_KILL_REVIVE
 		g_eeprom.config.setting.dtmf.permit_remote_kill  = (g_eeprom.config.setting.dtmf.permit_remote_kill <   2) ? g_eeprom.config.setting.dtmf.permit_remote_kill : 0;

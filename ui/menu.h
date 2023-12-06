@@ -108,14 +108,10 @@ enum
 #endif
 #ifdef ENABLE_DTMF_TIMING_SETTINGS
 	MENU_DTMF_PRE,
-//	MENU_DTMF_1ST_PERSIST,
-//	MENU_DTMF_HASH_PERSIST,
-//	MENU_DTMF_PERSIST,
-//	MENU_DTMF_INTERVAL,
-//	g_eeprom.config.setting.dtmf.first_code_persist_time
-//	g_eeprom.config.setting.dtmf.hash_code_persist_time
-//	g_eeprom.config.setting.dtmf.code_persist_time
-//	g_eeprom.config.setting.dtmf.code_interval_time
+	MENU_DTMF_1ST_PERSIST,
+	MENU_DTMF_HASH_PERSIST,
+	MENU_DTMF_PERSIST,
+	MENU_DTMF_INTERVAL,
 #endif
 #ifdef ENABLE_MDC1200
 	MENU_MDC1200_MODE,

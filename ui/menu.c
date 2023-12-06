@@ -127,14 +127,10 @@ const t_menu_item g_menu_list[] =
 #endif
 #ifdef ENABLE_DTMF_TIMING_SETTINGS
 	{"D PRE",  VOICE_ID_INVALID,                       MENU_DTMF_PRE              },
-//	MENU_DTMF_1ST_PERSIST,
-//	MENU_DTMF_HASH_PERSIST,
-//	MENU_DTMF_PERSIST,
-//	MENU_DTMF_INTERVAL,
-//	g_eeprom.config.setting.dtmf.first_code_persist_time
-//	g_eeprom.config.setting.dtmf.hash_code_persist_time
-//	g_eeprom.config.setting.dtmf.code_persist_time
-//	g_eeprom.config.setting.dtmf.code_interval_time
+	{"D1PERS", VOICE_ID_INVALID,                       MENU_DTMF_1ST_PERSIST      },
+	{"DHPERS", VOICE_ID_INVALID,                       MENU_DTMF_HASH_PERSIST     },
+	{"D PER",  VOICE_ID_INVALID,                       MENU_DTMF_PERSIST          },
+	{"D INT",  VOICE_ID_INVALID,                       MENU_DTMF_INTERVAL         },
 #endif
 	{"PonMSG", VOICE_ID_INVALID,                       MENU_PON_MSG               },
 	{"ROGER",  VOICE_ID_INVALID,                       MENU_ROGER_MODE            },
@@ -1085,19 +1081,31 @@ void UI_DisplayMenu(void)
 
 		#ifdef ENABLE_DTMF_TIMING_SETTINGS
 			case MENU_DTMF_PRE:
-				strcpy(str, "DTMF BOT\nDELAY\n");
+			case MENU_DTMF_1ST_PERSIST:
+			case MENU_DTMF_HASH_PERSIST:
+			case MENU_DTMF_PERSIST:
+			case MENU_DTMF_INTERVAL:
+				strcpy(str, "DTMF ");
+				switch (g_menu_cursor)
+				{
+					case MENU_DTMF_PRE:
+						strcat(str, " PRE\n");
+						break;
+					case MENU_DTMF_1ST_PERSIST:
+						strcat(str, "1 CODE\nPERSIST\n");
+						break;
+					case MENU_DTMF_HASH_PERSIST:
+						strcat(str, "#\nPERSIST\n");
+						break;
+					case MENU_DTMF_PERSIST:
+						strcat(str, "CODE\nPERSIST\n");
+						break;
+					case MENU_DTMF_INTERVAL:
+						strcat(str, "CODE\nINTERVAL\n");
+						break;
+				}
 				sprintf(str + strlen(str), "%dms", 10 * g_sub_menu_selection);
 				break;
-
-//	MENU_DTMF_1ST_PERSIST,
-//	MENU_DTMF_HASH_PERSIST,
-//	MENU_DTMF_PERSIST,
-//	MENU_DTMF_INTERVAL,
-
-//	g_eeprom.config.setting.dtmf.first_code_persist_time
-//	g_eeprom.config.setting.dtmf.hash_code_persist_time
-//	g_eeprom.config.setting.dtmf.code_persist_time
-//	g_eeprom.config.setting.dtmf.code_interval_time
 		#endif
 
 		#ifdef ENABLE_MDC1200
