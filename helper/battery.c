@@ -83,26 +83,18 @@ void BATTERY_GetReadings(const bool bDisplayBatteryLevel)
 {
 	const uint8_t  PreviousBatteryLevel = g_battery_display_level;
 	const uint16_t Voltage              = (g_battery_voltages[0] + g_battery_voltages[1] + g_battery_voltages[2] + g_battery_voltages[3]) / 4;
+	unsigned int   i;
 
 	g_battery_display_level = 0;
 
-	if (g_eeprom.calib.battery[5] < Voltage)
-		g_battery_display_level = 6;
-	else
-	if (g_eeprom.calib.battery[4] < Voltage)
-		g_battery_display_level = 5;
-	else
-	if (g_eeprom.calib.battery[3] < Voltage)
-		g_battery_display_level = 4;
-	else
-	if (g_eeprom.calib.battery[2] < Voltage)
-		g_battery_display_level = 3;
-	else
-	if (g_eeprom.calib.battery[1] < Voltage)
-		g_battery_display_level = 2;
-	else
-	if (g_eeprom.calib.battery[0] < Voltage)
-		g_battery_display_level = 1;
+	for (i = ARRAY_SIZE(g_eeprom.calib.battery); i > 0; i--)
+	{
+		if (g_eeprom.calib.battery[i - 1] < Voltage)
+		{
+			g_battery_display_level = i;
+			break;
+		}
+	}
 
 	g_battery_voltage_average = (Voltage * 760) / g_eeprom.calib.battery[3];
 

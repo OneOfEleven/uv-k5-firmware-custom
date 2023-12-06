@@ -96,6 +96,7 @@ ENABLE_SQ_OPEN_WITH_UP_DN_BUTTS  := 1       open the squelch when holding down U
 ENABLE_FASTER_CHANNEL_SCAN       := 1       increase the channel scan speed, but also make the squelch more twitchy
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1       long press M, copy channel to VFO, or VFO to channel
 ENABLE_TX_AUDIO_BAR              := 0       enable a menu option for showing a TX audio level bar
+ENABLE_TX_AUDIO_BACKLIGHT        := 0       backlight will follow TX audio level
 ENABLE_SIDE_BUTT_MENU            := 0       enable menu option for configuring the programmable side buttons
 ENABLE_KEYLOCK                   := 0       enable keylock menu option + keylock code
 ENABLE_PANADAPTER                := 1       centered on the selected VFO RX frequency, only shows if dual-watch is disabled

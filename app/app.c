@@ -205,7 +205,7 @@ static void APP_process_new_receive(void)
 		{
 			FUNCTION_Select(FUNCTION_FOREGROUND);
 			g_update_display = true;
-//			g_update_status  = true;
+			//g_update_status  = true;
 		}
 
 		return;
@@ -215,7 +215,7 @@ static void APP_process_new_receive(void)
 	{
 		case MOD_MODE_FM:
 		case MOD_MODE_AM:
-			BK4819_set_AFC(2);
+			BK4819_set_AFC(3);
 			break;
 		default:
 		case MOD_MODE_DSB:
@@ -238,14 +238,17 @@ static void APP_process_new_receive(void)
 		g_found_ctcss = false;
 		flag          = true;
 	}
-
+	
 	if (g_cdcss_lost && g_cdcss_code_type == CDCSS_POSITIVE_CODE && (g_current_code_type == CODE_TYPE_DIGITAL || g_current_code_type == CODE_TYPE_REVERSE_DIGITAL))
 	{
 		g_found_cdcss = false;
 	}
 	else
-	if (!flag)
+//	if (!flag)
+	if (!flag && !g_monitor_enabled)  // 1of11
+	{
 		return;
+	}
 
 	if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
 	{	// not scanning
@@ -328,32 +331,23 @@ static void APP_process_rx(void)
 		goto Skip;
 	}
 
-	switch (g_current_code_type)
+	if (g_found_ctcss_tick_10ms == 0)
 	{
-		default:
-		case CODE_TYPE_NONE:
-			break;
+		if (g_current_code_type == CODE_TYPE_CONTINUOUS_TONE && g_found_ctcss)
+		{
+			g_found_ctcss = false;
+			g_found_cdcss = false;
+			Mode          = END_OF_RX_MODE_END;
+			goto Skip;
+		}
 
-		case CODE_TYPE_CONTINUOUS_TONE:
-			if (g_found_ctcss && g_found_ctcss_tick_10ms == 0)
-			{
-				g_found_ctcss = false;
-				g_found_cdcss = false;
-				Mode          = END_OF_RX_MODE_END;
-				goto Skip;
-			}
-			break;
-
-		case CODE_TYPE_DIGITAL:
-		case CODE_TYPE_REVERSE_DIGITAL:
-			if (g_found_cdcss && g_found_cdcss_tick_10ms == 0)
-			{
-				g_found_ctcss = false;
-				g_found_cdcss = false;
-				Mode          = END_OF_RX_MODE_END;
-				goto Skip;
-			}
-			break;
+		if ((g_current_code_type == CODE_TYPE_DIGITAL || CODE_TYPE_REVERSE_DIGITAL) && g_found_cdcss)
+		{
+			g_found_ctcss = false;
+			g_found_cdcss = false;
+			Mode          = END_OF_RX_MODE_END;
+			goto Skip;
+		}
 	}
 
 	if (g_squelch_open || g_monitor_enabled)
@@ -516,7 +510,7 @@ bool APP_start_listening(void)
 	{
 		case MOD_MODE_FM:
 		case MOD_MODE_AM:
-			BK4819_set_AFC(2);   // enable a bit
+			BK4819_set_AFC(3);   // enable a bit
 			break;
 		default:
 		case MOD_MODE_DSB:
@@ -980,6 +974,12 @@ void APP_process_radio_interrupts(void)
 				g_update_display = true;
 			}
 		}
+
+//		#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
+//			if (((reg_c >> 12) & 3u) > 0)
+//			{	// phase shift detected
+//			}
+//		#endif
 
 		if ((reg_c & (1u << 0)) == 0)
 			break;       // no interrupt flags
@@ -1865,7 +1865,30 @@ void APP_process_functions(void)
 
 		case FUNCTION_TRANSMIT:
 			if (g_eeprom.config.setting.backlight_on_tx_rx == 1 || g_eeprom.config.setting.backlight_on_tx_rx == 3)
-				BACKLIGHT_turn_on(backlight_tx_rx_time_secs);
+			{
+				#ifdef ENABLE_TX_AUDIO_BACKLIGHT
+					static unsigned int hold_10ms = 0;
+					uint32_t level = BK4819_GetVoiceAmplitudeOut();  // 15:0
+					level *= 128;
+					level = NUMBER_isqrt((level < 65535) ? level : 65535);
+					level = (level * BACKLIGHT_MAX_BRIGHTNESS) / 255;  // 0 ~ BACKLIGHT_MAX_BRIGHTNESS
+					level = (BACKLIGHT_MAX_BRIGHTNESS / 4) + ((level * 3) / 4);  // 25% ~ 100% 
+					if (g_backlight_tick_10ms > BACKLIGHT_MAX_BRIGHTNESS || g_backlight_tick_10ms <= level)
+					{
+						g_backlight_tick_10ms = level;
+						hold_10ms = 20;
+					}
+					else
+					if (hold_10ms > 0)
+						hold_10ms--;
+					else
+					if (g_backlight_tick_10ms > 0)
+						g_backlight_tick_10ms--;
+					BACKLIGHT_set_brightness(g_backlight_tick_10ms);
+				#else
+					BACKLIGHT_turn_on(backlight_tx_rx_time_secs);
+				#endif
+			}
 			break;
 
 		case FUNCTION_NEW_RECEIVE:
@@ -2387,6 +2410,8 @@ void APP_time_slice_10ms(void)
 	if (g_backlight_tick_10ms > 0 &&
 	   !g_ask_to_save &&
 	    g_css_scan_mode == CSS_SCAN_MODE_OFF &&
+	    ((g_eeprom.config.setting.backlight_on_tx_rx != 1 && g_eeprom.config.setting.backlight_on_tx_rx != 3) || g_current_function != FUNCTION_TRANSMIT) &&
+//	    g_current_function != FUNCTION_TRANSMIT &&
 	    g_current_display_screen != DISPLAY_AIRCOPY)
 	{	// don't turn off backlight if user is in backlight menu option
 		if (g_current_display_screen != DISPLAY_MENU || g_menu_cursor != MENU_AUTO_BACKLITE)

@@ -127,8 +127,8 @@ const t_menu_item g_menu_list[] =
 #endif
 #ifdef ENABLE_DTMF_TIMING_SETTINGS
 	{"D PRE",  VOICE_ID_INVALID,                       MENU_DTMF_PRE              },
-	{"D1PERS", VOICE_ID_INVALID,                       MENU_DTMF_1ST_PERSIST      },
-	{"DHPERS", VOICE_ID_INVALID,                       MENU_DTMF_HASH_PERSIST     },
+	{"D 1PER", VOICE_ID_INVALID,                       MENU_DTMF_1ST_PERSIST      },
+	{"D HPER", VOICE_ID_INVALID,                       MENU_DTMF_HASH_PERSIST     },
 	{"D PER",  VOICE_ID_INVALID,                       MENU_DTMF_PERSIST          },
 	{"D INT",  VOICE_ID_INVALID,                       MENU_DTMF_INTERVAL         },
 #endif
@@ -1089,10 +1089,10 @@ void UI_DisplayMenu(void)
 				switch (g_menu_cursor)
 				{
 					case MENU_DTMF_PRE:
-						strcat(str, " PRE\n");
+						strcat(str, "BOT\nDELAY\n");
 						break;
 					case MENU_DTMF_1ST_PERSIST:
-						strcat(str, "1 CODE\nPERSIST\n");
+						strcat(str, "1CODE\nPERSIST\n");
 						break;
 					case MENU_DTMF_HASH_PERSIST:
 						strcat(str, "#\nPERSIST\n");

@@ -43,7 +43,7 @@ ENABLE_BIG_FREQ                  := 0
 ENABLE_DTMF_LIVE_DECODER         := 0
 ENABLE_DTMF_TIMING_SETTINGS      := 0
 ENABLE_SHOW_FREQ_IN_CHAN         := 1
-# smaa bolf 580 B
+# smaa bold 580 B
 ENABLE_SMALL_BOLD                := 0
 # smallest font 2 kB
 ENABLE_SMALLEST_FONT             := 0
@@ -82,6 +82,7 @@ ENABLE_FASTER_CHANNEL_SCAN       := 1
 ENABLE_COPY_CHAN_TO_VFO_TO_CHAN  := 1
 # Tx Audio Bar 300 B
 ENABLE_TX_AUDIO_BAR              := 0
+ENABLE_TX_AUDIO_BACKLIGHT        := 0
 # Side Button Menu 300 B
 ENABLE_SIDE_BUTT_MENU            := 0
 # Key Lock 400 B
@@ -470,6 +471,9 @@ ifeq ($(ENABLE_backlight_ON_RX),1)
 endif
 ifeq ($(ENABLE_TX_AUDIO_BAR),1)
 	CFLAGS  += -DENABLE_TX_AUDIO_BAR
+endif
+ifeq ($(ENABLE_TX_AUDIO_BACKLIGHT),1)
+	CFLAGS  += -DENABLE_TX_AUDIO_BACKLIGHT
 endif
 ifeq ($(ENABLE_COPY_CHAN_TO_VFO_TO_CHAN),1)
 	CFLAGS  += -DENABLE_COPY_CHAN_TO_VFO_TO_CHAN
