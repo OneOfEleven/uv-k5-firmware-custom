@@ -649,6 +649,11 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 		uint8_t           *p_line1    = g_frame_buffer[1];
 		char               str[22];
 
+		#ifdef ENABLE_SHOW_FREQ_IN_CHAN
+			const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
+			//const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
+		#endif
+
 		#ifdef ENABLE_ALARM
 			if (g_current_function == FUNCTION_TRANSMIT && g_alarm_state == ALARM_STATE_ALARM)
 				state = VFO_STATE_ALARM;
@@ -812,41 +817,28 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 						big_freq(frequency, x, y);
 					#else
 
-						#ifdef ENABLE_SHOW_FREQS_CHAN
-//							const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
-						#endif
-
 						//sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
 						sprintf(str, "%u.%05u", frequency / 100000, frequency % 100000);
 						#ifdef ENABLE_TRIM_TRAILING_ZEROS
 							NUMBER_trim_trailing_zeros(str);
 						#endif
-/*
-						#ifdef ENABLE_SHOW_FREQS_CHAN
-							//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
-							if (chan <= USER_CHANNEL_LAST)
-							{	// the frequency has a channel - show the channel name below the frequency
 
-								// frequency
-								#ifdef ENABLE_SMALL_BOLD
-									UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
-								#else
-									UI_PrintStringSmall(str, x + 4, 0, y);
-								#endif
+						#ifdef ENABLE_SHOW_FREQ_IN_CHAN
+							UI_PrintString(str, x, 0, y, 8);
 
-								// channel name, if not then channel number
-								SETTINGS_fetch_channel_name(str, chan);
+							if (IS_FREQ_CHANNEL(scrn_chan) && freq_in_channel <= USER_CHANNEL_LAST)
+							{
+								SETTINGS_fetch_channel_name(str, freq_in_channel);
 								if (str[0] == 0)
-									//sprintf(str, "CH-%03u", 1 + chan);
-									sprintf(str, "CH-%u", 1 + chan);
-								UI_PrintStringSmall(str, x + 4, 0, y + 1);
+									//sprintf(str, "CH-%03u", 1 + freq_in_channel);
+									sprintf(str, "CH-%u", 1 + freq_in_channel);
+								//UI_PrintString(str, x, 0, y + 2, 8);
+								UI_PrintStringSmall(str, x, 0, y + 2);
 							}
-							else
-						#endif
-*/						{	// show the frequency in the main font
-//							UI_PrintString(str, x, 0, y, 8);
+						#else
 							UI_PrintString(str, x, 0, y + 1, 8);
-						}
+						#endif
+
 					#endif
 				}
 
@@ -868,41 +860,22 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 				}
 
 				{
-					const bool is_freq_chan       = IS_FREQ_CHANNEL(scrn_chan);
-					const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
-//					const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
-
-					#ifdef ENABLE_SHOW_FREQS_CHAN
-						strcpy(str, "      ");
-
-						if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-							sprintf(str, "%3u", 1 + freq_in_channel);
-
-						#ifdef ENABLE_SCAN_IGNORE_LIST
-							if (FI_freq_ignored(frequency) >= 0)
-								str[4] = 'I';  // frequency is in the ignore list
-						#endif
-
-						if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
-							str[5] = 'C';  // compander is enabled
-
-						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 6), 0, y + 1);
-					#else
-						strcpy(str, "   ");
-
-						if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
+					strcpy(str, "   ");
+/*
+					#ifdef ENABLE_SHOW_FREQ_IN_CHAN
+						if (IS_FREQ_CHANNEL(scrn_chan) && freq_in_channel <= USER_CHANNEL_LAST)
 							str[0] = 'F';  // this VFO frequency is also found in a channel
-
-						#ifdef ENABLE_SCAN_IGNORE_LIST
-							if (FI_freq_ignored(frequency) >= 0)
-								str[1] = 'I';  // frequency is in the ignore list
-						#endif
-
-						if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
-							str[2] = 'C';  // compander is enabled
-
-						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, y + 1);
 					#endif
+*/
+					#ifdef ENABLE_SCAN_IGNORE_LIST
+						if (FI_freq_ignored(frequency) >= 0)
+							str[1] = 'I';  // frequency is in the ignore list
+					#endif
+
+					if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
+						str[2] = 'C';  // compander is enabled
+
+					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, y + 1);
 				}
 			}
 
@@ -1326,9 +1299,9 @@ void UI_DisplayMain(void)
 
 								// name
 								#ifdef ENABLE_SMALL_BOLD
-									UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
+									UI_PrintStringSmallBold(str, x + 4, 0, line);
 								#else
-									UI_PrintStringSmall(str, x + 4, 0, line + 0);
+									UI_PrintStringSmall(str, x + 4, 0, line);
 								#endif
 
 								// frequency
@@ -1350,40 +1323,39 @@ void UI_DisplayMain(void)
 						big_freq(frequency, x, line);
 					#else
 
-						#ifdef ENABLE_SHOW_FREQS_CHAN
-							const unsigned int chan = g_vfo_info[vfo_num].freq_in_channel;
-						#endif
-
 //						sprintf(str, "%03u.%05u", frequency / 100000, frequency % 100000);
 						sprintf(str, "%u.%05u", frequency / 100000, frequency % 100000);
 						#ifdef ENABLE_TRIM_TRAILING_ZEROS
 							NUMBER_trim_trailing_zeros(str);
 						#endif
 
-						#ifdef ENABLE_SHOW_FREQS_CHAN
+						#ifdef ENABLE_SHOW_FREQ_IN_CHAN
+						{
 							//g_vfo_info[vfo_num].freq_in_channel = SETTINGS_find_channel(frequency);
-							if (chan <= USER_CHANNEL_LAST)
+							const unsigned int freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
+
+							if (freq_in_channel <= USER_CHANNEL_LAST)
 							{	// the frequency has a channel - show the channel name below the frequency
 
-								// frequency
 								#ifdef ENABLE_SMALL_BOLD
-									UI_PrintStringSmallBold(str, x + 4, 0, line + 0);
+									UI_PrintStringSmallBold(str, x, 0, line);
 								#else
-									UI_PrintStringSmall(str, x + 4, 0, line + 0);
+									UI_PrintStringSmall(str, x, 0, line);
 								#endif
 
 								// channel name, if not then channel number
-								SETTINGS_fetch_channel_name(str, chan);
+								SETTINGS_fetch_channel_name(str, freq_in_channel);
 								if (str[0] == 0)
-//									sprintf(str, "CH-%03u", 1 + chan);
-									sprintf(str, "CH-%u", 1 + chan);
-								UI_PrintStringSmall(str, x + 4, 0, line + 1);
+									//sprintf(str, "CH-%03u", 1 + freq_in_channel);
+									sprintf(str, "CH-%u", 1 + freq_in_channel);
+								UI_PrintStringSmall(str, x, 0, line + 1);
 							}
 							else
-						#endif
-						{	// show the frequency in the main font
-							UI_PrintString(str, x, 0, line, 8);
+								UI_PrintString(str, x, 0, line, 8);
 						}
+						#else
+							UI_PrintString(str, x, 0, line, 8);
+						#endif
 
 					#endif
 				}
@@ -1430,38 +1402,27 @@ void UI_DisplayMain(void)
 				}
 				#else
 				{
-					#ifdef ENABLE_SHOW_FREQS_CHAN
-						strcpy(str, "  ");
-
-						#ifdef ENABLE_SCAN_IGNORE_LIST
-							if (FI_freq_ignored(frequency) >= 0)
-								str[0] = 'I';  // frequency is in the ignore list
-						#endif
-
-						if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
-							str[1] = 'C';  // compander is enabled
-
-						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 2), 0, line + 1);
-					#else
-						const bool is_freq_chan       = IS_FREQ_CHANNEL(scrn_chan);
-						const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
-//						const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
-
-						strcpy(str, "   ");
-
-						#ifdef ENABLE_SCAN_IGNORE_LIST
-							if (FI_freq_ignored(frequency) >= 0)
-								str[0] = 'I';  // frequency is in the ignore list
-						#endif
-
-						if (is_freq_chan && freq_in_channel <= USER_CHANNEL_LAST)
-							str[1] = 'F';  // this VFO frequency is also found in a channel
-
-						if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
-							str[2] = 'C';  // compander is enabled
-
-						UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
+					strcpy(str, "   ");
+/*
+					#ifdef ENABLE_SHOW_FREQ_IN_CHAN
+						if (IS_FREQ_CHANNEL(scrn_chan))
+						{
+							const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
+							//const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
+							if (freq_in_channel <= USER_CHANNEL_LAST)
+								str[0] = 'F';  // this VFO frequency is also found in a channel
+						}
 					#endif
+*/
+					#ifdef ENABLE_SCAN_IGNORE_LIST
+						if (FI_freq_ignored(frequency) >= 0)
+							str[1] = 'I';  // frequency is in the ignore list
+					#endif
+
+					if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
+						str[2] = 'C';  // compander is enabled
+
+					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, line + 1);
 				}
 				#endif
 			}

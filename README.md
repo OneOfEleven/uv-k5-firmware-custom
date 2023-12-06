@@ -65,7 +65,8 @@ ENABLE_PWRON_PASSWORD            := 0       include power-on password code
 ENABLE_RESET_AES_KEY             := 1       '1' = reset/clear the AES key stored in the eeprom (only if it's set)
 ENABLE_BIG_FREQ                  := 0       big font frequencies (like original QS firmware)
 ENABLE_DTMF_LIVE_DECODER         := 0       enable the live DTMF display/decoder .. adds a menu option
-ENABLE_SHOW_FREQS_CHAN           := 0       show the channel name under the frequency if the frequency is found in a channel
+ENABLE_DTMF_TIMING_SETTINGS      := 0       enable the DTMF timing settings in the menu
+ENABLE_SHOW_FREQ_IN_CHAN         := 0       indicate if frequency found in a channel
 ENABLE_SMALL_BOLD                := 0       bold channel name/no. (when name + freq channel display mode)
 ENABLE_TRIM_TRAILING_ZEROS       := 0       trim away any trailing zeros on frequencies
 ENABLE_WIDE_RX                   := 1       full 18MHz to 1300MHz RX (though front-end/PA not designed for full range)

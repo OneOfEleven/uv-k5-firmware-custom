@@ -229,11 +229,13 @@ void SETTINGS_read_eeprom(void)
 	g_eeprom.config.setting.dtmf.group_call_code         = DTMF_ValidateCodes((char *)(&g_eeprom.config.setting.dtmf.group_call_code), 1) ? g_eeprom.config.setting.dtmf.group_call_code : '#';
 	g_eeprom.config.setting.dtmf.decode_response         = (g_eeprom.config.setting.dtmf.decode_response < 4) ? g_eeprom.config.setting.dtmf.decode_response : DTMF_DEC_RESPONSE_RING;
 	g_eeprom.config.setting.dtmf.auto_reset_time         = (g_eeprom.config.setting.dtmf.auto_reset_time <= DTMF_HOLD_MAX) ? g_eeprom.config.setting.dtmf.auto_reset_time : (g_eeprom.config.setting.dtmf.auto_reset_time >= DTMF_HOLD_MIN) ? g_eeprom.config.setting.dtmf.auto_reset_time : DTMF_HOLD_MAX;
-	g_eeprom.config.setting.dtmf.preload_time            = (g_eeprom.config.setting.dtmf.preload_time < 10) ? g_eeprom.config.setting.dtmf.preload_time : 20;
-	g_eeprom.config.setting.dtmf.first_code_persist_time = (g_eeprom.config.setting.dtmf.first_code_persist_time < 10) ? g_eeprom.config.setting.dtmf.first_code_persist_time : 7;
-	g_eeprom.config.setting.dtmf.hash_code_persist_time  = (g_eeprom.config.setting.dtmf.hash_code_persist_time < 10) ? g_eeprom.config.setting.dtmf.hash_code_persist_time : 7;
-	g_eeprom.config.setting.dtmf.code_persist_time       = (g_eeprom.config.setting.dtmf.code_persist_time < 10) ? g_eeprom.config.setting.dtmf.code_persist_time : 7;
-	g_eeprom.config.setting.dtmf.code_interval_time      = (g_eeprom.config.setting.dtmf.code_interval_time < 10) ? g_eeprom.config.setting.dtmf.code_interval_time : 7;
+#endif
+	g_eeprom.config.setting.dtmf.preload_time            = (g_eeprom.config.setting.dtmf.preload_time            < 3 || g_eeprom.config.setting.dtmf.preload_time            > 99) ? 30 : g_eeprom.config.setting.dtmf.preload_time;
+	g_eeprom.config.setting.dtmf.first_code_persist_time = (g_eeprom.config.setting.dtmf.first_code_persist_time < 8 || g_eeprom.config.setting.dtmf.first_code_persist_time > 20) ? 10 : g_eeprom.config.setting.dtmf.first_code_persist_time;
+	g_eeprom.config.setting.dtmf.hash_code_persist_time  = (g_eeprom.config.setting.dtmf.hash_code_persist_time  < 8 || g_eeprom.config.setting.dtmf.hash_code_persist_time  > 20) ? 10 : g_eeprom.config.setting.dtmf.hash_code_persist_time;
+	g_eeprom.config.setting.dtmf.code_persist_time       = (g_eeprom.config.setting.dtmf.code_persist_time       < 8 || g_eeprom.config.setting.dtmf.code_persist_time       > 20) ? 10 : g_eeprom.config.setting.dtmf.code_persist_time;
+	g_eeprom.config.setting.dtmf.code_interval_time      = (g_eeprom.config.setting.dtmf.code_interval_time      < 8 || g_eeprom.config.setting.dtmf.code_interval_time      > 20) ? 10 : g_eeprom.config.setting.dtmf.code_interval_time;
+#if 0
 	#ifdef ENABLE_KILL_REVIVE
 		g_eeprom.config.setting.dtmf.permit_remote_kill  = (g_eeprom.config.setting.dtmf.permit_remote_kill <   2) ? g_eeprom.config.setting.dtmf.permit_remote_kill : 0;
 	#else

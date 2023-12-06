@@ -120,11 +120,21 @@ const t_menu_item g_menu_list[] =
 	{"D ST",   VOICE_ID_INVALID,                       MENU_DTMF_ST               },
     {"D RSP",  VOICE_ID_INVALID,                       MENU_DTMF_RSP              },
 	{"D HOLD", VOICE_ID_INVALID,                       MENU_DTMF_HOLD             },
-	{"D PRE",  VOICE_ID_INVALID,                       MENU_DTMF_PRE              },
 	{"D DCD",  VOICE_ID_INVALID,                       MENU_DTMF_DCD              },
 	{"D LIST", VOICE_ID_INVALID,                       MENU_DTMF_LIST             },
 #ifdef ENABLE_DTMF_LIVE_DECODER
 	{"D LIVE", VOICE_ID_INVALID,                       MENU_DTMF_LIVE_DEC         }, // live DTMF decoder
+#endif
+#ifdef ENABLE_DTMF_TIMING_SETTINGS
+	{"D PRE",  VOICE_ID_INVALID,                       MENU_DTMF_PRE              },
+//	MENU_DTMF_1ST_PERSIST,
+//	MENU_DTMF_HASH_PERSIST,
+//	MENU_DTMF_PERSIST,
+//	MENU_DTMF_INTERVAL,
+//	g_eeprom.config.setting.dtmf.first_code_persist_time
+//	g_eeprom.config.setting.dtmf.hash_code_persist_time
+//	g_eeprom.config.setting.dtmf.code_persist_time
+//	g_eeprom.config.setting.dtmf.code_interval_time
 #endif
 	{"PonMSG", VOICE_ID_INVALID,                       MENU_PON_MSG               },
 	{"ROGER",  VOICE_ID_INVALID,                       MENU_ROGER_MODE            },
@@ -1073,10 +1083,22 @@ void UI_DisplayMenu(void)
 
 			break;
 
-		case MENU_DTMF_PRE:
-			strcpy(str, "DTMF BOT\nDELAY\n");
-			sprintf(str + strlen(str), "%dms", 10 * g_sub_menu_selection);
-			break;
+		#ifdef ENABLE_DTMF_TIMING_SETTINGS
+			case MENU_DTMF_PRE:
+				strcpy(str, "DTMF BOT\nDELAY\n");
+				sprintf(str + strlen(str), "%dms", 10 * g_sub_menu_selection);
+				break;
+
+//	MENU_DTMF_1ST_PERSIST,
+//	MENU_DTMF_HASH_PERSIST,
+//	MENU_DTMF_PERSIST,
+//	MENU_DTMF_INTERVAL,
+
+//	g_eeprom.config.setting.dtmf.first_code_persist_time
+//	g_eeprom.config.setting.dtmf.hash_code_persist_time
+//	g_eeprom.config.setting.dtmf.code_persist_time
+//	g_eeprom.config.setting.dtmf.code_interval_time
+		#endif
 
 		#ifdef ENABLE_MDC1200
 			case MENU_MDC1200_MODE:

@@ -354,10 +354,22 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = DTMF_HOLD_MAX;
 			break;
 
-		case MENU_DTMF_PRE:
-			*pMin = 3;
-			*pMax = 99;
-			break;
+		#ifdef ENABLE_DTMF_TIMING_SETTINGS
+			case MENU_DTMF_PRE:
+				*pMin = 3;
+				*pMax = 99;
+				break;
+
+//	MENU_DTMF_1ST_PERSIST,
+//	MENU_DTMF_HASH_PERSIST,
+//	MENU_DTMF_PERSIST,
+//	MENU_DTMF_INTERVAL,
+
+//	g_eeprom.config.setting.dtmf.first_code_persist_time = (g_eeprom.config.setting.dtmf.first_code_persist_time < 8 || g_eeprom.config.setting.dtmf.first_code_persist_time > 20) ? 10 : g_eeprom.config.setting.dtmf.first_code_persist_time;
+//	g_eeprom.config.setting.dtmf.hash_code_persist_time  = (g_eeprom.config.setting.dtmf.hash_code_persist_time  < 8 || g_eeprom.config.setting.dtmf.hash_code_persist_time  > 20) ? 10 : g_eeprom.config.setting.dtmf.hash_code_persist_time;
+//	g_eeprom.config.setting.dtmf.code_persist_time       = (g_eeprom.config.setting.dtmf.code_persist_time       < 8 || g_eeprom.config.setting.dtmf.code_persist_time       > 20) ? 10 : g_eeprom.config.setting.dtmf.code_persist_time;
+//	g_eeprom.config.setting.dtmf.code_interval_time      = (g_eeprom.config.setting.dtmf.code_interval_time      < 8 || g_eeprom.config.setting.dtmf.code_interval_time      > 20) ? 10 : g_eeprom.config.setting.dtmf.code_interval_time;
+		#endif
 
 		case MENU_DTMF_LIST:
 			*pMin = 1;
@@ -739,9 +751,21 @@ void MENU_AcceptSetting(void)
 			g_eeprom.config.setting.dtmf.auto_reset_time = g_sub_menu_selection;
 			break;
 
-		case MENU_DTMF_PRE:
-			g_eeprom.config.setting.dtmf.preload_time = g_sub_menu_selection;
-			break;
+		#ifdef ENABLE_DTMF_TIMING_SETTINGS
+			case MENU_DTMF_PRE:
+				g_eeprom.config.setting.dtmf.preload_time = g_sub_menu_selection;
+				break;
+
+//	MENU_DTMF_1ST_PERSIST,
+//	MENU_DTMF_HASH_PERSIST,
+//	MENU_DTMF_PERSIST,
+//	MENU_DTMF_INTERVAL,
+
+//	g_eeprom.config.setting.dtmf.first_code_persist_time
+//	g_eeprom.config.setting.dtmf.hash_code_persist_time
+//	g_eeprom.config.setting.dtmf.code_persist_time
+//	g_eeprom.config.setting.dtmf.code_interval_time
+		#endif
 
 		#ifdef ENABLE_MDC1200
 			case MENU_MDC1200_MODE:
@@ -1271,9 +1295,21 @@ void MENU_ShowCurrentSetting(void)
 
 			break;
 
-		case MENU_DTMF_PRE:
-			g_sub_menu_selection = g_eeprom.config.setting.dtmf.preload_time;
-			break;
+		#ifdef ENABLE_DTMF_TIMING_SETTINGS
+			case MENU_DTMF_PRE:
+				g_sub_menu_selection = g_eeprom.config.setting.dtmf.preload_time;
+				break;
+
+//	MENU_DTMF_1ST_PERSIST,
+//	MENU_DTMF_HASH_PERSIST,
+//	MENU_DTMF_PERSIST,
+//	MENU_DTMF_INTERVAL,
+
+//	g_eeprom.config.setting.dtmf.first_code_persist_time
+//	g_eeprom.config.setting.dtmf.hash_code_persist_time
+//	g_eeprom.config.setting.dtmf.code_persist_time
+//	g_eeprom.config.setting.dtmf.code_interval_time
+		#endif
 
 		#ifdef ENABLE_MDC1200
 			case MENU_MDC1200_MODE:
