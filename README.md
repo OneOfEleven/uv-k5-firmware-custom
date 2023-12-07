@@ -140,13 +140,12 @@ When you're editing the name, you can enter digits (0 ~ 9) directly without havi
 
 * Various Quansheng firmware bugs fixed
 * Added new bugs
-* Mic menu includes max gain possible
+* Mic menu includes max gain possible and is now in dB
 * AM RX everywhere (left the TX as is)
-* An attempt to improve the AM RX audio (demodulator getting saturated/overloaded in Quansheng firmware)
-* keypad-5/NOAA button now toggles scanlist-1 on/off for current channel when held down - IF NOAA not used
+* Improve AM RX audio (demodulator getting saturated/overloaded in Quansheng firmware)
+* TX power menu now has user option (1~16), goes from near zero to about 200mW, good for local personal nodes etc
 * Better backlight times (inc always on)
-* Live DTMF decoder option, though the decoder needs some coeff tuning changes to decode other radios it seems
-* Various menu re-wordings (trying to reduce 'WTH does that mean ?')
+* Live DTMF decoder option, though the decoder needs some changes to become less prone to noise/speech
 * AIRCOPY RX'ing radio now requests packet resends from TX'ing radio if RX'ed packet is lost/corrupted
 * ..
 
