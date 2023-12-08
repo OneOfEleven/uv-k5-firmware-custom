@@ -410,6 +410,10 @@ bool DTMF_Reply(void)
 		char       str[23];
 	#endif
 
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("dtmf reply none %d, %s\n", g_dtmf_reply_state, g_dtmf_string);
+	#endif
+
 	switch (g_dtmf_reply_state)
 	{
 		case DTMF_REPLY_STR:
@@ -440,15 +444,10 @@ bool DTMF_Reply(void)
 				sprintf(str, "%s%c%s", g_eeprom.config.setting.dtmf.ani_id, g_eeprom.config.setting.dtmf.separate_code, "AAAAA");
 				pString = str;
 				break;
-	
-			case DTMF_REPLY_NONE:
 		#endif
 
+		case DTMF_REPLY_NONE:
 		default:
-			#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-//				UART_printf("dtmf tx reply none %s\r\n", g_dtmf_string);
-			#endif
-
 			if (
 				#ifdef ENABLE_DTMF_CALLING
 					g_dtmf_call_state != DTMF_CALL_STATE_NONE               ||

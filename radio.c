@@ -1176,9 +1176,9 @@ void RADIO_PrepareTX(void)
 		{
 			if (g_dtmf_call_mode == DTMF_CALL_MODE_DTMF)
 			{
-				g_dtmf_is_tx              = true;
 				g_dtmf_call_state         = DTMF_CALL_STATE_NONE;
 				g_dtmf_tx_stop_tick_500ms = dtmf_txstop_500ms;
+				g_dtmf_is_tx              = true;
 			}
 			else
 			{
@@ -1188,7 +1188,10 @@ void RADIO_PrepareTX(void)
 		}
 	#else
 		if (g_dtmf_reply_state == DTMF_REPLY_STR)
-			g_dtmf_is_tx = false;
+		{
+			g_dtmf_tx_stop_tick_500ms = dtmf_txstop_500ms;
+			g_dtmf_is_tx              = true;
+		}
 	#endif
 
 	FUNCTION_Select(FUNCTION_TRANSMIT);

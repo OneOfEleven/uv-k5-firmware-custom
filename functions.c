@@ -268,9 +268,7 @@ void FUNCTION_Select(function_type_t Function)
 				}
 				else
 			#endif
-			#ifdef ENABLE_DTMF_CALLING
 				if (!DTMF_Reply())
-			#endif
 				{
 				#ifdef ENABLE_MDC1200
 					if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)

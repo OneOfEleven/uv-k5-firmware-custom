@@ -10,7 +10,7 @@ ENABLE_OVERLAY                   := 0
 ENABLE_LTO                       := 1
 # UART Programming 2.9 kB
 ENABLE_UART                      := 1
-ENABLE_UART_DEBUG                := 0
+ENABLE_UART_DEBUG                := 1
 # AirCopy 2.5 kB
 ENABLE_AIRCOPY                   := 0
 ENABLE_AIRCOPY_REMEMBER_FREQ     := 1
@@ -27,7 +27,7 @@ ENABLE_NOAA                      := 0
 ENABLE_VOICE                     := 0
 ENABLE_MUTE_RADIO_FOR_VOICE      := 0
 # Tx on Voice 1.0 kB
-ENABLE_VOX                       := 1
+ENABLE_VOX                       := 0
 ENABLE_VOX_MORE_SENSITIVE        := 1
 # Tx Alarm 600 B
 ENABLE_ALARM                     := 0
@@ -47,7 +47,7 @@ ENABLE_DTMF_CALL_FLASH_LIGHT     := 0
 # Kill and Revive 400 B
 ENABLE_DTMF_KILL_REVIVE          := 0
 ENABLE_SHOW_FREQ_IN_CHAN         := 1
-# smaa bold 580 B
+# small bold 580 B
 ENABLE_SMALL_BOLD                := 1
 # smallest font 2 kB
 ENABLE_SMALLEST_FONT             := 0
