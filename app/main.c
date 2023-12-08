@@ -51,6 +51,27 @@
 
 bool g_manual_scanning;
 
+void resume_scanning(void)
+{
+	g_scan_tick_10ms       = 0;
+	g_scan_pause_time_mode = false;
+	g_squelch_open         = false;
+	g_rx_reception_mode    = RX_MODE_NONE;
+
+	FUNCTION_Select(FUNCTION_FOREGROUND);
+
+	if (g_current_display_screen != DISPLAY_SEARCH &&
+	     g_scan_state_dir != SCAN_STATE_DIR_OFF     &&
+	    !g_ptt_is_pressed)
+	{
+		if (g_scan_next_channel <= USER_CHANNEL_LAST)
+			APP_next_channel();
+		else
+		if (IS_FREQ_CHANNEL(g_scan_next_channel))
+			APP_next_freq();
+	}
+}
+
 bool scanning_paused(void)
 {
 	if (g_scan_state_dir != SCAN_STATE_DIR_OFF &&
@@ -187,10 +208,11 @@ void toggle_chan_scanlist(void)
 //					UART_printf("vfo to mem %u\r\n", chan);
 				#endif
 
-				g_sub_menu_selection = chan;
-				g_update_menu  = false;
-				g_current_display_screen  = DISPLAY_MENU;
-				g_update_display     = false;
+				g_sub_menu_selection     = chan;
+				g_update_menu            = false;
+				g_current_display_screen = DISPLAY_MENU;
+				g_update_display         = false;
+
 				UI_DisplayMenu();
 			}
 
@@ -358,9 +380,9 @@ void processFKeyFunction(const key_code_t Key)
 
 			APP_stop_scan();
 
-			g_search_flag_start_scan  = true;
-			g_search_single_frequency = false;
-			g_backup_cross_vfo  = g_eeprom.config.setting.cross_vfo;
+			g_search_flag_start_scan          = true;
+			g_search_single_frequency         = false;
+			g_backup_cross_vfo                = g_eeprom.config.setting.cross_vfo;
 			g_eeprom.config.setting.cross_vfo = CROSS_BAND_OFF;
 			break;
 
@@ -765,8 +787,8 @@ void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 
 	if (g_input_box_index > 0 || g_dtmf_input_box_index > 0 || g_dtmf_input_mode)
 	{	// cancel key input mode (channel/frequency entry)
-		g_dtmf_input_mode       = false;
-		g_dtmf_input_box_index  = 0;
+		g_dtmf_input_mode        = false;
+		g_dtmf_input_box_index   = 0;
 		memset(g_dtmf_string, 0, sizeof(g_dtmf_string));
 		g_input_box_index        = 0;
 		g_request_display_screen = DISPLAY_MAIN;
@@ -899,11 +921,7 @@ void MAIN_Key_STAR(bool key_pressed, bool key_held)
 						g_beep_to_play = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;  // not added for some reason
 
 					// immediately continue the scan
-					g_scan_tick_10ms = 0;
-					g_scan_pause_time_mode = false;
-					g_squelch_open         = false;
-					g_rx_reception_mode    = RX_MODE_NONE;
-					FUNCTION_Select(FUNCTION_FOREGROUND);
+					resume_scanning();
 				}
 			#endif
 
@@ -1195,11 +1213,7 @@ void MAIN_Key_UP_DOWN(bool key_pressed, bool key_held, scan_state_dir_t directio
 	APP_channel_next(false, direction);
 
 	// go NOW
-	g_scan_tick_10ms = 0;
-	g_scan_pause_time_mode = false;
-	g_squelch_open         = false;
-	g_rx_reception_mode    = RX_MODE_NONE;
-	FUNCTION_Select(FUNCTION_FOREGROUND);
+	resume_scanning();
 
 	g_ptt_was_released = true;
 }

@@ -23,12 +23,15 @@
 #include "frequencies.h"
 #include "radio.h"
 
-void     APP_end_tx(void);
-void     APP_stop_scan(void);
-void     APP_channel_next(const bool remember_current, const scan_state_dir_t scan_direction);
-bool     APP_start_listening(void);
-void     APP_time_slice_10ms(void);
-void     APP_time_slice_500ms(void);
+void APP_end_tx(void);
+void APP_stop_scan(void);
+void APP_channel_next(const bool remember_current, const scan_state_dir_t scan_direction);
+bool APP_start_listening(void);
+void APP_time_slice_10ms(void);
+void APP_time_slice_500ms(void);
+
+void APP_next_freq(void);
+void APP_next_channel(void);
 
 #endif
 

@@ -705,7 +705,7 @@ void APP_stop_scan(void)
 	g_update_status = true;
 }
 
-static void APP_next_freq(void)
+void APP_next_freq(void)
 {
 	uint32_t freq = g_tx_vfo->freq_config_rx.frequency;
 
@@ -774,7 +774,7 @@ static void APP_next_freq(void)
 	g_update_display       = true;
 }
 
-static void APP_next_channel(void)
+void APP_next_channel(void)
 {
 	static unsigned int prevChannel = 0;
 	const unsigned int  index       = g_eeprom.config.setting.scan_list_default;
@@ -1702,7 +1702,8 @@ void APP_process_scan(void)
 		}
 		else
 		if (g_scan_tick_10ms == 0)
-		{	// switch to next channel
+		{	// hop to next channel/freq
+
 			g_scan_pause_time_mode = false;
 			g_rx_reception_mode    = RX_MODE_NONE;
 

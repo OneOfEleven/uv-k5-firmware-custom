@@ -40,6 +40,7 @@ ENABLE_MDC1200_SIDE_BEEP         := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 0
 ENABLE_BIG_FREQ                  := 0
+# DTMF_CALLING 2.8 kB
 ENABLE_DTMF_CALLING              := 0
 ENABLE_DTMF_LIVE_DECODER         := 1
 ENABLE_DTMF_TIMING_SETTINGS      := 0
@@ -57,7 +58,8 @@ ENABLE_WIDE_RX                   := 1
 ENABLE_TX_WHEN_AM                := 0
 # Frequency calibration 188 B
 ENABLE_F_CAL_MENU                := 0
-ENABLE_FM_DEV_CAL_MENU           := 1
+# FM DEV CAL 250 B
+ENABLE_FM_DEV_CAL_MENU           := 0
 ENABLE_TX_UNLOCK_MENU            := 0
 #ENABLE_TX_POWER_CAL_MENU        := 0
 ENABLE_TX_POWER_FIX              := 1
