@@ -233,10 +233,15 @@ bool UI_DisplayRSSIBar(const int rssi, const unsigned int glitch, const unsigned
 					return false;     // display is in use
 			#endif
 
-			if (g_current_function == FUNCTION_TRANSMIT ||
-				g_current_display_screen != DISPLAY_MAIN ||
-				g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-				return false;     // display is in use
+			if (
+				#ifdef ENABLE_DTMF_CALLING
+					g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+				#endif
+				g_current_function == FUNCTION_TRANSMIT ||
+				g_current_display_screen != DISPLAY_MAIN)
+			{	// display is in use
+				return false;
+			}
 
 			// clear the line
 			memset(g_frame_buffer[line], 0, LCD_WIDTH);
@@ -419,8 +424,10 @@ void big_freq(const uint32_t frequency, const unsigned int x, const unsigned int
 		     g_reduced_service                         ||
 		     g_current_display_screen != DISPLAY_MAIN  ||
 		     g_current_function == FUNCTION_POWER_SAVE ||
-		     g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
-		     g_dtmf_input_mode                         ||
+			 g_dtmf_input_mode                         ||
+			 #ifdef ENABLE_DTMF_CALLING
+				g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+		     #endif
 		     g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
 		{	// don't draw the panadapter
 			return;
@@ -517,19 +524,22 @@ void UI_DisplayCenterLine(void)
 {
 //	const bool rx = (g_current_function == FUNCTION_RECEIVE && g_squelch_open) ? true : false;
 	const bool rx = (g_current_function == FUNCTION_RECEIVE) ? true : false;
-
 	#ifdef ENABLE_SINGLE_VFO_CHAN
 		const unsigned int line = (single_vfo >= 0 && !pan_enabled) ? 6 : 3;
 	#else
 		const unsigned int line = 3;
 	#endif
+	char str[22];
 
 	(void)rx;
 	(void)line;
+	(void)str;
 
-	if (g_center_line != CENTER_LINE_NONE ||
-	    g_current_display_screen != DISPLAY_MAIN ||
-		g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+	if (
+		#ifdef ENABLE_DTMF_CALLING
+			g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+		#endif
+		g_center_line != CENTER_LINE_NONE || g_current_display_screen != DISPLAY_MAIN)
 	{
 		return;
 	}
@@ -592,8 +602,14 @@ void UI_DisplayCenterLine(void)
 					const unsigned int len = strlen(g_dtmf_rx_live);
 					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
 
-					if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+					if (
+						#ifdef ENABLE_DTMF_CALLING
+							g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+						#endif
+						g_current_display_screen != DISPLAY_MAIN)
+					{
 						return;
+					}
 
 					g_center_line = CENTER_LINE_DTMF_DEC;
 
@@ -607,8 +623,14 @@ void UI_DisplayCenterLine(void)
 					const unsigned int len = g_dtmf_rx_index;
 					const unsigned int idx = (len > (17 - 5)) ? len - (17 - 5) : 0;  // limit to last 'n' chars
 
-					if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+					if (
+						#ifdef ENABLE_DTMF_CALLING
+							g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+						#endif
+						g_current_display_screen != DISPLAY_MAIN)
+					{
 						return;
+					}
 
 					g_center_line = CENTER_LINE_DTMF_DEC;
 
@@ -623,8 +645,14 @@ void UI_DisplayCenterLine(void)
 			else
 			if (g_charging_with_type_c)
 			{	// show the battery charge state
-				if (g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+				if (
+					#ifdef ENABLE_DTMF_CALLING
+						g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+					#endif
+					g_current_display_screen != DISPLAY_MAIN)
+				{
 					return;
+				}
 
 				g_center_line = CENTER_LINE_CHARGE_DATA;
 
@@ -676,7 +704,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			unsigned int y = 0;
 			unsigned int x = 0;
 
-			#ifdef ENABLE_KILL_REVIVE
+			#ifdef ENABLE_DTMF_KILL_REVIVE
 				if (g_eeprom.config.setting.radio_disabled)
 				{
 					#ifdef ENABLE_SMALL_BOLD
@@ -962,11 +990,13 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			//x += 7 * 7;
 
 			// DTMF decoding symbol
-			str[0] = 0;
-			if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
-				strcpy(str, "DTMF");
-			UI_PrintStringSmall(str, LCD_WIDTH - (7 * 4), 0, y);
-			//x += 7 * 5;
+			#ifdef ENABLE_DTMF_CALLING
+				str[0] = 0;
+				if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
+					strcpy(str, "DTMF");
+				UI_PrintStringSmall(str, LCD_WIDTH - (7 * 4), 0, y);
+				//x += 7 * 5;
+			#endif
 		}
 
 		UI_DisplayCenterLine();
@@ -1066,73 +1096,95 @@ void UI_DisplayMain(void)
 
 		if (current_vfo_num != vfo_num)
 		{
-			if (g_dtmf_call_state != DTMF_CALL_STATE_NONE || g_dtmf_is_tx || g_dtmf_input_mode)
-			{	// show DTMF stuff
-
-				char contact[17];
-
-				if (!g_dtmf_input_mode)
-				{
-					memset(contact, 0, sizeof(contact));
-					if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
+			#ifdef ENABLE_DTMF_CALLING
+				if (g_dtmf_call_state != DTMF_CALL_STATE_NONE || g_dtmf_is_tx || g_dtmf_input_mode)
+				{	// show DTMF stuff
+	
+					char contact[17];
+	
+					if (!g_dtmf_input_mode)
 					{
-						strcpy(str, (g_dtmf_state == DTMF_STATE_CALL_OUT_RSP) ? "CALL OUT RESP" : "CALL OUT");
+						memset(contact, 0, sizeof(contact));
+						if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
+						{
+							strcpy(str, (g_dtmf_state == DTMF_STATE_CALL_OUT_RSP) ? "CALL OUT RESP" : "CALL OUT");
+						}
+						else
+						if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
+						{
+							const bool found = DTMF_FindContact(g_dtmf_caller, contact);
+							contact[8] = 0;
+							sprintf(str, "FROM %s", found ? contact : g_dtmf_caller);
+						}
+						else
+						if (g_dtmf_is_tx)
+						{
+							strcpy(str, (g_dtmf_state == DTMF_STATE_TX_SUCC) ? "DTMF TX SUCC" : "DTMF TX");
+						}
 					}
 					else
-					if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
 					{
-						const bool found = DTMF_FindContact(g_dtmf_caller, contact);
-						contact[8] = 0;
-						sprintf(str, "FROM %s", found ? contact : g_dtmf_caller);
+						sprintf(str, "DTMF entry");
+					}
+					str[16] = 0;
+					UI_PrintString(str, 2, 0, 0 + (vfo_num * 3), 8);
+	
+					memset(str,  0, sizeof(str));
+					if (!g_dtmf_input_mode)
+					{
+						memset(contact, 0, sizeof(contact));
+						if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
+						{
+							const bool found = DTMF_FindContact(g_dtmf_string, contact);
+							contact[15] = 0;
+							sprintf(str, ">%s", found ? contact : g_dtmf_string);
+						}
+						else
+						if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
+						{
+							const bool found = DTMF_FindContact(g_dtmf_callee, contact);
+							contact[15] = 0;
+							sprintf(str, ">%s", found ? contact : g_dtmf_callee);
+						}
+						else
+						if (g_dtmf_is_tx)
+						{
+							sprintf(str, ">%s", g_dtmf_string);
+						}
 					}
 					else
-					if (g_dtmf_is_tx)
 					{
-						strcpy(str, (g_dtmf_state == DTMF_STATE_TX_SUCC) ? "DTMF TX SUCC" : "DTMF TX");
+						sprintf(str, ">%s", g_dtmf_input_box);
 					}
+					str[16] = 0;
+					UI_PrintString(str, 2, 0, 2 + (vfo_num * 3), 8);
+	
+					pan_enabled = false;
+	
+					g_center_line = CENTER_LINE_IN_USE;
+					continue;
 				}
-				else
-				{
-					sprintf(str, "DTMF entry");
+			#else
+				if (g_dtmf_is_tx || g_dtmf_input_mode)
+				{	// show DTMF stuff
+	
+					str[0] = 0;
+					if (g_dtmf_input_mode)
+						sprintf(str, "DTMF entry");
+					UI_PrintString(str, 2, 0, 0 + (vfo_num * 3), 8);
+	
+					str[0] = 0;
+					if (g_dtmf_input_mode)
+						sprintf(str, ">%s", g_dtmf_input_box);
+					str[16] = 0;
+					UI_PrintString(str, 2, 0, 2 + (vfo_num * 3), 8);
+	
+					pan_enabled = false;
+	
+					g_center_line = CENTER_LINE_IN_USE;
+					continue;
 				}
-				str[16] = 0;
-				UI_PrintString(str, 2, 0, 0 + (vfo_num * 3), 8);
-
-				memset(str,  0, sizeof(str));
-				if (!g_dtmf_input_mode)
-				{
-					memset(contact, 0, sizeof(contact));
-					if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT)
-					{
-						const bool found = DTMF_FindContact(g_dtmf_string, contact);
-						contact[15] = 0;
-						sprintf(str, ">%s", found ? contact : g_dtmf_string);
-					}
-					else
-					if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED || g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
-					{
-						const bool found = DTMF_FindContact(g_dtmf_callee, contact);
-						contact[15] = 0;
-						sprintf(str, ">%s", found ? contact : g_dtmf_callee);
-					}
-					else
-					if (g_dtmf_is_tx)
-					{
-						sprintf(str, ">%s", g_dtmf_string);
-					}
-				}
-				else
-				{
-					sprintf(str, ">%s", g_dtmf_input_box);
-				}
-				str[16] = 0;
-				UI_PrintString(str, 2, 0, 2 + (vfo_num * 3), 8);
-
-				pan_enabled = false;
-
-				g_center_line = CENTER_LINE_IN_USE;
-				continue;
-			}
+			#endif
 		}
 
 		if (single_vfo < 0)
@@ -1513,13 +1565,15 @@ void UI_DisplayMain(void)
 		UI_PrintStringSmall(str, 70, 0, line + 2);
 
 		// show the DTMF decoding symbol
-		#ifdef ENABLE_KILL_REVIVE
-			if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable || g_eeprom.config.setting.radio_disabled)
-				UI_PrintStringSmall("DTMF", 78, 0, line + 2);
-		#else
-			if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
-				UI_PrintStringSmall("DTMF", 78, 0, line + 2);
-				//UI_PrintStringSmallest("DTMF", 78, (line + 2) * 8, false, true);
+		#ifdef ENABLE_DTMF_CALLING
+			#ifdef ENABLE_DTMF_KILL_REVIVE
+				if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable || g_eeprom.config.setting.radio_disabled)
+					UI_PrintStringSmall("DTMF", 78, 0, line + 2);
+			#else
+				if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
+					UI_PrintStringSmall("DTMF", 78, 0, line + 2);
+					//UI_PrintStringSmallest("DTMF", 78, (line + 2) * 8, false, true);
+			#endif
 		#endif
 
 		// show the audio scramble symbol

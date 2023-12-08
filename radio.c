@@ -1167,24 +1167,29 @@ void RADIO_PrepareTX(void)
 	// ******************************
 	// TX is allowed
 
-	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("radio prepare tx %u %s\r\n", g_dtmf_reply_state, g_dtmf_string);
+	#if defined(ENABLE_DTMF_CALLING) && defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//		UART_printf("radio prepare tx %u %s\r\n", g_dtmf_reply_state, g_dtmf_string);
 	#endif
 
-	if (g_dtmf_reply_state == DTMF_REPLY_ANI)
-	{
-		if (g_dtmf_call_mode == DTMF_CALL_MODE_DTMF)
+	#ifdef ENABLE_DTMF_CALLING
+		if (g_dtmf_reply_state == DTMF_REPLY_STR || g_dtmf_reply_state == DTMF_REPLY_ANI)
 		{
-			g_dtmf_is_tx              = true;
-			g_dtmf_call_state         = DTMF_CALL_STATE_NONE;
-			g_dtmf_tx_stop_tick_500ms = dtmf_txstop_500ms;
+			if (g_dtmf_call_mode == DTMF_CALL_MODE_DTMF)
+			{
+				g_dtmf_is_tx              = true;
+				g_dtmf_call_state         = DTMF_CALL_STATE_NONE;
+				g_dtmf_tx_stop_tick_500ms = dtmf_txstop_500ms;
+			}
+			else
+			{
+				g_dtmf_call_state = DTMF_CALL_STATE_CALL_OUT;
+				g_dtmf_is_tx      = false;
+			}
 		}
-		else
-		{
-			g_dtmf_call_state = DTMF_CALL_STATE_CALL_OUT;
-			g_dtmf_is_tx      = false;
-		}
-	}
+	#else
+		if (g_dtmf_reply_state == DTMF_REPLY_STR)
+			g_dtmf_is_tx = false;
+	#endif
 
 	FUNCTION_Select(FUNCTION_TRANSMIT);
 }
@@ -1233,7 +1238,10 @@ void RADIO_tx_eot(void)
 		}
 	#endif
 
-	if (g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
+	if (
+		#ifdef ENABLE_DTMF_CALLING
+			g_dtmf_call_state == DTMF_CALL_STATE_NONE &&
+		#endif
 	   (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_EOT || g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_BOTH))
 	{	// end-of-tx
 		if (g_eeprom.config.setting.dtmf.side_tone)

@@ -261,7 +261,9 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 		case MENU_S_ADD2:
 		case MENU_STE:
 		case MENU_DTMF_ST:
-		case MENU_DTMF_DCD:
+		#ifdef ENABLE_DTMF_CALLING
+			case MENU_DTMF_DCD:
+		#endif
 		#ifdef ENABLE_DTMF_LIVE_DECODER
 			case MENU_DTMF_LIVE_DEC:
 		#endif
@@ -322,11 +324,6 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = 2;
 			break;
 
-		case MENU_DTMF_RSP:
-			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_dtmf_rsp) - 1;
-			break;
-
 		#ifdef ENABLE_MDC1200
 			case MENU_MDC1200_MODE:
 				*pMin = 0;
@@ -344,14 +341,26 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 			*pMax = ARRAY_SIZE(g_sub_menu_ptt_id) - 1;
 			break;
 
+		#ifdef ENABLE_DTMF_CALLING
+			case MENU_DTMF_RSP:
+				*pMin = 0;
+				*pMax = ARRAY_SIZE(g_sub_menu_dtmf_rsp) - 1;
+				break;
+
+			case MENU_DTMF_HOLD:
+				*pMin = DTMF_HOLD_MIN;
+				*pMax = DTMF_HOLD_MAX;
+				break;
+
+			case MENU_DTMF_LIST:
+				*pMin = 1;
+				*pMax = 16;
+				break;
+		#endif
+
 		case MENU_BAT_TXT:
 			*pMin = 0;
 			*pMax = ARRAY_SIZE(g_sub_menu_bat_text) - 1;
-			break;
-
-		case MENU_DTMF_HOLD:
-			*pMin = DTMF_HOLD_MIN;
-			*pMax = DTMF_HOLD_MAX;
 			break;
 
 		#ifdef ENABLE_DTMF_TIMING_SETTINGS
@@ -368,11 +377,6 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 				*pMax = 20;
 				break;
 		#endif
-
-		case MENU_DTMF_LIST:
-			*pMin = 1;
-			*pMax = 16;
-			break;
 
 		#ifdef ENABLE_TX_POWER_CAL_MENU
 			case MENU_TX_CALI:
@@ -741,13 +745,33 @@ void MENU_AcceptSetting(void)
 			g_eeprom.config.setting.dtmf.side_tone = g_sub_menu_selection;
 			break;
 
-		case MENU_DTMF_RSP:
-			g_eeprom.config.setting.dtmf.decode_response = g_sub_menu_selection;
-			break;
+		#ifdef ENABLE_DTMF_CALLING
+			case MENU_DTMF_RSP:
+				g_eeprom.config.setting.dtmf.decode_response = g_sub_menu_selection;
+				break;
+	
+			case MENU_DTMF_HOLD:
+				g_eeprom.config.setting.dtmf.auto_reset_time = g_sub_menu_selection;
+				break;
 
-		case MENU_DTMF_HOLD:
-			g_eeprom.config.setting.dtmf.auto_reset_time = g_sub_menu_selection;
-			break;
+			case MENU_DTMF_DCD:
+				g_tx_vfo->channel.dtmf_decoding_enable = g_sub_menu_selection;
+				DTMF_clear_RX();
+				g_request_save_channel = 1;
+				return;
+
+			case MENU_DTMF_LIST:
+				g_dtmf_chosen_contact = g_sub_menu_selection - 1;
+				if (g_dtmf_is_contact_valid)
+				{
+					GUI_SelectNextDisplay(DISPLAY_MAIN);
+					g_dtmf_input_mode        = true;
+					g_dtmf_input_box_index   = 3;
+					memcpy(g_dtmf_input_box, g_dtmf_id, 4);
+					g_request_display_screen = DISPLAY_INVALID;
+				}
+				return;
+		#endif
 
 		#ifdef ENABLE_DTMF_TIMING_SETTINGS
 			case MENU_DTMF_PRE:
@@ -798,12 +822,6 @@ void MENU_AcceptSetting(void)
 			g_eeprom.config.setting.battery_text = g_sub_menu_selection;
 			break;
 
-		case MENU_DTMF_DCD:
-			g_tx_vfo->channel.dtmf_decoding_enable = g_sub_menu_selection;
-			DTMF_clear_RX();
-			g_request_save_channel = 1;
-			return;
-
 		#ifdef ENABLE_DTMF_LIVE_DECODER
 			case MENU_DTMF_LIVE_DEC:
 				g_eeprom.config.setting.dtmf_live_decoder = g_sub_menu_selection;
@@ -815,18 +833,6 @@ void MENU_AcceptSetting(void)
 				g_update_status         = true;
 				break;
 		#endif
-
-		case MENU_DTMF_LIST:
-			g_dtmf_chosen_contact = g_sub_menu_selection - 1;
-			if (g_dtmf_is_contact_valid)
-			{
-				GUI_SelectNextDisplay(DISPLAY_MAIN);
-				g_dtmf_input_mode        = true;
-				g_dtmf_input_box_index   = 3;
-				memcpy(g_dtmf_input_box, g_dtmf_id, 4);
-				g_request_display_screen = DISPLAY_INVALID;
-			}
-			return;
 
 		case MENU_PON_MSG:
 			g_eeprom.config.setting.power_on_display_mode = g_sub_menu_selection;
@@ -871,21 +877,21 @@ void MENU_AcceptSetting(void)
 			return;
 
 		#ifdef ENABLE_SIDE_BUTT_MENU
-		case MENU_SIDE1_SHORT:
-			g_eeprom.config.setting.key1_short = g_sub_menu_selection;
-			break;
-
-		case MENU_SIDE1_LONG:
-			g_eeprom.config.setting.key1_long = g_sub_menu_selection;
-			break;
-
-		case MENU_SIDE2_SHORT:
-			g_eeprom.config.setting.key2_short = g_sub_menu_selection;
-			break;
-
-		case MENU_SIDE2_LONG:
-			g_eeprom.config.setting.key2_long = g_sub_menu_selection;
-			break;
+			case MENU_SIDE1_SHORT:
+				g_eeprom.config.setting.key1_short = g_sub_menu_selection;
+				break;
+	
+			case MENU_SIDE1_LONG:
+				g_eeprom.config.setting.key1_long = g_sub_menu_selection;
+				break;
+	
+			case MENU_SIDE2_SHORT:
+				g_eeprom.config.setting.key2_short = g_sub_menu_selection;
+				break;
+	
+			case MENU_SIDE2_LONG:
+				g_eeprom.config.setting.key2_long = g_sub_menu_selection;
+				break;
 		#endif
 
 		case MENU_RESET:
@@ -1190,9 +1196,9 @@ void MENU_ShowCurrentSetting(void)
 			break;
 
 		#ifdef ENABLE_KEYLOCK
-		case MENU_AUTO_KEY_LOCK:
-			g_sub_menu_selection = g_eeprom.config.setting.auto_key_lock;
-			break;
+			case MENU_AUTO_KEY_LOCK:
+				g_sub_menu_selection = g_eeprom.config.setting.auto_key_lock;
+				break;
 		#endif
 
 		#ifdef ENABLE_SCAN_RANGES
@@ -1257,47 +1263,57 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = RADIO_FindNextChannel(0, 1, true, 1);
 			break;
 
-#ifdef ENABLE_ALARM
+		#ifdef ENABLE_ALARM
 			case MENU_ALARM_MODE:
 				g_sub_menu_selection = g_eeprom.config.setting.alarm_mode;
 				break;
-#endif
+		#endif
 
 		case MENU_DTMF_ST:
 			g_sub_menu_selection = g_eeprom.config.setting.dtmf.side_tone;
 			break;
 
-		case MENU_DTMF_RSP:
-			g_sub_menu_selection = g_eeprom.config.setting.dtmf.decode_response;
-			break;
+		#ifdef ENABLE_DTMF_CALLING
+			case MENU_DTMF_RSP:
+				g_sub_menu_selection = g_eeprom.config.setting.dtmf.decode_response;
+				break;
+	
+			case MENU_DTMF_HOLD:
+				g_sub_menu_selection = g_eeprom.config.setting.dtmf.auto_reset_time;
+	
+				if (g_sub_menu_selection <= DTMF_HOLD_MIN)
+					g_sub_menu_selection = DTMF_HOLD_MIN;
+				else
+				if (g_sub_menu_selection <= 10)
+					g_sub_menu_selection = 10;
+				else
+				if (g_sub_menu_selection <= 20)
+					g_sub_menu_selection = 20;
+				else
+				if (g_sub_menu_selection <= 30)
+					g_sub_menu_selection = 30;
+				else
+				if (g_sub_menu_selection <= 40)
+					g_sub_menu_selection = 40;
+				else
+				if (g_sub_menu_selection <= 50)
+					g_sub_menu_selection = 50;
+				else
+				if (g_sub_menu_selection < DTMF_HOLD_MAX)
+					g_sub_menu_selection = 50;
+				else
+					g_sub_menu_selection = DTMF_HOLD_MAX;
+	
+				break;
 
-		case MENU_DTMF_HOLD:
-			g_sub_menu_selection = g_eeprom.config.setting.dtmf.auto_reset_time;
+			case MENU_DTMF_DCD:
+				g_sub_menu_selection = g_tx_vfo->channel.dtmf_decoding_enable;
+				break;
 
-			if (g_sub_menu_selection <= DTMF_HOLD_MIN)
-				g_sub_menu_selection = DTMF_HOLD_MIN;
-			else
-			if (g_sub_menu_selection <= 10)
-				g_sub_menu_selection = 10;
-			else
-			if (g_sub_menu_selection <= 20)
-				g_sub_menu_selection = 20;
-			else
-			if (g_sub_menu_selection <= 30)
-				g_sub_menu_selection = 30;
-			else
-			if (g_sub_menu_selection <= 40)
-				g_sub_menu_selection = 40;
-			else
-			if (g_sub_menu_selection <= 50)
-				g_sub_menu_selection = 50;
-			else
-			if (g_sub_menu_selection < DTMF_HOLD_MAX)
-				g_sub_menu_selection = 50;
-			else
-				g_sub_menu_selection = DTMF_HOLD_MAX;
-
-			break;
+			case MENU_DTMF_LIST:
+				g_sub_menu_selection = g_dtmf_chosen_contact + 1;
+				break;
+		#endif
 
 		#ifdef ENABLE_DTMF_TIMING_SETTINGS
 			case MENU_DTMF_PRE:
@@ -1339,14 +1355,6 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_eeprom.config.setting.battery_text;
 			return;
 
-		case MENU_DTMF_DCD:
-			g_sub_menu_selection = g_tx_vfo->channel.dtmf_decoding_enable;
-			break;
-
-		case MENU_DTMF_LIST:
-			g_sub_menu_selection = g_dtmf_chosen_contact + 1;
-			break;
-
 		#ifdef ENABLE_DTMF_LIVE_DECODER
 			case MENU_DTMF_LIVE_DEC:
 				g_sub_menu_selection = g_eeprom.config.setting.dtmf_live_decoder;
@@ -1365,49 +1373,49 @@ void MENU_ShowCurrentSetting(void)
 			g_sub_menu_selection = g_tx_vfo->channel.mod_mode;
 			break;
 /*
-#ifdef ENABLE_AM_FIX
+		#ifdef ENABLE_AM_FIX
 			case MENU_AM_FIX:
 				g_sub_menu_selection = g_eeprom.config.setting.am_fix;
 				break;
-#endif
+		#endif
 */
-#ifdef ENABLE_AM_FIX_TEST1
+		#ifdef ENABLE_AM_FIX_TEST1
 			case MENU_AM_FIX_TEST1:
 				g_sub_menu_selection = g_eeprom.config.setting.am_fix_test1;
 				break;
-#endif
+		#endif
 
-#ifdef ENABLE_NOAA
+		#ifdef ENABLE_NOAA
 			case MENU_NOAA_SCAN:
 				g_sub_menu_selection = g_eeprom.config.setting.noaa_auto_scan;
 				break;
-#endif
+		#endif
 
 		case MENU_MEM_DEL:
-#if 0
+			#if 0
 				g_sub_menu_selection = RADIO_FindNextChannel(g_eeprom.config.setting.indices.vfo[0].user, 1, false, 1);
-#else
+			#else
 				g_sub_menu_selection = RADIO_FindNextChannel(g_eeprom.config.setting.indices.vfo[g_eeprom.config.setting.tx_vfo_num].user, 1, false, 1);
-#endif
+			#endif
 			break;
 
-#ifdef ENABLE_SIDE_BUTT_MENU
-		case MENU_SIDE1_SHORT:
-			g_sub_menu_selection = g_eeprom.config.setting.key1_short;
-			break;
-
-		case MENU_SIDE1_LONG:
-			g_sub_menu_selection = g_eeprom.config.setting.key1_long;
-			break;
-
-		case MENU_SIDE2_SHORT:
-			g_sub_menu_selection = g_eeprom.config.setting.key2_short;
-			break;
-
-		case MENU_SIDE2_LONG:
-			g_sub_menu_selection = g_eeprom.config.setting.key2_long;
-			break;
-#endif
+		#ifdef ENABLE_SIDE_BUTT_MENU
+			case MENU_SIDE1_SHORT:
+				g_sub_menu_selection = g_eeprom.config.setting.key1_short;
+				break;
+	
+			case MENU_SIDE1_LONG:
+				g_sub_menu_selection = g_eeprom.config.setting.key1_long;
+				break;
+	
+			case MENU_SIDE2_SHORT:
+				g_sub_menu_selection = g_eeprom.config.setting.key2_short;
+				break;
+	
+			case MENU_SIDE2_LONG:
+				g_sub_menu_selection = g_eeprom.config.setting.key2_long;
+				break;
+		#endif
 
 		case MENU_350_TX:
 			g_sub_menu_selection = g_eeprom.config.setting.enable_tx_350;

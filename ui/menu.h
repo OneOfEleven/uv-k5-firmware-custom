@@ -95,14 +95,18 @@ enum
 	MENU_S_LIST,
 	MENU_SLIST1,
 	MENU_SLIST2,
+#ifdef ENABLE_DTMF_CALLING
 	MENU_ANI_ID,
+#endif
 	MENU_UP_CODE,
 	MENU_DN_CODE,
 	MENU_DTMF_ST,
+#ifdef ENABLE_DTMF_CALLING
 	MENU_DTMF_HOLD,
 	MENU_DTMF_LIST,
 	MENU_DTMF_RSP,
 	MENU_DTMF_DCD,
+#endif
 #ifdef ENABLE_DTMF_LIVE_DECODER
 	MENU_DTMF_LIVE_DEC,
 #endif
@@ -200,7 +204,9 @@ extern const char         g_sub_menu_mem_disp[4][12];
 #ifdef ENABLE_ALARM
 	extern const char     g_sub_menu_alarm_mode[2][5];
 #endif
-extern const char         g_sub_menu_dtmf_rsp[4][9];
+#ifdef ENABLE_DTMF_CALLING
+	extern const char     g_sub_menu_dtmf_rsp[4][9];
+#endif
 extern const char         g_sub_menu_ptt_id[5][16];
 #ifdef ENABLE_MDC1200
 	extern const char     g_sub_menu_mdc1200_mode[4][5];

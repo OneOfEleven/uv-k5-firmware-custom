@@ -650,7 +650,9 @@ void SEARCH_Start(void)
 		BK4819_EnableFrequencyScan();
 	}
 
-	DTMF_clear_RX();
+	#ifdef ENABLE_DTMF_CALLING
+		DTMF_clear_RX();
+	#endif
 
 	#ifdef ENABLE_VOX
 		g_vox_lost = false;

@@ -56,7 +56,9 @@ void FUNCTION_Init(void)
 	else
 		g_current_code_type = CODE_TYPE_CONTINUOUS_TONE;
 
-	DTMF_clear_RX();
+	#ifdef ENABLE_DTMF_CALLING
+		DTMF_clear_RX();
+	#endif
 
 	g_cxcss_tail_found = false;
 	g_cdcss_lost       = false;
@@ -123,12 +125,14 @@ void FUNCTION_Select(function_type_t Function)
 					g_fm_restore_tick_10ms = g_eeprom.config.setting.scan_hold_time * 50;
 			#endif
 
-			if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT ||
-			    g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED ||
-				g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
-			{
-				g_dtmf_auto_reset_time_500ms = g_eeprom.config.setting.dtmf.auto_reset_time * 2;
-			}
+			#ifdef ENABLE_DTMF_CALLING
+				if (g_dtmf_call_state == DTMF_CALL_STATE_CALL_OUT ||
+					g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED ||
+					g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED_STAY)
+				{
+					g_dtmf_auto_reset_time_500ms = g_eeprom.config.setting.dtmf.auto_reset_time * 2;
+				}
+			#endif
 
 			return;
 
@@ -213,7 +217,9 @@ void FUNCTION_Select(function_type_t Function)
 			BK4819_DisableDTMF();
 
 			// clear the DTMF RX buffer
-			DTMF_clear_RX();
+			#ifdef ENABLE_DTMF_CALLING
+				DTMF_clear_RX();
+			#endif
 
 			#ifdef ENABLE_DTMF_LIVE_DECODER
 				// clear the DTMF RX live decoder buffer
@@ -262,35 +268,37 @@ void FUNCTION_Select(function_type_t Function)
 				}
 				else
 			#endif
-			if (!DTMF_Reply())
-			{
-			#ifdef ENABLE_MDC1200
-				if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)
-				{
-					#ifdef ENABLE_MDC1200_SIDE_BEEP
-//						BK4819_start_tone(880, 10, true, true);
-//						SYSTEM_DelayMs(120);
-//						BK4819_stop_tones(true);
-					#endif
-					SYSTEM_DelayMs(30);
-
-					BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.config.setting.mdc1200_id, true);
-
-					#ifdef ENABLE_MDC1200_SIDE_BEEP
-						BK4819_start_tone(880, 10, true, true);
-						SYSTEM_DelayMs(120);
-						BK4819_stop_tones(true);
-					#endif
-				}
-				else
+			#ifdef ENABLE_DTMF_CALLING
+				if (!DTMF_Reply())
 			#endif
-				if (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
 				{
-					BK4819_start_tone(APOLLO_TONE1_HZ, 28, true, false);
-					SYSTEM_DelayMs(APOLLO_TONE_MS);
-					BK4819_stop_tones(true);
+				#ifdef ENABLE_MDC1200
+					if (g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOT || g_current_vfo->channel.mdc1200_mode == MDC1200_MODE_BOTH)
+					{
+						#ifdef ENABLE_MDC1200_SIDE_BEEP
+//							BK4819_start_tone(880, 10, true, true);
+//							SYSTEM_DelayMs(120);
+//							BK4819_stop_tones(true);
+						#endif
+						SYSTEM_DelayMs(30);
+	
+						BK4819_send_MDC1200(MDC1200_OP_CODE_PTT_ID, 0x80, g_eeprom.config.setting.mdc1200_id, true);
+	
+						#ifdef ENABLE_MDC1200_SIDE_BEEP
+							BK4819_start_tone(880, 10, true, true);
+							SYSTEM_DelayMs(120);
+							BK4819_stop_tones(true);
+						#endif
+					}
+					else
+				#endif
+					if (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+					{
+						BK4819_start_tone(APOLLO_TONE1_HZ, 28, true, false);
+						SYSTEM_DelayMs(APOLLO_TONE_MS);
+						BK4819_stop_tones(true);
+					}
 				}
-			}
 
 			if (g_eeprom.config.setting.enable_scrambler)
 				BK4819_set_scrambler(g_current_vfo->channel.scrambler);

@@ -198,8 +198,10 @@ static void APP_process_new_receive(void)
 	if (!g_squelch_open && !g_monitor_enabled)
 	{	// squelch is closed
 
-		if (g_dtmf_rx_index > 0)
-			DTMF_clear_RX();
+		#ifdef ENABLE_DTMF_CALLING
+			if (g_dtmf_rx_index > 0)
+				DTMF_clear_RX();
+		#endif
 
 		if (g_current_function != FUNCTION_FOREGROUND)
 		{
@@ -250,10 +252,11 @@ static void APP_process_new_receive(void)
 		return;
 	}
 
+#ifdef ENABLE_DTMF_CALLING
 	if (g_scan_state_dir == SCAN_STATE_DIR_OFF && g_css_scan_mode == CSS_SCAN_MODE_OFF)
 	{	// not scanning
 
-		#ifdef ENABLE_KILL_REVIVE
+		#ifdef ENABLE_DTMF_KILL_REVIVE
 			if (g_rx_vfo->channel.dtmf_decoding_enable || g_eeprom.config.setting.radio_disabled)
 		#else
 			if (g_rx_vfo->channel.dtmf_decoding_enable)
@@ -276,6 +279,7 @@ static void APP_process_new_receive(void)
 			}
 		}
 	}
+#endif
 
 	APP_start_listening();
 }
@@ -487,10 +491,12 @@ bool APP_start_listening(void)
 	const unsigned int chan = g_rx_vfo_num;
 //	const unsigned int chan = g_rx_vfo->channel_save;
 
-	#ifdef ENABLE_KILL_REVIVE
+#ifdef ENABLE_DTMF_CALLING
+	#ifdef ENABLE_DTMF_KILL_REVIVE
 		if (g_eeprom.config.setting.radio_disabled)
 			return false;
 	#endif
+#endif
 
 	if (g_squelch_open)
 		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // green LED on
@@ -882,8 +888,10 @@ static bool APP_toggle_dual_watch_vfo(void)
 		return false;
 	if (g_ptt_is_pressed)
 		return false;
-	if (g_dtmf_call_state != DTMF_CALL_STATE_NONE)
-		return false;
+	#ifdef ENABLE_DTMF_CALLING
+		if (g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+			return false;
+	#endif
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_mode)
 			return false;
@@ -1024,24 +1032,26 @@ void APP_process_radio_interrupts(void)
 					}
 				#endif
 
-				#ifdef ENABLE_KILL_REVIVE
-					if (g_rx_vfo->channel.dtmf_decoding_enable || g_eeprom.config.setting.radio_disabled)
-				#else
-					if (g_rx_vfo->channel.dtmf_decoding_enable)
-				#endif
-				{
-					if (g_dtmf_rx_index >= (sizeof(g_dtmf_rx) - 1))
-					{	// make room
-						memmove(&g_dtmf_rx[0], &g_dtmf_rx[1], sizeof(g_dtmf_rx) - 1);
-						g_dtmf_rx_index--;
+				#ifdef ENABLE_DTMF_CALLING
+					#ifdef ENABLE_DTMF_KILL_REVIVE
+						if (g_rx_vfo->channel.dtmf_decoding_enable || g_eeprom.config.setting.radio_disabled)
+					#else
+						if (g_rx_vfo->channel.dtmf_decoding_enable)
+					#endif
+					{
+						if (g_dtmf_rx_index >= (sizeof(g_dtmf_rx) - 1))
+						{	// make room
+							memmove(&g_dtmf_rx[0], &g_dtmf_rx[1], sizeof(g_dtmf_rx) - 1);
+							g_dtmf_rx_index--;
+						}
+						g_dtmf_rx[g_dtmf_rx_index++] = c;
+						g_dtmf_rx[g_dtmf_rx_index]   = 0;
+						g_dtmf_rx_timeout            = dtmf_rx_timeout_500ms;  // time till we delete it
+						g_dtmf_rx_pending            = true;
+	
+						DTMF_HandleRequest();
 					}
-					g_dtmf_rx[g_dtmf_rx_index++] = c;
-					g_dtmf_rx[g_dtmf_rx_index]   = 0;
-					g_dtmf_rx_timeout            = dtmf_rx_timeout_500ms;  // time till we delete it
-					g_dtmf_rx_pending            = true;
-
-					DTMF_HandleRequest();
-				}
+				#endif
 			}
 		}
 
@@ -1272,9 +1282,11 @@ void APP_end_tx(void)
 
 		g_update_status = true;
 
-		#ifdef ENABLE_KILL_REVIVE
-			if (g_eeprom.config.setting.radio_disabled)
-				return;
+		#ifdef ENABLE_DTMF_CALLING
+			#ifdef ENABLE_DTMF_KILL_REVIVE
+				if (g_eeprom.config.setting.radio_disabled)
+					return;
+			#endif
 		#endif
 
 		if (!g_eeprom.config.setting.tx_enable)
@@ -1319,9 +1331,11 @@ void APP_process_keys(void)
 
 	key_code_t key;
 
-	#ifdef ENABLE_KILL_REVIVE
-		if (g_eeprom.config.setting.radio_disabled)
-			return;
+	#ifdef ENABLE_DTMF_CALLING
+		#ifdef ENABLE_DTMF_KILL_REVIVE
+			if (g_eeprom.config.setting.radio_disabled)
+				return;
+		#endif
 	#endif
 
 	// *****************
@@ -1345,7 +1359,7 @@ void APP_process_keys(void)
 				if (g_current_display_screen != DISPLAY_AIRCOPY)
 			#endif
 				{
-				#ifdef ENABLE_KILL_REVIVE
+				#if defined(ENABLE_DTMF_CALLING) && defined(ENABLE_DTMF_KILL_REVIVE)
 					if (!g_eeprom.config.setting.radio_disabled)
 				#endif
 					{
@@ -1929,7 +1943,9 @@ void APP_process_power_save(void)
 		g_scan_state_dir != SCAN_STATE_DIR_OFF    ||
 		g_css_scan_mode != CSS_SCAN_MODE_OFF      ||
 		g_current_display_screen != DISPLAY_MAIN  ||
-		g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+		#ifdef ENABLE_DTMF_CALLING
+			g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+		#endif
 		g_flash_light_state == FLASHLIGHT_SOS)
 	{
 		power_save = false;
@@ -2129,9 +2145,11 @@ void APP_time_slice_500ms(void)
 		if (--g_menu_tick_10ms == 0)
 			exit_menu = (g_current_display_screen == DISPLAY_MENU);	// exit menu mode
 
-	if (g_dtmf_rx_timeout > 0)
-		if (--g_dtmf_rx_timeout == 0)
-			DTMF_clear_RX();
+	#ifdef ENABLE_DTMF_CALLING
+		if (g_dtmf_rx_timeout > 0)
+			if (--g_dtmf_rx_timeout == 0)
+				DTMF_clear_RX();
+	#endif
 
 	#ifdef ENABLE_FMRADIO
 		if (g_fm_radio_tick_500ms > 0)
@@ -2350,48 +2368,50 @@ void APP_time_slice_500ms(void)
 			return;
 	#endif
 
-	if (g_current_function != FUNCTION_TRANSMIT)
-	{
-		if (g_dtmf_decode_ring_tick_500ms > 0)
-		{	// make "ring-ring" sound
-			g_dtmf_decode_ring_tick_500ms--;
-
-			#ifdef ENABLE_DTMF_CALL_FLASH_LIGHT
-				GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);    // light on
-			#endif
-
-			AUDIO_PlayBeep(BEEP_880HZ_200MS);
-
-			#ifdef ENABLE_DTMF_CALL_FLASH_LIGHT
-				GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);  // light off
-			#endif
-		}
-	}
-	else
-		g_dtmf_decode_ring_tick_500ms = 0;
-
-	if (g_dtmf_call_state  != DTMF_CALL_STATE_NONE &&
-	    g_current_function != FUNCTION_TRANSMIT &&
-	    g_current_function != FUNCTION_RECEIVE)
-	{
-		if (g_dtmf_auto_reset_time_500ms > 0)
+	#ifdef ENABLE_DTMF_CALLING
+		if (g_current_function != FUNCTION_TRANSMIT)
 		{
-			if (--g_dtmf_auto_reset_time_500ms == 0)
-			{
-				if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED && g_eeprom.config.setting.dtmf.auto_reset_time >= DTMF_HOLD_MAX)
-					g_dtmf_call_state = DTMF_CALL_STATE_RECEIVED_STAY;     // keep message on-screen till a key is pressed
-				else
-					g_dtmf_call_state = DTMF_CALL_STATE_NONE;
-				g_update_display  = true;
+			if (g_dtmf_decode_ring_tick_500ms > 0)
+			{	// make "ring-ring" sound
+				g_dtmf_decode_ring_tick_500ms--;
+	
+				#ifdef ENABLE_DTMF_CALL_FLASH_LIGHT
+					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);    // light on
+				#endif
+	
+				AUDIO_PlayBeep(BEEP_880HZ_200MS);
+	
+				#ifdef ENABLE_DTMF_CALL_FLASH_LIGHT
+					GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_FLASHLIGHT);  // light off
+				#endif
 			}
 		}
+		else
+			g_dtmf_decode_ring_tick_500ms = 0;
 
-//		if (g_dtmf_call_state != DTMF_CALL_STATE_RECEIVED_STAY)
-//		{
-//			g_dtmf_call_state = DTMF_CALL_STATE_NONE;
-//			g_update_display  = true;
-//		}
-	}
+		if (g_dtmf_call_state  != DTMF_CALL_STATE_NONE &&
+			g_current_function != FUNCTION_TRANSMIT &&
+			g_current_function != FUNCTION_RECEIVE)
+		{
+			if (g_dtmf_auto_reset_time_500ms > 0)
+			{
+				if (--g_dtmf_auto_reset_time_500ms == 0)
+				{
+					if (g_dtmf_call_state == DTMF_CALL_STATE_RECEIVED && g_eeprom.config.setting.dtmf.auto_reset_time >= DTMF_HOLD_MAX)
+						g_dtmf_call_state = DTMF_CALL_STATE_RECEIVED_STAY;     // keep message on-screen till a key is pressed
+					else
+						g_dtmf_call_state = DTMF_CALL_STATE_NONE;
+					g_update_display  = true;
+				}
+			}
+
+//			if (g_dtmf_call_state != DTMF_CALL_STATE_RECEIVED_STAY)
+//			{
+//				g_dtmf_call_state = DTMF_CALL_STATE_NONE;
+//				g_update_display  = true;
+//			}
+		}
+	#endif
 
 	if (g_dtmf_is_tx && g_dtmf_tx_stop_tick_500ms > 0)
 	{
@@ -2636,7 +2656,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 	#ifdef ENABLE_AIRCOPY
 		if (g_current_display_screen == DISPLAY_AIRCOPY)
 		{
-			AIRCOPY_process_key(key, key_pressed, key_held);
+			AIRCOPY_process_key(Key, key_pressed, key_held);
 			return;
 		}
 	#endif
@@ -2755,8 +2775,10 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 		g_menu_tick_10ms = menu_timeout_500ms;
 
 	// cancel the ringing
-	if (key_pressed && g_dtmf_decode_ring_tick_500ms > 0)
-		g_dtmf_decode_ring_tick_500ms = 0;
+	#ifdef ENABLE_DTMF_CALLING
+		if (key_pressed && g_dtmf_decode_ring_tick_500ms > 0)
+			g_dtmf_decode_ring_tick_500ms = 0;
+	#endif
 
 	// ********************
 
@@ -3063,10 +3085,12 @@ Skip:
 
 //		g_tx_vfo->freq_in_channel = SETTINGS_find_channel(frequency);
 
-		g_dtmf_auto_reset_time_500ms = 0;
-		g_dtmf_call_state            = DTMF_CALL_STATE_NONE;
-		g_dtmf_tx_stop_tick_500ms    = 0;
-		g_dtmf_is_tx                 = false;
+		#ifdef ENABLE_DTMF_CALLING
+			g_dtmf_auto_reset_time_500ms = 0;
+			g_dtmf_call_state            = DTMF_CALL_STATE_NONE;
+		#endif
+		g_dtmf_tx_stop_tick_500ms = 0;
+		g_dtmf_is_tx              = false;
 
 		g_vfo_rssi_bar_level[0] = 0;
 		g_vfo_rssi_bar_level[1] = 0;

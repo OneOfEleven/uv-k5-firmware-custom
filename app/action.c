@@ -207,7 +207,9 @@ void ACTION_Scan(bool bRestart)
 		g_monitor_enabled = false;
 		GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 
-		DTMF_clear_RX();
+		#ifdef ENABLE_DTMF_CALLING
+			DTMF_clear_RX();
+		#endif
 
 		#ifdef ENABLE_DTMF_LIVE_DECODER
 			g_dtmf_rx_live_timeout = 0;

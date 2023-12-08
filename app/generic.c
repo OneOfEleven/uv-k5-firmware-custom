@@ -214,26 +214,32 @@ void GENERIC_Key_PTT(bool key_pressed)
 			g_dtmf_input_box[g_dtmf_input_box_index] = 0;             // NULL term the string
 
 		// append our DTMF ID to the inputted DTMF code -
-		#if 0
-			// QS
-			if (g_dtmf_input_box_index == 3)
-				g_dtmf_call_mode = DTMF_CheckGroupCall(g_dtmf_input_box, 3);
-			else
-				g_dtmf_call_mode = DTMF_CALL_MODE_DTMF;
-		#else
-			// 1of11
-			if (g_dtmf_input_box_index == 3 && g_dtmf_input_box[0] != '*' && g_dtmf_input_box[0] != '#')
-				g_dtmf_call_mode = DTMF_CheckGroupCall(g_dtmf_input_box, 3);
-			else
-				g_dtmf_call_mode = DTMF_CALL_MODE_DTMF;
+		#ifdef ENABLE_DTMF_CALLING
+			#if 0
+				// QS
+				if (g_dtmf_input_box_index == 3)
+					g_dtmf_call_mode = DTMF_CheckGroupCall(g_dtmf_input_box, 3);
+				else
+					g_dtmf_call_mode = DTMF_CALL_MODE_DTMF;
+			#else
+				// 1of11
+				if (g_dtmf_input_box_index == 3 && g_dtmf_input_box[0] != '*' && g_dtmf_input_box[0] != '#')
+					g_dtmf_call_mode = DTMF_CheckGroupCall(g_dtmf_input_box, 3);
+				else
+					g_dtmf_call_mode = DTMF_CALL_MODE_DTMF;
+			#endif
 		#endif
 
 		// remember the DTMF string
 		g_dtmf_prev_index = g_dtmf_input_box_index;
 		strcpy(g_dtmf_string, g_dtmf_input_box);
 
-		g_dtmf_reply_state = DTMF_REPLY_ANI;
-		g_dtmf_state       = DTMF_STATE_0;
+		#ifdef ENABLE_DTMF_CALLING
+			g_dtmf_reply_state = DTMF_REPLY_ANI;
+			g_dtmf_state       = DTMF_STATE_0;
+		#else
+			g_dtmf_reply_state = DTMF_REPLY_STR;	// just send the straight string
+		#endif
 
 		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //			UART_printf("generic ptt tx %s\r\n", g_dtmf_string);

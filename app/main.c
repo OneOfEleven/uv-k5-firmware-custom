@@ -703,12 +703,14 @@ void MAIN_Key_EXIT(bool key_pressed, bool key_held)
 
 		g_beep_to_play = BEEP_1KHZ_60MS_OPTIONAL;
 
-		if (g_dtmf_call_state != DTMF_CALL_STATE_NONE && g_current_function != FUNCTION_TRANSMIT)
-		{	// clear CALL mode being displayed
-			g_dtmf_call_state = DTMF_CALL_STATE_NONE;
-			g_update_display  = true;
-			return;
-		}
+		#ifdef ENABLE_DTMF_CALLING
+			if (g_dtmf_call_state != DTMF_CALL_STATE_NONE && g_current_function != FUNCTION_TRANSMIT)
+			{	// clear CALL mode being displayed
+				g_dtmf_call_state = DTMF_CALL_STATE_NONE;
+				g_update_display  = true;
+				return;
+			}
+		#endif
 
 		#ifdef ENABLE_FMRADIO
 			if (!g_fm_radio_mode)

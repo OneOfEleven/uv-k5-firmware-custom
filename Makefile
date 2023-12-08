@@ -27,7 +27,7 @@ ENABLE_NOAA                      := 0
 ENABLE_VOICE                     := 0
 ENABLE_MUTE_RADIO_FOR_VOICE      := 0
 # Tx on Voice 1.0 kB
-ENABLE_VOX                       := 0
+ENABLE_VOX                       := 1
 ENABLE_VOX_MORE_SENSITIVE        := 1
 # Tx Alarm 600 B
 ENABLE_ALARM                     := 0
@@ -40,11 +40,15 @@ ENABLE_MDC1200_SIDE_BEEP         := 1
 ENABLE_PWRON_PASSWORD            := 0
 ENABLE_RESET_AES_KEY             := 0
 ENABLE_BIG_FREQ                  := 0
-ENABLE_DTMF_LIVE_DECODER         := 0
+ENABLE_DTMF_CALLING              := 0
+ENABLE_DTMF_LIVE_DECODER         := 1
 ENABLE_DTMF_TIMING_SETTINGS      := 0
+ENABLE_DTMF_CALL_FLASH_LIGHT     := 0
+# Kill and Revive 400 B
+ENABLE_DTMF_KILL_REVIVE          := 0
 ENABLE_SHOW_FREQ_IN_CHAN         := 1
 # smaa bold 580 B
-ENABLE_SMALL_BOLD                := 0
+ENABLE_SMALL_BOLD                := 1
 # smallest font 2 kB
 ENABLE_SMALLEST_FONT             := 0
 # trim trailing 44 B
@@ -60,19 +64,16 @@ ENABLE_TX_POWER_FIX              := 1
 ENABLE_CTCSS_TAIL_PHASE_SHIFT    := 1
 ENABLE_CONTRAST                  := 0
 ENABLE_BOOT_BEEPS                := 0
-ENABLE_DTMF_CALL_FLASH_LIGHT     := 0
 ENABLE_FLASH_LIGHT_SOS_TONE      := 0
 ENABLE_SHOW_CHARGE_LEVEL         := 0
 ENABLE_REVERSE_BAT_SYMBOL        := 0
-ENABLE_FREQ_SEARCH_LNA           := 0
+ENABLE_FREQ_SEARCH_LNA           := 1
 ENABLE_FREQ_SEARCH_TIMEOUT       := 0
 ENABLE_CODE_SEARCH_TIMEOUT       := 0
 # scan ignore list 740 B
-ENABLE_SCAN_IGNORE_LIST          := 0
+ENABLE_SCAN_IGNORE_LIST          := 1
 # scan ranges 400 B
-ENABLE_SCAN_RANGES               := 0
-# Kill and Revive 400 B
-ENABLE_KILL_REVIVE               := 0
+ENABLE_SCAN_RANGES               := 1
 # AM Fix 800 B
 ENABLE_AM_FIX                    := 1
 ENABLE_AM_FIX_SHOW_DATA          := 0
@@ -334,6 +335,9 @@ endif
 ifeq ($(ENABLE_BIG_FREQ),1)
 	CFLAGS  += -DENABLE_BIG_FREQ
 endif
+ifeq ($(ENABLE_DTMF_CALLING),1)
+	CFLAGS  += -DENABLE_DTMF_CALLING
+endif
 ifeq ($(ENABLE_DTMF_LIVE_DECODER),1)
 	CFLAGS  += -DENABLE_DTMF_LIVE_DECODER
 endif
@@ -439,8 +443,8 @@ endif
 ifeq ($(ENABLE_SCAN_RANGES),1)
 	CFLAGS  += -DENABLE_SCAN_RANGES
 endif
-ifeq ($(ENABLE_KILL_REVIVE),1)
-	CFLAGS  += -DENABLE_KILL_REVIVE
+ifeq ($(ENABLE_DTMF_KILL_REVIVE),1)
+	CFLAGS  += -DENABLE_DTMF_KILL_REVIVE
 endif
 ifeq ($(ENABLE_FREQ_SEARCH_LNA),1)
 	CFLAGS  += -DENABLE_FREQ_SEARCH_LNA

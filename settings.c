@@ -236,7 +236,7 @@ void SETTINGS_read_eeprom(void)
 	g_eeprom.config.setting.dtmf.code_persist_time       = (g_eeprom.config.setting.dtmf.code_persist_time       < 5 || g_eeprom.config.setting.dtmf.code_persist_time       > 20) ? 10 : g_eeprom.config.setting.dtmf.code_persist_time;
 	g_eeprom.config.setting.dtmf.code_interval_time      = (g_eeprom.config.setting.dtmf.code_interval_time      < 5 || g_eeprom.config.setting.dtmf.code_interval_time      > 20) ? 10 : g_eeprom.config.setting.dtmf.code_interval_time;
 #if 0
-	#ifdef ENABLE_KILL_REVIVE
+	#ifdef ENABLE_DTMF_KILL_REVIVE
 		g_eeprom.config.setting.dtmf.permit_remote_kill  = (g_eeprom.config.setting.dtmf.permit_remote_kill <   2) ? g_eeprom.config.setting.dtmf.permit_remote_kill : 0;
 	#else
 		g_eeprom.config.setting.dtmf.permit_remote_kill  = 0;
@@ -249,7 +249,7 @@ void SETTINGS_read_eeprom(void)
 		strcpy(g_eeprom.config.setting.dtmf.ani_id, "123");
 	}
 
-	#ifdef ENABLE_KILL_REVIVE
+	#ifdef ENABLE_DTMF_KILL_REVIVE
 		// 0EE8..0EEF
 		if (!DTMF_ValidateCodes(g_eeprom.config.setting.dtmf.kill_code, sizeof(g_eeprom.config.setting.dtmf.kill_code)))
 		{
@@ -308,7 +308,7 @@ void SETTINGS_read_eeprom(void)
 	// 0F40..0F47
 	g_eeprom.config.setting.freq_lock = (g_eeprom.config.setting.freq_lock < FREQ_LOCK_LAST) ? g_eeprom.config.setting.freq_lock : FREQ_LOCK_NORMAL;
 //	g_eeprom.config.setting.enable_tx_350       = (g_eeprom.config.setting.enable_tx_350 < 2) ? g_eeprom.config.setting.enable_tx_350 : false;
-	#ifdef ENABLE_KILL_REVIVE
+	#ifdef ENABLE_DTMF_KILL_REVIVE
 		g_eeprom.config.setting.radio_disabled  = (g_eeprom.config.setting.radio_disabled < 2) ? g_eeprom.config.setting.radio_disabled : 0;
 	#else
 		g_eeprom.config.setting.radio_disabled  = 0;
@@ -332,7 +332,7 @@ void SETTINGS_read_eeprom(void)
 
 #else
 
-	#ifndef ENABLE_KILL_REVIVE
+	#ifndef ENABLE_DTMF_KILL_REVIVE
 		memset(g_eeprom.config.setting.dtmf.kill_code,   0, sizeof(g_eeprom.config.setting.dtmf.kill_code));
 		memset(g_eeprom.config.setting.dtmf.revive_code, 0, sizeof(g_eeprom.config.setting.dtmf.revive_code));
 
@@ -344,7 +344,7 @@ void SETTINGS_read_eeprom(void)
 		memset(&g_eeprom.config.setting.aes_key, 0xff, sizeof(g_eeprom.config.setting.aes_key));
 	#endif
 
-	#ifndef ENABLE_KILL_REVIVE
+	#ifndef ENABLE_DTMF_KILL_REVIVE
 		g_eeprom.config.setting.radio_disabled  = 0;
 	#endif
 
@@ -459,7 +459,7 @@ void SETTINGS_save(void)
 		memset(&g_eeprom.config.setting.unused8, 0xff, sizeof(g_eeprom.config.setting.unused8));
 	#endif
 
-	#ifndef ENABLE_KILL_REVIVE
+	#ifndef ENABLE_DTMF_KILL_REVIVE
 		g_eeprom.config.setting.radio_disabled = 0;
 	#endif
 

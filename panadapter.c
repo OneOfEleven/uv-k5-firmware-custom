@@ -142,7 +142,9 @@ void PAN_process_10ms(void)
 	     g_current_display_screen == DISPLAY_SEARCH ||
 	     g_css_scan_mode   != CSS_SCAN_MODE_OFF     ||
 	     g_scan_state_dir  != SCAN_STATE_DIR_OFF    ||
-		 g_dtmf_call_state != DTMF_CALL_STATE_NONE  ||
+	     #ifdef ENABLE_DTMF_CALLING
+			g_dtmf_call_state != DTMF_CALL_STATE_NONE  ||
+	     #endif
 	     g_eeprom.config.setting.dual_watch != DUAL_WATCH_OFF)
 	{
 		if (g_panadapter_enabled)

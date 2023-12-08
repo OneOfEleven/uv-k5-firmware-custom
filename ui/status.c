@@ -80,7 +80,7 @@ void UI_DisplayStatus(const bool test_display)
 		}
 	#endif
 
-	#ifdef ENABLE_KILL_REVIVE
+	#ifdef ENABLE_DTMF_KILL_REVIVE
 		if (g_eeprom.config.setting.radio_disabled)
 		{
 			memset(line + x, 0xFF, 10);
@@ -143,7 +143,9 @@ void UI_DisplayStatus(const bool test_display)
 		#endif
 
 		if (g_dual_watch_tick_10ms > dual_watch_delay_toggle_10ms ||
-			g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+			#ifdef ENABLE_DTMF_CALLING
+				g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+			#endif
 			g_scan_state_dir != SCAN_STATE_DIR_OFF  ||
 			g_css_scan_mode != CSS_SCAN_MODE_OFF    ||
 			(g_current_function != FUNCTION_FOREGROUND && g_current_function != FUNCTION_POWER_SAVE) ||

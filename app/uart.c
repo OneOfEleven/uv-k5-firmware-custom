@@ -352,7 +352,7 @@ static void cmd_051D(const uint8_t *pBuffer)
 					memset(data, 0xff, 8);   // wipe the AES key
 			#endif
 
-			//#ifndef ENABLE_KILL_REVIVE
+			//#ifndef ENABLE_DTMF_KILL_REVIVE
 				if (Offset == 0x0F40)
 				{	// killed flag is here
 					data[2] = false;	// remove it
