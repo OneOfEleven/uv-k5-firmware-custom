@@ -31,7 +31,7 @@ ENABLE_VOX                       := 1
 ENABLE_VOX_MORE_SENSITIVE        := 1
 # Tx Alarm 600 B
 ENABLE_ALARM                     := 0
-ENABLE_TX1750                    := 0
+ENABLE_TX_TONE_HZ                   := 1750
 # MDC1200 2.8 kB
 ENABLE_MDC1200                   := 0
 ENABLE_MDC1200_SHOW_OP_ARG       := 1
@@ -42,7 +42,7 @@ ENABLE_RESET_AES_KEY             := 0
 ENABLE_BIG_FREQ                  := 0
 # DTMF_CALLING 2.8 kB
 ENABLE_DTMF_CALLING              := 0
-ENABLE_DTMF_LIVE_DECODER         := 1
+ENABLE_DTMF_LIVE_DECODER         := 0
 ENABLE_DTMF_TIMING_SETTINGS      := 0
 ENABLE_DTMF_CALL_FLASH_LIGHT     := 0
 # Kill and Revive 400 B
@@ -379,8 +379,10 @@ endif
 ifeq ($(ENABLE_ALARM),1)
 	CFLAGS  += -DENABLE_ALARM
 endif
-ifeq ($(ENABLE_TX1750),1)
-	CFLAGS  += -DENABLE_TX1750
+ifdef ENABLE_TX_TONE_HZ
+	ifneq ($(ENABLE_TX_TONE_HZ), 0)
+		CFLAGS += -DENABLE_TX_TONE_HZ=$(ENABLE_TX_TONE_HZ)
+	endif
 endif
 ifeq ($(ENABLE_MDC1200),1)
 	CFLAGS  += -DENABLE_MDC1200

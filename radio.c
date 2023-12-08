@@ -1081,7 +1081,7 @@ void RADIO_PrepareTX(void)
 	vfo_state_t State = VFO_STATE_NORMAL;  // default to OK for TX
 
 	#ifdef ENABLE_ALARM
-		if (g_alarm_state == ALARM_STATE_TXALARM && g_eeprom.config.setting.alarm_mode != ALARM_MODE_TONE)
+		if (g_alarm_state == ALARM_STATE_TX_ALARM && g_eeprom.config.setting.alarm_mode != ALARM_MODE_TONE)
 		{	// enable the alarm tone but not the TX
 
 			g_alarm_state = ALARM_STATE_ALARM;
@@ -1154,7 +1154,7 @@ void RADIO_PrepareTX(void)
 
 		RADIO_set_vfo_state(State);
 
-		#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+		#if defined(ENABLE_ALARM) || (ENABLE_TX_TONE_HZ > 0)
 			g_alarm_state = ALARM_STATE_OFF;
 		#endif
 
@@ -1233,7 +1233,7 @@ void RADIO_PrepareCssTX(void)
 
 void RADIO_tx_eot(void)
 {
-	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+	#if defined(ENABLE_ALARM) || (ENABLE_TX_TONE_HZ > 0)
 		if (g_alarm_state != ALARM_STATE_OFF)
 		{	// don't send EOT if TX'ing tone/alarm
 			BK4819_ExitDTMF_TX(true);

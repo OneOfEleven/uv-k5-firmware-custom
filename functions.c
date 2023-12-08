@@ -185,7 +185,7 @@ void FUNCTION_Select(function_type_t Function)
 
 			g_rtte_count_down = 0;
 
-			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+			#if defined(ENABLE_ALARM) || (ENABLE_TX_TONE_HZ > 0)
 				if (g_alarm_state == ALARM_STATE_OFF)
 			#endif
 			{
@@ -245,15 +245,15 @@ void FUNCTION_Select(function_type_t Function)
 //				UART_printf("function tx %u %s\r\n", g_dtmf_reply_state, g_dtmf_string);
 			#endif
 
-			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+			#if defined(ENABLE_ALARM) || (ENABLE_TX_TONE_HZ > 0)
 				if (g_alarm_state != ALARM_STATE_OFF)
 				{
-					#ifdef ENABLE_TX1750
-						if (g_alarm_state == ALARM_STATE_TX1750)
-							BK4819_TransmitTone(true, 1750);
+					#if (ENABLE_TX_TONE_HZ > 0)
+						if (g_alarm_state == ALARM_STATE_TX_TONE)
+							BK4819_TransmitTone(true, ENABLE_TX_TONE_HZ);
 					#endif
 					#ifdef ENABLE_ALARM
-						if (g_alarm_state == ALARM_STATE_TXALARM)
+						if (g_alarm_state == ALARM_STATE_TX_ALARM)
 							BK4819_TransmitTone(true, 500);
 					#endif
 
@@ -264,6 +264,11 @@ void FUNCTION_Select(function_type_t Function)
 					#ifdef ENABLE_ALARM
 						g_alarm_tone_counter_10ms = 0;
 					#endif
+
+					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//						UART_printf("tx tone %u\n", ENABLE_TX_TONE_HZ);
+					#endif
+
 					break;
 				}
 				else

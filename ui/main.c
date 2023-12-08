@@ -114,7 +114,7 @@ void draw_bar(uint8_t *line, const int len, const int max_width)
 		if (g_dtmf_call_state != DTMF_CALL_STATE_NONE)
 			return false;
 
-		#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+		#if defined(ENABLE_ALARM) || (ENABLE_TX_TONE_HZ > 0)
 			if (g_alarm_state != ALARM_STATE_OFF)
 				return false;
 		#endif

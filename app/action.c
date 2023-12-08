@@ -338,22 +338,21 @@ void ACTION_Scan(bool bRestart)
 	}
 #endif
 
-#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
-	static void ACTION_AlarmOr1750(const bool b1750)
+#if defined(ENABLE_ALARM) || (ENABLE_TX_TONE_HZ > 0)
+	static void ACTION_AlarmOrTone(const bool tone)
 	{
 		g_input_box_index = 0;
 
-		(void)b1750;  // stop compile warning
+		(void)tone;  // stop compile warning
 
-		#if defined(ENABLE_ALARM) && defined(ENABLE_TX1750)
-			g_alarm_state = b1750 ? ALARM_STATE_TX1750 : ALARM_STATE_TXALARM;
-			g_alarm_running_counter_10ms = 0;
+		#if defined(ENABLE_ALARM) && (ENABLE_TX_TONE_HZ > 0)
+			g_alarm_state = tone ? ALARM_STATE_TX_TONE : ALARM_STATE_TX_ALARM;
 		#elif defined(ENABLE_ALARM)
-			g_alarm_state = ALARM_STATE_TXALARM;
-			g_alarm_running_counter_10ms = 0;
+			g_alarm_state = ALARM_STATE_TX_ALARM;
 		#else
-			g_alarm_state = ALARM_STATE_TX1750;
+			g_alarm_state = ALARM_STATE_TX_TONE;
 		#endif
+		g_alarm_running_counter_10ms = 0;
 
 		g_flag_prepare_tx = true;
 
@@ -361,7 +360,6 @@ void ACTION_Scan(bool bRestart)
 			g_request_display_screen = DISPLAY_MAIN;
 	}
 #endif
-
 
 #ifdef ENABLE_FMRADIO
 	void ACTION_FM(void)
@@ -454,7 +452,7 @@ void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key
 			break;
 		case ACTION_OPT_ALARM:
 			#ifdef ENABLE_ALARM
-				ACTION_AlarmOr1750(false);
+				ACTION_AlarmOrTone(false);
 			#endif
 			break;
 		#ifdef ENABLE_FMRADIO
@@ -462,9 +460,9 @@ void ACTION_process(const key_code_t Key, const bool key_pressed, const bool key
 				ACTION_FM();
 				break;
 		#endif
-		case ACTION_OPT_1750:
-			#ifdef ENABLE_TX1750
-				ACTION_AlarmOr1750(true);
+		case ACTION_OPT_TX_TONE:
+			#if (ENABLE_TX_TONE_HZ > 0)
+				ACTION_AlarmOrTone(true);
 			#endif
 			break;
 	}

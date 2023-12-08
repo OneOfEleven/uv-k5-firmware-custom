@@ -1558,7 +1558,7 @@ void APP_cancel_user_input_modes(void)
 	}
 }
 
-#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+#if defined(ENABLE_ALARM) || (ENABLE_TX_TONE_HZ > 0)
 	static void APP_alarm_off(void)
 	{
 		if (!g_squelch_open && !g_monitor_enabled)
@@ -1806,7 +1806,7 @@ void APP_process_transmit(void)
 		return;
 
 	#ifdef ENABLE_ALARM
-		if (g_alarm_state == ALARM_STATE_TXALARM || g_alarm_state == ALARM_STATE_ALARM)
+		if (g_alarm_state == ALARM_STATE_TX_ALARM || g_alarm_state == ALARM_STATE_ALARM)
 		{	// TX alarm tone
 
 			uint16_t Tone;
@@ -1825,9 +1825,13 @@ void APP_process_transmit(void)
 
 			if (g_eeprom.config.setting.alarm_mode == ALARM_MODE_TONE && g_alarm_running_counter_10ms == 512)
 			{
+				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//					UART_printf("alm tone\n");
+				#endif
+
 				g_alarm_running_counter_10ms = 0;
 
-				if (g_alarm_state == ALARM_STATE_TXALARM)
+				if (g_alarm_state == ALARM_STATE_TX_ALARM)
 				{
 					g_alarm_state = ALARM_STATE_ALARM;
 
@@ -1842,7 +1846,7 @@ void APP_process_transmit(void)
 				}
 				else
 				{
-					g_alarm_state = ALARM_STATE_TXALARM;
+					g_alarm_state = ALARM_STATE_TX_ALARM;
 
 					GUI_DisplayScreen();
 
@@ -2086,18 +2090,40 @@ void APP_time_slice_500ms(void)
 			return;
 	#endif
 
+	static bool tx_timeout_tone_on = false;
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{
 		if (g_tx_timer_tick_500ms < 6)
-		{	// <= 3 seconds left
+		{	// <= 3 seconds TX time left .. start beeping
+
 			if (g_tx_timer_tick_500ms & 1u)
-				BK4819_start_tone(880, 10, true, true);
+			{
+				if (!tx_timeout_tone_on)
+				{
+					tx_timeout_tone_on = true;
+					//BK4819_start_tone(880, 10, true, false);
+					BK4819_TransmitTone(true, 880);
+				}
+			}
 			else
-				BK4819_stop_tones(true);
+			{
+				if (tx_timeout_tone_on)
+				{
+					tx_timeout_tone_on = false;
+					//GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+					BK4819_stop_tones(true);
+				}
+			}
 		}
 
 		if (g_tx_timer_tick_500ms & 1u)
 			g_update_display = true;
+	}
+	else
+	if (tx_timeout_tone_on)
+	{
+		tx_timeout_tone_on = false;
+		BK4819_stop_tones(false);
 	}
 
 	if (g_update_screen_tick_500ms > 0)
@@ -2851,7 +2877,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 		if (g_current_function == FUNCTION_TRANSMIT)
 		{	// transmitting
 
-			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+			#if defined(ENABLE_ALARM) || (ENABLE_TX_TONE_HZ > 0)
 				if (g_alarm_state == ALARM_STATE_OFF)
 			#endif
 			{
@@ -2864,7 +2890,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 				}
 
 				if (Key == KEY_SIDE2)
-				{	// transmit 1750Hz tone
+				{	// transmit tone
 					Code = 0xFE;
 				}
 				else
@@ -2900,15 +2926,19 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 					BK4819_set_scrambler(0);
 
 					if (Code == 0xFE)
-						BK4819_TransmitTone(g_eeprom.config.setting.dtmf.side_tone, 1750);
+						BK4819_TransmitTone(g_eeprom.config.setting.dtmf.side_tone, ENABLE_TX_TONE_HZ);
 					else
 						BK4819_PlayDTMFEx(g_eeprom.config.setting.dtmf.side_tone, Code);
 				}
 			}
-			#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+			#if defined(ENABLE_ALARM) || (ENABLE_TX_TONE_HZ > 0)
 				else
-				if ((!key_held && key_pressed) || (g_alarm_state == ALARM_STATE_TX1750 && key_held && !key_pressed))
+				if ((!key_held && key_pressed) || (g_alarm_state == ALARM_STATE_TX_TONE && key_held && !key_pressed))
 				{
+					#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//						UART_printf("alarm off\n");
+					#endif
+
 					APP_alarm_off();
 
 					if (g_eeprom.config.setting.repeater_tail_tone_elimination == 0)

@@ -448,7 +448,7 @@ void SETTINGS_save(void)
 		memset(&g_eeprom.config.setting.power_on_password, 0xff, sizeof(g_eeprom.config.setting.power_on_password));
 	#endif
 
-	#if !defined(ENABLE_ALARM) && !defined(ENABLE_TX1750)
+	#if !defined(ENABLE_ALARM) && (!defined(ENABLE_TX_TONE_HZ) || (ENABLE_TX_TONE_HZ == 0))
 		g_eeprom.config.setting.alarm_mode = 0;
 	#endif
 

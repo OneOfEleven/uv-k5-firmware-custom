@@ -53,17 +53,17 @@ bool g_manual_scanning;
 
 void resume_scanning(void)
 {
-	g_scan_tick_10ms       = 0;
-	g_scan_pause_time_mode = false;
-	g_squelch_open         = false;
-	g_rx_reception_mode    = RX_MODE_NONE;
-
-	FUNCTION_Select(FUNCTION_FOREGROUND);
-
 	if (g_current_display_screen != DISPLAY_SEARCH &&
-	     g_scan_state_dir != SCAN_STATE_DIR_OFF     &&
+	     g_scan_state_dir != SCAN_STATE_DIR_OFF    &&
 	    !g_ptt_is_pressed)
 	{
+		g_scan_tick_10ms       = 0;
+		g_scan_pause_time_mode = false;
+		g_squelch_open         = false;
+		g_rx_reception_mode    = RX_MODE_NONE;
+	
+		FUNCTION_Select(FUNCTION_FOREGROUND);
+
 		if (g_scan_next_channel <= USER_CHANNEL_LAST)
 			APP_next_channel();
 		else

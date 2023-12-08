@@ -411,7 +411,7 @@ bool DTMF_Reply(void)
 	#endif
 
 	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
-		UART_printf("dtmf reply none %d, %s\n", g_dtmf_reply_state, g_dtmf_string);
+//		UART_printf("dtmf reply none %d, %s\n", g_dtmf_reply_state, g_dtmf_string);
 	#endif
 
 	switch (g_dtmf_reply_state)

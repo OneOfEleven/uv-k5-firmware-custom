@@ -143,7 +143,7 @@ uint8_t               g_vfo_rssi_bar_level[2];
 
 uint8_t               g_reduced_service;
 uint8_t               g_battery_voltage_index;
-#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+#if defined(ENABLE_ALARM) || defined(ENABLE_TX_TONE_HZ)
 	alarm_state_t     g_alarm_state;
 #endif
 uint16_t              g_menu_tick_10ms;
@@ -206,10 +206,8 @@ scan_state_dir_t      g_scan_state_dir;
 uint8_t               g_rx_vfo_num;
 bool                  g_rx_vfo_is_active;
 
-#ifdef ENABLE_ALARM
-	uint16_t          g_alarm_tone_counter_10ms;
-	uint16_t          g_alarm_running_counter_10ms;
-#endif
+uint16_t              g_alarm_tone_counter_10ms;
+uint16_t              g_alarm_running_counter_10ms;
 
 uint8_t               g_menu_list_count;
 

@@ -870,6 +870,45 @@ void BK4819_EnableDTMF(void)
 		(15u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
 }
 
+void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency)
+{
+	BK4819_EnterTxMute();
+
+	// REG_70
+	//
+	// <15>   0 Enable TONE1
+	//        1 = Enable
+	//        0 = Disable
+	//
+	// <14:8> 0 TONE1 tuning gain
+	//        0 ~ 127
+	//
+	// <7>    0 Enable TONE2
+	//        1 = Enable
+	//        0 = Disable
+	//
+	// <6:0>  0 TONE2/FSK amplitude
+	//        0 ~ 127
+	//
+	// set the tone amplitude
+	//
+//	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (96u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (28u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+
+	BK4819_write_reg(0x71, scale_freq(Frequency));
+
+	BK4819_SetAF(bLocalLoopback ? BK4819_AF_BEEP : BK4819_AF_MUTE);
+
+	if (bLocalLoopback)
+		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+
+	BK4819_EnableTXLink();
+
+	SYSTEM_DelayMs(50);
+
+	BK4819_ExitTxMute();
+}
+
 void BK4819_start_tone(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_mute)
 {
 	SYSTEM_DelayMs(1);
@@ -884,7 +923,6 @@ void BK4819_start_tone(const uint16_t frequency, const unsigned int level, const
 	BK4819_write_reg(0x70, BK4819_REG_70_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
 	BK4819_write_reg(0x30, 0);
-
 	if (!tx)
 	{
 		BK4819_write_reg(0x30,
@@ -934,6 +972,10 @@ void BK4819_start_tone(const uint16_t frequency, const unsigned int level, const
 
 void BK4819_stop_tones(const bool tx)
 {
+	#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+		UART_printf("stop tones\n");
+	#endif
+
 	SYSTEM_DelayMs(1);
 
 	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -1292,42 +1334,6 @@ void BK4819_PlayDTMFString(const char *pString, bool bDelayFirst, uint16_t First
 		BK4819_EnterTxMute();
 		SYSTEM_DelayMs(CodeInternalTime);
 	}
-}
-
-void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency)
-{
-	BK4819_EnterTxMute();
-
-	// REG_70
-	//
-	// <15>   0 Enable TONE1
-	//        1 = Enable
-	//        0 = Disable
-	//
-	// <14:8> 0 TONE1 tuning gain
-	//        0 ~ 127
-	//
-	// <7>    0 Enable TONE2
-	//        1 = Enable
-	//        0 = Disable
-	//
-	// <6:0>  0 TONE2/FSK amplitude
-	//        0 ~ 127
-	//
-	// set the tone amplitude
-	//
-//	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (96u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (28u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-
-	BK4819_write_reg(0x71, scale_freq(Frequency));
-
-	BK4819_SetAF(bLocalLoopback ? BK4819_AF_BEEP : BK4819_AF_MUTE);
-
-	BK4819_EnableTXLink();
-
-	SYSTEM_DelayMs(50);
-
-	BK4819_ExitTxMute();
 }
 
 void BK4819_disable_sub_audible(void)

@@ -401,7 +401,7 @@ const char g_sub_menu_side_butt[9][16] =
 	"VOX\non\\off",
 	"ALARM\non\\off",
 	"FM RADIO\non\\off",
-	"TX\n1750Hz",
+	"TX\nTONE",
 //	"2nd PTT",
 };
 #endif
@@ -1192,6 +1192,10 @@ void UI_DisplayMenu(void)
 			case MENU_SIDE2_SHORT:
 			case MENU_SIDE2_LONG:
 				strcpy(str, g_sub_menu_side_butt[g_sub_menu_selection]);
+				#if defined(ENABLE_TX_TONE_HZ) && (ENABLE_TX_TONE_HZ > 0) 
+					if (g_sub_menu_selection == ACTION_OPT_TX_TONE)
+						sprintf(str + strlen(str), "\n%uHz", ENABLE_TX_TONE_HZ);
+				#endif
 				break;
 		#endif
 

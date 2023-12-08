@@ -19,20 +19,15 @@
 
 #include "driver/keyboard.h"
 
-//static void ACTION_FlashLight(void)
 void ACTION_Power(void);
 void ACTION_Monitor(void);
 void ACTION_Scan(bool bFlag);
 #ifdef ENABLE_VOX
 	void ACTION_Vox(void);
 #endif
-#ifdef ENABLE_ALARM
-	//static void ACTION_AlarmOr1750(bool b1750)
-#endif
 #ifdef ENABLE_FMRADIO
 	void ACTION_FM(void);
 #endif
-
 void ACTION_process(const key_code_t Key, const bool bKeyPressed, const bool bKeyHeld);
 
 #endif
