@@ -1851,7 +1851,7 @@ void APP_process_transmit(void)
 					GUI_DisplayScreen();
 
 					RADIO_enableTX(false);
-					BK4819_TransmitTone(true, 500);
+					BK4819_tx_tone(true, 500, 28);
 					SYSTEM_DelayMs(2);
 
 					GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
@@ -2091,9 +2091,10 @@ void APP_time_slice_500ms(void)
 	#endif
 
 	static bool tx_timeout_tone_on = false;
+
 	if (g_current_function == FUNCTION_TRANSMIT)
 	{
-		if (g_tx_timer_tick_500ms < 6)
+		if (g_tx_timer_tick_500ms <= 7)
 		{	// <= 3 seconds TX time left .. start beeping
 
 			if (g_tx_timer_tick_500ms & 1u)
@@ -2102,7 +2103,7 @@ void APP_time_slice_500ms(void)
 				{
 					tx_timeout_tone_on = true;
 					//BK4819_start_tone(880, 10, true, false);
-					BK4819_TransmitTone(true, 880);
+					BK4819_tx_tone(true, 660, 10);
 				}
 			}
 			else
@@ -2110,7 +2111,6 @@ void APP_time_slice_500ms(void)
 				if (tx_timeout_tone_on)
 				{
 					tx_timeout_tone_on = false;
-					//GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
 					BK4819_stop_tones(true);
 				}
 			}
@@ -2926,7 +2926,7 @@ static void APP_process_key(const key_code_t Key, const bool key_pressed, const 
 					BK4819_set_scrambler(0);
 
 					if (Code == 0xFE)
-						BK4819_TransmitTone(g_eeprom.config.setting.dtmf.side_tone, ENABLE_TX_TONE_HZ);
+						BK4819_tx_tone(g_eeprom.config.setting.dtmf.side_tone, ENABLE_TX_TONE_HZ, 28);
 					else
 						BK4819_PlayDTMFEx(g_eeprom.config.setting.dtmf.side_tone, Code);
 				}

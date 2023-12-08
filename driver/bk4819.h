@@ -107,6 +107,7 @@ void     BK4819_DisableVox(void);
 void     BK4819_DisableDTMF(void);
 void     BK4819_EnableDTMF(void);
 
+void     BK4819_tx_tone(const bool side_tone, const unsigned int frequency, const unsigned int level);
 void     BK4819_start_tone(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_mute);
 void     BK4819_stop_tones(const bool tx);
 
@@ -142,8 +143,6 @@ void     BK4819_EnableTXLink(void);
 
 void     BK4819_PlayDTMF(char Code);
 void     BK4819_PlayDTMFString(const char *pString, bool bDelayFirst, uint16_t FirstCodePersistTime, uint16_t HashCodePersistTime, uint16_t CodePersistTime, uint16_t CodeInternalTime);
-
-void     BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency);
 
 uint16_t BK4819_GetRSSI(void);
 uint8_t  BK4819_GetGlitchIndicator(void);

@@ -870,8 +870,11 @@ void BK4819_EnableDTMF(void)
 		(15u       << BK4819_REG_24_SHIFT_MAX_SYMBOLS));     // 0 ~ 15
 }
 
-void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency)
+void BK4819_tx_tone(const bool side_tone, const unsigned int frequency, const unsigned int level)
 {
+	GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	SYSTEM_DelayMs(1);
+	BK4819_SetAF(BK4819_AF_MUTE);
 	BK4819_EnterTxMute();
 
 	// REG_70
@@ -893,20 +896,23 @@ void BK4819_TransmitTone(bool bLocalLoopback, uint32_t Frequency)
 	// set the tone amplitude
 	//
 //	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (96u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
-	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (28u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+//	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | (28u << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
+	BK4819_write_reg(0x70, BK4819_REG_70_MASK_ENABLE_TONE1 | ((level & 0x7f) << BK4819_REG_70_SHIFT_TONE1_TUNING_GAIN));
 
-	BK4819_write_reg(0x71, scale_freq(Frequency));
-
-	BK4819_SetAF(bLocalLoopback ? BK4819_AF_BEEP : BK4819_AF_MUTE);
-
-	if (bLocalLoopback)
-		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	BK4819_write_reg(0x71, scale_freq(frequency));
 
 	BK4819_EnableTXLink();
 
 	SYSTEM_DelayMs(50);
 
 	BK4819_ExitTxMute();
+
+	if (side_tone)
+	{
+		BK4819_SetAF(BK4819_AF_BEEP);
+		SYSTEM_DelayMs(1);
+		GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_SPEAKER);
+	}
 }
 
 void BK4819_start_tone(const uint16_t frequency, const unsigned int level, const bool tx, const bool tx_mute)

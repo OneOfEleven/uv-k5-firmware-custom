@@ -250,11 +250,11 @@ void FUNCTION_Select(function_type_t Function)
 				{
 					#if (ENABLE_TX_TONE_HZ > 0)
 						if (g_alarm_state == ALARM_STATE_TX_TONE)
-							BK4819_TransmitTone(true, ENABLE_TX_TONE_HZ);
+							BK4819_tx_tone(true, ENABLE_TX_TONE_HZ, 28);
 					#endif
 					#ifdef ENABLE_ALARM
 						if (g_alarm_state == ALARM_STATE_TX_ALARM)
-							BK4819_TransmitTone(true, 500);
+							BK4819_tx_tone(true, 500, 28);
 					#endif
 
 					SYSTEM_DelayMs(2);
