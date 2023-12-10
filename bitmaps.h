@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 extern const uint8_t BITMAP_POWERSAVE[8];
-extern const uint8_t BITMAP_TX[8];
-extern const uint8_t BITMAP_RX[8];
+//extern const uint8_t BITMAP_TX[8];
+//extern const uint8_t BITMAP_RX[8];
 
 extern const uint8_t BITMAP_BATTERY_LEVEL[17];
 

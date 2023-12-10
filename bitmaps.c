@@ -28,7 +28,7 @@ const uint8_t BITMAP_POWERSAVE[8] =
 		__extension__ 0b00110001
 	#endif
 };
-
+/*
 const uint8_t BITMAP_TX[8] =
 {	// "TX"
 	__extension__ 0b00000000,
@@ -46,13 +46,13 @@ const uint8_t BITMAP_RX[8] =
 	__extension__ 0b00000000,
 	__extension__ 0b01111111,
 	__extension__ 0b00001001,
+	__extension__ 0b00001001,
 	__extension__ 0b00011001,
 	__extension__ 0b01100110,
 	__extension__ 0b00000000,
-	__extension__ 0b00000000,
 	__extension__ 0b00000000
 };
-
+*/
 #ifndef ENABLE_REVERSE_BAT_SYMBOL
 	// Quansheng way (+ pole to the left)
 	const uint8_t BITMAP_BATTERY_LEVEL[17] =
