@@ -972,8 +972,8 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 				UI_PrintStringSmall("R", x, 0, y);
 			x += 7 * 1;
 
-			if (tx_allowed && g_vfo_info[vfo_num].freq_config_rx.frequency != g_vfo_info[vfo_num].freq_config_tx.frequency)
-			{	// offset symbol
+			//if (g_vfo_info[vfo_num].freq_config_rx.frequency != g_vfo_info[vfo_num].freq_config_tx.frequency)
+			{	// offset direction symbol
 				const char *dir_list[] = {"", "+", "-"};
 				const unsigned int i = g_vfo_info[vfo_num].channel.tx_offset_dir;
 				UI_PrintStringSmall(dir_list[i], x, 0, y);
@@ -981,7 +981,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			x += 7 * 1;
 
 			if (g_vfo_info[vfo_num].channel.tx_offset_dir != TX_OFFSET_FREQ_DIR_OFF)
-			{	// TX/RX offset
+			{	// TX/RX offset frequency
 				const uint32_t ofs = g_vfo_info[vfo_num].channel.tx_offset;
 				sprintf(str, "%u.%05u", ofs / 100000, ofs % 100000);
 				NUMBER_trim_trailing_zeros(str);
@@ -995,7 +995,6 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 				if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
 					strcpy(str, "DTMF");
 				UI_PrintStringSmall(str, LCD_WIDTH - (7 * 4), 0, y);
-				//x += 7 * 5;
 			#endif
 		}
 
