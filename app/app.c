@@ -194,6 +194,8 @@ static void APP_process_new_receive(void)
 
 	if (!g_squelch_open)
 		BK4819_set_AFC(0);
+	else
+		BK4819_set_GPIO_pin(BK4819_GPIO6_PIN2_GREEN, true);   // green LED on
 
 	if (!g_squelch_open && !g_monitor_enabled)
 	{	// squelch is closed
@@ -335,8 +337,12 @@ static void APP_process_rx(void)
 		goto Skip;
 	}
 
-	if (g_found_ctcss_tick_10ms == 0)
+	if (g_found_ctcss_tick_10ms == 0 && !g_monitor_enabled)
 	{
+		#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
+//			UART_printf("rx code check\n");
+		#endif
+
 		if (g_current_code_type == CODE_TYPE_CONTINUOUS_TONE && g_found_ctcss)
 		{
 			g_found_ctcss = false;

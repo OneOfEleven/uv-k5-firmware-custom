@@ -58,7 +58,7 @@ ENABLE_SHOW_FREQ_IN_CHAN         := 1
 # small bold 580 B
 ENABLE_SMALL_BOLD                := 1
 # smallest font 2 kB
-ENABLE_SMALLEST_FONT             := 0
+#ENABLE_SMALLEST_FONT            := 0
 # trim trailing 44 B
 ENABLE_TRIM_TRAILING_ZEROS       := 0
 ENABLE_WIDE_RX                   := 1

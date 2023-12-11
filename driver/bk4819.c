@@ -1352,9 +1352,8 @@ void BK4819_config_sub_audible(void)
 //	#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
 //		BK4819_gen_tail(2);    // 180 deg
 //	#else
-//		BK4819_gen_tail(4);
-		BK4819_write_reg(0x52, (0u << 15) | (0u << 13) | (0u << 12) | (10u << 6) | (15u << 0)); // 0x028F);  // 0 00 0 001010 001111
-//	#endif
+		BK4819_gen_tail(5);
+ //	#endif
 }
 
 // freq_10Hz is CTCSS Hz * 10
@@ -1402,7 +1401,7 @@ void BK4819_gen_tail(const unsigned int tail)
 	//         2 = CTCSS0 180° phase shift
 	//         3 = CTCSS0 240° phase shift
 	//
-	// <12>    CTCSS Detection Threshold Mode
+	// <12>    0 CTCSS Detection Threshold Mode
 	//         1 = ~0.1%
 	//         0 =  0.1Hz
 	//
@@ -1413,14 +1412,14 @@ void BK4819_gen_tail(const unsigned int tail)
 	uint16_t tail_phase_shift            = 1;
 	uint16_t ctcss_tail_mode_selection   = 0;
 	uint16_t ctcss_detect_threshold_mode = 0;
-	#if 0
+	#if 1
 		// original QS setting
-		uint16_t ctcss_found_threshold       = 10;
-		uint16_t ctcss_lost_threshold        = 15;
+		uint16_t ctcss_found_threshold   = 10;
+		uint16_t ctcss_lost_threshold    = 15;
 	#else
 		// increase it to help reduce false detections when doing CTCSS/CDCSS searching
-		uint16_t ctcss_found_threshold       = 15;
-		uint16_t ctcss_lost_threshold        = 23;
+		uint16_t ctcss_found_threshold   = 13;
+		uint16_t ctcss_lost_threshold    = 18;
 	#endif
 
 	switch (tail)
@@ -1442,6 +1441,9 @@ void BK4819_gen_tail(const unsigned int tail)
 			tail_phase_shift      = 0;
 			ctcss_found_threshold = 17;
 			ctcss_lost_threshold  = 47;
+			break;
+		case 5:
+			tail_phase_shift = 0;
 			break;
 	}
 
