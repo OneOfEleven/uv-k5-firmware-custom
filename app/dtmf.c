@@ -450,11 +450,11 @@ bool DTMF_Reply(void)
 		default:
 			if (
 				#ifdef ENABLE_DTMF_CALLING
-					g_dtmf_call_state != DTMF_CALL_STATE_NONE               ||
+					g_dtmf_call_state != DTMF_CALL_STATE_NONE                   ||
 				#endif
-				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO ||
-				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_1750   ||
-				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_OFF    ||
+				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO     ||
+				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_TONE_BURST ||
+				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_OFF        ||
 				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_EOT)
 			{
 				g_dtmf_reply_state = DTMF_REPLY_NONE;

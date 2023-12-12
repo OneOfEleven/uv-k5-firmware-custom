@@ -312,14 +312,14 @@ const char g_sub_menu_mem_disp[4][12] =
 	};
 #endif
 
-const char g_sub_menu_ptt_id[6][18] =
+const char g_sub_menu_ptt_id[6][17] =
 {
 	"DTMF ID\nOFF",
 	"DTMF ID\nBOT",
 	"DTMF ID\nEOT",
 	"DTMF ID\nBOT+EOT",
 	"APOLLO\nQUINDAR",
-	"TONE BURST\n1750Hz"
+	"TONE BURST\n"
 };
 
 #ifdef ENABLE_MDC1200
@@ -1068,6 +1068,15 @@ void UI_DisplayMenu(void)
 
 		case MENU_PTT_ID:
 			strcpy(str, g_sub_menu_ptt_id[g_sub_menu_selection]);
+			if (g_sub_menu_selection == PTT_ID_TONE_BURST)
+			{
+				#if (ENABLE_TX_TONE_HZ > 0)
+					sprintf(str + strlen(str), "%uHz", (uint16_t)ENABLE_TX_TONE_HZ);
+				#else
+					strcat("1750Hz");
+				#endif
+			}
+
 			channel_setting = true;
 			break;
 

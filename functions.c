@@ -295,9 +295,13 @@ void FUNCTION_Select(function_type_t Function)
 					}
 					else
 				#endif
-					if (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_1750)
+					if (g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_TONE_BURST)
 					{
-						BK4819_start_tone(1750, 28, true, false);
+						#if (ENABLE_TX_TONE_HZ > 0)
+							BK4819_start_tone(ENABLE_TX_TONE_HZ, 28, true, false);
+						#else
+							BK4819_start_tone(1750, 28, true, false);
+						#endif
 						SYSTEM_DelayMs(TONE_1750_MS);
 						BK4819_stop_tones(true);
 					}

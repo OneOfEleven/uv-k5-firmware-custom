@@ -811,7 +811,7 @@ void MENU_AcceptSetting(void)
 			if (g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_EOT    ||
 			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_BOTH   ||
 			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO ||
-			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_1750)
+			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_TONE_BURST)
 			{
 				g_eeprom.config.setting.roger_mode = ROGER_MODE_OFF;
 				break;

@@ -57,7 +57,7 @@ ENABLE_MUTE_RADIO_FOR_VOICE      := 1       1 = mute the radios audio when a voi
 ENABLE_VOX                       := 0       1 = voice operated transmission
 ENABLE_VOX_MORE_SENSITIVE        := 1       1 = make VOX more sensitive
 ENABLE_ALARM                     := 0       1 = enable TX alarm
-ENABLE_TX_TONE_HZ                := 1750        side key tx tone frequency  0 = disable  >0 = frequency of tone
+ENABLE_TX_TONE_HZ                := 1750        side key and tone burst tx frequency  0 = disable  >0 = frequency of audio tone
 ENABLE_MDC1200                   := 0       1 = enable MDC1200 TX/RX + menu TX option
 ENABLE_MDC1200_SHOW_OP_ARG       := 1       1 = show RX opcode and argument values when MDC1200 is RX'ed
 ENABLE_MDC1200_SIDE_BEEP         := 1       1 = enable short side tone/beep when MDC1200 is sent - so user knows when they can start taking after PTT pressed

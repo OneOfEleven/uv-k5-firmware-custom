@@ -207,7 +207,7 @@ extern const char         g_sub_menu_mem_disp[4][12];
 #ifdef ENABLE_DTMF_CALLING
 	extern const char     g_sub_menu_dtmf_rsp[4][9];
 #endif
-extern const char         g_sub_menu_ptt_id[6][18];
+extern const char         g_sub_menu_ptt_id[6][17];
 #ifdef ENABLE_MDC1200
 	extern const char     g_sub_menu_mdc1200_mode[4][5];
 #endif

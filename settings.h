@@ -161,7 +161,7 @@ enum ptt_id_e {
 	PTT_ID_EOT,        // END OF TX
 	PTT_ID_BOTH,       // BOTH
 	PTT_ID_APOLLO,     // Apolo quindar tones
-	PTT_ID_1750,       // 1750Hz tone burst
+	PTT_ID_TONE_BURST  // tone burst
 };
 typedef enum ptt_id_e ptt_id_t;
 
