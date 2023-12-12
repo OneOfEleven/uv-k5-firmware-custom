@@ -312,13 +312,14 @@ const char g_sub_menu_mem_disp[4][12] =
 	};
 #endif
 
-const char g_sub_menu_ptt_id[5][16] =
+const char g_sub_menu_ptt_id[6][18] =
 {
 	"DTMF ID\nOFF",
 	"DTMF ID\nBOT",
 	"DTMF ID\nEOT",
 	"DTMF ID\nBOT+EOT",
-	"APOLLO\nQUINDAR"
+	"APOLLO\nQUINDAR",
+	"TONE BURST\n1750Hz"
 };
 
 #ifdef ENABLE_MDC1200

@@ -57,6 +57,8 @@
 #define APOLLO_TONE1_HZ        2525
 #define APOLLO_TONE2_HZ        2475
 
+#define TONE_1750_MS           500
+
 enum {
 	USER_CHANNEL_FIRST = 0,
 	USER_CHANNEL_LAST  = 199u,

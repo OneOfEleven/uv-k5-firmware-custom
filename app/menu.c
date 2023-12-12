@@ -808,9 +808,10 @@ void MENU_AcceptSetting(void)
 
 		case MENU_PTT_ID:
 			g_tx_vfo->channel.dtmf_ptt_id_tx_mode = g_sub_menu_selection;
-			if (g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_EOT ||
-			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_BOTH    ||
-			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO)
+			if (g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_EOT    ||
+			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_BOTH   ||
+			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO ||
+			    g_tx_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_1750)
 			{
 				g_eeprom.config.setting.roger_mode = ROGER_MODE_OFF;
 				break;

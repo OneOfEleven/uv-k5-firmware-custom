@@ -453,6 +453,7 @@ bool DTMF_Reply(void)
 					g_dtmf_call_state != DTMF_CALL_STATE_NONE               ||
 				#endif
 				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_APOLLO ||
+				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_1750   ||
 				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_OFF    ||
 				g_current_vfo->channel.dtmf_ptt_id_tx_mode == PTT_ID_EOT)
 			{
