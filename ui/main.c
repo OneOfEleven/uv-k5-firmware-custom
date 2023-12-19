@@ -675,10 +675,11 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 		const unsigned int state      = g_vfo_state[vfo_num];
 		bool               tx_allowed = false;
 		uint8_t           *p_line1    = g_frame_buffer[1];
+		const vfo_info_t  *p_vfo      = &g_vfo_info[vfo_num];
 		char               str[22];
 
 		#ifdef ENABLE_SHOW_FREQ_IN_CHAN
-			const uint8_t freq_in_channel = g_vfo_info[vfo_num].freq_in_channel;
+			const uint8_t freq_in_channel = p_vfo->freq_in_channel;
 			//const uint8_t freq_in_channel = SETTINGS_find_channel(frequency);  // was way to slow
 		#endif
 
@@ -689,11 +690,11 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 
 		#ifdef ENABLE_TX_WHEN_AM
 			if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
-				if (FREQUENCY_tx_freq_check(g_vfo_info[vfo_num].p_tx->frequency) == 0)
+				if (FREQUENCY_tx_freq_check(p_vfo->p_tx->frequency) == 0)
 					tx_allowed = true;
 		#else
-			if ((state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) && g_vfo_info[vfo_num].channel.mod_mode == MOD_MODE_FM) // TX allowed only when FM
-				if (FREQUENCY_tx_freq_check(g_vfo_info[vfo_num].p_tx->frequency) == 0)
+			if ((state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM) && p_vfo->channel.mod_mode == MOD_MODE_FM) // TX allowed only when FM
+				if (FREQUENCY_tx_freq_check(p_vfo->p_tx->frequency) == 0)
 					tx_allowed = true;
 		#endif
 
@@ -760,14 +761,25 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 					x += 7 * 5;
 
 					{	// RX or TX or state message
+						bool bold = true;
 						str[0] = 0;
 						if (g_current_function == FUNCTION_TRANSMIT)
 							strcpy(str, "TX");
 						else
 						if (g_current_function == FUNCTION_RECEIVE && g_squelch_open)
 							strcpy(str, "RX");
+						else
+						{
+							const unsigned int squelch_level = (p_vfo->channel.squelch_level > 0) ? p_vfo->channel.squelch_level : g_eeprom.config.setting.squelch_level;
+							sprintf(str, "Q%u", squelch_level);
+							bold = false;
+						}
+
 						#ifdef ENABLE_SMALL_BOLD
-							UI_PrintStringSmallBold(str, x, 0, y);
+							if (bold)
+								UI_PrintStringSmallBold(str, x, 0, y);
+							else
+								UI_PrintStringSmall(str, x, 0, y);
 						#else
 							UI_PrintStringSmall(str, x, 0, y);
 						#endif
@@ -775,9 +787,8 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 
 					x += 7 * 3;
 
-					#if 1  // not quite enough room to fit this in :(
 					{	// step size
-						const uint32_t step = g_vfo_info[vfo_num].step_freq * 10;
+						const uint32_t step = p_vfo->step_freq * 10;
 						if (step < 1000)
 						{	// Hz
 							sprintf(str, "%u", step);
@@ -790,7 +801,6 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 						}
 						UI_PrintStringSmall(str, x, 0, y);
 					}
-					#endif
 				}
 				else
 				{
@@ -816,7 +826,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			}
 			else
 			{
-				const uint32_t frequency = (g_current_function == FUNCTION_TRANSMIT) ? g_vfo_info[vfo_num].p_tx->frequency : g_vfo_info[vfo_num].p_rx->frequency;
+				const uint32_t frequency = (g_current_function == FUNCTION_TRANSMIT) ? p_vfo->p_tx->frequency : p_vfo->p_rx->frequency;
 
 				#if defined(ENABLE_UART) && defined(ENABLE_UART_DEBUG)
 //					UART_printf("%u.%05u MHz\n", frequency / 100000, frequency % 100000);
@@ -878,11 +888,11 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 
 					unsigned int x = LCD_WIDTH - 1 - sizeof(BITMAP_SCANLIST2) - sizeof(BITMAP_SCANLIST1);
 
-					if (g_vfo_info[vfo_num].channel_attributes.scanlist1)
+					if (p_vfo->channel_attributes.scanlist1)
 						memcpy(p_line1 + x, BITMAP_SCANLIST1, sizeof(BITMAP_SCANLIST1));
 					x += sizeof(BITMAP_SCANLIST1);
 
-					if (g_vfo_info[vfo_num].channel_attributes.scanlist2)
+					if (p_vfo->channel_attributes.scanlist2)
 						memcpy(p_line1 + x, BITMAP_SCANLIST2, sizeof(BITMAP_SCANLIST2));
 					//x += sizeof(BITMAP_SCANLIST2);
 				}
@@ -900,7 +910,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 							str[1] = 'I';  // frequency is in the ignore list
 					#endif
 
-					if (g_vfo_info[vfo_num].channel.compand != COMPAND_OFF)
+					if (p_vfo->channel.compand != COMPAND_OFF)
 						str[2] = 'C';  // compander is enabled
 
 					UI_PrintStringSmall(str, LCD_WIDTH - (7 * 3), 0, y + 1);
@@ -911,15 +921,15 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			x = LCD_WIDTH - (7 * 6) - 4;
 
 			// audio scramble symbol
-			if (g_vfo_info[vfo_num].channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
+			if (p_vfo->channel.scrambler > 0 && g_eeprom.config.setting.enable_scrambler)
 				UI_PrintStringSmall("SCR", x, 0, y);
 			x += (7 * 3) + 4;
 
 			{	// bandwidth & modulation mode
 				const char  bw_list[]   = "WNn ";
 				const char *mode_list[] = {"FM", "AM", "SB", ""};
-				str[0] = bw_list[g_vfo_info[vfo_num].channel.channel_bandwidth];
-				strcpy(str + 1, mode_list[g_vfo_info[vfo_num].channel.mod_mode]);
+				str[0] = bw_list[p_vfo->channel.channel_bandwidth];
+				strcpy(str + 1, mode_list[p_vfo->channel.mod_mode]);
 				UI_PrintStringSmall(str, x, 0, y);
 				//x += 7 * 3;
 			}
@@ -931,7 +941,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 				str[0] = 0;
 				if (g_vfo_info[vfo_num].channel.mod_mode == MOD_MODE_FM)
 				{	// show the CTCSS/CDCSS symbol
-					const freq_config_t *pConfig   = (g_current_function == FUNCTION_TRANSMIT) ? g_vfo_info[vfo_num].p_tx : g_vfo_info[vfo_num].p_rx;
+					const freq_config_t *pConfig   = (g_current_function == FUNCTION_TRANSMIT) ? p_vfo->p_tx : p_vfo->p_rx;
 					const unsigned int   code_type = pConfig->code_type;
 					unsigned int         code      = pConfig->code;
 					switch (code_type)
@@ -959,7 +969,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			if (tx_allowed)
 			{	// TX power
 				const char *pwr_list[] = {"LOW", "MID", "HIGH", "U"};
-				const unsigned int i = g_vfo_info[vfo_num].channel.tx_power;
+				const unsigned int i = p_vfo->channel.tx_power;
 				strcpy(str, pwr_list[i]);
 				if (i == OUTPUT_POWER_USER)
 					sprintf(str + strlen(str), "%03u", g_tx_vfo->channel.tx_power_user);
@@ -968,21 +978,21 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			x += 7 * 5;
 
 			// reverse offset symbol
-			if (g_vfo_info[vfo_num].channel.frequency_reverse)
+			if (p_vfo->channel.frequency_reverse)
 				UI_PrintStringSmall("R", x, 0, y);
 			x += 7 * 1;
 
-			//if (g_vfo_info[vfo_num].freq_config_rx.frequency != g_vfo_info[vfo_num].freq_config_tx.frequency)
+			//if (p_vfo->freq_config_rx.frequency != p_vfo->freq_config_tx.frequency)
 			{	// offset direction symbol
 				const char *dir_list[] = {"", "+", "-"};
-				const unsigned int i = g_vfo_info[vfo_num].channel.tx_offset_dir;
+				const unsigned int i = p_vfo->channel.tx_offset_dir;
 				UI_PrintStringSmall(dir_list[i], x, 0, y);
 			}
 			x += 7 * 1;
 
-			if (g_vfo_info[vfo_num].channel.tx_offset_dir != TX_OFFSET_FREQ_DIR_OFF)
+			if (p_vfo->channel.tx_offset_dir != TX_OFFSET_FREQ_DIR_OFF)
 			{	// TX/RX offset frequency
-				const uint32_t ofs = g_vfo_info[vfo_num].channel.tx_offset;
+				const uint32_t ofs = p_vfo->channel.tx_offset;
 				sprintf(str, "%u.%05u", ofs / 100000, ofs % 100000);
 				NUMBER_trim_trailing_zeros(str);
 				UI_PrintStringSmall(str, x, 0, y);
@@ -992,7 +1002,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 			// DTMF decoding symbol
 			#ifdef ENABLE_DTMF_CALLING
 				str[0] = 0;
-				if (g_vfo_info[vfo_num].channel.dtmf_decoding_enable)
+				if (p_vfo->channel.dtmf_decoding_enable)
 					strcpy(str, "DTMF");
 				UI_PrintStringSmall(str, LCD_WIDTH - (7 * 4), 0, y);
 			#endif
