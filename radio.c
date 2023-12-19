@@ -515,35 +515,40 @@ void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 				glitch_open = (glitch_open * 2) / 1;
 			#endif
 
+			// *********
+			// ensure the 'close' threshold is lower than the 'open' threshold
+			// ie, maintain a minimum level of hysteresis
+	
+			rssi_close   = (rssi_open   * 4) / 6;
+			noise_close  = (noise_open  * 6) / 4;
+			glitch_close = (glitch_open * 6) / 4;
+	
+			if (rssi_open  <  8)
+				rssi_open  =  8;
+			if (rssi_close > (rssi_open   - 8))
+				rssi_close =  rssi_open   - 8;
+	
+			if (noise_open  > (127 - 4))
+				noise_open  =  127 - 4;
+			if (noise_close < (noise_open  + 4))
+				noise_close =  noise_open  + 4;
+	
+			if (glitch_open  > (255 - 8))
+				glitch_open  =  255 - 8;
+			if (glitch_close < (glitch_open + 8))
+				glitch_close =  glitch_open + 8;
+
 		#else
 			// more sensitive .. use when RX bandwidths are fixed (no weak signal auto adjust)
+
 			rssi_open   = (rssi_open   * 3) / 4;
 			noise_open  = (noise_open  * 4) / 3;
 			glitch_open = (glitch_open * 4) / 3;
+
+			rssi_close   = (rssi_close   * 3) / 4;
+			noise_close  = (noise_close  * 4) / 3;
+			glitch_close = (glitch_close * 4) / 3;
 		#endif
-
-		// *********
-		// ensure the 'close' threshold is lower than the 'open' threshold
-		// ie, maintain a minimum level of hysteresis
-
-		rssi_close   = (rssi_open   * 4) / 6;
-		noise_close  = (noise_open  * 6) / 4;
-		glitch_close = (glitch_open * 6) / 4;
-
-		if (rssi_open  <  8)
-			rssi_open  =  8;
-		if (rssi_close > (rssi_open   - 8))
-			rssi_close =  rssi_open   - 8;
-
-		if (noise_open  > (127 - 4))
-			noise_open  =  127 - 4;
-		if (noise_close < (noise_open  + 4))
-			noise_close =  noise_open  + 4;
-
-		if (glitch_open  > (255 - 8))
-			glitch_open  =  255 - 8;
-		if (glitch_close < (glitch_open + 8))
-			glitch_close =  glitch_open + 8;
 
 		// *********
 
