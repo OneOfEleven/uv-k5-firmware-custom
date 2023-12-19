@@ -240,21 +240,6 @@ const char g_sub_menu_bat_save[5][9] =
 	"1:4 80%"
 };
 
-const char g_sub_menu_tx_timeout[11][7] =
-{
-	"30 sec",
-	"1 min",
-	"2 min",
-	"3 min",
-	"4 min",
-	"5 min",
-	"6 min",
-	"7 min",
-	"8 min",
-	"9 min",
-	"15 min"
-};
-
 const char g_sub_menu_dual_watch[3][10] =
 {
 	"OFF",
@@ -995,7 +980,23 @@ void UI_DisplayMenu(void)
 			break;
 
 		case MENU_TX_TO:
-			strcpy(str, g_sub_menu_tx_timeout[g_sub_menu_selection]);
+			{
+				const uint16_t ticks_500ms = tx_timeout_secs[g_sub_menu_selection];
+				const unsigned int min = ticks_500ms / 60;
+				const unsigned int sec = ticks_500ms % 60;
+				if (sec > 0)
+				{
+					if (min > 0)
+						sprintf(str, "%um %us", min, sec);
+					else
+						sprintf(str, "%u sec", sec);
+				}
+				else
+				if (min > 0)
+					sprintf(str, "%u min", min);
+				else
+					strcat(str, "off");
+			}
 			break;
 
 		#ifdef ENABLE_VOICE

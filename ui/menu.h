@@ -193,7 +193,6 @@ extern const char         g_sub_menu_shift_dir[3][4];
 extern const char         g_sub_menu_bandwidth[2][7];
 extern const char         g_sub_menu_off_on[2][4];
 extern const char         g_sub_menu_bat_save[5][9];
-extern const char         g_sub_menu_tx_timeout[11][7];
 extern const char         g_sub_menu_dual_watch[3][10];
 extern const char         g_sub_menu_cross_vfo[3][10];
 #ifdef ENABLE_VOICE

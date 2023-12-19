@@ -189,13 +189,7 @@ void FUNCTION_Select(function_type_t Function)
 				if (g_alarm_state == ALARM_STATE_OFF)
 			#endif
 			{
-				if (g_eeprom.config.setting.tx_timeout == 0)
-					g_tx_timer_tick_500ms = 60;   // 30 sec
-				else
-				if (g_eeprom.config.setting.tx_timeout < (ARRAY_SIZE(g_sub_menu_tx_timeout) - 1))
-					g_tx_timer_tick_500ms = 120 * g_eeprom.config.setting.tx_timeout;  // minutes
-				else
-					g_tx_timer_tick_500ms = 120 * 15;  // 15 minutes
+				g_tx_timer_tick_500ms = tx_timeout_secs[g_eeprom.config.setting.tx_timeout] * 2;
 			}
 
 			if (g_eeprom.config.setting.backlight_on_tx_rx == 1 || g_eeprom.config.setting.backlight_on_tx_rx == 3)

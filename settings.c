@@ -144,7 +144,7 @@ void SETTINGS_read_eeprom(void)
 
 	g_eeprom.config.setting.call1            = IS_USER_CHANNEL(g_eeprom.config.setting.call1)  ? g_eeprom.config.setting.call1 : USER_CHANNEL_FIRST;
 	g_eeprom.config.setting.squelch_level    = (g_eeprom.config.setting.squelch_level < 10)    ? g_eeprom.config.setting.squelch_level : 1;
-	g_eeprom.config.setting.tx_timeout       = (g_eeprom.config.setting.tx_timeout < 11)       ? g_eeprom.config.setting.tx_timeout : 1;
+	g_eeprom.config.setting.tx_timeout       = (g_eeprom.config.setting.tx_timeout < ARRAY_SIZE(tx_timeout_secs)) ? ARRAY_SIZE(tx_timeout_secs) : 1;
 	g_eeprom.config.setting.noaa_auto_scan   = (g_eeprom.config.setting.noaa_auto_scan < 2)    ? g_eeprom.config.setting.noaa_auto_scan : 0;
 #ifdef ENABLE_KEYLOCK
 	g_eeprom.config.setting.key_lock         = (g_eeprom.config.setting.key_lock < 2)          ? g_eeprom.config.setting.key_lock : 0;

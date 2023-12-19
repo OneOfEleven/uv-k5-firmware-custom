@@ -283,7 +283,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_TX_TO:
 			*pMin = 0;
-			*pMax = ARRAY_SIZE(g_sub_menu_tx_timeout) - 1;
+			*pMax = ARRAY_SIZE(tx_timeout_secs) - 1;
 			break;
 
 		#ifdef ENABLE_VOX

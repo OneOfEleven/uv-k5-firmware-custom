@@ -123,6 +123,8 @@ typedef enum scan_state_dir_e scan_state_dir_t;
 
 extern const uint8_t         obfuscate_array[16];
 
+extern const uint16_t        tx_timeout_secs[16];
+
 extern const uint8_t         fm_resume_500ms;
 extern const uint8_t         fm_radio_500ms;
 extern const uint16_t        fm_play_scan_10ms;
