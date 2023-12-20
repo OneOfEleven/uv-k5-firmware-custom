@@ -715,6 +715,10 @@ void UI_DisplayMenu(void)
 
 		case MENU_SCRAMBLER:
 			strcpy(str, "INVERT\n");
+
+			if (g_eeprom.config.setting.enable_scrambler == 0)
+				strcat(str, "DISABLED");
+			else
 			if (g_sub_menu_selection == 0)
 				strcat(str, "OFF");
 			else
@@ -726,6 +730,7 @@ void UI_DisplayMenu(void)
 				else
 					BK4819_set_scrambler(0);
 			#endif
+
 			channel_setting = true;
 			break;
 

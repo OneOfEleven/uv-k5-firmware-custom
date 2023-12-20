@@ -278,7 +278,7 @@ int MENU_GetLimits(uint8_t Cursor, int32_t *pMin, int32_t *pMax)
 
 		case MENU_SCRAMBLER:
 			*pMin = 0;
-			*pMax = 31;
+			*pMax = g_eeprom.config.setting.enable_scrambler ? 31 : 0;
 			break;
 
 		case MENU_TX_TO:
@@ -531,14 +531,22 @@ void MENU_AcceptSetting(void)
 			return;
 
 		case MENU_SCRAMBLER:
-			g_tx_vfo->channel.scrambler = g_sub_menu_selection;
-			#if 0
-				if (g_eeprom.config.setting.enable_scrambler)
-					BK4819_set_scrambler(g_tx_vfo->channel.scrambler);
-				else
-					BK4819_set_scrambler(0);
-			#endif
-			g_request_save_channel = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
+			if (g_eeprom.config.setting.enable_scrambler)
+			{
+				g_tx_vfo->channel.scrambler = g_sub_menu_selection;
+				#if 0
+					if (g_eeprom.config.setting.enable_scrambler)
+						BK4819_set_scrambler(g_tx_vfo->channel.scrambler);
+					else
+						BK4819_set_scrambler(0);
+				#endif
+				g_request_save_channel = IS_FREQ_CHANNEL(g_tx_vfo->channel_save) ? 2 : 1;
+			}
+			else
+			{
+				g_tx_vfo->channel.scrambler = 0;
+				BK4819_set_scrambler(0);
+			}
 			return;
 
 		case MENU_BUSY_CHAN_LOCK:

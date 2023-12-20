@@ -539,7 +539,7 @@ void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 				glitch_close =  glitch_open + 8;
 
 		#else
-			// more sensitive .. use when RX bandwidths are fixed (no weak signal auto adjust)
+			// a little more sensitive
 
 			rssi_open   = (rssi_open   * 3) / 4;
 			noise_open  = (noise_open  * 4) / 3;
