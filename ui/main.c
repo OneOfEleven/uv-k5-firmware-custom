@@ -761,7 +761,10 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 					x += 7 * 5;
 
 					{	// RX or TX or state message
-						bool bold = true;
+						#ifdef ENABLE_SMALL_BOLD
+							bool bold = true;
+						#endif
+
 						str[0] = 0;
 						if (g_current_function == FUNCTION_TRANSMIT)
 							strcpy(str, "TX");
@@ -772,7 +775,9 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 						{
 							const unsigned int squelch_level = (p_vfo->channel.squelch_level > 0) ? p_vfo->channel.squelch_level : g_eeprom.config.setting.squelch_level;
 							sprintf(str, "Q%u", squelch_level);
-							bold = false;
+							#ifdef ENABLE_SMALL_BOLD
+								bold = false;
+							#endif
 						}
 
 						#ifdef ENABLE_SMALL_BOLD
