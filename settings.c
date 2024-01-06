@@ -134,6 +134,8 @@ void SETTINGS_read_eeprom(void)
 			if (g_eeprom.config.channel[index].tx_power_user == 0)
 				g_eeprom.config.channel[index].tx_power_user = 8;
 
+			if (g_eeprom.config.channel[index].squelch_level > 9)
+				g_eeprom.config.channel[index].squelch_level = 0;
 
 		}
 	}
