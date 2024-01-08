@@ -98,7 +98,7 @@ void BK4819_Init(void)
 
 	// squelch mode
 //	BK4819_write_reg(0x77, 0x88EF);     // rssi + noise + glitch .. RT-890
-	BK4819_write_reg(0x77, 0xA8EF);     // rssi + noise + glitch .. default
+//	BK4819_write_reg(0x77, 0xA8EF);     // rssi + noise + glitch .. default
 //	BK4819_write_reg(0x77, 0xAAEF);     // rssi + glitch
 //	BK4819_write_reg(0x77, 0xCCEF);     // rssi + noise
 //	BK4819_write_reg(0x77, 0xFFEF);     // rssi
@@ -676,7 +676,7 @@ void BK4819_SetupSquelch(
 	//
 	// <7:0>  70 RSSI threshold for Squelch = close   0.5dB/step
 	//
-	BK4819_write_reg(0x78, ((uint16_t)squelch_open_rssi_thresh   << 8) | squelch_close_rssi_thresh);
+	BK4819_write_reg(0x78, ((uint16_t)squelch_open_rssi_thresh << 8) | squelch_close_rssi_thresh);
 
 	BK4819_SetAF(BK4819_AF_MUTE);
 

@@ -174,15 +174,24 @@ bool UI_DisplayRSSIBar(const int rssi, const unsigned int glitch, const unsigned
 	{
 		#ifdef SHOW_RX_TEST_VALUES
 
-			const unsigned int line  = 3;
-			char               str[22];
+			#ifdef ENABLE_SINGLE_VFO_CHAN
+				const unsigned int line = (single_vfo >= 0 && !pan_enabled) ? 6 : 3;
+			#else
+				const unsigned int line = 3;
+			#endif
+
+			char str[22];
 
 			#ifdef ENABLE_KEYLOCK
 				if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
 					return false;     // display is in use
 			#endif
 
-			if (g_current_function == FUNCTION_TRANSMIT || g_current_display_screen != DISPLAY_MAIN || g_dtmf_call_state != DTMF_CALL_STATE_NONE)
+			if (g_current_function == FUNCTION_TRANSMIT  ||
+			    #ifdef ENABLE_DTMF_CALLING
+			         g_dtmf_call_state != DTMF_CALL_STATE_NONE ||
+			    #endif
+			    g_current_display_screen != DISPLAY_MAIN)
 				return false;     // display is in use
 
 			if (now)
@@ -221,12 +230,12 @@ bool UI_DisplayRSSIBar(const int rssi, const unsigned int glitch, const unsigned
 			const unsigned int len          = ((clamped_dBm - bar_min_dBm) * bar_width) / bar_range_dB;
 
 			#ifdef ENABLE_SINGLE_VFO_CHAN
-				const unsigned int line     = (single_vfo >= 0 && !pan_enabled) ? 6 : 3;
+				const unsigned int line = (single_vfo >= 0 && !pan_enabled) ? 6 : 3;
 			#else
-				const unsigned int line     = 3;
+				const unsigned int line = 3;
 			#endif
 
-			char               s[16];
+			char s[16];
 
 			#ifdef ENABLE_KEYLOCK
 				if (g_eeprom.config.setting.key_lock && g_keypad_locked > 0)
@@ -279,12 +288,15 @@ void UI_update_rssi(const int rssi, const unsigned int glitch, const unsigned in
 
 	if (g_center_line == CENTER_LINE_RSSI)
 	{	// large RSSI dBm, S-point, bar level
-
-		const int rssi_level = (g_tx_vfo->channel_attributes.band < 3) ? rssi + rssi_offset_band_123 : rssi + rssi_offset_band_4567;
-
-		//if (g_current_function == FUNCTION_RECEIVE && g_squelch_open)
-		if (g_current_function == FUNCTION_RECEIVE)
-			UI_DisplayRSSIBar(rssi_level, glitch, noise, true);
+		#ifdef SHOW_RX_TEST_VALUES
+			if (g_current_function != FUNCTION_TRANSMIT)
+				UI_DisplayRSSIBar(rssi, glitch, noise, true);
+		#else
+			const int rssi_level = (g_tx_vfo->channel_attributes.band < 3) ? rssi + rssi_offset_band_123 : rssi + rssi_offset_band_4567;
+			//if (g_current_function == FUNCTION_RECEIVE && g_squelch_open)
+				if (g_current_function == FUNCTION_RECEIVE)
+					UI_DisplayRSSIBar(rssi_level, glitch, noise, true);
+		#endif
 	}
 
 	#ifdef ENABLE_SINGLE_VFO_CHAN
@@ -585,13 +597,22 @@ void UI_DisplayCenterLine(void)
 	#endif
 
 	// show the RX RSSI dBm, S-point and signal strength bar graph
-	if (rx && g_eeprom.config.setting.enable_rssi_bar)
-	{
-		const int rssi_level = (g_tx_vfo->channel_attributes.band < 3) ? g_current_rssi[g_rx_vfo_num] + rssi_offset_band_123 : g_current_rssi[g_rx_vfo_num] + rssi_offset_band_4567;
-		g_center_line = CENTER_LINE_RSSI;
-		UI_DisplayRSSIBar(rssi_level, g_current_glitch[g_rx_vfo_num], g_current_noise[g_rx_vfo_num], false);
-	}
-	else
+	#ifdef SHOW_RX_TEST_VALUES
+		if (g_eeprom.config.setting.enable_rssi_bar)
+		{
+			g_center_line = CENTER_LINE_RSSI;
+			UI_DisplayRSSIBar(g_current_rssi[g_rx_vfo_num], g_current_glitch[g_rx_vfo_num], g_current_noise[g_rx_vfo_num], false);
+		}
+		else
+	#else
+		if (rx && g_eeprom.config.setting.enable_rssi_bar)
+		{
+			const int rssi_level = (g_tx_vfo->channel_attributes.band < 3) ? g_current_rssi[g_rx_vfo_num] + rssi_offset_band_123 : g_current_rssi[g_rx_vfo_num] + rssi_offset_band_4567;
+			g_center_line = CENTER_LINE_RSSI;
+			UI_DisplayRSSIBar(rssi_level, g_current_glitch[g_rx_vfo_num], g_current_noise[g_rx_vfo_num], false);
+		}
+		else
+	#endif
 
 	if (rx || g_current_function == FUNCTION_FOREGROUND || g_current_function == FUNCTION_POWER_SAVE)
 	{
@@ -773,7 +794,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 							strcpy(str, "RX");
 						else
 						{
-							const unsigned int squelch_level = (p_vfo->channel.squelch_level > 0) ? p_vfo->channel.squelch_level : g_eeprom.config.setting.squelch_level;
+							const unsigned int squelch_level = (p_vfo->channel.squelch_level > 0 && p_vfo->channel.squelch_level < 10) ? p_vfo->channel.squelch_level : g_eeprom.config.setting.squelch_level;
 							sprintf(str, "Q%u", squelch_level);
 							#ifdef ENABLE_SMALL_BOLD
 								bold = false;
@@ -869,7 +890,7 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 						#ifdef ENABLE_SHOW_FREQ_IN_CHAN
 							UI_PrintString(str, x, 0, y, 8);
 
-							if (IS_FREQ_CHANNEL(scrn_chan) && freq_in_channel <= USER_CHANNEL_LAST)
+							if (freq_in_channel <= USER_CHANNEL_LAST)
 							{
 								SETTINGS_fetch_channel_name(str, freq_in_channel);
 								if (str[0] == 0)
@@ -881,7 +902,23 @@ const char *state_list[] = {"", "BUSY", "BAT LOW", "TX DISABLE", "TIMEOUT", "ALA
 						#else
 							UI_PrintString(str, x, 0, y + 1, 8);
 						#endif
+/*
+						#ifdef SHOW_RX_TEST_VALUES
+						{
+							const uint8_t ro = (BK4819_read_reg(0x78) >> 8) & 0xff;
+							const uint8_t rc = BK4819_read_reg(0x78) & 0xff;
 
+							const uint8_t no = BK4819_read_reg(0x4F) & 0x7f;
+							const uint8_t nc = (BK4819_read_reg(0x4F) >> 8) & 0x7f;
+
+							const uint8_t go = BK4819_read_reg(0x4E) & 0xff;
+							const uint8_t gc = BK4819_read_reg(0x4D) & 0xff;
+
+							sprintf(str, "%02X %02X %02X %02X %02X %02X", ro, rc, no, nc, go, gc);
+							UI_PrintStringSmall(str, 0, 0, y + 3);
+						}
+						#endif
+*/
 					#endif
 				}
 

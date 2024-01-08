@@ -957,6 +957,7 @@ void APP_process_radio_interrupts(void)
 //		{	// VOX
 //		}
 
+#if 0
 		if (reg_c & (1u << 1))
 		{	// squelch is open
 			if (!g_squelch_open)
@@ -988,6 +989,7 @@ void APP_process_radio_interrupts(void)
 				g_update_display = true;
 			}
 		}
+#endif
 
 //		#ifdef ENABLE_CTCSS_TAIL_PHASE_SHIFT
 //			if (((reg_c >> 12) & 3u) > 0)
@@ -1149,7 +1151,8 @@ void APP_process_radio_interrupts(void)
 				#endif
 			}
 		#endif
-/*
+
+#if 1
 		if (int_bits & BK4819_REG_02_SQUELCH_CLOSED)
 		{
 			g_squelch_open = false;
@@ -1185,7 +1188,8 @@ void APP_process_radio_interrupts(void)
 
 			g_update_display = true;
 		}
-*/
+#endif
+
 		#ifdef ENABLE_MDC1200
 			MDC1200_process_rx(int_bits);
 		#endif

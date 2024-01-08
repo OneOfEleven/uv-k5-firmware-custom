@@ -438,9 +438,19 @@ void RADIO_configure_channel(const unsigned int VFO, const unsigned int configur
 
 void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 {
-	const unsigned int squelch_level = (p_vfo->channel.squelch_level > 0) ? p_vfo->channel.squelch_level : g_eeprom.config.setting.squelch_level;
+	const unsigned int squelch_level = (p_vfo->channel.squelch_level > 0 && p_vfo->channel.squelch_level < 10) ? p_vfo->channel.squelch_level : g_eeprom.config.setting.squelch_level;
 
 	// note that 'noise' and 'glitch' values are inverted compared to 'rssi' values
+
+	// peters readings, all on 156.550
+	//
+	//  no antenna           no signal    r 53         g 83     n 73
+	// signal generator -100dBm signal    r 114        g 0      n 17
+	// signal generator -110dBm signal    r 95         g 0      n 32
+	// signal generator -120dBm signal    r 75         g 0      n 34
+	//
+	// ext antenna           no signal    r 93~133     g 150    n 78
+	// ext antenna       strong signal    r 123~160    g 0      n 16~18
 
 	if (squelch_level == 0)
 	{	// squelch == 0 (off)
@@ -459,20 +469,20 @@ void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 		// my calibration data
 		//
 		// bands 4567
-		// 0A 4B 53 56 59 5C 5F 62 64 66 FF FF FF FF FF FF   // open rssi
-		// 05 46 50 53 56 59 5C 5F 62 64 FF FF FF FF FF FF   // close rssi
-		// 5A 2D 29 26 23 20 1D 1A 17 14 FF FF FF FF FF FF   // open noise
-		// 64 30 2D 29 26 23 20 1D 1A 17 FF FF FF FF FF FF   // close noise
-		// 5A 14 11 0E 0B 08 03 02 02 02 FF FF FF FF FF FF   // open glitch
-		// 64 11 0E 0B 08 05 05 04 04 04 FF FF FF FF FF FF   // close glitch
+		// 0A 4B 53 56 59 5C 5F 62 64 66    FF FF FF FF FF FF   // open rssi
+		// 05 46 50 53 56 59 5C 5F 62 64    FF FF FF FF FF FF   // close rssi
+		// 5A 2D 29 26 23 20 1D 1A 17 14    FF FF FF FF FF FF   // open noise
+		// 64 30 2D 29 26 23 20 1D 1A 17    FF FF FF FF FF FF   // close noise
+		// 5A 14 11 0E 0B 08 03 02 02 02    FF FF FF FF FF FF   // open glitch
+		// 64 11 0E 0B 08 05 05 04 04 04    FF FF FF FF FF FF   // close glitch
 		//
 		// bands 123
-		// 32 68 6B 6E 6F 72 75 77 79 7B FF FF FF FF FF FF   // open rssi
-		// 28 64 67 6A 6C 6E 71 73 76 78 FF FF FF FF FF FF   // close rssi
-		// 41 32 2D 28 24 21 1E 1A 17 16 FF FF FF FF FF FF   // open noise
-		// 46 37 32 2D 28 25 22 1E 1B 19 FF FF FF FF FF FF   // close noise
-		// 5A 19 0F 0A 09 08 07 06 05 04 FF FF FF FF FF FF   // open glitch
-		// 64 1E 14 0F 0D 0C 0B 0A 09 08 FF FF FF FF FF FF   // close glitch
+		// 32 68 6B 6E 6F 72 75 77 79 7B    FF FF FF FF FF FF   // open rssi
+		// 28 64 67 6A 6C 6E 71 73 76 78    FF FF FF FF FF FF   // close rssi
+		// 41 32 2D 28 24 21 1E 1A 17 16    FF FF FF FF FF FF   // open noise
+		// 46 37 32 2D 28 25 22 1E 1B 19    FF FF FF FF FF FF   // close noise
+		// 5A 19 0F 0A 09 08 07 06 05 04    FF FF FF FF FF FF   // open glitch
+		// 64 1E 14 0F 0D 0C 0B 0A 09 08    FF FF FF FF FF FF   // close glitch
 
 		unsigned int band = (unsigned int)FREQUENCY_GetBand(p_vfo->p_rx->frequency);
 		band = (band < BAND4_174MHz) ? 1 : 0;
@@ -518,21 +528,21 @@ void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 			// *********
 			// ensure the 'close' threshold is lower than the 'open' threshold
 			// ie, maintain a minimum level of hysteresis
-	
+
 			rssi_close   = (rssi_open   * 4) / 6;
 			noise_close  = (noise_open  * 6) / 4;
 			glitch_close = (glitch_open * 6) / 4;
-	
+
 			if (rssi_open  <  8)
 				rssi_open  =  8;
 			if (rssi_close > (rssi_open   - 8))
 				rssi_close =  rssi_open   - 8;
-	
+
 			if (noise_open  > (127 - 4))
 				noise_open  =  127 - 4;
 			if (noise_close < (noise_open  + 4))
 				noise_close =  noise_open  + 4;
-	
+
 			if (glitch_open  > (255 - 8))
 				glitch_open  =  255 - 8;
 			if (glitch_close < (glitch_open + 8))
@@ -540,7 +550,7 @@ void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 
 		#else
 			// a little more sensitive
-
+/*
 			rssi_open   = (rssi_open   * 3) / 4;
 			noise_open  = (noise_open  * 4) / 3;
 			glitch_open = (glitch_open * 4) / 3;
@@ -548,6 +558,7 @@ void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 			rssi_close   = (rssi_close   * 3) / 4;
 			noise_close  = (noise_close  * 4) / 3;
 			glitch_close = (glitch_close * 4) / 3;
+*/
 		#endif
 
 		// *********

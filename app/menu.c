@@ -433,7 +433,7 @@ void MENU_AcceptSetting(void)
 		case MENU_SQL:
 			g_eeprom.config.setting.squelch_level = g_sub_menu_selection;
 			RADIO_ConfigureSquelch(g_tx_vfo);
-			g_vfo_configure_mode   = VFO_CONFIGURE;
+			g_vfo_configure_mode = VFO_CONFIGURE;
 			break;
 
 		case MENU_CHAN_SQL:
