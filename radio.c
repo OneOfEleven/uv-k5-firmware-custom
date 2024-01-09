@@ -551,13 +551,13 @@ void RADIO_ConfigureSquelch(vfo_info_t *p_vfo)
 		#else
 			// a bit more sensitive
 
-			rssi_open   = (rssi_open   * 1) / 3;
-			noise_open  = (noise_open  * 3) / 1;
-			glitch_open = (glitch_open * 3) / 1;
+			rssi_open   = (rssi_open   * 1) / 2;
+			noise_open  = (noise_open  * 2) / 1;
+			glitch_open = (glitch_open * 2) / 1;
 
-			rssi_close   = (rssi_close   * 1) / 3;
-			noise_close  = (noise_close  * 3) / 1;
-			glitch_close = (glitch_close * 3) / 1;
+			rssi_close   = (rssi_close   * 1) / 2;
+			noise_close  = (noise_close  * 2) / 1;
+			glitch_close = (glitch_close * 2) / 1;
 
 		#endif
 
