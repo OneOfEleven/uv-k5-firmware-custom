@@ -96,7 +96,7 @@ void BK4819_Init(void)
 		(58u <<  4) |     // AF Rx Gain-2
 		( 8u <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
 
-	// squelch mode
+	// squelch mode - DO NOT USE THESE, THEY MESS UP THE SQUELCH :(
 //	BK4819_write_reg(0x77, 0x88EF);     // rssi + noise + glitch .. RT-890
 //	BK4819_write_reg(0x77, 0xA8EF);     // rssi + noise + glitch .. default
 //	BK4819_write_reg(0x77, 0xAAEF);     // rssi + glitch
@@ -597,7 +597,7 @@ void BK4819_SetupSquelch(
 		uint8_t squelch_close_glitch_thresh,
 		uint8_t squelch_open_glitch_thresh)
 {
-	// squelch mode
+	// squelch mode - DO NOT USE THESE, THEY MESS UP THE SQUELCH :(
 //	BK4819_write_reg(0x77, 0x88EF);     // rssi + noise + glitch .. RT-890
 //	BK4819_write_reg(0x77, 0xA8EF);     // rssi + noise + glitch .. default
 //	BK4819_write_reg(0x77, 0xAAEF);     // rssi + glitch
