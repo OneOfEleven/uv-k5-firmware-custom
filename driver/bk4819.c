@@ -444,9 +444,14 @@ void BK4819_set_TX_deviation(uint16_t deviation)
 //	const uint8_t scrambler = (BK4819_read_reg(0x31) >> 1) & 1u;
 //	if (scrambler)
 //		deviation -= 200;
+
+#if 0
 	if (deviation > 4095)
 		deviation = 4095;
 	BK4819_write_reg(0x40, (3u << 12) | deviation);   // deviaion 0 ~ 4095
+#else
+	(void)deviation;
+#endif
 }
 
 void BK4819_SetFilterBandwidth(const BK4819_filter_bandwidth_t Bandwidth)
